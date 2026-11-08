@@ -1,0 +1,607 @@
+{
+  "version": 1,
+  "reference": "AKMenu-compatible association conventions",
+  "application_directory": "_nds/akmenunext/plugins/apps",
+  "rom_directories": [
+    "roms/Amstrad CPC",
+    "roms/Atari",
+    "roms/Atari/2600",
+    "roms/Atari/5200",
+    "roms/Atari/7800",
+    "roms/Atari/8-bit",
+    "roms/Atari/Lynx",
+    "roms/ColecoVision",
+    "roms/Commodore 64",
+    "roms/DSiWare",
+    "roms/Dragon 32",
+    "roms/Game Boy",
+    "roms/Game Boy Advance",
+    "roms/Game Boy Color",
+    "roms/Game Gear",
+    "roms/Genesis",
+    "roms/Homebrew Games",
+    "roms/Intellivision",
+    "roms/MSX",
+    "roms/MSX2",
+    "roms/Master System",
+    "roms/NES",
+    "roms/Neo Geo Pocket",
+    "roms/Nintendo DS",
+    "roms/PC Engine",
+    "roms/Pokemon Mini",
+    "roms/SG-1000",
+    "roms/SNES",
+    "roms/ScummVM",
+    "roms/Sord M5",
+    "roms/TI99",
+    "roms/Tandy CoCo",
+    "roms/Tandy MC-10",
+    "roms/Watara Supervision",
+    "roms/WonderSwan",
+    "roms/ZX Spectrum",
+    "roms/bios"
+  ],
+  "collections": [
+    {
+      "folder": "roms",
+      "application": "Console games and homebrew games.",
+      "formats": ""
+    },
+    {
+      "folder": "roms/Nintendo DS",
+      "application": "Native DS/DSi backend (launching pending)",
+      "formats": ".nds"
+    },
+    {
+      "folder": "roms/DSiWare",
+      "application": "Native DS/DSi backend (launching pending)",
+      "formats": ".nds, .dsi"
+    },
+    {
+      "folder": "roms/Game Boy",
+      "application": "GameYob",
+      "formats": ".gb, .sgb"
+    },
+    {
+      "folder": "roms/Game Boy Color",
+      "application": "GameYob",
+      "formats": ".gbc"
+    },
+    {
+      "folder": "roms/Game Boy Advance",
+      "application": "GBARunner3",
+      "formats": ".gba"
+    },
+    {
+      "folder": "roms/NES",
+      "application": "nesDS",
+      "formats": ".nes, .fds"
+    },
+    {
+      "folder": "roms/SNES",
+      "application": "SNEmulDS through the prepared launcher",
+      "formats": ".sfc, .smc"
+    },
+    {
+      "folder": "roms/Genesis",
+      "application": "PicoDriveTWL",
+      "formats": ".md, .gen"
+    },
+    {
+      "folder": "roms/Master System",
+      "application": "S8DS",
+      "formats": ".sms"
+    },
+    {
+      "folder": "roms/Game Gear",
+      "application": "S8DS",
+      "formats": ".gg"
+    },
+    {
+      "folder": "roms/SG-1000",
+      "application": "S8DS",
+      "formats": ".sg"
+    },
+    {
+      "folder": "roms/PC Engine",
+      "application": "NitroGrafx",
+      "formats": ".pce cartridge files"
+    },
+    {
+      "folder": "roms/Pokemon Mini",
+      "application": "PokeMini",
+      "formats": ".min"
+    },
+    {
+      "folder": "roms/WonderSwan",
+      "application": "NitroSwan",
+      "formats": ".ws, .wsc"
+    },
+    {
+      "folder": "roms/Neo Geo Pocket",
+      "application": "NGPDS",
+      "formats": ".ngp, .ngc"
+    },
+    {
+      "folder": "roms/Atari/2600",
+      "application": "StellaDS",
+      "formats": ".a26"
+    },
+    {
+      "folder": "roms/Atari/5200",
+      "application": "A5200DS",
+      "formats": ".a52"
+    },
+    {
+      "folder": "roms/Atari/7800",
+      "application": "A7800DS",
+      "formats": ".a78"
+    },
+    {
+      "folder": "roms/Atari/8-bit",
+      "application": "A8DS",
+      "formats": ".atr, .xex"
+    },
+    {
+      "folder": "roms/Atari/Lynx",
+      "application": "LodjurDS",
+      "formats": ".lnx"
+    },
+    {
+      "folder": "roms/ColecoVision",
+      "application": "ColecoDS",
+      "formats": ".col"
+    },
+    {
+      "folder": "roms/Intellivision",
+      "application": "Nintellivision / NINTV-DS",
+      "formats": ".int"
+    },
+    {
+      "folder": "roms/MSX",
+      "application": "ColecoDS, for MSX1",
+      "formats": ".msx"
+    },
+    {
+      "folder": "roms/Sord M5",
+      "application": "ColecoDS",
+      "formats": ".m5"
+    },
+    {
+      "folder": "roms/ZX Spectrum",
+      "application": "SpeccySE",
+      "formats": ".z80, .tap, .tzx"
+    },
+    {
+      "folder": "roms/TI99",
+      "application": "DS994a",
+      "formats": ".rpk; some games also need matching disk files"
+    },
+    {
+      "folder": "roms/Amstrad CPC",
+      "application": "SugarDS",
+      "formats": ".dsk, compatible .cpr, .dan"
+    },
+    {
+      "folder": "roms/Tandy CoCo",
+      "application": "DracoDS",
+      "formats": ".ccc cartridges, .cas tapes"
+    },
+    {
+      "folder": "roms/Dragon 32",
+      "application": "DracoDS",
+      "formats": ".ccc cartridges, .cas tapes"
+    },
+    {
+      "folder": "roms/Tandy MC-10",
+      "application": "MicroDS",
+      "formats": ".c10 tapes; optional Alice .k7 tapes"
+    },
+    {
+      "folder": "roms/Watara Supervision",
+      "application": "WasabiDS",
+      "formats": ".sv cartridges"
+    },
+    {
+      "folder": "roms/Commodore 64",
+      "application": "GimliDS, prepared direct loader",
+      "formats": ".d64, .crt, .prg"
+    },
+    {
+      "folder": "roms/MSX2",
+      "application": "Hachibitto, prepared direct loader",
+      "formats": ".mx2 cartridges, .mxd disks"
+    },
+    {
+      "folder": "roms/ScummVM",
+      "application": "ScummVM",
+      "formats": "ScummVM.nds launcher; game data lives in data/scummvm/games/"
+    },
+    {
+      "folder": "apps/Homebrew Apps",
+      "application": "Homebrew application/utility",
+      "formats": ".nds, .dsi, supported native containers"
+    },
+    {
+      "folder": "roms/Homebrew Games",
+      "application": "Homebrew game",
+      "formats": ".nds, .dsi, supported native containers"
+    },
+    {
+      "folder": "media/music",
+      "application": "DSXP",
+      "formats": ".mp3"
+    },
+    {
+      "folder": "media/videos",
+      "application": "tuna-vids / FastVideoDS / RocketVideoPlayer",
+      "formats": ".avi / .fv / .rvid, converted for the matching player"
+    },
+    {
+      "folder": "media/books",
+      "application": "Reader application (manual)",
+      "formats": ".epub; no argv association configured by default"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "a5200ds",
+      "application_name": "A5200DS",
+      "extensions": [
+        "a52"
+      ],
+      "settings": {
+        "argv": "1",
+        "path": "_nds/akmenunext/plugins/apps/A5200DS.nds"
+      }
+    },
+    {
+      "id": "a7800ds",
+      "application_name": "A7800DS",
+      "extensions": [
+        "a78"
+      ],
+      "settings": {
+        "argv": "1",
+        "path": "_nds/akmenunext/plugins/apps/A7800DS.nds"
+      }
+    },
+    {
+      "id": "a8ds",
+      "application_name": "A8DS",
+      "extensions": [
+        "atr",
+        "xex"
+      ],
+      "settings": {
+        "argv": "1",
+        "path": "_nds/akmenunext/plugins/apps/A8DS.nds"
+      }
+    },
+    {
+      "id": "colecods",
+      "application_name": "ColecoDS",
+      "extensions": [
+        "col",
+        "m5",
+        "msx"
+      ],
+      "settings": {
+        "argv": "1",
+        "path": "_nds/akmenunext/plugins/apps/ColecoDS.nds"
+      }
+    },
+    {
+      "id": "dracods",
+      "application_name": "DracoDS",
+      "extensions": [
+        "cas",
+        "ccc"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/DracoDS.nds"
+      }
+    },
+    {
+      "id": "ds994a",
+      "application_name": "DS994a",
+      "extensions": [
+        "rpk"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/DS994a.nds"
+      }
+    },
+    {
+      "id": "dsxp",
+      "application_name": "DSXP",
+      "extensions": [
+        "mp3"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/DSXP.nds"
+      }
+    },
+    {
+      "id": "fastvideods",
+      "application_name": "FastVideoDS",
+      "extensions": [
+        "fv"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/FastVideoDS.nds"
+      }
+    },
+    {
+      "id": "gameyob-dsi",
+      "application_name": "gameyob_dsi",
+      "extensions": [
+        "gb",
+        "gbc",
+        "sgb"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "dsipath": "_nds/akmenunext/plugins/apps/gameyob_dsi.nds",
+        "ntrpath": "_nds/akmenunext/plugins/apps/gameyob.nds",
+        "path": "_nds/akmenunext/plugins/apps/gameyob_dsi.nds"
+      }
+    },
+    {
+      "id": "gbarunner3",
+      "application_name": "GBARunner3",
+      "extensions": [
+        "gba"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/GBARunner3.nds"
+      }
+    },
+    {
+      "id": "gimlids",
+      "application_name": "GimliDS",
+      "extensions": [
+        "crt",
+        "d64",
+        "prg"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/GimliDS.nds"
+      }
+    },
+    {
+      "id": "hachibitto",
+      "application_name": "Hachibitto",
+      "extensions": [
+        "mx2",
+        "mxd"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/Hachibitto.nds"
+      }
+    },
+    {
+      "id": "lodjurds",
+      "application_name": "LodjurDS",
+      "extensions": [
+        "lnx"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/LodjurDS.nds"
+      }
+    },
+    {
+      "id": "microds",
+      "application_name": "MicroDS",
+      "extensions": [
+        "c10",
+        "k7"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/MicroDS.nds"
+      }
+    },
+    {
+      "id": "nesds",
+      "application_name": "nesDS",
+      "extensions": [
+        "fds",
+        "nes"
+      ],
+      "settings": {
+        "argv": "1",
+        "path": "_nds/akmenunext/plugins/apps/nesDS.nds"
+      }
+    },
+    {
+      "id": "ngpds",
+      "application_name": "NGPDS",
+      "extensions": [
+        "ngc",
+        "ngp"
+      ],
+      "settings": {
+        "argv": "1",
+        "path": "_nds/akmenunext/plugins/apps/NGPDS.nds"
+      }
+    },
+    {
+      "id": "nintv-ds",
+      "application_name": "NINTV-DS",
+      "extensions": [
+        "int"
+      ],
+      "settings": {
+        "argv": "1",
+        "path": "_nds/akmenunext/plugins/apps/NINTV-DS.nds"
+      }
+    },
+    {
+      "id": "nitrografx",
+      "application_name": "NitroGrafx",
+      "extensions": [
+        "pce"
+      ],
+      "settings": {
+        "argv": "1",
+        "path": "_nds/akmenunext/plugins/apps/NitroGrafx.nds"
+      }
+    },
+    {
+      "id": "nitroswan",
+      "application_name": "NitroSwan",
+      "extensions": [
+        "ws",
+        "wsc"
+      ],
+      "settings": {
+        "argv": "1",
+        "path": "_nds/akmenunext/plugins/apps/NitroSwan.nds"
+      }
+    },
+    {
+      "id": "picodrivetwl",
+      "application_name": "PicoDriveTWL",
+      "extensions": [
+        "gen",
+        "md"
+      ],
+      "settings": {
+        "argv": "1",
+        "path": "_nds/akmenunext/plugins/apps/PicoDriveTWL.nds"
+      }
+    },
+    {
+      "id": "pokemini",
+      "application_name": "PokeMini",
+      "extensions": [
+        "min"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/PokeMini.nds"
+      }
+    },
+    {
+      "id": "rocketvideoplayer",
+      "application_name": "RocketVideoPlayer",
+      "extensions": [
+        "rvid"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/RocketVideoPlayer.nds"
+      }
+    },
+    {
+      "id": "s8ds",
+      "application_name": "S8DS",
+      "extensions": [
+        "gg",
+        "sg",
+        "sms"
+      ],
+      "settings": {
+        "argv": "1",
+        "path": "_nds/akmenunext/plugins/apps/S8DS.nds"
+      }
+    },
+    {
+      "id": "snemulds-shim",
+      "application_name": "snemulds-shim",
+      "extensions": [
+        "sfc",
+        "smc"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/snemulds-shim.nds"
+      }
+    },
+    {
+      "id": "speccyse",
+      "application_name": "SpeccySE",
+      "extensions": [
+        "tap",
+        "tzx",
+        "z80"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/SpeccySE.nds"
+      }
+    },
+    {
+      "id": "stellads",
+      "application_name": "StellaDS",
+      "extensions": [
+        "a26"
+      ],
+      "settings": {
+        "argv": "1",
+        "path": "_nds/akmenunext/plugins/apps/StellaDS.nds"
+      }
+    },
+    {
+      "id": "sugards",
+      "application_name": "SugarDS",
+      "extensions": [
+        "cpr",
+        "dan",
+        "dsk"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/SugarDS.nds"
+      }
+    },
+    {
+      "id": "tuna-vids",
+      "application_name": "tuna-vids",
+      "extensions": [
+        "avi"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/tuna-vids.nds"
+      }
+    },
+    {
+      "id": "wasabids",
+      "application_name": "WasabiDS",
+      "extensions": [
+        "sv"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/akmenunext/plugins/apps/WasabiDS.nds"
+      }
+    }
+  ]
+}

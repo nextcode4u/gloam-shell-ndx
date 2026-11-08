@@ -1,0 +1,56 @@
+#include "app.h"
+#include "browser.h"
+#include "paths.h"
+#include "preferences.h"
+#include "title_metadata.h"
+#include <assert.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
+static App app, restored;
+static unsigned char data[0xC40];
+int main(int argc, char **argv)
+{
+    assert(argc == 2);
+    char path[PATH_CAP], title[128], display[256];
+    assert(path_join(path, argv[1], "roms"));
+    assert(!mkdir(path, 0777));
+    assert(path_join(path, argv[1], "roms/Actual filename.nds"));
+    data[0x69] = 2;
+    data[0x200] = 3;
+    memcpy(data + 12, "TST0", 4);
+    const unsigned char english[] = {'C', 0, 'a', 0, 'f', 0, 0xE9, 0, 0, 0};
+    const unsigned char french[] = {'J', 0, 'e', 0, 'u', 0, 0, 0};
+    memcpy(data + 0x200 + 0x340, english, sizeof english);
+    memcpy(data + 0x200 + 0x440, french, sizeof french);
+    FILE *f = fopen(path, "wb");
+    assert(f && fwrite(data, 1, sizeof data, f) == sizeof data && !fclose(f));
+    assert(title_metadata_read(path, 1, title) && !strcmp(title, "Caf\xC3\xA9"));
+    assert(title_metadata_read(path, 2, title) && !strcmp(title, "Jeu"));
+    assert(title_metadata_read(path, 3, title) && !strcmp(title, "Caf\xC3\xA9"));
+    assert(title_metadata_read(path, 7, title) && !strcmp(title, "Caf\xC3\xA9"));
+    app_init(&app, argv[1], true, true);
+    app_category(&app, CATEGORY_GAMES);
+    assert(app.entry_count == 1);
+    app.internal_titles = true;
+    app.title_language = 2;
+    app.browser_style = BROWSER_LIST;
+    for (int i = 0; i < 5; i++)
+        app_tick(&app);
+    assert(app.icon_reads == 0 && app.entries[0].title_loaded);
+    browser_display_name(&app, &app.entries[0], display);
+    assert(!strcmp(display, "Jeu"));
+    assert(!strcmp(app.entries[0].path, path));
+    assert(app_save(&app));
+    app_init(&restored, argv[1], true, true);
+    assert(restored.internal_titles && restored.title_language == 2);
+    app.internal_titles = false;
+    browser_display_name(&app, &app.entries[0], display);
+    assert(!strcmp(display, "Actual filename.nds"));
+    data[0x200] = 0xFF;
+    f = fopen(path, "wb");
+    assert(f && fwrite(data, 1, sizeof data, f) == sizeof data && !fclose(f));
+    assert(!title_metadata_read(path, 1, title));
+    puts("PASS: bounded localized banner titles, UTF-16 conversion, English fallback, lazy "
+         "text-only browsing and preference persistence");
+}

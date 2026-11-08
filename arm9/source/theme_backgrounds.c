@@ -1,0 +1,109 @@
+/* Two active and two preview surfaces. All decoding happens in controllers. */
+#include "app.h"
+#include "image_decode.h"
+#include "paths.h"
+#include "themes.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    uint16_t *pixels;
+    char path[PATH_CAP];
+    uint16_t matte;
+    unsigned strength;
+    bool ready;
+} Background;
+static Background surfaces[2][2];
+
+static bool load_surface(Background *background, const ThemePackage *package, int screen)
+{
+    free(background->pixels);
+    memset(background, 0, sizeof *background);
+    background->matte = package->palette.bg;
+    background->strength = package->background_strength;
+    path_copy(background->path, package->backgrounds[screen], PATH_CAP);
+    if (!*background->path || !background->strength)
+        return false;
+    FILE *file = fopen(background->path, "rb");
+    if (!file)
+        return false;
+    bool valid = !fseek(file, 0, SEEK_END);
+    long bytes = valid ? ftell(file) : -1;
+    unsigned char *encoded = bytes > 0 && bytes <= 1024 * 1024 ? malloc((size_t)bytes) : NULL;
+    valid = encoded && !fseek(file, 0, SEEK_SET) &&
+            fread(encoded, 1, (size_t)bytes, file) == (size_t)bytes;
+    fclose(file);
+    if (valid)
+        background->pixels = malloc(256 * 192 * sizeof *background->pixels);
+    background->ready = valid && background->pixels &&
+                        image_decode_background(background->pixels, encoded, (size_t)bytes,
+                                                background->matte, background->strength);
+    free(encoded);
+    if (!background->ready) {
+        free(background->pixels);
+        background->pixels = NULL;
+    }
+    return background->ready;
+}
+void themes_background_load(const ThemePackage *package, bool preview)
+{
+    for (int screen = 0; screen < 2; screen++)
+        load_surface(&surfaces[preview ? 1 : 0][screen], package, screen);
+}
+static void move_surface(Background *destination, Background *source)
+{
+    free(destination->pixels);
+    *destination = *source;
+    memset(source, 0, sizeof *source);
+}
+void themes_background_accept(void)
+{
+    for (int screen = 0; screen < 2; screen++)
+        move_surface(&surfaces[0][screen], &surfaces[1][screen]);
+}
+void themes_background_cancel(void)
+{
+    for (int screen = 0; screen < 2; screen++) {
+        free(surfaces[1][screen].pixels);
+        memset(&surfaces[1][screen], 0, sizeof surfaces[1][screen]);
+    }
+}
+void themes_background_draw(const ThemePackage *package, int screen, uint16_t *pixels)
+{
+    if (screen < 0 || screen >= 2)
+        return;
+    for (int bank = 0; bank < 2; bank++) {
+        const Background *background = &surfaces[bank][screen];
+        if (background->ready && !strcmp(background->path, package->backgrounds[screen]) &&
+            background->matte == package->palette.bg &&
+            background->strength == package->background_strength) {
+            memcpy(pixels, background->pixels, 256 * 192 * sizeof *pixels);
+            return;
+        }
+    }
+    for (int i = 0; i < 256 * 192; i++)
+        pixels[i] = package->palette.bg;
+}
+bool themes_background_set(App *app, int screen, const char *path)
+{
+    if (app->recovery_mode || !app->storage_ready || screen < 0 || screen > 1 ||
+        !path_is_within_root(path, app->root))
+        return false;
+    ThemePackage candidate = app->themes.active;
+    path_copy(candidate.backgrounds[screen], path, PATH_CAP);
+    if (!candidate.background_strength)
+        candidate.background_strength = 25;
+    if (!load_surface(&surfaces[1][screen], &candidate, screen))
+        return false;
+    move_surface(&surfaces[0][screen], &surfaces[1][screen]);
+    path_copy(app->themes.active.backgrounds[screen], path, PATH_CAP);
+    if (!app->themes.active.background_strength) {
+        app->wallpaper_strength = 25;
+        app->themes.active.background_strength = 25;
+        themes_background_load(&app->themes.active, false);
+    }
+    path_copy(app->custom_backgrounds[screen], path, PATH_CAP);
+    app_mark_preferences_dirty(app);
+    return true;
+}

@@ -1,0 +1,49 @@
+{
+  "format": 1,
+  "dependencies": [
+    {
+      "id": "nds-bootstrap",
+      "repository": "https://github.com/DS-Homebrew/nds-bootstrap.git",
+      "tag": "v2.17.0",
+      "commit": "b9044ff2e66d5a522f9678c185f421a603f97d7a",
+      "release": "https://github.com/DS-Homebrew/nds-bootstrap/releases/tag/v2.17.0",
+      "asset": "nds-bootstrap.zip",
+      "url": "https://github.com/DS-Homebrew/nds-bootstrap/releases/download/v2.17.0/nds-bootstrap.zip",
+      "sha256": "d4ff8d797787c42e820c6ec599f53e738ad9da7d8c3ce6ab9d86101c2e1cfbf8",
+      "files": [
+        {
+          "member": "nds-bootstrap-release.nds",
+          "destination": "_nds/nds-bootstrap-release.nds",
+          "sha256": "39a3a5e62ea8d1f700c3735199424b1acdd0ccfcfcd31d61bc69984cb2e10b4c"
+        },
+        {
+          "member": "nds-bootstrap-hb-release.nds",
+          "destination": "_nds/nds-bootstrap-hb-release.nds",
+          "sha256": "2fd5c44610092ea7a2da6e90b97f8a8be31632c9edfb729a1c38c6514fb221ca"
+        },
+        {
+          "member": "release-bootstrap.ver",
+          "destination": "_nds/release-bootstrap.ver",
+          "sha256": "9309ff904889af0f7722d98a4ddc9ab104d7d0abee0e22225a0e1730ea379847"
+        }
+      ]
+    },
+    {
+      "id": "slot1launcher",
+      "repository": "https://github.com/Lorenzooone/Simple-DS-Slot-1-Launcher.git",
+      "tag": "1.4.1.6",
+      "commit": "c372cf061dad8f52ef13f1bce9beaa24c8c40253",
+      "release": "https://github.com/Lorenzooone/Simple-DS-Slot-1-Launcher/releases/tag/1.4.1.6",
+      "asset": "slot1launch.zip",
+      "url": "https://github.com/Lorenzooone/Simple-DS-Slot-1-Launcher/releases/download/1.4.1.6/slot1launch.zip",
+      "sha256": "250be911b729102abfd5d34ef59e561c1a94bb459b1005a5711286c9a96f71d6",
+      "files": [
+        {
+          "member": "slot1launch.nds",
+          "destination": "_nds/dsi-frontend/loaders/slot1launch.nds",
+          "sha256": "c40e2c1a3373c48724b3ab2520f87ce3cb0ee779a5b033136e5eab7ccf867812"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+# Generated build and distribution output
+/build/
+/dist/
+*.nds
+*.elf
+
+# Private reference trees, backups and test environments
+/REF
+/backups/
+/testing/
+
+# Original working plan (kept locally)
+/docs/design/FRONTEND_PLAN.md
+/frontend plan.md
+/frontend plans.md
+
+# Local Python environments and caches
+/.venv/
+/.ruff_cache/
+__pycache__/
+
+# Per-machine paths and private credentials
+/config/*.local.json
+.env
+.env.*
+!.env.example
+
+# Rebuildable compiler and host-tool output (including nested probe builds)
+**/build/
+*.o
+*.a
+*.d
+*.map
+*.exe
+*.dll
+*.so
+*.py[cod]
+.pytest_cache/
+
+# Emulator storage, saves and archives must never enter source control
+*.img
+*.img.idx
+*.bin.idx
+*.sav
+*.srm
+*.dsv
+*.state
+*.zip
+*.7z
+*.tar
+*.gz
+bios*.bin
+*firmware.bin
+dsinand.bin
+rtc.bin
+
+# Editor and operating-system output
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Additional cartridge, NAND and save formats
+*.bin
+*.srl
+*.dsi
+*.gba
+*.gb
+*.gbc
+*.nes
+*.sfc
+*.smc
+*.pub
+*.prv
+*.log
+*.raw
+*.bak
+*.tmp
+
+# Private machine configuration and documentation scratch output
+*.ppm
+/docs/history/
+/docs/emulator/
+/config/test-environments*.json
+/release-cache/
