@@ -12,7 +12,7 @@ Nintendo DS homebrew community.
 - [Pico Launcher](https://github.com/LNH-team/pico-launcher): compact
   launcher design. [HBMenu](https://github.com/devkitPro/nds-hb-menu) provides
   longstanding homebrew launch conventions.
-- Firmux: the author's earlier exploration of two useful screens.
+- Firmux: an earlier deprecated project by me.
 
 These are design influences, not claims of shared authorship or endorsement.
 Actual source reuse is identified separately below and in THIRD_PARTY.md.

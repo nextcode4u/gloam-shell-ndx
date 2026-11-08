@@ -83,7 +83,7 @@ Gloam is shaped by the work of the DS homebrew community. **AKMenu Next,
 TWiLight Menu++, Pico Launcher and HBMenu** informed the browser, compatibility
 and configuration design. Their developers established much of what makes a
 modern DS frontend practical. Gloam's two-screen organization also draws on
-Firmux, an earlier project by this project's author.
+Firmux, an earlier deprecated project by me.
 
 Game loading relies on **nds-bootstrap** by ahezard, RocketRobz and its
 contributors, **Simple DS Slot-1 Launcher** by Lorenzooone and its credited
