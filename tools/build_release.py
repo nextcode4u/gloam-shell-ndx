@@ -127,6 +127,30 @@ def archive_files(path: Path) -> tuple[dict[str, bytes], list[str]]:
                 [n.rstrip("/") for n in source.namelist() if n.endswith("/")])
 
 
+def release_notices(sd: dict[str, bytes], dependencies: list[dict]) -> dict[str, bytes]:
+    """Keep the update-only download accompanied by the same release notices."""
+    required = {"LICENSE", "CREDITS.md", "THIRD_PARTY.md"}
+    if not required <= sd.keys():
+        raise ValueError("Release is missing its license or attribution documents")
+    notices = {
+        name: data for name, data in sd.items()
+        if name in required or name.startswith("docs/notices/")
+        or (name.startswith("_nds/dsi-frontend/themes/")
+            and Path(name).name.upper() in {"CREDITS.MD", "LICENSE.TXT", "COPYING"})
+        or name == "_nds/dsi-frontend/loaders/slot1launch.txt"
+    }
+    for name, data in notices.items():
+        if not data.strip():
+            raise ValueError(f"Empty release notice: {name}")
+    for dependency in dependencies:
+        prefix = f"docs/notices/third_party/{dependency['id']}/"
+        if not any(name.startswith(prefix) and any(
+            term in Path(name).name.lower() for term in ("license", "copying")
+        ) for name in notices):
+            raise ValueError(f"Missing dependency license: {dependency['id']}")
+    return notices
+
+
 def build_release(root: Path, offline: bool = False) -> None:
     lock = json.loads((root / LOCK).read_text())
     if lock["format"] != 1:
@@ -169,11 +193,17 @@ def build_release(root: Path, offline: bool = False) -> None:
             "See package-manifest.json for exact revisions, hashes, repository and release URLs.\n"
             "Redistributors must make that matching source available with the binaries.\n"
         ).encode()
+        notices = release_notices(sd, lock["dependencies"])
+        (output / "BOOT.NDS").write_bytes(sd["BOOT.NDS"])
+        write_archive(output / "licenses.zip", notices, [])
         write_archive(output / "dependencies-source.zip", sources, [], source_modes)
         manifest = {
             "format": 1, "status": "development; physical hardware validation pending",
             "build": json.loads((root / "dist/build-info.json").read_text()),
             "dependencies": provenance,
+            "update_artifact": {"file": "BOOT.NDS", "sha256": sha256(sd["BOOT.NDS"])},
+            "license_archive": {"file": "licenses.zip",
+                                "sha256": sha256((output / "licenses.zip").read_bytes())},
             "dependency_source": {"file": "dependencies-source.zip",
                                   "sha256": sha256((output / "dependencies-source.zip").read_bytes())},
             "sd_files": {n: sha256(data) for n, data in sorted(sd.items())},
@@ -183,7 +213,7 @@ def build_release(root: Path, offline: bool = False) -> None:
         frontend["package-manifest.json"] = json_bytes(manifest)
         write_archive(output / "sd.zip", sd, directories)
         write_archive(output / "source.zip", frontend, [])
-        names = ["sd.zip", "source.zip", "dependencies-source.zip"]
+        names = ["BOOT.NDS", "sd.zip", "licenses.zip", "source.zip", "dependencies-source.zip"]
         sums = "".join(f"{sha256((output / n).read_bytes())}  {n}\n" for n in names)
         (output / "SHA256SUMS").write_text(sums)
         for name in [*names, "SHA256SUMS"]:

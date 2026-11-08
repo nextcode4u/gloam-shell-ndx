@@ -43,6 +43,10 @@ themes, association profiles and an optional DSi Menu forwarder. Emulators,
 BIOS files, games and saves are supplied separately. A DSi homebrew boot method
 with SD access is required; Gloam does not install or configure Unlaunch.
 
+For frontend-only updates, replace `/BOOT.NDS` using the standalone `BOOT.NDS`
+release download. This leaves settings, themes, backends and libraries untouched.
+Read the release notes for any required asset/backend updates.
+
 See [setup and controls](docs/GETTING_STARTED.md), [SD layout](docs/guides/SD_LAYOUT.md)
 and [emulator associations](docs/guides/EMULATORS.md).
 
@@ -56,8 +60,8 @@ make -j4                         # frontend and optional forwarder
 python3 tools/build_release.py   # pinned backends + SD/source archives
 ```
 
-Outputs: `dist/sd.zip`, `dist/source.zip`, `dist/dependencies-source.zip` and
-`dist/SHA256SUMS`. Downloads and builds stay in ignored directories. The packaging
+Outputs: `dist/BOOT.NDS`, `dist/sd.zip`, `dist/licenses.zip`, `dist/source.zip`,
+`dist/dependencies-source.zip` and `dist/SHA256SUMS`. Downloads and builds stay in ignored directories. The packaging
 script needs Git and internet access on its first run; repeat runs verify cached
 inputs. See [building and packaging](docs/development/BUILDING.md) for checks,
 source archives, dependency updates and offline use.

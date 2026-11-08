@@ -23,13 +23,18 @@ requires all verified dependencies/source checkouts in the cache.
 
 | File | Contents |
 | --- | --- |
+| `dist/BOOT.NDS` | Frontend-only update, byte-identical to `BOOT.NDS` in the SD ZIP. |
+| `dist/licenses.zip` | Required license texts, dependency notices, credits and asset attribution. |
 | `dist/sd.zip` | Root `BOOT.NDS`, themes/profiles, official nds-bootstrap, Slot-1 helper, optional forwarder, setup guides and notices. |
 | `dist/source.zip` | Reviewed Gloam source, build tools, maintained docs, licenses and synthetic tests. |
 | `dist/dependencies-source.zip` | Exact upstream backend/helper sources, recursive submodule content and revision manifests. |
-| `dist/SHA256SUMS` | SHA-256 of the three archives. |
+| `dist/SHA256SUMS` | SHA-256 of `BOOT.NDS` and all four archives. |
 
-Upload all three ZIPs and checksums together for a release. Keep source download
-links beside the SD download. Source for linked SDK/runtime libraries is
+Publish `BOOT.NDS`, all four ZIPs and checksums together for every release. Keep
+source and license downloads beside both binary download options. Replacing only
+`BOOT.NDS` preserves personal settings, themes, backends and libraries; document
+any required asset/backend migrations in the release notes. A standalone binary
+does not remove the requirement to distribute its notices and matching source. Source for linked SDK/runtime libraries is
 identified under `third_party/blocksds`; modified bundled libraries/loaders are
 included in Gloam source. Upstream backend build instructions remain in each
 source tree: nds-bootstrap uses devkitARM, while Gloam and Slot-1 use BlocksDS.

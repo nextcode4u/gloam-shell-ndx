@@ -10,6 +10,7 @@ from pathlib import Path
 
 from tools import stage_sd
 from tools.build_forwarder import FILES, TITLE_ID, unsigned_tmd
+from tools.build_release import build_release, release_notices
 from tools.package_development import package
 
 
@@ -21,6 +22,7 @@ class PackageTests(unittest.TestCase):
         self.root.mkdir()
         files = {
             "README.md": b"Development frontend\n",
+            "CREDITS.md": b"Original fixture attribution\n",
             "LICENSE": b"Original source GPL-3.0-or-later\n",
             "tools/check-fixture.sh": b"#!/bin/sh\nexit 0\n",
             "THIRD_PARTY.md": b"Third party notices\n",
@@ -188,3 +190,43 @@ class PackageTests(unittest.TestCase):
         self.catalog_path.write_text(json.dumps(catalog))
         with self.assertRaisesRegex(ValueError, "Private/generated"):
             package(self.root, self.output(), "0.1.0-dev")
+
+    def test_release_update_binary_notices_and_checksums(self):
+        lock = self.root / "config/release-dependencies.json"
+        lock.write_text(json.dumps({"format": 1, "dependencies": []}))
+        build_release(self.root, offline=True)
+        dist = self.root / "dist"
+        binary = (dist / "BOOT.NDS").read_bytes()
+        self.assertEqual(binary, (self.root / "gloam-shell-ndx.nds").read_bytes())
+        with zipfile.ZipFile(dist / "sd.zip") as archive:
+            self.assertEqual(binary, archive.read("BOOT.NDS"))
+            manifest = json.loads(archive.read("package-manifest.json"))
+            self.assertEqual(manifest["update_artifact"]["sha256"], hashlib.sha256(binary).hexdigest())
+            self.assertEqual(manifest["license_archive"]["sha256"],
+                             hashlib.sha256((dist / "licenses.zip").read_bytes()).hexdigest())
+        with zipfile.ZipFile(dist / "licenses.zip") as archive:
+            self.assertEqual(archive.read("LICENSE"), b"Original source GPL-3.0-or-later\n")
+            self.assertIn("CREDITS.md", archive.namelist())
+            self.assertIn("THIRD_PARTY.md", archive.namelist())
+            self.assertEqual(archive.read("docs/notices/third_party/test/LICENSE"), b"Full test license\n")
+        sums = (dist / "SHA256SUMS").read_text().splitlines()
+        expected = {"BOOT.NDS", "sd.zip", "licenses.zip", "source.zip", "dependencies-source.zip"}
+        self.assertEqual({line.split()[1] for line in sums}, expected)
+        for line in sums:
+            checksum, name = line.split()
+            self.assertEqual(hashlib.sha256((dist / name).read_bytes()).hexdigest(), checksum)
+
+    def test_release_rejects_missing_and_empty_notices(self):
+        notices = {"LICENSE": b"GPL", "CREDITS.md": b"Authors", "THIRD_PARTY.md": b"Inventory",
+                   "docs/notices/third_party/example/COPYING": b"Full license"}
+        self.assertEqual(release_notices(notices, [{"id": "example"}]), notices)
+        with self.assertRaisesRegex(ValueError, "Missing dependency license"):
+            release_notices(notices, [{"id": "missing"}])
+        for name in ("LICENSE", "CREDITS.md", "THIRD_PARTY.md"):
+            incomplete = dict(notices)
+            del incomplete[name]
+            with self.assertRaisesRegex(ValueError, "missing its license"):
+                release_notices(incomplete, [])
+        notices["docs/notices/third_party/example/COPYING"] = b""
+        with self.assertRaisesRegex(ValueError, "Empty release notice"):
+            release_notices(notices, [{"id": "example"}])
