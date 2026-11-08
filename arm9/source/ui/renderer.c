@@ -87,7 +87,10 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
             draw_text(pixels, x + (w - (int)strlen(suffix) * 7) / 2, y + 85, suffix, colors.muted,
                       8);
         }
-        draw_text_clipped(pixels, 119, 59, entry ? entry_type(entry) : "BROWSE", colors.accent, 7);
+        /* Preserve the theme's readable font: type labels such as SYSTEM APP
+         * wrap inside the metadata column instead of becoming SYSTE.. . */
+        draw_text_wrapped(pixels, 119, 59, entry ? entry_type(entry) : "BROWSE", colors.accent, 7,
+                          3);
         if (entry && (entry->kind == ITEM_FILE || entry->kind == ITEM_INSTALLED_TITLE) &&
             entry->size) {
             char b[24];
@@ -95,10 +98,10 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
                 snprintf(b, sizeof b, "%lu MB", (unsigned long)(entry->size / (1024 * 1024)));
             else
                 snprintf(b, sizeof b, "%lu KB", (unsigned long)(entry->size / 1024));
-            draw_text(pixels, 119, 77, b, colors.text, 7);
+            draw_text(pixels, 119, 97, b, colors.text, 7);
         }
-        draw_text(pixels, 119, 99, app->dsi_mode ? "DSi" : "DS", colors.muted, 7);
-        draw_text(pixels, 119, 115,
+        draw_text(pixels, 119, 115, app->dsi_mode ? "DSi" : "DS", colors.muted, 7);
+        draw_text(pixels, 119, 131,
                   entry && app_is_favorite(app, entry->path) ? "STARRED"
                   : entry && entry->kind == ITEM_SYSTEM ? (entry->target == 6 ? "SLOT-1" : "NAND")
                   : entry && (entry->kind == ITEM_INSTALLED_TITLE ||

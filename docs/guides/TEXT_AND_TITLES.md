@@ -65,3 +65,11 @@ and picker views reuse their idle counters. Rendering never updates state or
 reads files. Host tests compare both repetitions across the exact loop boundary,
 verify continued movement after wrapping, and cover UTF-8, reduced motion and
 viewport/framebuffer bounds. Native checks use the ROM grid and long tab names.
+
+## Preview metadata
+
+Short type labels beside cover art and system icons wrap within the seven-cell
+column, using up to three lines at the normal theme font size. `SYSTEM APP`
+therefore shows completely as two lines. File size, console and storage rows
+sit below the reserved label area, so longer labels do not overlap them or the
+tab rail. Selected filenames, paths and tab names retain their scrolling loop.
