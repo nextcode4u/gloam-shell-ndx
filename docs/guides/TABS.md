@@ -6,6 +6,11 @@ Edit `_nds/dsi-frontend/tabs.ini` on the SD card. The distributed file contains 
 [tabs]
 version=1
 
+[roots]
+games=sd:/roms
+apps=sd:/apps
+media=sd:/media
+
 [tab.snes]
 label=SNES
 path=sd:/roms/SNES
@@ -20,6 +25,19 @@ path=sd:/media/music
 ```
 
 Remove the leading semicolons from a complete example to enable it, or add a new section. This version adds folder tabs after the six built-ins: Home, Games, Apps, Media, System and Files. It does not replace/reorder those built-in destinations. Custom sections appear in file order.
+
+## Library roots
+
+`[roots]` configures the existing Games, Apps and Media tabs. The entries above
+are the built-in defaults, even when this section or `tabs.ini` is absent.
+Use the same SD path syntax as a custom tab. Omitted or invalid root settings
+retain their defaults; invalid settings produce the normal configuration notice.
+
+A library or custom tab browses only its assigned folder and descendants. Back
+stops at the assigned root, including when that folder is missing. Files keeps
+whole-card browsing. This is a navigation boundary, not an application sandbox:
+players, artwork/configuration pickers and launched software keep their own paths.
+No library is moved or created when its root changes. Restart after editing.
 
 ## Fields and limits
 
@@ -40,11 +58,11 @@ L/R moves between all loaded tabs. Holding a shoulder button repeats at the conf
 
 Long rail labels are clipped with an ellipsis inside the rail. The bottom header has more room for the active tab's label. Rendering never draws additional rows beyond the six-row viewport.
 
-Each custom tab remembers its directory, selection and list scroll independently. B goes up within its assigned folder tree; B at its assigned root returns Home. Use Files for unrestricted browsing elsewhere on the SD. Custom tabs also appear as Home shortcuts and use the same browser views, icons, artwork and contextual actions as ordinary folder browsing.
+Each library and custom tab remembers its directory, selection and list scroll independently. B goes up within its assigned folder tree; B at its assigned root stays there. Use Files for unrestricted browsing elsewhere on the SD. Custom tabs also appear as Home shortcuts and use the same browser views, icons, artwork and contextual actions as ordinary folder browsing.
 
 ## Saving and configuration edits
 
-Saved custom-tab locations and the active tab are keyed by ID, not by their current position. Reordering sections or changing a label therefore preserves the correct tab's state. Removing the active ID falls back to Home. Changing a tab's assigned folder ignores an old saved location outside the new tree and opens the newly assigned folder instead.
+Saved custom-tab locations and the active tab are keyed by ID, not by their current position. Reordering sections or changing a label therefore preserves the correct tab's state. Removing the active ID falls back to Home. Changing any library or custom tab's assigned folder ignores an old saved location outside the new tree and opens the newly assigned folder instead.
 
 The existing `state.ini` version and built-in numeric location records remain readable. New records use `active_tab=<id>` and `tab_location=<id>,<selected>,<scroll>,<path>`. These are navigation state, not the tab definitions. Editing `tabs.ini` is enough; do not hand-edit state to add tabs.
 

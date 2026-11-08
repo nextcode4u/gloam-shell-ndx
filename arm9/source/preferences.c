@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void read_location(App *app, const char *line)
+static void read_location(App *app, const char *line, bool reset_locations[TAB_CAP])
 {
     int category, selected, scroll, path_offset = 0;
     if (sscanf(line, "location=%d,%d,%d,%n", &category, &selected, &scroll, &path_offset) != 3 ||
@@ -17,27 +17,19 @@ static void read_location(App *app, const char *line)
         return;
 
     const char *path = line + path_offset;
-    if (strlen(path) >= PATH_CAP || !path_is_within_root(path, app->root))
-        return;
-
-    Location *location = &app->locations[category];
-    char old_apps_default[PATH_CAP];
-    if (category == CATEGORY_APPS &&
-        path_join(old_apps_default, app->root, "roms/DS(i) Homebrew") &&
-        strcmp(path, old_apps_default) == 0) {
-        /* The previous shared homebrew default is now split into apps and games.
-         * Change only this known default; leave custom browsing paths intact. */
-        path_default_category(location->path, app->root, CATEGORY_APPS);
-        location->selected = location->scroll = 0;
+    /* Old unrestricted locations must not escape a newly assigned library. */
+    if (strlen(path) >= PATH_CAP || !path_is_within_root(path, tabs_browse_root(app, category))) {
+        reset_locations[category] = true;
         app->preferences_dirty = true;
         return;
     }
+    Location *location = &app->locations[category];
     path_copy(location->path, path, sizeof location->path);
     location->selected = selected < 0 ? 0 : selected;
     location->scroll = scroll < 0 ? 0 : scroll;
 }
 
-static void read_tab_location(App *app, const char *line)
+static void read_tab_location(App *app, const char *line, bool reset_locations[TAB_CAP])
 {
     char id[TAB_ID_CAP];
     int selected, scroll, offset = 0;
@@ -49,8 +41,11 @@ static void read_tab_location(App *app, const char *line)
         return;
     const char *path = line + offset;
     /* A changed folder assignment must not reopen the previous folder tree. */
-    if (strlen(path) >= PATH_CAP || !path_is_within_root(path, app->tabs[index].home))
+    if (strlen(path) >= PATH_CAP || !path_is_within_root(path, tabs_browse_root(app, index))) {
+        reset_locations[index] = true;
+        app->preferences_dirty = true;
         return;
+    }
     path_copy(app->locations[index].path, path, PATH_CAP);
     app->locations[index].selected = selected < 0 ? 0 : selected;
     app->locations[index].scroll = scroll < 0 ? 0 : scroll;
@@ -76,6 +71,7 @@ static bool read_state_file(App *app, const char *filename)
 
     char active_tab[TAB_ID_CAP] = "";
     bool has_active_tab = false;
+    bool reset_locations[TAB_CAP] = {false};
     while (fgets(line, sizeof line, file)) {
         line[strcspn(line, "\r\n")] = '\0';
         int value;
@@ -183,9 +179,9 @@ static bool read_state_file(App *app, const char *filename)
                     app->locations[tab].batch = batch;
             }
         } else if (strncmp(line, "tab_location=", 13) == 0) {
-            read_tab_location(app, line);
+            read_tab_location(app, line, reset_locations);
         } else if (strncmp(line, "location=", 9) == 0) {
-            read_location(app, line);
+            read_location(app, line, reset_locations);
         } else if (strncmp(line, "favorite=", 9) == 0 && app->favorite_count < FAVORITE_CAP) {
             const char *path = line + 9;
             if (strlen(path) < PATH_CAP &&
@@ -194,6 +190,10 @@ static bool read_state_file(App *app, const char *filename)
         }
     }
     fclose(file);
+    /* Batch records can precede or follow locations in a hand-edited file. */
+    for (int tab = 0; tab < app->tab_count; tab++)
+        if (reset_locations[tab])
+            app->locations[tab].batch = 0;
     if (has_active_tab) {
         int index = tabs_find(app, active_tab);
         app->category = index >= 0 ? index : CATEGORY_HOME;

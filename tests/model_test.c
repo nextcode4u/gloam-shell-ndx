@@ -176,7 +176,12 @@ int main(int argc, char **argv)
              root);
     put(root, "_nds/dsi-frontend/state.ini", old_apps_state);
     app_init(&restored, root, true, true);
+    assert(!strcmp(restored.locations[CATEGORY_APPS].path, apps_path));
+    put(root, "_nds/dsi-frontend/tabs.ini", "[tabs]\nversion=1\n[roots]\napps=custom-apps\n");
+    app_init(&restored, root, true, true);
     assert(strstr(restored.locations[CATEGORY_APPS].path, "/custom-apps"));
+    char tabs_path[PATH_CAP];
+    assert(path_preferences_file(tabs_path, root, "tabs.ini") && remove(tabs_path) == 0);
 
     /* The original scratch's state is read, then saved under _nds without deleting it. */
     char current[PATH_CAP], backup[PATH_CAP], legacy[PATH_CAP];

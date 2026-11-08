@@ -281,7 +281,8 @@ static const SettingsOption maintenance[] = {
      "Retail handoff is experimental.",
      false, OPT_ABOUT},
     {"Folder tabs",
-     "Edit _nds/dsi-frontend/tabs.ini to add folder tabs. Restart after editing. IDs preserve "
+     "Edit _nds/dsi-frontend/tabs.ini for library roots and custom tabs. Restart after editing. "
+     "IDs preserve "
      "saved navigation.",
      false, OPT_TABS},
     {"Toolchain",

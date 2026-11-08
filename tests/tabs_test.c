@@ -62,6 +62,14 @@ int main(int argc, char **argv)
     write_file(root, "roms/A/Sub/two.txt", "two");
     app_init(&app, root, true, true);
     assert(app.tab_count == CATEGORY_COUNT && app.tab_config_skipped == 0);
+    /* Built-in libraries stop at their defaults, including absent folders. */
+    for (int category = CATEGORY_GAMES; category <= CATEGORY_MEDIA; category++) {
+        app_category(&app, category);
+        Location before = app.locations[category];
+        app_back(&app);
+        assert(app.category == category);
+        assert(!memcmp(&before, &app.locations[category], sizeof before));
+    }
     const char *config = "_nds/dsi-frontend/tabs.ini";
     write_file(root, config,
                "[tabs]\nversion=1\n[tab.snes]\nlabel=Super Nintendo\npath=sd:/roms/A\n"
@@ -102,7 +110,7 @@ int main(int argc, char **argv)
     app_back(&restored);
     assert(strstr(restored.locations[8].path, "/roms/A"));
     app_back(&restored);
-    assert(restored.category == CATEGORY_HOME);
+    assert(restored.category == 8 && !strcmp(restored.locations[8].path, restored.tabs[8].home));
     /* Moving the assigned root does not resurrect an unrelated old folder. */
     write_file(root, config, "[tabs]\nversion=1\n[tab.snes]\npath=roms/B\n");
     app_init(&restored, root, true, true);
@@ -122,11 +130,60 @@ int main(int argc, char **argv)
     app_category(&app, tabs_find(&app, "missing"));
     assert(app.directory_error && app.entry_count == 0);
     app_back(&app);
-    assert(app.category == CATEGORY_HOME);
+    assert(app.category == tabs_find(&app, "missing") && app.directory_error);
     write_file(root, "_nds/dsi-frontend/state.ini",
                "version=1\nactive_tab=good\ntab_location=good,0,0,/etc\n");
     app_init(&restored, root, true, true);
     assert(restored.category == 6 && strstr(restored.locations[6].path, "/roms/A"));
+    /* Root overrides reset stale sibling paths but retain nested locations. */
+    write_file(root, config,
+               "[tabs]\nversion=1\n[roots]\ngames=roms/A\napps=sd:/roms/B\nmedia=/media/music\n"
+               "[tab.nested]\npath=roms/A/Sub\n");
+    char state[4096];
+    snprintf(state, sizeof state,
+             "version=1\nactive_tab=games\nlocation=1,4,2,%s/roms/B\n"
+             "location=2,0,0,%s/roms/B\nlocation=3,0,0,%s/roms/A\nfolder_batch=games,2\n",
+             root, root, root);
+    write_file(root, "_nds/dsi-frontend/state.ini", state);
+    app_init(&restored, root, true, true);
+    assert(restored.category == CATEGORY_GAMES && restored.preferences_dirty);
+    assert(restored.locations[CATEGORY_GAMES].batch == 0);
+    assert(!strcmp(restored.locations[1].path, restored.tabs[1].home));
+    assert(strstr(restored.tabs[1].home, "/roms/A"));
+    assert(strstr(restored.tabs[2].home, "/roms/B"));
+    assert(strstr(restored.locations[3].path, "/media/music"));
+    app_open(&restored);
+    assert(strstr(restored.locations[1].path, "/roms/A/Sub"));
+    assert(app_save(&restored));
+    app_init(&app, root, true, true);
+    assert(strstr(app.locations[1].path, "/roms/A/Sub"));
+    app_back(&app);
+    app_back(&app);
+    assert(app.category == CATEGORY_GAMES && !strcmp(app.locations[1].path, app.tabs[1].home));
+    /* A forged directory entry and an invalid in-memory location cannot escape. */
+    app.entries[0].kind = ITEM_DIRECTORY;
+    assert(path_join(app.entries[0].path, root, "roms/B"));
+    app.entry_count = 1;
+    app.locations[1].selected = 0;
+    app_open(&app);
+    assert(app.panel == PANEL_MESSAGE && !strcmp(app.locations[1].path, app.tabs[1].home));
+    app.panel = PANEL_NONE;
+    assert(path_join(app.locations[1].path, root, "roms/A-sibling"));
+    app_scan(&app);
+    assert(!strcmp(app.locations[1].path, app.tabs[1].home));
+    app_category(&app, CATEGORY_FILES);
+    assert(!strcmp(app.locations[CATEGORY_FILES].path, root) ||
+           strlen(app.locations[CATEGORY_FILES].path) == strlen(root) + 1);
+    app_back(&app);
+    assert(app.category == CATEGORY_HOME);
+    write_file(root, config,
+               "[tabs]\nversion=1\n[roots]\ngames=../outside\napps=fat:/apps\nfiles=roms/A\n");
+    app_init(&app, root, true, true);
+    assert(app.tab_config_skipped == 3);
+    char default_root[PATH_CAP];
+    path_default_category(default_root, root, CATEGORY_GAMES);
+    assert(!strcmp(app.tabs[CATEGORY_GAMES].home, default_root));
+
     /* Bound excessive configurations without losing any built-in destination. */
     char large[16384] = "[tabs]\nversion=1\n";
     size_t used = strlen(large);

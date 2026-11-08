@@ -137,8 +137,15 @@ void browser_scan_begin(App *app)
     app->entry_count = 0;
     app->scan_visited = app->scan_eligible = 0;
     app->truncated = app->directory_error = false;
-    app->scan_directory =
-        app->storage_ready ? directory_scan_open(app->locations[app->category].path) : NULL;
+    Location *location = &app->locations[app->category];
+    const char *root = tabs_browse_root(app, app->category);
+    if (!path_is_within_root(location->path, root)) {
+        path_copy(location->path, root, PATH_CAP);
+        location->selected = location->scroll = 0;
+        location->batch = 0;
+        app_mark_preferences_dirty(app);
+    }
+    app->scan_directory = app->storage_ready ? directory_scan_open(location->path) : NULL;
     app->directory_error = !app->scan_directory;
     icons_reset(app);
     app_reset_preview(app);

@@ -26,6 +26,10 @@ Except where a path is stated, filenames in the table are under `arm9/source/`
 or `arm9/include/`. Rendering consumes state: it does not access the filesystem,
 change settings or perform hardware calls. The frame loop owns those operations.
 
+`tabs.c` resolves library/custom-tab browsing roots before preferences load.
+Saved locations, directory entry handoff and scan startup enforce those roots;
+Back stops at each assigned root. Files retains SD-wide browsing.
+
 Directory and picker scans run in bounded steps. Image jobs yield cooperatively
 and cancel when navigation changes. Selected overflow text uses the shared
 pixel-clipped `draw_text_scrolling` helper: settings and tabs own their start

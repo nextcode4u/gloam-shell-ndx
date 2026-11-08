@@ -314,6 +314,10 @@ void app_open(App *app)
         path_copy(path, entry->path, sizeof path);
         if (app->category == CATEGORY_HOME)
             app->category = CATEGORY_FILES;
+        if (!path_is_within_root(path, tabs_browse_root(app, app->category))) {
+            app_show_message(app, "Folder outside this tab's root. Browse it through Files.");
+            return;
+        }
         Location *location = &app->locations[app->category];
         path_copy(location->path, path, PATH_CAP);
         location->selected = location->scroll = 0;
@@ -399,10 +403,6 @@ void app_back(App *app)
     if (app->category == CATEGORY_HOME)
         return;
     Location *location = &app->locations[app->category];
-    if (app->category >= CATEGORY_COUNT && !strcmp(location->path, app->tabs[app->category].home)) {
-        app_category(app, CATEGORY_HOME);
-        return;
-    }
     if (app->category == CATEGORY_SYSTEM && app->installed_open) {
         installed_catalog_cancel(&app->installed_catalog);
         if (!app->installed_catalog.ready)
@@ -415,19 +415,28 @@ void app_back(App *app)
         app_mark_preferences_dirty(app);
         return;
     }
-    size_t n = strlen(app->root);
-    if (app->category == CATEGORY_SYSTEM || strlen(location->path) <= n) {
+    if (app->category == CATEGORY_SYSTEM) {
         app_category(app, CATEGORY_HOME);
         return;
     }
-    size_t len = strlen(location->path);
-    while (len > n && location->path[len - 1] == '/')
-        location->path[--len] = 0;
-    char *slash = strrchr(location->path, '/');
-    if (slash && slash >= location->path + n) {
-        *slash = 0;
-    } else
-        path_copy(location->path, app->root, PATH_CAP);
+    const char *root = tabs_browse_root(app, app->category);
+    size_t n = strlen(root), len = strlen(location->path);
+    if (!path_is_within_root(location->path, root)) {
+        path_copy(location->path, root, PATH_CAP);
+    } else {
+        while (len > n && location->path[len - 1] == '/')
+            location->path[--len] = 0;
+        if (len <= n) {
+            if (app->category == CATEGORY_FILES)
+                app_category(app, CATEGORY_HOME);
+            return;
+        }
+        char *slash = strrchr(location->path, '/');
+        if (slash && slash >= location->path + n)
+            *slash = 0;
+        else
+            path_copy(location->path, root, PATH_CAP);
+    }
     location->selected = location->scroll = 0;
     location->batch = 0;
     app_scan(app);

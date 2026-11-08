@@ -42,6 +42,13 @@ const char *tabs_label(const App *app, int index)
     return index >= 0 && index < app->tab_count ? app->tabs[index].label : "";
 }
 
+const char *tabs_browse_root(const App *app, int index)
+{
+    bool library = index == CATEGORY_GAMES || index == CATEGORY_APPS || index == CATEGORY_MEDIA;
+    return (library || index >= CATEGORY_COUNT) && index < app->tab_count ? app->tabs[index].home
+                                                                          : app->root;
+}
+
 void tabs_ensure_visible(App *app)
 {
     if (app->category < app->tab_scroll)
@@ -93,7 +100,8 @@ static void append_tab(App *app, const Tab *tab, bool valid)
 static void parse_config(App *app, char *data)
 {
     Tab pending = {0};
-    bool active = false, valid = true, meta = false, version = false, bad_version = false;
+    bool active = false, valid = true, meta = false, roots = false;
+    bool version = false, bad_version = false;
     char *context = NULL;
     for (char *line = strtok_r(data, "\n", &context); line; line = strtok_r(NULL, "\n", &context)) {
         if (strlen(line) >= 1024) {
@@ -109,6 +117,7 @@ static void parse_config(App *app, char *data)
             memset(&pending, 0, sizeof pending);
             active = false;
             meta = !strcasecmp(key, "[tabs]");
+            roots = !strcasecmp(key, "[roots]");
             size_t length = strlen(key);
             if (!strncasecmp(key, "[tab.", 5) && length > 6 && key[length - 1] == ']') {
                 key[length - 1] = 0;
@@ -119,7 +128,7 @@ static void parse_config(App *app, char *data)
                     for (char *p = pending.id; *p; p++)
                         *p = (char)tolower((unsigned char)*p);
                 }
-            } else if (!meta)
+            } else if (!meta && !roots)
                 app->tab_config_skipped++;
             continue;
         }
@@ -136,6 +145,15 @@ static void parse_config(App *app, char *data)
             version = true;
             if (strcmp(value, "1"))
                 bad_version = true;
+        } else if (roots) {
+            int index = tabs_find(app, key);
+            char home[PATH_CAP];
+            if ((index == CATEGORY_GAMES || index == CATEGORY_APPS || index == CATEGORY_MEDIA) &&
+                path_resolve_sd(home, app->root, value)) {
+                path_copy(app->tabs[index].home, home, PATH_CAP);
+                path_copy(app->locations[index].path, home, PATH_CAP);
+            } else
+                app->tab_config_skipped++;
         } else if (active && !strcasecmp(key, "label")) {
             if (strlen(value) >= sizeof pending.label)
                 valid = false;

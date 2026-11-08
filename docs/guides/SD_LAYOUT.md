@@ -32,7 +32,9 @@ namespace remains `_nds/dsi-frontend`, independent of the project name.
 └── data/                         application-owned data
 ```
 
-Games defaults to `/roms`, Apps to `/apps`, and Media to `/media`. Root `/music`
+Games defaults to `/roms`, Apps to `/apps`, and Media to `/media`. These tabs
+and custom folder tabs stay inside their assigned trees; Back stops at the
+assigned root. Configure library roots in `[roots]` in `tabs.ini`. Root `/music`
 and arbitrary existing folders remain accessible. [Custom tabs](TABS.md) can
 point anywhere on SD. Folder names do not select an emulator automatically;
 [profiles](EMULATORS.md) associate extensions and applications.
