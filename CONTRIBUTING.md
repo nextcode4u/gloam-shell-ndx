@@ -26,3 +26,16 @@ configuration stay out of Git. Release ZIPs belong in GitHub Releases, together
 with matching source archives and SHA256SUMS. Never include games, BIOS/NAND,
 keys, saves or private test data. This repository does not contain emulator
 forks or environment-specific debugging history.
+
+## Commits and releases
+
+Commit each completed logical change after its relevant checks pass. Keep
+features, fixes and unrelated cleanup in separate, descriptive commits so a
+later push retains the development history. Do not squash independent changes
+into one session-sized commit or include unrelated user edits.
+
+Every release includes standalone `BOOT.NDS` for frontend-only updates, `sd.zip`
+for full setup, required licenses/notices, matching frontend/dependency source
+archives and checksums. Keep the source and license downloads beside both binary
+download options. Document required asset/backend changes when an update needs
+more than replacing `BOOT.NDS`; never silently overwrite personal settings.

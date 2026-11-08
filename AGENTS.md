@@ -17,4 +17,11 @@ and [the build guide](docs/development/BUILDING.md) before changing the project.
   ignored. Artifacts belong under `build/` or `dist/`, never source directories.
 - Report compatibility limits honestly. Do not turn successful preparation into
   an unverified claim of application boot, save or return support.
+- Commit each completed logical change separately after its relevant checks pass.
+  Keep fixes, features and unrelated cleanup in focused commits; do not accumulate
+  a session's work into one large commit or squash independent changes together.
+  Do not commit user changes as part of an unrelated task.
+- Every release must include standalone `BOOT.NDS`, `sd.zip`, required licenses
+  and notices, matching source archives and checksums. Keep update-only downloads
+  separate from full SD setup; document any required asset/backend migration.
 - Do not push source or publish artifacts without user authorization.
