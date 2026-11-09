@@ -9,6 +9,31 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 
+def glyph_bitmap(font: ImageFont.FreeTypeFont, character: str, baseline: int) -> Image.Image:
+    """Measure the actual monochrome ink before placing it in the native cell."""
+    if math.ceil(font.getlength(character, mode="1")) > 7:
+        raise ValueError(f"Glyph {character!r} does not fit the native 7x12 envelope")
+    # Grayscale metrics differ from monochrome hinting (notably lowercase w).
+    # Render the complete hinted mask first, including any negative bearing.
+    left, top, right, bottom = font.getbbox(character, mode="1", anchor="ls")
+    mask = Image.new("L", (max(1, right - left), max(1, bottom - top)))
+    drawing = ImageDraw.Draw(mask)
+    drawing.fontmode = "1"
+    drawing.text((-left, -top), character, font=font, fill=255, anchor="ls")
+    bitmap = Image.new("L", (7, 12))
+    bounds = mask.getbbox()
+    if bounds is None:
+        return bitmap
+    ink_left, ink_top = left + bounds[0], top + bounds[1]
+    ink_right, ink_bottom = left + bounds[2], top + bounds[3]
+    if ink_right - ink_left > 7 or ink_top + baseline < 0 or ink_bottom + baseline > 12:
+        raise ValueError(f"Glyph {character!r} does not fit the native 7x12 envelope")
+    # Keep normal placement unless ink would cross either edge of the cell.
+    x_offset = max(-ink_left, min(0, 7 - ink_right))
+    bitmap.paste(mask.crop(bounds), (ink_left + x_offset, ink_top + baseline))
+    return bitmap
+
+
 def pack_font(source: Path, size: int, baseline: int, latin1: bool = False) -> bytes:
     font = ImageFont.truetype(str(source), size)
     header = (
@@ -20,19 +45,7 @@ def pack_font(source: Path, size: int, baseline: int, latin1: bool = False) -> b
     codepoints = list(range(32, 127)) + (list(range(160, 256)) if latin1 else [])
     for codepoint in codepoints:
         character = chr(codepoint)
-        left, top, right, bottom = font.getbbox(character, anchor="ls")
-        x_offset = max(0, -left)
-        if (
-            right + x_offset > 7
-            or top + baseline < 0
-            or bottom + baseline > 12
-            or math.ceil(font.getlength(character)) > 7
-        ):
-            raise ValueError(f"Glyph {character!r} does not fit the native 7x12 envelope")
-        bitmap = Image.new("L", (7, 12))
-        drawing = ImageDraw.Draw(bitmap)
-        drawing.fontmode = "1"
-        drawing.text((x_offset, baseline), character, font=font, fill=255, anchor="ls")
+        bitmap = glyph_bitmap(font, character, baseline)
         for row in range(12):
             bits = sum(
                 (3 if bitmap.getpixel((column, row)) else 0) << (column * 2) for column in range(7)

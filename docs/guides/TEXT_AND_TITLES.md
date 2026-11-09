@@ -24,8 +24,8 @@ python3 tools/pack_theme_font.py /path/to/DejaVuSansMono-Bold.ttf \
   --fallback-header arm9/source/ui/font_latin.h
 ```
 
-The packer shifts a negative horizontal bearing into the same fixed cell only
-when the full ink bounds fit. It never crops or stretches a glyph. The optional
+The packer measures the actual monochrome ink and adjusts horizontal placement
+only when the full glyph fits the fixed cell. It never crops or stretches a glyph. The optional
 Latin pack does not replace Copper's existing ASCII face automatically.
 
 ## Internal names

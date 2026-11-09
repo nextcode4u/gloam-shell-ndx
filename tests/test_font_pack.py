@@ -58,3 +58,27 @@ class FontPackTests(unittest.TestCase):
             self.assertEqual(data[:16], b"DSFONT02" + bytes([7, 12, 32, 95, 160, 96, 0, 0]))
             self.assertIn("ui_font_latin[96][12]", header.read_text())
             self.assertTrue(all(row <= 0x3FFF for row in struct.unpack("<2292H", data[16:])))
+
+    def test_monochrome_bearings_keep_complete_glyphs(self):
+        # FreeType's regular 11px w extends left; R extends right. Compare the
+        # packed ink against an unclipped reference, not grayscale metrics.
+        from PIL import Image, ImageDraw, ImageFont
+        from tools.pack_theme_font import pack_font
+
+        source = FONT.with_name("DejaVuSansMono.ttf")
+        font = ImageFont.truetype(str(source), 11)
+        packed = pack_font(source, 11, 9)
+        for character in ("w", "R"):
+            reference = Image.new("L", (40, 40))
+            drawing = ImageDraw.Draw(reference)
+            drawing.fontmode = "1"
+            drawing.text((15, 20), character, font=font, fill=255, anchor="ls")
+            expected = reference.crop(reference.getbbox())
+            actual = Image.new("L", (7, 12))
+            rows = struct.unpack_from("<12H", packed, 16 + (ord(character) - 32) * 24)
+            for y, row in enumerate(rows):
+                for x in range(7):
+                    actual.putpixel((x, y), 255 if (row >> (x * 2)) & 3 else 0)
+            actual = actual.crop(actual.getbbox())
+            self.assertEqual(actual.size, expected.size)
+            self.assertEqual(actual.tobytes(), expected.tobytes())

@@ -11,8 +11,10 @@ Create a pack with:
 python3 tools/pack_theme_font.py source-font.ttf fonts/ui.dsfont --size 11 --baseline 9
 ```
 
-The authoring tool checks advance/ink bounds and rejects overflow instead of
-silently cropping. Use the pinned Pillow dependency for reproducible output.
+The authoring tool measures the actual monochrome ink, including hinted
+bearings, before placing it in the cell. It shifts ink horizontally only when
+needed to preserve the full glyph; advance and vertical baseline stay fixed.
+Glyphs that cannot fit are rejected rather than cropped or stretched. Use the pinned Pillow dependency for reproducible output.
 Include the source face's redistribution license alongside the pack.
 
 Test long filenames, accent characters, settings values and every browser view.

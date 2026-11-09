@@ -1,36 +1,24 @@
 #!/usr/bin/env python3
 """Rasterize a crisp, monochrome 7x12 DS font at its native display size."""
 
+import struct
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+if __package__:
+    from .pack_theme_font import pack_font
+else:
+    from pack_theme_font import pack_font
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
-GLYPH_WIDTH = 7
 GLYPH_HEIGHT = 12
 BASELINE = 9
 
 
 def main() -> None:
-    font = ImageFont.truetype(FONT_PATH, 11)
-    glyphs = []
-    for character in range(32, 127):
-        image = Image.new("L", (GLYPH_WIDTH, GLYPH_HEIGHT))
-        drawing = ImageDraw.Draw(image)
-        # Use FreeType monochrome hinting instead of thresholding soft edges:
-        # thin strokes should remain whole pixels on the DS screen.
-        drawing.fontmode = "1"
-        drawing.text((0, BASELINE), chr(character), font=font, fill=255, anchor="ls")
-        rows = []
-        for y in range(GLYPH_HEIGHT):
-            row = 0
-            for x in range(GLYPH_WIDTH):
-                # Keep the renderer's coverage format for future theme fonts.
-                coverage = 3 if image.getpixel((x, y)) else 0
-                row |= coverage << (x * 2)
-            rows.append(row)
-        glyphs.append(rows)
+    packed = pack_font(Path(FONT_PATH), 11, BASELINE)
+    rows = struct.unpack("<1140H", packed[16:])
+    glyphs = [rows[index : index + GLYPH_HEIGHT] for index in range(0, len(rows), GLYPH_HEIGHT)]
 
     output = PROJECT_ROOT / "arm9/source/ui/font.h"
     output.write_text(
