@@ -7,7 +7,7 @@ exit behavior. Installed DSiWare discovery inside Gloam is a separate feature.
 
 ## Files and installation
 
-Development SD packages include:
+Every release `sd.zip` includes:
 
 - `_nds/dsi-frontend/install/gloam-forwarder.dsi`: the 114 KiB DSi-only tile.
 - `_nds/dsi-frontend/install/gloam-forwarder.tmd`: matching unsigned metadata.

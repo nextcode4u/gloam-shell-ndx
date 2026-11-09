@@ -68,9 +68,10 @@ make -j4                         # frontend and optional forwarder
 python3 tools/build_release.py   # pinned backends + SD/source archives
 ```
 
-Outputs: `dist/BOOT.NDS`, `dist/sd.zip`, `dist/licenses.zip`, `dist/source.zip`,
-`dist/dependencies-source.zip` and `dist/SHA256SUMS`. Downloads and builds stay in ignored directories. The packaging
-script needs Git and internet access on its first run; repeat runs verify cached
+Outputs: `dist/BOOT.NDS`, `dist/sd.zip`, `dist/licenses.zip`, `dist/source.zip`
+and `dist/SHA256SUMS`. `source.zip` includes matching backend/helper sources
+under `dependencies/`. Downloads and builds stay in ignored directories. The
+packaging script needs Git and internet access on its first run; repeat runs verify cached
 inputs. See [building and packaging](docs/development/BUILDING.md) for checks,
 source archives, dependency updates and offline use.
 

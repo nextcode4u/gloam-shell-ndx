@@ -3,6 +3,7 @@
 import hashlib
 import json
 import struct
+import subprocess
 import tempfile
 import unittest
 import zipfile
@@ -98,7 +99,7 @@ class PackageTests(unittest.TestCase):
                 (archive.getinfo("tools/check-fixture.sh").external_attr >> 16) & 0o777, 0o755
             )
 
-    def test_forwarder_is_verified_and_only_enters_sd_archive(self):
+    def forwarder(self):
         rom = bytearray(0x4000)
         rom[12:16] = b"GLDX"
         rom[0x12] = 3
@@ -114,6 +115,11 @@ class PackageTests(unittest.TestCase):
         catalog = json.loads(self.catalog_path.read_text())
         catalog["include_forwarder"] = True
         self.catalog_path.write_text(json.dumps(catalog))
+        return files
+
+    def test_forwarder_is_verified_and_only_enters_sd_archive(self):
+        files = self.forwarder()
+        directory = self.root / "dist/forwarder"
         output = package(self.root, self.output(), "0.1.0-dev.1")
         path = "_nds/dsi-frontend/install/" + FILES[0]
         with zipfile.ZipFile(output / "gloam-shell-ndx-0.1.0-dev.1-sd.zip") as archive:
@@ -193,13 +199,43 @@ class PackageTests(unittest.TestCase):
 
     def test_release_update_binary_notices_and_checksums(self):
         lock = self.root / "config/release-dependencies.json"
-        lock.write_text(json.dumps({"format": 1, "dependencies": []}))
+        forwarder = self.forwarder()
+        checkout = self.root / "build/release-sources/test"
+        checkout.mkdir(parents=True)
+        (checkout / "LICENSE").write_bytes(b"Full test license\n")
+        (checkout / "build.sh").write_bytes(b"#!/bin/sh\nexit 0\n")
+        (checkout / "build.sh").chmod(0o755)
+        def git(*args):
+            return subprocess.check_output(["git", "-C", str(checkout), *args], text=True).strip()
+        git("init", "-q")
+        git("add", ".")
+        git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+            "commit", "-qm", "Synthetic backend source")
+        cache = self.root / "build/release-cache"
+        cache.mkdir()
+        backend = cache / "backend.zip"
+        with zipfile.ZipFile(backend, "w") as archive:
+            archive.writestr("loader.nds", b"synthetic backend")
+        lock.write_text(json.dumps({"format": 1, "dependencies": [{
+            "id": "test", "tag": "fixture", "commit": git("rev-parse", "HEAD"),
+            "asset": "backend.zip", "sha256": hashlib.sha256(backend.read_bytes()).hexdigest(),
+            "files": [{"member": "loader.nds", "destination": "_nds/loader.nds",
+                       "sha256": hashlib.sha256(b"synthetic backend").hexdigest()}],
+        }]}))
+        # An existing output from an earlier build must not remain uploadable.
+        (self.root / "dist/dependencies-source.zip").write_bytes(b"old release")
         build_release(self.root, offline=True)
         dist = self.root / "dist"
         binary = (dist / "BOOT.NDS").read_bytes()
         self.assertEqual(binary, (self.root / "gloam-shell-ndx.nds").read_bytes())
         with zipfile.ZipFile(dist / "sd.zip") as archive:
             self.assertEqual(binary, archive.read("BOOT.NDS"))
+            for name, data in forwarder.items():
+                self.assertEqual(archive.read("_nds/dsi-frontend/install/" + name), data)
+            self.assertEqual(archive.read("_nds/loader.nds"), b"synthetic backend")
+            self.assertIn(b"source.zip", archive.read("DEPENDENCY_SOURCES.txt"))
+            self.assertNotIn(b"dependencies-source.zip", archive.read("DEPENDENCY_SOURCES.txt"))
+            self.assertFalse(any(n.startswith("dependencies/") for n in archive.namelist()))
             manifest = json.loads(archive.read("package-manifest.json"))
             self.assertEqual(manifest["update_artifact"]["sha256"], hashlib.sha256(binary).hexdigest())
             self.assertEqual(manifest["license_archive"]["sha256"],
@@ -209,12 +245,31 @@ class PackageTests(unittest.TestCase):
             self.assertIn("CREDITS.md", archive.namelist())
             self.assertIn("THIRD_PARTY.md", archive.namelist())
             self.assertEqual(archive.read("docs/notices/third_party/test/LICENSE"), b"Full test license\n")
+        with zipfile.ZipFile(dist / "source.zip") as archive:
+            self.assertEqual(archive.read("dependencies/test/LICENSE"), b"Full test license\n")
+            script = archive.getinfo("dependencies/test/build.sh")
+            self.assertEqual(script.external_attr >> 16, 0o100755)
+            source_manifest = json.loads(archive.read("dependencies/source-manifest.json"))
+            self.assertEqual(source_manifest["dependencies"][0]["commit"], git("rev-parse", "HEAD"))
+            self.assertEqual(archive.read("README.md"), b"Development frontend\n")
+            manifest = json.loads(archive.read("package-manifest.json"))
+            self.assertEqual(manifest["source_archive"]["file"], "source.zip")
+            for name, checksum in manifest["source_files"].items():
+                self.assertEqual(hashlib.sha256(archive.read(name)).hexdigest(), checksum)
+        self.assertFalse((dist / "dependencies-source.zip").exists())
         sums = (dist / "SHA256SUMS").read_text().splitlines()
-        expected = {"BOOT.NDS", "sd.zip", "licenses.zip", "source.zip", "dependencies-source.zip"}
+        expected = {"BOOT.NDS", "sd.zip", "licenses.zip", "source.zip"}
         self.assertEqual({line.split()[1] for line in sums}, expected)
         for line in sums:
             checksum, name = line.split()
             self.assertEqual(hashlib.sha256((dist / name).read_bytes()).hexdigest(), checksum)
+
+    def test_release_requires_bundled_forwarder(self):
+        (self.root / "config/release-dependencies.json").write_text(
+            json.dumps({"format": 1, "dependencies": []})
+        )
+        with self.assertRaisesRegex(ValueError, "missing the forwarder"):
+            build_release(self.root, offline=True)
 
     def test_release_rejects_missing_and_empty_notices(self):
         notices = {"LICENSE": b"GPL", "CREDITS.md": b"Authors", "THIRD_PARTY.md": b"Inventory",

@@ -23,7 +23,7 @@ under GPL-3.0-or-later unless an asset notice explicitly says otherwise.
 
 Build output, downloads, runtime images, private references and machine-specific
 configuration stay out of Git. Release ZIPs belong in GitHub Releases, together
-with matching source archives and SHA256SUMS. Never include games, BIOS/NAND,
+with the matching source archive and SHA256SUMS. Never include games, BIOS/NAND,
 keys, saves or private test data. This repository does not contain emulator
 forks or environment-specific debugging history.
 
@@ -35,8 +35,8 @@ later push retains the development history. Do not squash independent changes
 into one session-sized commit or include unrelated user edits.
 
 Every release includes standalone `BOOT.NDS` for frontend-only updates, `sd.zip`
-for full setup, required licenses/notices, matching frontend/dependency source
-archives and checksums. Keep the source and license downloads beside both binary
+for full setup, required licenses/notices, a combined frontend/dependency source
+archive and checksums. Keep the source and license downloads beside both binary
 download options. Document required asset/backend changes when an update needs
 more than replacing `BOOT.NDS`; never silently overwrite personal settings.
 

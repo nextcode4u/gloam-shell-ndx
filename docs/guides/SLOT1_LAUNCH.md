@@ -3,7 +3,7 @@
 **System → Launch Slot-1 card** opens Simple DS Slot-1 Launcher through Gloam's
 validated native homebrew handoff. The SD package installs its official release
 at `/_nds/dsi-frontend/loaders/slot1launch.nds`, with attribution and GPL notices.
-The matching source accompanies the SD artifact as `dependencies-source.zip`.
+The matching source is under `dependencies/` in the accompanying `source.zip`.
 
 ## Icon and title
 

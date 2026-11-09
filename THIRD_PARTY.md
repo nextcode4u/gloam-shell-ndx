@@ -165,8 +165,8 @@ Apache Thunder's NTR Launcher and Michael “Chishm” Chisholm's NitroHax.
 
 The full notice is in `third_party/slot1launcher/COPYING` and
 `sdroot/_nds/dsi-frontend/loaders/slot1launch.txt`. Matching complete upstream
-source is retained in `dependencies-source.zip`. Gloam invokes the helper as a
-separate executable and makes no authorship claim over its implementation.
+source is retained under `dependencies/` in `source.zip`. Gloam invokes the
+helper as a separate executable and makes no authorship claim over its implementation.
 
 ## Original sample-theme assets
 
@@ -183,12 +183,12 @@ The release builder includes unmodified official nds-bootstrap v2.17.0,
 source commit `b9044ff2e66d5a522f9678c185f421a603f97d7a`. The root GPL license,
 upstream README/credits and nested libeasysave MIT notice are retained under
 `third_party/nds-bootstrap`; embedded source notices remain in the complete
-matching `dependencies-source.zip`. No private experimental backend patches
-are applied to the packaged executable.
+matching `source.zip`, under `dependencies/`. No private experimental backend
+patches are applied to the packaged executable.
 
-All binary release downloads must be accompanied by matching Gloam source and
-dependency source archives with equivalent access, per GPLv3 section 6(d).
+All binary release downloads must be accompanied by the matching combined
+`source.zip` archive with equivalent access, per GPLv3 section 6(d).
 The package manifest records exact release/source URLs and archive/member hashes;
-link the source downloads beside `sd.zip` when publishing. A generic repository
+link the source download beside `sd.zip` when publishing. A generic repository
 link is not a substitute for the corresponding revision and local modifications.
 See [building and distribution](docs/development/BUILDING.md).

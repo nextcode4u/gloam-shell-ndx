@@ -25,18 +25,20 @@ requires all verified dependencies/source checkouts in the cache.
 | --- | --- |
 | `dist/BOOT.NDS` | Frontend-only update, byte-identical to `BOOT.NDS` in the SD ZIP. |
 | `dist/licenses.zip` | Required license texts, dependency notices, credits and asset attribution. |
-| `dist/sd.zip` | Root `BOOT.NDS`, themes/profiles, official nds-bootstrap, Slot-1 helper, optional forwarder, setup guides and notices. |
-| `dist/source.zip` | Reviewed Gloam source, build tools, maintained docs, licenses and synthetic tests. |
-| `dist/dependencies-source.zip` | Exact upstream backend/helper sources, recursive submodule content and revision manifests. |
-| `dist/SHA256SUMS` | SHA-256 of `BOOT.NDS` and all four archives. |
+| `dist/sd.zip` | Root `BOOT.NDS`, themes/profiles, official nds-bootstrap, Slot-1 helper, forwarder and matching TMD, setup guides and notices. |
+| `dist/source.zip` | Gloam source, build tools, docs, licenses and tests; exact backend/helper sources, submodules and revision manifest under `dependencies/`. |
+| `dist/SHA256SUMS` | SHA-256 of `BOOT.NDS` and all three archives. |
 
-Publish `BOOT.NDS`, all four ZIPs and checksums together for every release. Keep
-source and license downloads beside both binary download options. Replacing only
-`BOOT.NDS` preserves personal settings, themes, backends and libraries; document
-any required asset/backend migrations in the release notes. A standalone binary
-does not remove the requirement to distribute its notices and matching source. Source for linked SDK/runtime libraries is
-identified under `third_party/blocksds`; modified bundled libraries/loaders are
-included in Gloam source. Upstream backend build instructions remain in each
+Publish `BOOT.NDS`, all three ZIPs and checksums together for every release. Keep
+source and license downloads beside both binary download options. The forwarder
+and its TMD are included in `sd.zip` under `/_nds/dsi-frontend/install/`;
+installation is optional. Dependency source is part of `source.zip`, so there
+is no separate dependency-source artifact. Replacing only `BOOT.NDS` preserves
+personal settings, themes, backends and libraries; document any required
+asset/backend migrations in the release notes. A standalone binary
+does not remove the requirement to distribute its notices and matching source.
+Source for linked SDK/runtime libraries is identified under
+`third_party/blocksds`; modified bundled libraries/loaders are included in Gloam source. Upstream backend build instructions remain in each
 source tree: nds-bootstrap uses devkitARM, while Gloam and Slot-1 use BlocksDS.
 
 `config/release-dependencies.json` pins official release URLs, tags, exact source

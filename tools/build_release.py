@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build an SD package with pinned upstream backends and matching source archives."""
+"""Build an SD package with pinned upstream backends and a combined source archive."""
 
 import argparse
 import json
@@ -165,11 +165,11 @@ def build_release(root: Path, offline: bool = False) -> None:
             raise ValueError("Dependencies install overlapping paths")
         installed.update(members)
         checkout = source_checkout(dependency, root / "build/release-sources", offline)
-        source, revisions = export_source(checkout, dependency["id"], source_modes)
+        source, revisions = export_source(checkout, "dependencies/" + dependency["id"], source_modes)
         sources.update(source)
         provenance.append({**dependency, "source_revisions": revisions, "local_changes": []})
-    sources["source-manifest.json"] = json_bytes({"format": 1, "dependencies": provenance})
-    sources["README.md"] = (
+    sources["dependencies/source-manifest.json"] = json_bytes({"format": 1, "dependencies": provenance})
+    sources["dependencies/README.md"] = (
         "# Gloam launch dependencies\n\nExact unmodified upstream source for the binaries in sd.zip.\n"
         "Revisions, releases and hashes: source-manifest.json.\n"
         "Each tree retains its own build instructions, licenses and notices.\n"
@@ -187,16 +187,25 @@ def build_release(root: Path, offline: bool = False) -> None:
         frontend.pop("package-manifest.json", None)
         if set(installed) & set(sd):
             raise ValueError("Backend files conflict with the checked-in template")
+        required_forwarder = {
+            "_nds/dsi-frontend/install/gloam-forwarder.dsi",
+            "_nds/dsi-frontend/install/gloam-forwarder.tmd",
+        }
+        if not required_forwarder <= sd.keys():
+            raise ValueError("Release SD package is missing the forwarder or its TMD")
         sd.update(installed)
+        if set(sources) & set(frontend):
+            raise ValueError("Dependency sources conflict with frontend source paths")
+        frontend.update(sources)
         sd["DEPENDENCY_SOURCES.txt"] = (
-            "Matching source: dependencies-source.zip, alongside this SD download.\n"
+            "Matching source: source.zip, alongside this SD download.\n"
+            "Backend/helper source is under dependencies/ in that archive.\n"
             "See package-manifest.json for exact revisions, hashes, repository and release URLs.\n"
             "Redistributors must make that matching source available with the binaries.\n"
         ).encode()
         notices = release_notices(sd, lock["dependencies"])
         (output / "BOOT.NDS").write_bytes(sd["BOOT.NDS"])
         write_archive(output / "licenses.zip", notices, [])
-        write_archive(output / "dependencies-source.zip", sources, [], source_modes)
         manifest = {
             "format": 1, "status": "development; physical hardware validation pending",
             "build": json.loads((root / "dist/build-info.json").read_text()),
@@ -204,21 +213,22 @@ def build_release(root: Path, offline: bool = False) -> None:
             "update_artifact": {"file": "BOOT.NDS", "sha256": sha256(sd["BOOT.NDS"])},
             "license_archive": {"file": "licenses.zip",
                                 "sha256": sha256((output / "licenses.zip").read_bytes())},
-            "dependency_source": {"file": "dependencies-source.zip",
-                                  "sha256": sha256((output / "dependencies-source.zip").read_bytes())},
+            "source_archive": {"file": "source.zip", "dependency_directory": "dependencies/"},
             "sd_files": {n: sha256(data) for n, data in sorted(sd.items())},
             "source_files": {n: sha256(data) for n, data in sorted(frontend.items())},
         }
         sd["package-manifest.json"] = json_bytes(manifest)
         frontend["package-manifest.json"] = json_bytes(manifest)
         write_archive(output / "sd.zip", sd, directories)
-        write_archive(output / "source.zip", frontend, [])
-        names = ["BOOT.NDS", "sd.zip", "licenses.zip", "source.zip", "dependencies-source.zip"]
+        write_archive(output / "source.zip", frontend, [], source_modes)
+        names = ["BOOT.NDS", "sd.zip", "licenses.zip", "source.zip"]
         sums = "".join(f"{sha256((output / n).read_bytes())}  {n}\n" for n in names)
         (output / "SHA256SUMS").write_text(sums)
         for name in [*names, "SHA256SUMS"]:
             os.replace(output / name, dist / name)
-    print(f"Built SD and matching source archives in {dist}")
+        # Remove the superseded output so release uploads cannot pick it up.
+        (dist / "dependencies-source.zip").unlink(missing_ok=True)
+    print(f"Built SD and combined source archives in {dist}")
 
 
 def main() -> None:
