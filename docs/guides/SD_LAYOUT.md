@@ -1,7 +1,11 @@
 # SD card layout
 
-Gloam coexists with established DS homebrew folders. Its compatibility asset
-namespace remains `_nds/dsi-frontend`, independent of the project name.
+Gloam coexists with established DS homebrew folders. The `_nds/dsi-frontend`
+folder was established early in development, before the Gloam name was chosen.
+We kept it after naming the project so existing settings, themes, artwork,
+associations and loader paths would continue to work without moving user files.
+References to it in configuration JSON and source code describe the active SD
+layout; they are intentional compatibility paths.
 
 ```text
 /

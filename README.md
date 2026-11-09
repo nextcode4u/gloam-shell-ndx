@@ -47,6 +47,11 @@ For frontend-only updates, replace `/BOOT.NDS` using the standalone `BOOT.NDS`
 release download. This leaves settings, themes, backends and libraries untouched.
 Read the release notes for any required asset/backend updates.
 
+The SD folder `/_nds/dsi-frontend/` was established before we chose the Gloam
+name. It was kept after naming the project to preserve existing settings,
+themes, artwork and loader paths. The JSON configs use that same working path;
+see [configuration notes](config/README.md).
+
 See [setup and controls](docs/GETTING_STARTED.md), [SD layout](docs/guides/SD_LAYOUT.md)
 and [emulator associations](docs/guides/EMULATORS.md).
 

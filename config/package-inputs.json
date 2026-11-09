@@ -274,6 +274,7 @@
     "arm9/source/ui/storage_view.c",
     "arm9/source/ui/theme_view.c",
     "common/include/hardware_protocol.h",
+    "config/README.md",
     "config/emulator-presets.json",
     "config/package-inputs.json",
     "config/release-dependencies.json",

@@ -1,0 +1,11 @@
+# Configuration files
+
+The JSON files use `_nds/dsi-frontend/` because that SD directory was established
+before the project had its Gloam name. We retained it after naming the project
+to keep existing settings, themes, artwork, associations and loader paths working.
+These are literal filesystem paths, not outdated project branding.
+
+Keep the package catalog and dependency destinations aligned with the runtime's
+SD layout. Changing just these JSON paths would break packaging or place files
+where Gloam does not look for them. See [SD layout](../docs/guides/SD_LAYOUT.md)
+and [building and packaging](../docs/development/BUILDING.md).
