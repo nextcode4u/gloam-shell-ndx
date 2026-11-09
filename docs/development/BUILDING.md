@@ -147,3 +147,7 @@ updated profile INIs. In particular, `dslibris-documents.ini` and
 ignore this field and can select the first global match. The SD/add-on templates
 carry the new rules; Python/PowerShell updates preserve existing custom profiles,
 so merge these fields into preserved files rather than replacing user settings.
+
+GitHub build checks and the manually triggered draft-prerelease workflow are
+described in [releasing](RELEASING.md). Verify local artifacts with
+`python3 tools/verify_release.py --addons` before uploading the complete set.

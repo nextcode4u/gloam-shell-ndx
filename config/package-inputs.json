@@ -192,6 +192,8 @@
     ".clang-format",
     ".editorconfig",
     ".gitattributes",
+    ".github/workflows/ci.yml",
+    ".github/workflows/prerelease.yml",
     ".gitignore",
     "AGENTS.md",
     "CONTRIBUTING.md",
@@ -331,6 +333,7 @@
     "docs/development/ARTWORK_CACHE.md",
     "docs/development/BROWSER_JOBS.md",
     "docs/development/BUILDING.md",
+    "docs/development/RELEASING.md",
     "docs/development/TOOLCHAIN.md",
     "docs/development/toolchain-libnds-commit.txt",
     "docs/development/toolchain-packages.txt",
@@ -578,6 +581,7 @@
     "tests/test_package_development.py",
     "tests/test_prepare_addons.py",
     "tests/test_release.py",
+    "tests/test_release_verification.py",
     "tests/test_staging.py",
     "tests/text_test.c",
     "tests/theme_samples_test.c",
@@ -665,6 +669,7 @@
     "tools/prepare_addons_release.py",
     "tools/preview.c",
     "tools/stage_sd.py",
+    "tools/verify_release.py",
     "tools/write_build_info.py"
   ],
   "include_forwarder": true

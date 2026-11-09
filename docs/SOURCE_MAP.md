@@ -60,6 +60,7 @@ assets and game saves are outside the reset scope.
 | `tools/download_addons.py`, `tools/download_addons.ps1` | Equivalent SD downloaders/updaters; reviewed catalog refresh, file checks and backups; narrowly scoped reader fonts and inline profile defaults preserve existing customizations. |
 | `tools/make_emulator_presets.py` | Generates profiles and per-system ROM-folder format/BIOS readmes. The DSLibris profiles are also preserved as install-if-missing defaults in the add-on catalog. |
 | `config/package-inputs.json` | Explicit source/SD package allowlist. |
+| `tools/verify_release.py`, `.github/workflows/` | Complete artifact-set verification, CI checks and reviewed draft-prerelease preparation. |
 | `tools/` | Maintained build, authoring and packaging tools. |
 | `tests/` | Model/render sanitizer checks, synthetic fixtures and Python tool tests. |
 | `third_party/` | Required dependency sources and notices; see [attribution](../THIRD_PARTY.md). |

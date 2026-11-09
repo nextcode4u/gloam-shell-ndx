@@ -1,0 +1,86 @@
+name: Build and checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      include_addons:
+        description: Build reviewed add-ons and check upstream pins
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      include_addons:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  host:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: tools/host-check.sh
+      - run: python -m unittest discover -s tests -p 'test_*.py'
+      - run: python tools/check_tree.py
+
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: skylyrac/blocksds:slim-v1.25.0@sha256:c5f19b95d9c2f312e6a68ea244d2ed5120203b4b82af9785937a349096f8e5e4
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install packaging tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends python3 gh
+      - name: Verify pinned SDK
+        run: test "$(cat "$BLOCKSDS/version.txt")" = v1.25.0
+      - run: make -j2
+      - run: python3 tools/write_build_info.py
+      - name: Check add-on releases without silently changing reviewed pins
+        if: inputs.include_addons
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/prepare_addons_release.py --check-only
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('build/addon-updates/report.json').read_text())
+          if any(item['status'] not in {'current', 'pinned-snapshot'} for item in report):
+              raise SystemExit('Review and commit add-on pin changes before preparing a release')
+          PY
+      - name: Package base release
+        if: ${{ !inputs.include_addons }}
+        run: |
+          python3 tools/build_release.py --skip-build
+          python3 tools/verify_release.py
+      - name: Package reviewed add-ons and companions
+        if: inputs.include_addons
+        run: |
+          python3 tools/build_addons.py --pinned --skip-build
+          python3 tools/verify_release.py --addons
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gloam-packages
+          compression-level: 0
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            dist/BOOT.NDS
+            dist/sd.zip
+            dist/addons.zip
+            dist/source.zip
+            dist/licenses.zip
+            dist/SHA256SUMS
