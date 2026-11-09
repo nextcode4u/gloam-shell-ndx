@@ -226,6 +226,12 @@ it does not mean that just declaring argc/argv was counted as support.
 | [tuna-vids v1.2-clut](https://github.com/DS-Homebrew/tuna-vids/releases/tag/v1.2-clut) | [direct](https://github.com/DS-Homebrew/tuna-vids/blob/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/arm9/source/main.c) | Direct upstream download; GPL-2.0-or-later ARM9 + Helix RPSL/RCSL ARM7 |
 | [wasabids v0.2.6](https://github.com/FluBBaOfWard/WasabiDS/releases/tag/v0.2.6) | [direct](https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/source/Main.c) | Direct upstream download; Project-wide redistribution grant not found |
 
+Shared extension setup is described in [folder-aware associations](EMULATORS.md#shared-extensions-and-folder-rules).
+The reader overlay includes the two DSLibris profiles and the paired PicoDriveTWL
+folder-rule template; it does not distribute the PicoDriveTWL executable through
+that entry. Install the matching frontend `BOOT.NDS` with these templates. Existing
+custom profiles remain preserved by both installers.
+
 ## Conditions and exceptions
 
 - **[a5200ds](https://github.com/wavemotion-dave/A5200DS/tree/b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a):** Distribution without profit is explicitly permitted with complete notice and thanks to Alekmaul and wavemotion-dave.

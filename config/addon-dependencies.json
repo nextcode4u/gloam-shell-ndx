@@ -575,14 +575,20 @@
           {
             "path": "sdroot/_nds/dsi-frontend/plugins/dslibris-books.ini",
             "destination": "_nds/dsi-frontend/plugins/dslibris-books.ini",
-            "content": "; Editable defaults modeled on AKMenu-compatible associations.\n; Application paths may be changed to match your installation.\n[plugin]\nversion=1\nname=DSLibris\nextensions=epub,kepub,fb2,fb2.zip,fbz,pdb,prc,mobi,azw,azw3,opf,oeb,oebzip,pml,pmlz,tcr\nargv=1\nbootstrap=0\napplication=sd:/_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds\n",
-            "sha256": "98b28b492b1520b75ec9958c6622637c0987ac405cbe585cb8449ed5b1833089"
+            "content": "; Editable defaults modeled on AKMenu-compatible associations.\n; Application paths may be changed to match your installation.\n[plugin]\nversion=1\nname=DSLibris\nextensions=epub,kepub,fb2,fb2.zip,fbz,pdb,prc,mobi,azw,azw3,opf,oeb,oebzip,pml,pmlz,tcr\nargv=1\nbootstrap=0\napplication=sd:/_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds\ncontent_root=sd:/media/books\n",
+            "sha256": "a2de3e4c9f89b35319101e0497c2a14eee72f02c825b0db8acc7e97351a968c1"
           },
           {
             "path": "sdroot/_nds/dsi-frontend/plugins/dslibris-documents.ini",
             "destination": "_nds/dsi-frontend/plugins/dslibris-documents.ini",
-            "content": "; Editable defaults modeled on AKMenu-compatible associations.\n; Application paths may be changed to match your installation.\n[plugin]\nversion=1\nname=DSLibris\nextensions=txt,text,markdown,pdf,html,htm,xhtml,rtf,docx,odt,htmlz,txtz\nargv=1\nbootstrap=0\napplication=sd:/_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds\n",
-            "sha256": "12713a35ceac2101ed0a51d514340793aa296fded5685d08d914bb4432183436"
+            "content": "; Editable defaults modeled on AKMenu-compatible associations.\n; Application paths may be changed to match your installation.\n[plugin]\nversion=1\nname=DSLibris\nextensions=txt,text,md,markdown,pdf,html,htm,xhtml,rtf,docx,odt,htmlz,txtz\nargv=1\nbootstrap=0\napplication=sd:/_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds\ncontent_root=sd:/media/books\n",
+            "sha256": "66b9dce17a10dde7b07cda3ef738e00450ad44cc77541fb55dd6eed9e131941d"
+          },
+          {
+            "path": "sdroot/_nds/dsi-frontend/plugins/picodrivetwl.ini",
+            "destination": "_nds/dsi-frontend/plugins/picodrivetwl.ini",
+            "content": "; Editable defaults modeled on AKMenu-compatible associations.\n; Application paths may be changed to match your installation.\n[plugin]\nversion=1\nname=PicoDriveTWL\nextensions=gen,md\nargv=1\napplication=sd:/_nds/dsi-frontend/plugins/apps/PicoDriveTWL.nds\ncontent_root=sd:/roms/Genesis\n",
+            "sha256": "15b41fa030d4de702e0e74c0e3824a2f3ac55efcf07c56fdfa9b2f38b205716d"
           }
         ]
       }

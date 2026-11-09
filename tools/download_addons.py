@@ -22,14 +22,14 @@ READER_FONTS = frozenset("data/dslibris/font/" + name for name in (
     "LiberationSerif-BoldItalic.ttf", "LiberationSans-Regular.ttf"))
 
 
-READER_PROFILES = frozenset("_nds/dsi-frontend/plugins/" + name for name in (
-    "dslibris-books.ini", "dslibris-documents.ini"))
+ADDON_PROFILES = frozenset("_nds/dsi-frontend/plugins/" + name for name in (
+    "dslibris-books.ini", "dslibris-documents.ini", "picodrivetwl.ini"))
 
 
 def runtime_path_allowed(name):
     application = name.startswith("_nds/dsi-frontend/plugins/apps/") and name.endswith((".nds", ".srl", ".ini"))
     config = re.fullmatch(r"_gba/configs/[A-Z0-9]{6}\.json", name)
-    return bool(application or config or name in READER_FONTS or name in READER_PROFILES)
+    return bool(application or config or name in READER_FONTS or name in ADDON_PROFILES)
 
 
 def reviewed_apps(catalog):
@@ -242,7 +242,7 @@ def stage(manifest, target, cache, only=None, noncommercial=False, overwrite=Fal
             continue
         inline = item["format"] == "inline"
         if inline:
-            if item["destination"] not in READER_PROFILES or len(item["content"].encode("utf-8")) > 4096:
+            if item["destination"] not in ADDON_PROFILES or len(item["content"].encode("utf-8")) > 4096:
                 raise ValueError("Unsupported inline add-on default")
             data = item["content"].encode("utf-8")
         else:

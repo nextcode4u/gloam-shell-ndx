@@ -23,8 +23,9 @@ $ReaderFonts = @('LiberationSerif-Regular.ttf', 'LiberationSerif-Bold.ttf',
     'LiberationSerif-Italic.ttf', 'LiberationSerif-BoldItalic.ttf', 'LiberationSans-Regular.ttf') |
     ForEach-Object { 'data/dslibris/font/' + $_ }
 
-$ReaderProfiles = @('_nds/dsi-frontend/plugins/dslibris-books.ini',
-    '_nds/dsi-frontend/plugins/dslibris-documents.ini')
+$AddonProfiles = @('_nds/dsi-frontend/plugins/dslibris-books.ini',
+    '_nds/dsi-frontend/plugins/dslibris-documents.ini',
+    '_nds/dsi-frontend/plugins/picodrivetwl.ini')
 
 function Get-Digest([byte[]]$Data) {
     $hash = [Security.Cryptography.SHA256]::Create()
@@ -165,7 +166,7 @@ function Get-Destination([string]$Root, [string]$Name) {
     }
     if ($Name -cnotmatch '^_nds/dsi-frontend/plugins/apps/.+\.(nds|srl|ini)$' -and
         $Name -cnotmatch '^_gba/configs/[A-Z0-9]{6}\.json$' -and
-        $Name -cnotin $ReaderFonts -and $Name -cnotin $ReaderProfiles) { throw "Destination outside add-on folders: $Name" }
+        $Name -cnotin $ReaderFonts -and $Name -cnotin $AddonProfiles) { throw "Destination outside add-on folders: $Name" }
     $path = $Root
     foreach ($part in $Name.Split('/')) {
         $path = Join-Path $path $part
@@ -306,7 +307,7 @@ try {
         if ($DryRun) { Write-Output "Would install $($plan.Id): $($item.destination)"; continue }
         if ($item.format -eq 'inline') {
             [byte[]]$data = [Text.Encoding]::UTF8.GetBytes([string]$item.content)
-            if ($item.destination -cnotin $ReaderProfiles -or $data.Length -gt 4096) {
+            if ($item.destination -cnotin $AddonProfiles -or $data.Length -gt 4096) {
                 throw 'Unsupported inline add-on default'
             }
         } else {

@@ -84,9 +84,14 @@ remain in use unless a managed settings file exists. No settings or books are
 installed by these scripts. Missing reader profiles/fonts are installed during
 --update / -Update; edited profiles and fonts are preserved unless overwrite
 is explicitly requested. Only the reviewed reader font/profile paths are writable.
+The reader integration also carries the paired PicoDriveTWL folder-rule profile
+(not the emulator binary). Existing profiles remain untouched by default.
 Use --only dslibris / -Only dslibris with the update options to select the reader.
-The .md extension remains a Genesis ROM association; use .markdown for direct
-Markdown launching, or select the book inside DSLibris. OPF/OEB packages must
+Install the matching Gloam BOOT.NDS before using the shared-extension profiles.
+Folder rules route .md in /media/books to DSLibris and in /roms/Genesis to
+PicoDriveTWL; elsewhere Gloam asks which registered app to launch. Older Gloam
+builds can select the first duplicate extension globally. Merge content_root lines
+into preserved/custom profiles when updating; no edited profile is overwritten. OPF/OEB packages must
 keep their chapter folders. Generic ZIP files are not associated with a reader;
 .fb2.zip is matched specifically. DRM, comic archives and scans without text
 are not supported by the text reader.

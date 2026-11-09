@@ -138,3 +138,12 @@ this lightweight staging command does not download the release backends.
 checked-in assets/configuration, `third_party` holds dependency sources/notices,
 and `tools`/`tests` support building and checking contributions. The
 [source map](../SOURCE_MAP.md) describes ownership within these directories.
+
+## Shared-extension profile migration
+
+Folder-aware association releases require the matching frontend `BOOT.NDS` and
+updated profile INIs. In particular, `dslibris-documents.ini` and
+`picodrivetwl.ini` share `.md` with different `content_root` values. Older frontends
+ignore this field and can select the first global match. The SD/add-on templates
+carry the new rules; Python/PowerShell updates preserve existing custom profiles,
+so merge these fields into preserved files rather than replacing user settings.

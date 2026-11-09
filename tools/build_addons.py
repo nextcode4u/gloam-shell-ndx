@@ -147,9 +147,9 @@ def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
         from build_release import download
 
     if __package__:
-        from .download_addons import READER_FONTS, READER_PROFILES
+        from .download_addons import READER_FONTS, ADDON_PROFILES
     else:
-        from download_addons import READER_FONTS, READER_PROFILES
+        from download_addons import READER_FONTS, ADDON_PROFILES
     lock = json.loads((root / LOCK).read_text())
     selected = selected_applications(lock, noncommercial, only)
     relative_path(lock["application_directory"])
@@ -230,7 +230,7 @@ def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
                 raise ValueError("Empty add-on notice")
             notices[target] = content
         for item in package.get("defaults", []):
-            if app["id"] != "dslibris" or item["destination"] not in READER_PROFILES:
+            if app["id"] != "dslibris" or item["destination"] not in ADDON_PROFILES:
                 raise ValueError("Unsupported add-on default path")
             content = read_input(root, item["path"])
             if content != item["content"].encode("utf-8") or sha256(content) != item["sha256"]:
