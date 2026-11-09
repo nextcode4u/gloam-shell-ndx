@@ -225,7 +225,13 @@ def build_release(root: Path, offline: bool = False, *, addons: bool = False,
             addon_runtime, addon_sources, addon_notices, addon_report = addon_files(
                 root, offline, noncommercial, only_addons
             )
-            if set(addon_runtime) & set(sd) or set(addon_sources) & set(frontend):
+            if __package__:
+                from .download_addons import READER_PROFILES
+            else:
+                from download_addons import READER_PROFILES
+            overlap = set(addon_runtime) & set(sd)
+            if (any(name not in READER_PROFILES or addon_runtime[name] != sd[name] for name in overlap)
+                    or set(addon_sources) & set(frontend)):
                 raise ValueError("Add-ons conflict with the base release")
             if set(addon_notices) & set(notices):
                 raise ValueError("Add-on notices conflict with the base release")

@@ -56,6 +56,46 @@ class DownloadAddonTests(unittest.TestCase):
         self.assertEqual(self.run_stage(overwrite=True), (2, 0))
         self.assertEqual((self.sd / self.name).read_bytes(), self.binary)
 
+    def test_reader_fonts_are_narrowly_scoped_and_preserved_on_update(self):
+        font = "data/dslibris/font/LiberationSerif-Regular.ttf"
+        self.app["files"].append({**copy.deepcopy(self.app["files"][0]), "destination": font})
+        self.run_stage()
+        user_font = self.sd / font
+        self.assertEqual(user_font.read_bytes(), self.binary)
+        user_font.unlink()
+        self.app.update(version="reviewed", repository="https://example.invalid/reader")
+        output = io.StringIO()
+        with redirect_stdout(output):
+            check_updates(self.manifest, self.sd)
+        self.assertIn("missing support files", output.getvalue())
+        self.assertEqual(self.run_stage(update=True), (1, 2))
+        user_font.write_bytes(b"User chosen font")
+        settings = self.sd / "data/dslibris/dslibris.xml"
+        settings.write_text("User settings")
+        self.run_stage(update=True)
+        self.assertEqual(user_font.read_bytes(), b"User chosen font")
+        self.assertEqual(settings.read_text(), "User settings")
+        for invalid in ("font/LiberationSerif-Regular.ttf", "data/dslibris/font/Other.ttf",
+                        "data/dslibris/dslibris.xml", "data/other/font/LiberationSerif-Regular.ttf"):
+            with self.assertRaises(ValueError):
+                destination(self.sd, invalid)
+
+    def test_inline_reader_defaults_install_without_fetch_and_updates_keep_customizations(self):
+        name = "_nds/dsi-frontend/plugins/dslibris-books.ini"
+        content = "[plugin]\nversion=1\nextensions=epub,fb2.zip\n"
+        self.app["files"].append({"format": "inline", "content": content,
+                                  "destination": name, "sha256": digest(content.encode())})
+        self.run_stage()
+        self.assertEqual((self.sd/name).read_text(), content)
+        (self.sd/name).write_text("User profile")
+        self.run_stage(update=True)
+        self.assertEqual((self.sd/name).read_text(), "User profile")
+        (self.sd/name).unlink()
+        self.app["files"][-1]["sha256"] = "0"*64
+        with self.assertRaisesRegex(ValueError,"hash mismatch"):
+            self.run_stage()
+        self.assertFalse((self.sd/name).exists())
+
     def test_dry_run_makes_no_downloads_or_sd_writes(self):
         (self.cache / "demo.zip").unlink()
         self.assertEqual(self.run_stage(dry_run=True), (0, 0))

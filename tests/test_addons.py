@@ -240,6 +240,21 @@ class AddonTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "eligible SNEmulDS"):
             selected_applications(self.lock, only=[shim["id"]])
 
+    def test_reader_default_profiles_match_the_template_and_stay_scoped(self):
+        self.app["id"] = "dslibris"
+        profile = "_nds/dsi-frontend/plugins/dslibris-books.ini"
+        text = "[plugin]\nversion=1\nextensions=epub\n"
+        (self.root/"reader.ini").write_text(text)
+        self.app["package"]["defaults"] = [{"path":"reader.ini", "destination":profile,
+                                             "content":text, "sha256":sha256(text.encode())}]
+        self.write_lock()
+        runtime, _, _, _ = addon_files(self.root,offline=True)
+        self.assertEqual(runtime[profile],text.encode())
+        self.app["package"]["defaults"][0]["content"] = "Unexpected template"
+        self.write_lock()
+        with self.assertRaisesRegex(ValueError,"reviewed template"):
+            addon_files(self.root,offline=True)
+
     def test_runtime_source_and_notices_are_separate_and_match(self):
         self.write_lock()
         runtime, source, notices, report = addon_files(self.root, offline=True)

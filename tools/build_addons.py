@@ -146,6 +146,10 @@ def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
     else:
         from build_release import download
 
+    if __package__:
+        from .download_addons import READER_FONTS, READER_PROFILES
+    else:
+        from download_addons import READER_FONTS, READER_PROFILES
     lock = json.loads((root / LOCK).read_text())
     selected = selected_applications(lock, noncommercial, only)
     relative_path(lock["application_directory"])
@@ -225,11 +229,22 @@ def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
             if not content.strip():
                 raise ValueError("Empty add-on notice")
             notices[target] = content
+        for item in package.get("defaults", []):
+            if app["id"] != "dslibris" or item["destination"] not in READER_PROFILES:
+                raise ValueError("Unsupported add-on default path")
+            content = read_input(root, item["path"])
+            if content != item["content"].encode("utf-8") or sha256(content) != item["sha256"]:
+                raise ValueError("Add-on default differs from the reviewed template")
+            if item["destination"] in runtime:
+                raise ValueError("Add-ons install overlapping paths")
+            runtime[item["destination"]] = content
         for item in package["files"]:
             target = item["destination"]
             relative_path(target)
-            if (not target.startswith(lock["application_directory"] + "/")
-                    or Path(target).suffix.lower() not in {".nds", ".srl", ".ini"}):
+            application = (target.startswith(lock["application_directory"] + "/")
+                           and Path(target).suffix.lower() in {".nds", ".srl", ".ini"})
+            reader_font = app["id"] == "dslibris" and target in READER_FONTS
+            if not (application or reader_font):
                 raise ValueError("Add-on executable outside configured application folder")
             if target.casefold() in {name.casefold() for name in runtime}:
                 raise ValueError("Add-ons install overlapping paths")

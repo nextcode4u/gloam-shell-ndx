@@ -19,6 +19,12 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 Add-Type -AssemblyName System.IO.Compression
 $MaxDownload = 64MB
+$ReaderFonts = @('LiberationSerif-Regular.ttf', 'LiberationSerif-Bold.ttf',
+    'LiberationSerif-Italic.ttf', 'LiberationSerif-BoldItalic.ttf', 'LiberationSans-Regular.ttf') |
+    ForEach-Object { 'data/dslibris/font/' + $_ }
+
+$ReaderProfiles = @('_nds/dsi-frontend/plugins/dslibris-books.ini',
+    '_nds/dsi-frontend/plugins/dslibris-documents.ini')
 
 function Get-Digest([byte[]]$Data) {
     $hash = [Security.Cryptography.SHA256]::Create()
@@ -35,7 +41,13 @@ function Convert-ReviewedCatalog($Data) {
         if (-not $files.Count -or @($files | Where-Object { $_.format -notin @('raw', 'zip', 'tar.gz') }).Count) { continue }
         $nc = $app.redistribution -eq 'noncommercial'
         if ($app.PSObject.Properties.Name -contains 'download_noncommercial') { $nc = $nc -or $app.download_noncommercial }
-        $item = [ordered]@{ id = $app.id; version = $app.version; repository = $app.repository; terms = $app.license; noncommercial = $nc; files = $files }
+        $defaults = @()
+        if ($app.package.PSObject.Properties.Name -contains 'defaults') {
+            $defaults = @($app.package.defaults | ForEach-Object {
+                [pscustomobject]@{ format = 'inline'; content = $_.content; sha256 = $_.sha256; destination = $_.destination }
+            })
+        }
+        $item = [ordered]@{ id = $app.id; version = $app.version; repository = $app.repository; terms = $app.license; noncommercial = $nc; files = @($files) + @($defaults) }
         if ($app.package.PSObject.Properties.Name -contains 'game_configs') { $item.game_configs = $app.package.game_configs }
         if ($app.id -in @('snemulds', 'snemulds-shim')) { $item.requires = @('snemulds', 'snemulds-shim') }
         if ($app.release -and $app.release.Contains('/releases/tag/')) { $item.release_tag = ($app.release -split '/releases/tag/', 2)[1] }
@@ -152,7 +164,8 @@ function Get-Destination([string]$Root, [string]$Name) {
         throw "Unsafe destination: $Name"
     }
     if ($Name -cnotmatch '^_nds/dsi-frontend/plugins/apps/.+\.(nds|srl|ini)$' -and
-        $Name -cnotmatch '^_gba/configs/[A-Z0-9]{6}\.json$') { throw "Destination outside add-on folders: $Name" }
+        $Name -cnotmatch '^_gba/configs/[A-Z0-9]{6}\.json$' -and
+        $Name -cnotin $ReaderFonts -and $Name -cnotin $ReaderProfiles) { throw "Destination outside add-on folders: $Name" }
     $path = $Root
     foreach ($part in $Name.Split('/')) {
         $path = Join-Path $path $part
@@ -235,6 +248,11 @@ try {
                 } else { $current = $false }
             }
             $status = if (-not $present) { 'not installed' } elseif ($current) { 'up to date' } else { 'differs from reviewed executable' }
+            $missingSupport = @($app.files | Where-Object {
+                $_.destination -notmatch '\.(nds|srl)$' -and
+                -not (Test-Path -LiteralPath (Get-Destination $root $_.destination) -PathType Leaf)
+            }).Count -gt 0
+            if ($status -eq 'up to date' -and $missingSupport) { $status = 'missing support files' }
             Write-Output "$($app.id): $status; reviewed $($app.version)"
             if ($Upstream -and $app.PSObject.Properties.Name -contains 'release_tag') {
                 $repository = $app.repository.Replace('https://github.com/', '') -replace '\.git$', ''
@@ -286,9 +304,16 @@ try {
             continue
         }
         if ($DryRun) { Write-Output "Would install $($plan.Id): $($item.destination)"; continue }
-        $key = "$($item.download.asset):$($item.download.sha256)"
-        if (-not $fetched.ContainsKey($key)) { $fetched[$key] = Get-Download $item.download }
-        [byte[]]$data = $fetched[$key]
+        if ($item.format -eq 'inline') {
+            [byte[]]$data = [Text.Encoding]::UTF8.GetBytes([string]$item.content)
+            if ($item.destination -cnotin $ReaderProfiles -or $data.Length -gt 4096) {
+                throw 'Unsupported inline add-on default'
+            }
+        } else {
+            $key = "$($item.download.asset):$($item.download.sha256)"
+            if (-not $fetched.ContainsKey($key)) { $fetched[$key] = Get-Download $item.download }
+            [byte[]]$data = $fetched[$key]
+        }
         if ($item.format -eq 'zip') {
             $memory = [IO.MemoryStream]::new($data, $false)
             $archive = [IO.Compression.ZipArchive]::new($memory, [IO.Compression.ZipArchiveMode]::Read)
@@ -301,7 +326,7 @@ try {
                 finally { $output.Dispose(); $stream.Dispose() }
             } finally { $archive.Dispose(); $memory.Dispose() }
         } elseif ($item.format -eq 'tar.gz') { $data = Read-TarMember $data $item.member }
-        elseif ($item.format -ne 'raw') { throw 'Unsupported download format' }
+        elseif ($item.format -notin @('raw', 'inline')) { throw 'Unsupported download format' }
         if ((Get-Digest $data) -ne $item.sha256) { throw "Member hash mismatch: $($item.destination)" }
         if ($item.destination.EndsWith('.json')) {
             $config = [Text.Encoding]::UTF8.GetString($data) | ConvertFrom-Json

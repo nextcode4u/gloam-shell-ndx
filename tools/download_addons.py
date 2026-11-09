@@ -17,6 +17,21 @@ MAX_DOWNLOAD = 64 * 1024 * 1024
 CATALOG_URL = "https://raw.githubusercontent.com/nextcode4u/gloam-shell-ndx/main/config/addon-dependencies.json"
 
 
+READER_FONTS = frozenset("data/dslibris/font/" + name for name in (
+    "LiberationSerif-Regular.ttf", "LiberationSerif-Bold.ttf", "LiberationSerif-Italic.ttf",
+    "LiberationSerif-BoldItalic.ttf", "LiberationSans-Regular.ttf"))
+
+
+READER_PROFILES = frozenset("_nds/dsi-frontend/plugins/" + name for name in (
+    "dslibris-books.ini", "dslibris-documents.ini"))
+
+
+def runtime_path_allowed(name):
+    application = name.startswith("_nds/dsi-frontend/plugins/apps/") and name.endswith((".nds", ".srl", ".ini"))
+    config = re.fullmatch(r"_gba/configs/[A-Z0-9]{6}\.json", name)
+    return bool(application or config or name in READER_FONTS or name in READER_PROFILES)
+
+
 def reviewed_apps(catalog):
     """Convert reviewed build recipes to portable runtime-only instructions."""
     if catalog["format"] != 1:
@@ -29,9 +44,11 @@ def reviewed_apps(catalog):
         files = package.get("files", [])
         if not files or any(f["format"] not in {"raw", "zip", "tar.gz"} for f in files):
             continue
+        defaults = [{"format": "inline", "content": f["content"], "sha256": f["sha256"],
+                     "destination": f["destination"]} for f in package.get("defaults", [])]
         item = {"id": app["id"], "version": app["version"], "repository": app["repository"],
                 "terms": app["license"], "noncommercial": app["redistribution"] == "noncommercial"
-                or app.get("download_noncommercial", False), "files": files}
+                or app.get("download_noncommercial", False), "files": [*files, *defaults]}
         if "game_configs" in package:
             item["game_configs"] = package["game_configs"]
         if app["id"] in {"snemulds", "snemulds-shim"}:
@@ -107,6 +124,9 @@ def check_updates(manifest, target, only=None, noncommercial=False, upstream=Fal
             current = all(p.is_file() and digest(p.read_bytes()) == f["sha256"]
                           for p, f in zip(paths, files))
             status = "up to date" if current else "differs from reviewed executable"
+        support = [f for f in app["files"] if not f["destination"].endswith((".nds", ".srl"))]
+        if status == "up to date" and any(not destination(root, f["destination"]).is_file() for f in support):
+            status = "missing support files"
         print(f"{app['id']}: {status}; reviewed {app['version']}")
         if upstream and app.get("release_tag"):
             repository = app["repository"].removeprefix("https://github.com/").removesuffix(".git")
@@ -129,9 +149,7 @@ def destination(root, name):
     if (not name or name.startswith("/") or "\\" in name or ":" in name
             or any(p in {"", ".", ".."} for p in name.split("/"))):
         raise ValueError(f"Unsafe destination: {name}")
-    application = name.startswith("_nds/dsi-frontend/plugins/apps/") and name.endswith((".nds", ".srl", ".ini"))
-    config = re.fullmatch(r"_gba/configs/[A-Z0-9]{6}\.json", name)
-    if not (application or config):
+    if not runtime_path_allowed(name):
         raise ValueError(f"Destination outside add-on folders: {name}")
     path = root
     for part in parts:
@@ -222,11 +240,18 @@ def stage(manifest, target, cache, only=None, noncommercial=False, overwrite=Fal
         if dry_run:
             print(f"Would install {name}: {item['destination']}")
             continue
-        download = item["download"]
-        identity = (download["asset"], download["sha256"])
-        if identity not in fetched:
-            fetched[identity] = fetch(download, Path(cache), offline)
-        data = fetched[identity]
+        inline = item["format"] == "inline"
+        if inline:
+            if item["destination"] not in READER_PROFILES or len(item["content"].encode("utf-8")) > 4096:
+                raise ValueError("Unsupported inline add-on default")
+            data = item["content"].encode("utf-8")
+        else:
+            download = item["download"]
+        identity = ("inline", item["sha256"]) if inline else (download["asset"], download["sha256"])
+        if not inline:
+            if identity not in fetched:
+                fetched[identity] = fetch(download, Path(cache), offline)
+            data = fetched[identity]
         if item["format"] == "zip":
             with zipfile.ZipFile(io.BytesIO(data)) as archive:
                 entries = [m for m in archive.infolist() if m.filename == item["member"]]
@@ -247,7 +272,7 @@ def stage(manifest, target, cache, only=None, noncommercial=False, overwrite=Fal
             if len(found) != 1:
                 raise ValueError("Missing or duplicate archive member")
             data = found[0]
-        elif item["format"] != "raw":
+        elif item["format"] not in {"raw", "inline"}:
             raise ValueError("Unsupported download format")
         if digest(data) != item["sha256"]:
             raise ValueError(f"Member hash mismatch: {item['destination']}")
