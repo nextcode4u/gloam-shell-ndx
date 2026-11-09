@@ -8,6 +8,40 @@ a Genesis alternative.
 The recorded argv evidence is the actual content-loading path, not just an argc
 parameter in main().
 
+## GBARunner3 core and optional browser
+
+The [supplied hicode ZIP](https://files.deletecat.com/GBARunner3-hicode.zip)
+contains `GBARunner3.nds` and 304 game-specific JSON files under `/_gba/configs/`.
+It contains no BIOS, license notice or build/source manifest. Download and core
+hashes are recorded in the [dependency lock](../../config/addon-dependencies.json).
+The archive name alone does not establish the matching hicode source revision;
+301 of its 304 configs match the audited develop snapshot, which also does not
+establish core provenance. Automatic packaging remains pending identification
+of corresponding source, independently of the recorded redistribution assumption.
+
+For manual use, put the core at
+`/_nds/dsi-frontend/plugins/apps/GBARunner3.nds` to match Gloam's `.gba`
+association, preserve `/_gba/configs/`, and supply your own original BIOS at
+`/_gba/bios.bin`. This is a setup route, not a new launch-compatibility result.
+
+The [flashcarts frontend v0.10.0-fcnet2](https://github.com/flashcarts/gbar3-frontend/releases/tag/v0.10.0-fcnet2)
+is a separate browser derived from nds-hb-menu, with GPL-2.0-or-later notices.
+Its default binary expects `/GBARunner3.nds`; the AOS and TWiLight variants use
+their own fixed paths. It opens its own browser instead of accepting an incoming
+selected-ROM argument. Gloam should continue passing the ROM directly to the core;
+replacing that association with this frontend would open another browser.
+The frontend source revision, binary hash and exception-stub submodule pin are
+recorded alongside the core candidate. Redistributing it requires its GPL
+notices and corresponding source; its license does not cover the separate core.
+
+TWiLight Menu++'s app-launcher credits are useful attribution and source links,
+not a single license covering every emulator. The supplied Virtual Console
+archive contains 22 emulator binaries; eight match our pinned binaries exactly.
+It also contains older ColecoDS 11.0, NINTV-DS 6.3 and SugarDS 1.5a builds.
+Its TWiLight-specific paths and SNEmulDS payloads are not substitutes for Gloam's
+reviewed profiles and matching shim/payload pair. No binaries from that archive
+are automatically imported into this package.
+
 ## Build and install
 
 ```sh
@@ -23,7 +57,8 @@ snemulds-shim and its matching SNEmulDS snapshot. It also includes eight
 available releases under an explicitly documented, unconfirmed redistribution
 assumption: FastVideoDS, jEnesisDS Plus, S8DS, NitroGrafx, NitroSwan, NGPDS,
 LodjurDS and WasabiDS. GBARunner3 has the same assumption recorded but no
-available pinned binary. See [the assumption document](UNCONFIRMED_DISTRIBUTION.md).
+automatically packaged binary; the supplied third-party hicode build is recorded
+above. See [the assumption document](UNCONFIRMED_DISTRIBUTION.md).
 
 `--noncommercial` adds A5200DS, DracoDS, MicroDS and SpeccySE. Their no-profit
 conditions remain separate from Gloam's GPL. Other held entries remain excluded.
@@ -68,7 +103,7 @@ requirement; this does not assert that their authors cannot distribute them.
 | [dsxp v1.1.0-sd-argv.1](https://github.com/nextcode4u/DSXP/releases/tag/v1.1.0-sd-argv.1) | [direct](https://github.com/nextcode4u/DSXP/blob/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/source/main.c) | Included; GPL-2.0-or-later |
 | [fastvideods v0.0.1](https://github.com/Gericom/FastVideoDSPlayer/releases/tag/v0.0.1) | [direct](https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/arm9/source/main.cpp) | Included, permission unconfirmed; Project license not stated |
 | [gameyob-dsi v0.5.3b-mavica](https://github.com/Lana-chan/GameYob/releases/tag/v0.5.3b-mavica) | [direct](https://github.com/Lana-chan/GameYob/blob/04f88d96ca653c60fd1b110ce7011db7e8e906a3/arm9/source/main.cpp) | Included; MIT |
-| [gbarunner3 No upstream release; develop source snapshot](https://github.com/Gericom/GBARunner3) | [direct](https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/code/core/arm9/source/main.cpp) | No pinned binary; permission unconfirmed; Project-wide license not established |
+| [gbarunner3 No upstream release; develop source snapshot](https://github.com/Gericom/GBARunner3) | [direct](https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/code/core/arm9/source/main.cpp) | Third-party hicode candidate; exact build source unconfirmed; permission unconfirmed |
 | [gimlids 1.7a](https://github.com/wavemotion-dave/GimliDS/releases/tag/1.7a) | [directory-only](https://github.com/wavemotion-dave/GimliDS/blob/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740/arm9/source/main.cpp) | Manual / held; GPL-2.0-or-later |
 | [hachibitto 1.9](https://github.com/wavemotion-dave/Hachibitto/releases/tag/1.9) | [none](https://github.com/wavemotion-dave/Hachibitto/blob/a388a295945d3929ac41a6369e40ce1c0afefa7e/arm9/source/Hachibitto.c) | Manual / held; Noncommercial core; firmware/asset rights unresolved |
 | [jenesisdsplus v0.8.1](https://github.com/DS-Homebrew/jEnesisDSPlus/releases/tag/v0.8.1) | [direct](https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/newCode/source/main.s) | Included, permission unconfirmed; No explicit Plus redistribution license; closed-source base terms unconfirmed |
@@ -108,7 +143,7 @@ a missing grant or apply Gloam's GPL to those programs.
 - **[dsxp](https://github.com/nextcode4u/DSXP/tree/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0):** Use nextcode4u/DSXP SD-argv prerelease; matching release source includes libmad.
 - **[fastvideods](https://github.com/Gericom/FastVideoDSPlayer/tree/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 - **[gameyob-dsi](https://github.com/Lana-chan/GameYob/tree/04f88d96ca653c60fd1b110ce7011db7e8e906a3):** Retain the Drenn/contributor notice and both DS/DSi variants.
-- **[gbarunner3](https://github.com/Gericom/GBARunner3/tree/ecaa817815d9761745606592f04affe5ee9c3731):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. No official release or current public CI artifact is available, so there is no pinned binary package to include.
+- **[gbarunner3](https://github.com/Gericom/GBARunner3/tree/ecaa817815d9761745606592f04affe5ee9c3731):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The supplied third-party hicode ZIP is hash-pinned as a candidate. Its exact source revision is unidentified; the recorded develop commit is reference source only. It is not automatically packaged yet.
 - **[gimlids](https://github.com/wavemotion-dave/GimliDS/tree/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740):** Code redistribution permitted, but the stock build only selects a directory. Not auto-installed over the prepared argv build. ArgvReceived records the basename and changes directory, then leaves a TODO for auto-loading. The prepared argv build in the backup is different.
 - **[hachibitto](https://github.com/wavemotion-dave/Hachibitto/tree/a388a295945d3929ac41a6369e40ce1c0afefa7e):** Stock 1.9 has no argv handling. arm9/source/MSX_BIOS.c explicitly says the embedded MSX firmware is used without permission. Do not redistribute this prebuilt binary based on the emulator-code terms. Stock 1.9 main() has no argc/argv or system-argv handling. The prepared 1.8b backup build is different; do not overwrite it with stock.
 - **[jenesisdsplus](https://github.com/DS-Homebrew/jEnesisDSPlus/tree/ca3bb43d14f8d78ccb6546d753817defaac25937):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL. saveArgv validates the standard _arg record, copies argv[1] and loadRomFromArgv starts the ROM. Original jEnesisDS does not establish the Plus behavior. Native DSi SD handoff still needs testing; do not infer it from the BlocksDS toolchain used for the injected code.

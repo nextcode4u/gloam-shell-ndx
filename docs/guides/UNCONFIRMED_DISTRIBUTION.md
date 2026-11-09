@@ -12,7 +12,7 @@ still require the separate build option and retain their no-profit terms.
 
 | Project | Recorded version | Package availability |
 | --- | --- | --- |
-| GBARunner3 | develop snapshot `ecaa817815d9761745606592f04affe5ee9c3731` | No official release or public CI artifact available; no binary bundled. |
+| GBARunner3 | develop snapshot `ecaa817815d9761745606592f04affe5ee9c3731` | Third-party hicode ZIP pinned as a candidate; exact core source revision unidentified; not bundled. |
 | FastVideoDS Player | v0.0.1 | Included under this assumption. |
 | jEnesisDS Plus | v0.8.1 | Included under this assumption; original base is closed source. |
 | S8DS | v1.1.8 | Included under this assumption. |
@@ -44,9 +44,11 @@ For jEnesisDS Plus this is the available patch/injected
 code, not the unpublished original jEnesisDS emulator source. No complete-source
 claim is made for that base.
 
-GBARunner3 has no automatically selected binary. The redistribution assumption
-is recorded independently of this availability limit; a future package needs a
-specific build, hash and accurately identified source before it can be added.
+The supplied GBARunner3 hicode ZIP now has pinned archive/core hashes, but no
+build manifest identifying its exact source revision. The recorded develop
+snapshot is reference source only. The core and its 304 configs remain a manual
+candidate until corresponding source is identified; this is independent of the
+redistribution assumption. See [the core/frontend setup notes](ADDONS.md#gbarunner3-core-and-optional-browser).
 
 ## Maintaining this policy
 

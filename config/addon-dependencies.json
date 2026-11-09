@@ -529,13 +529,41 @@
       "argv_evidence": "https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/code/core/arm9/source/main.cpp",
       "redistribution": "assumed",
       "license": "Project-wide license not established",
-      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. No official release or current public CI artifact is available, so there is no pinned binary package to include.",
+      "distribution_notes": "Redistribution is assumed under the documented project policy; upstream permission remains unconfirmed. A third-party hicode ZIP is pinned as a candidate. Its exact core source revision is not identified, so automatic packaging remains pending; the develop commit records reference source only.",
       "bios": "Requires original 16 KiB GBA BIOS at /_gba/bios.bin. Fixed-offset relocation/patches prevent assuming a replacement BIOS is compatible.",
       "bios_evidence": "https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/README.md",
       "license_evidence": "https://github.com/Gericom/GBARunner3/tree/ecaa817815d9761745606592f04affe5ee9c3731",
       "permission_confirmed": false,
       "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
-      "license_findings": "No upstream release assets and no project-wide LICENSE/COPYING; upstream issues #200/#208 discuss missing permission. Do not redistribute a private/CI build as an official release."
+      "license_findings": "No upstream release assets and no project-wide LICENSE/COPYING; upstream issues #200/#208 discuss missing permission. Do not redistribute a private/CI build as an official release.",
+      "binary_candidate": {
+        "asset": "GBARunner3-hicode.zip",
+        "url": "https://files.deletecat.com/GBARunner3-hicode.zip",
+        "sha256": "59c85c0598ed44c53b3fdf6281f61faf32eaa697bb88972ac80743a4f46ed92a",
+        "member": "GBARunner3.nds",
+        "member_sha256": "7cac508a8d9aa9bd7e52bdd2ee5709ebdb757faa8fe5206ac04fe557b42db6e6",
+        "config_directory": "_gba/configs/",
+        "config_count": 304,
+        "source_commit": null,
+        "source_coverage": "Unidentified third-party hicode build; the audited develop snapshot is reference source, not verified corresponding source.",
+        "bios_included": false,
+        "intended_destination": "_nds/dsi-frontend/plugins/apps/GBARunner3.nds"
+      },
+      "standalone_frontend": {
+        "repository": "https://github.com/flashcarts/gbar3-frontend",
+        "version": "v0.10.0-fcnet2",
+        "commit": "fe0bcc7c586cffe3f1d7ba5e9a8bbbdfd20cb131",
+        "url": "https://github.com/flashcarts/gbar3-frontend/releases/download/v0.10.0-fcnet2/gbar3-frontend.nds",
+        "sha256": "5491ef6709d541ba0e655ca1f2cc013a1be59f0448a6d33ef772f6f37323346a",
+        "license": "GPL-2.0-or-later",
+        "license_evidence": "https://github.com/flashcarts/gbar3-frontend/blob/fe0bcc7c586cffe3f1d7ba5e9a8bbbdfd20cb131/source/args.h",
+        "submodules": {
+          "nds-exception-stub": "81062d67f1f6088249f5685f51d66974c0c563dd"
+        },
+        "argv": "Opens its own file browser; does not consume an incoming selected-ROM argument. Forwards its own selection to the core.",
+        "core_path": "/GBARunner3.nds",
+        "packaging": "Manual alternative; not needed by the existing direct-core Gloam association. Default release does not search Gloam plugins/apps."
+      }
     },
     {
       "id": "gimlids",
