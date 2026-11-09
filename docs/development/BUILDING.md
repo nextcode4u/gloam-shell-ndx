@@ -69,7 +69,7 @@ GitHub CLI is optional but avoids unauthenticated API limits when authenticated.
 
 The optional [add-on builder](../guides/ADDONS.md) uses
 `config/addon-dependencies.json`. `python3 tools/build_addons.py --list` lists
-all audited entries without downloading. The default bundles eight applications
+all audited entries without downloading. The default bundles ten applications
 with established distribution terms. `--noncommercial` adds five with no-profit
 terms. Apps with unconfirmed permission are excluded from every bundled
 binary/source/notice collection, including explicit `--only` selections.

@@ -161,10 +161,10 @@ class AddonTests(unittest.TestCase):
         bundled = {a["id"] for a in selected_applications(lock, noncommercial=True)}
         catalog = download_manifest(lock, bundled)
         ready = {a["id"] for a in catalog["applications"]}
-        self.assertEqual(len(bundled), 14)
+        self.assertEqual(len(bundled), 15)
         self.assertEqual(len(ready), 13)
         self.assertFalse(ready & bundled)
-        self.assertEqual(len(catalog["updates"]), 27)
+        self.assertEqual(len(catalog["updates"]), 28)
         payload = next(a for a in catalog["updates"] if a["id"] == "snemulds")
         self.assertEqual(payload["requires"], ["snemulds", "snemulds-shim"])
         self.assertTrue({"gbarunner3", "nesds", "tuna-vids", "ds994a"} <= ready)

@@ -252,7 +252,7 @@
       "application": "GimliDS argv fork",
       "formats": ".d64, .crt, .prg",
       "addon": "gimlids",
-      "notes": "The configured .d64/.crt/.prg associations target the nextcode4u/GimliDS argv fork. No versioned runtime release is pinned yet; build the fork manually. Stock upstream 1.7a only changes directory."
+      "notes": "The configured .d64/.crt/.prg associations target the nextcode4u/GimliDS argv release, included in addons.zip and available through the shared downloader. Stock upstream 1.7a only changes directory. Supply the required Commodore firmware separately."
     },
     {
       "folder": "roms/MSX2",

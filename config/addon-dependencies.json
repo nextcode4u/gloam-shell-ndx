@@ -1231,19 +1231,111 @@
     {
       "id": "gimlids",
       "repository": "https://github.com/nextcode4u/GimliDS",
-      "version": "argv-launch source 7ced430",
-      "commit": "7ced430e0be18033cce3fa9049c537980412c2f7",
-      "release": null,
-      "release_assets": [],
+      "version": "v1.7a-argv.1",
+      "commit": "40c406980b5e53914cc0ade6881300c1833f52d0",
+      "release": "https://github.com/nextcode4u/GimliDS/releases/tag/v1.7a-argv.1",
+      "release_assets": [
+        {
+          "name": "BUILD-INFO.json",
+          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/BUILD-INFO.json"
+        },
+        {
+          "name": "GimliDS-v1.7a-argv.1-source.tar.gz",
+          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/GimliDS-v1.7a-argv.1-source.tar.gz"
+        },
+        {
+          "name": "GimliDS-v1.7a-argv.1.zip",
+          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/GimliDS-v1.7a-argv.1.zip"
+        },
+        {
+          "name": "GimliDS.nds",
+          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/GimliDS.nds"
+        },
+        {
+          "name": "SHA256SUMS",
+          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/SHA256SUMS"
+        }
+      ],
       "argv": "direct",
-      "argv_evidence": "https://github.com/nextcode4u/GimliDS/blob/7ced430e0be18033cce3fa9049c537980412c2f7/ARGUMENT_LAUNCH.md",
+      "argv_evidence": "https://github.com/nextcode4u/GimliDS/blob/40c406980b5e53914cc0ade6881300c1833f52d0/ARGUMENT_LAUNCH.md",
       "redistribution": "approved",
       "license": "GPL-2.0-or-later",
-      "distribution_notes": "Fork adds direct selected-image argv handling; no versioned runtime release is pinned yet. Build the source fork manually. Required user firmware is not supplied.",
+      "distribution_notes": "Based on GimliDS by Dave Bernazzani and Frodo by Christian Bauer. Versioned BlocksDS argv build includes runtime notices and matching application/SDK/libnds/Maxmod source. External Commodore firmware remains user-supplied.",
       "bios": "Requires KERNAL.ROM, BASIC.ROM, CHAR.ROM and 1541.ROM in /roms/bios or /roms/c64. MEGA65 Open ROMs are not a verified complete replacement set for GimliDS.",
       "argv_notes": "Selected PRG, CRT and D64 startup paths are implemented in the fork. Stock upstream 1.7a only changes directory.",
       "bios_evidence": "https://github.com/wavemotion-dave/GimliDS/blob/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740/README.md",
-      "license_evidence": "https://github.com/wavemotion-dave/GimliDS/tree/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740"
+      "license_evidence": "https://github.com/wavemotion-dave/GimliDS/tree/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740",
+      "prerelease": true,
+      "permission_confirmed": true,
+      "package": {
+        "source": {
+          "asset": "gimlids-GimliDS-v1.7a-argv.1-source.tar.gz",
+          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/GimliDS-v1.7a-argv.1-source.tar.gz",
+          "sha256": "679648506355e0dae634d263bfdc3c4480e202ddb523152d47ba2e63759a9b2f"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "gimlids-GimliDS.nds",
+              "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/GimliDS.nds",
+              "sha256": "035f223848987a76245e65dd33a78b1f7d7cb3e426b98543b47abf2c3396c19b"
+            },
+            "format": "raw",
+            "destination": "_nds/dsi-frontend/plugins/apps/GimliDS.nds",
+            "sha256": "035f223848987a76245e65dd33a78b1f7d7cb3e426b98543b47abf2c3396c19b"
+          }
+        ],
+        "notices": [
+          {
+            "member": "GimliDS/release-notices/ARGUMENT_LAUNCH.md",
+            "destination": "ARGUMENT_LAUNCH.md"
+          },
+          {
+            "member": "GimliDS/release-notices/ARGUMENT_LAUNCH_LICENSE.md",
+            "destination": "ARGUMENT_LAUNCH_LICENSE.md"
+          },
+          {
+            "member": "GimliDS/release-notices/ATTRIBUTION.md",
+            "destination": "ATTRIBUTION.md"
+          },
+          {
+            "member": "GimliDS/release-notices/COPYING",
+            "destination": "COPYING"
+          },
+          {
+            "member": "GimliDS/release-notices/README.md",
+            "destination": "README.md"
+          },
+          {
+            "member": "GimliDS/release-notices/blocksds-libnds-LICENSE",
+            "destination": "blocksds-libnds-LICENSE"
+          },
+          {
+            "member": "GimliDS/release-notices/blocksds-libnds-LICENSE.FatFs",
+            "destination": "blocksds-libnds-LICENSE.FatFs"
+          },
+          {
+            "member": "GimliDS/release-notices/blocksds-sdk-COPYING.mpl2",
+            "destination": "blocksds-sdk-COPYING.mpl2"
+          },
+          {
+            "member": "GimliDS/release-notices/blocksds-sdk-COPYING.zlib",
+            "destination": "blocksds-sdk-COPYING.zlib"
+          },
+          {
+            "member": "GimliDS/release-notices/gcc-COPYING.RUNTIME",
+            "destination": "gcc-COPYING.RUNTIME"
+          },
+          {
+            "member": "GimliDS/release-notices/maxmod-COPYING",
+            "destination": "maxmod-COPYING"
+          },
+          {
+            "member": "GimliDS/release-notices/picolibc-COPYING",
+            "destination": "picolibc-COPYING"
+          }
+        ]
+      }
     },
     {
       "id": "hachibitto",

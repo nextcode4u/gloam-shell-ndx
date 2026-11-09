@@ -14,14 +14,15 @@ Firmware: Requires KERNAL.ROM, BASIC.ROM, CHAR.ROM and 1541.ROM in /roms/bios
 or /roms/c64. MEGA65 Open ROMs are not a verified complete replacement set for
 GimliDS.
 
-Add-on package: manual / held; terms: GPL-2.0-or-later.
+Add-on package: available; terms: GPL-2.0-or-later.
 
 Upstream: https://github.com/nextcode4u/GimliDS
-Release: https://github.com/nextcode4u/GimliDS/releases
+Release: https://github.com/nextcode4u/GimliDS/releases/tag/v1.7a-argv.1
 
 The configured .d64/.crt/.prg associations target the nextcode4u/GimliDS argv
-fork. No versioned runtime release is pinned yet; build the fork manually.
-Stock upstream 1.7a only changes directory.
+release, included in addons.zip and available through the shared downloader.
+Stock upstream 1.7a only changes directory. Supply the required Commodore
+firmware separately.
 
 Keep required companion files and saves together. Other emulator-supported
 formats may need its own browser or a per-file application choice. Changing an

@@ -173,7 +173,7 @@ into preserved profiles when needed. Unmodified templates are also in `sd.zip`.
 
 ## Prepared builds and format conflicts
 
-- **GimliDS and Hachibitto:** use the nextcode4u argv source forks with the configured filenames. GimliDS has no versioned runtime pin yet; Hachibitto remains held because of embedded firmware permissions. Stock GimliDS 1.7a only selects a directory and stock Hachibitto 1.9 has no selected-file argv handler. Preserve the MSX2 `.mx2`/`.mxd` conventions.
+- **GimliDS and Hachibitto:** use the nextcode4u argv source forks with the configured filenames. GimliDS v1.7a-argv.1 is bundled with matching source/notices; Hachibitto remains held because of embedded firmware permissions. Stock GimliDS 1.7a only selects a directory and stock Hachibitto 1.9 has no selected-file argv handler. Preserve the MSX2 `.mx2`/`.mxd` conventions.
 - **SNES:** `.sfc` and `.smc` target `snemulds-shim.nds`. Keep `snemulds-shim.ini`, `SNEmulDS.nds` and `SNEmulDS.srl` together. Keep the existing root `snemul.cfg` and TGDS payload if that prepared setup uses them. The shim config mentions an optional legacy payload; install that payload separately only if your setup requires it.
 - **GameYob:** retain both `gameyob_dsi.nds` and `gameyob.nds`; the selected console mode chooses the configured variant.
 - **GBA:** GBARunner3 remains the configured `.gba` default and is fetched by the shared downloader, not bundled. GBARunner2 is also an alternative, but does not have a competing default profile.
