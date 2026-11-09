@@ -18,6 +18,7 @@ class EmulatorPresetTests(unittest.TestCase):
         capacity = int(re.search(r"#define ASSOCIATION_CAP (\d+)", limits).group(1))
         self.assertLessEqual(len(profiles), capacity)
         seen = set()
+        scopes = {}
         for profile in profiles:
             parser = configparser.ConfigParser(interpolation=None)
             path = PROJECT_ROOT / "sdroot/_nds/dsi-frontend/plugins" / (profile["id"] + ".ini")
@@ -25,12 +26,18 @@ class EmulatorPresetTests(unittest.TestCase):
             fields = parser["plugin"]
             extensions = fields["extensions"].split(",")
             self.assertEqual(extensions, profile["extensions"])
-            self.assertFalse(seen.intersection(extensions))
+            for extension in extensions:
+                scope = profile["settings"].get("content_root", "")
+                if extension in scopes:
+                    self.assertTrue(scope)
+                    self.assertNotIn(scope, scopes[extension])
+                    self.assertNotIn("", scopes[extension])
+                scopes.setdefault(extension, []).append(scope)
             seen.update(extensions)
             self.assertLess(len(fields["extensions"].encode()), 128)
             for key, value in profile["settings"].items():
                 output_key = "application" if key == "path" else key
-                expected = "sd:/" + value if key in ("path", "dsipath", "ntrpath") else value
+                expected = "sd:/" + value if key in ("path", "dsipath", "ntrpath", "content_root") else value
                 self.assertEqual(fields[output_key], expected)
             for key in ("path", "dsipath", "ntrpath"):
                 if key in profile["settings"]:

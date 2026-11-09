@@ -99,9 +99,11 @@ int main(int argc, char **argv)
     text_file(root, "roms/Bad.argv", "\"sd:/apps/unterminated.nds\n");
     text_file(root, "_nds/dsi-frontend/plugins/10-snes.ini",
               "[plugin]\nversion=1\nextensions=sfc, .smc\napplication=sd:/apps/Other.nds\n"
-              "dsipath=sd:/apps/My Emulator.nds\nntrpath=sd:/apps/Other.nds\n");
+              "dsipath=sd:/apps/My Emulator.nds\nntrpath=sd:/apps/Other.nds\n"
+              "content_root=sd:/roms\n");
     text_file(root, "_nds/dsi-frontend/plugins/20-snes.ini",
-              "[plugin]\nextensions=sfc\napplication=sd:/apps/Other.nds\n");
+              "[plugin]\nextensions=sfc\napplication=sd:/apps/Other.nds\n"
+              "content_root=sd:/another-folder\n");
     text_file(root, "_nds/dsi-frontend/plugins/escape.ini",
               "[plugin]\nextensions=sfc\napplication=../outside.nds\n");
     text_file(root, "_nds/dsi-frontend/plugins/version.ini",

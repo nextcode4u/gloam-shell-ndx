@@ -1,6 +1,6 @@
 # Emulator and media associations
 
-Gloam includes 31 grouped profiles covering 78 extensions. These defaults model
+Gloam includes 31 grouped profiles covering 78 extensions and 79 configured handler entries. These defaults model
 established argv association conventions, use upstream application filenames
 and preserve console-mode choices. Profiles are editable defaults; application
 compatibility depends on the chosen build. The optional
@@ -79,7 +79,7 @@ Paths in the next table are relative to `_nds/dsi-frontend/plugins/apps/`. Full 
 | `dracods.ini` | `.cas`, `.ccc` | `DracoDS.nds` | — |
 | `ds994a.ini` | `.rpk` | `DS994a.nds` | — |
 | `dslibris-books.ini` | EPUB/Kepub, FB2/ZIP, MOBI/AZW, OPF/OEB, PML/TCR | `dslibris-blocksds.nds` | — |
-| `dslibris-documents.ini` | TXT/TEXT/MARKDOWN, PDF/HTML, RTF/DOCX/ODT, HTMLZ/TXTZ | `dslibris-blocksds.nds` | — |
+| `dslibris-documents.ini` | TXT/TEXT/MD/MARKDOWN, PDF/HTML, RTF/DOCX/ODT, HTMLZ/TXTZ | `dslibris-blocksds.nds` | — |
 | `dsxp.ini` | `.mp3` | `DSXP.nds` | — |
 | `fastvideods.ini` | `.fv` | `FastVideoDS.nds` | — |
 | `gameyob-dsi.ini` | `.gb`, `.gbc`, `.sgb` | `gameyob_dsi.nds` | `gameyob.nds` |
@@ -120,22 +120,73 @@ bootstrap=0
 
 All supplied associations declare `argv=1`. Optional `bootstrap=0` flags are retained where present. The launcher applies argv and route selection; direct homebrew and a separate nds-bootstrap adapter are implemented. Grouping keeps related settings together. Each application still needs its own content, save and return checks.
 
+## Shared extensions and folder rules
+
+Add `content_root` to a normal profile in `/_nds/dsi-frontend/plugins/` to prefer
+that application for content in a folder and its descendants. The folder belongs
+to the file being opened, not the application's installation directory. For example:
+
+```ini
+; picodrivetwl.ini
+[plugin]
+version=1
+name=PicoDriveTWL
+extensions=gen,md
+content_root=sd:/roms/Genesis
+application=sd:/_nds/dsi-frontend/plugins/apps/PicoDriveTWL.nds
+argv=1
+bootstrap=0
+```
+
+The DSLibris document profile also lists `md`, with
+`content_root=sd:/media/books`. Rules use complete, case-insensitive SD folder
+boundaries: `/media/books` includes subfolders, but not `/media/bookshelf`.
+Malformed paths or parent traversal invalidate the profile. One root is supported
+per profile; additional profiles can prefer the same application in other folders.
+
+Resolution order is:
+
+1. A saved per-file application assignment.
+2. A personal extension default or disable rule in `plugins/user/`, which is global.
+3. The longest matching extension suffix, then the deepest matching `content_root`.
+4. If no folder decides it, a single registered handler launches directly; multiple
+   different handlers open **Open with**. Equal-priority folder rules also ask.
+
+Profiles without `content_root` remain eligible as ordinary extension handlers.
+Two unscoped handlers for the same suffix ask rather than using filename order.
+Repeated profiles with the same application and argv/backend flags count as one
+choice. The chooser retains each profile's launch flags, launches only after A,
+and changes no saved default; B/START returns to the same browser selection.
+Existing per-file assignments and explicit `.argv` shortcuts bypass the chooser.
+A countdown launch of an ambiguous recent file stops at the chooser instead of
+guessing or restarting the countdown.
+Ambiguous files remain visible in the supported-file filter and do not inherit an
+arbitrary handler's banner or artwork. Missing applications report an error without
+silently selecting another handler.
+
+Use the extension editor's **Restore profile rules** to remove a personal global
+default when you want folder rules and the chooser to apply again. Keep the matching
+`BOOT.NDS` and profile templates together when updating: older frontend builds do
+not understand folder rules and can choose the first duplicate extension globally.
+The updater preserves edited/existing profiles; merge the new `content_root` lines
+into preserved profiles when needed. Unmodified templates are also in `sd.zip`.
+
 ## Prepared builds and format conflicts
 
 - **GimliDS and Hachibitto:** use the nextcode4u argv source forks with the configured filenames. GimliDS has no versioned runtime pin yet; Hachibitto remains held because of embedded firmware permissions. Stock GimliDS 1.7a only selects a directory and stock Hachibitto 1.9 has no selected-file argv handler. Preserve the MSX2 `.mx2`/`.mxd` conventions.
 - **SNES:** `.sfc` and `.smc` target `snemulds-shim.nds`. Keep `snemulds-shim.ini`, `SNEmulDS.nds` and `SNEmulDS.srl` together. Keep the existing root `snemul.cfg` and TGDS payload if that prepared setup uses them. The shim config mentions an optional legacy payload; install that payload separately only if your setup requires it.
 - **GameYob:** retain both `gameyob_dsi.nds` and `gameyob.nds`; the selected console mode chooses the configured variant.
 - **GBA:** GBARunner3 remains the configured `.gba` default and is fetched by the shared downloader, not bundled. GBARunner2 is also an alternative, but does not have a competing default profile.
-- **Shared `.dsk`:** the default assigns it to SugarDS/Amstrad CPC. A CoCo, TI or MSX disk does not become CPC content because of its extension. Use the correct emulator's browser or the implemented per-file application picker; folder-based association overrides are not implemented yet.
+- **Shared `.dsk`:** the default assigns it to SugarDS/Amstrad CPC. A CoCo, TI or MSX disk does not become CPC content because of its extension. Use the correct emulator's browser or the implemented per-file application picker; add a `content_root` to each handler profile, or use a per-file application choice.
 - **Genesis alternative:** [jEnesisDS Plus v0.8.1](https://github.com/DS-Homebrew/jEnesisDSPlus/releases/tag/v0.8.1)
   has standard argv support and adds ROM support up to 7.5 MiB on DSi. Its
   binary is download-only through the shared Python/PowerShell installer.
   The native-SD route remains unverified; select it explicitly rather than
   replacing the PicoDriveTWL profile automatically.
-- **Shared `.md`:** the Genesis association also matches Markdown filenames. The profile treats it as a ROM extension. A Markdown document may therefore display the PicoDrive icon unless its per-file application choice overrides that mapping.
+- **Shared `.md`:** folder rules select DSLibris under `/media/books/` and PicoDriveTWL under `/roms/Genesis/`. Outside those folders, Gloam offers the registered handlers instead of guessing. The selected application receives the file through its own argv/backend profile.
 - **Machine selection:** CoCo and Dragon share DracoDS, while `.c10`/`.k7` share MicroDS. A folder name alone does not prove the application selected the intended machine. Follow the emulator's instructions and preserve its configuration.
 - **Video:** `.avi`, `.fv` and `.rvid` target their respective players. Arbitrary MP4/AVI files need the correct encoding/conversion; no universal video decoder is implied.
-- **Books:** the DSLibris BlocksDS fork is bundled with fonts and direct argv profiles. Supported unprotected EPUB/MOBI/FB2, PDF text, document and OPF/OEB files open from `/media/books/`; see its [format guide](https://github.com/nextcode4u/dslibris/blob/argv-launch/DOCUMENT_FORMATS.md). OPF packages need their chapter files beside them. Fonts use `/data/dslibris/font/`. `.md` remains assigned to Genesis; use `.markdown`, the reader library, or a per-file application choice for Markdown.
+- **Books:** the DSLibris BlocksDS fork is bundled with fonts and direct argv profiles. Supported unprotected EPUB/MOBI/FB2, PDF text, document and OPF/OEB files open from `/media/books/`; see its [format guide](https://github.com/nextcode4u/dslibris/blob/argv-launch/DOCUMENT_FORMATS.md). OPF packages need their chapter files beside them. Fonts use `/data/dslibris/font/`. `.md` is shared with Genesis and resolved by the folder rules above.
 - **ScummVM:** use the automatic collection discovery described below. Arbitrary game-data files are not ROM associations.
 - Generic archives, generic `.bin`/`.rom` and unrelated disk formats are not assigned automatically. Extract/prepare content using the application's actual requirements; changing an extension is not a general conversion method.
 

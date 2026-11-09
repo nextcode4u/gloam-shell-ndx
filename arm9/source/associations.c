@@ -65,6 +65,16 @@ static bool load_profile(const App *app, const char *path, const char *filename,
             if (strlen(value) >= sizeof profile->extensions)
                 valid = false;
             path_copy(profile->extensions, value, sizeof profile->extensions);
+        } else if (!strcasecmp(key, "name")) {
+            /* Optional display metadata must not disable a working launch profile. */
+            if (strlen(value) < sizeof profile->name)
+                path_copy(profile->name, value, sizeof profile->name);
+            else
+                profile->name[0] = 0;
+        } else if (!strcasecmp(key, "content_root")) {
+            profile->content_root[0] = 0;
+            if (*value && !path_resolve_sd(profile->content_root, app->root, value))
+                valid = false;
         } else if (!strcasecmp(key, "application") || !strcasecmp(key, "path")) {
             if (strlen(value) >= sizeof fallback)
                 valid = false;
@@ -165,21 +175,93 @@ static size_t extension_match(const char *list, const char *path)
     return best;
 }
 
-const Association *association_find(const App *app, const char *path)
+static size_t folder_match(const App *app, const Association *profile, const char *path)
+{
+    if (!*profile->content_root || !path_is_within_root(path, app->root))
+        return 0;
+    size_t length = strlen(profile->content_root);
+    /* FAT paths are case-insensitive, but /Books must not match /Bookshelf. */
+    if (strncasecmp(path, profile->content_root, length) || strlen(path) <= length ||
+        (profile->content_root[length - 1] != '/' && path[length] != '/'))
+        return 0;
+    return length;
+}
+
+static bool same_handler(const Association *left, const Association *right)
+{
+    return !strcasecmp(left->application, right->application) &&
+           left->use_argv == right->use_argv && left->bootstrap == right->bootstrap &&
+           left->hbargv == right->hbargv;
+}
+
+bool association_registered(const App *app, const char *path)
+{
+    if (association_user(app, path_extension(path)))
+        return true;
+    for (int i = 0; i < app->association_count; i++)
+        if (extension_match(app->associations[i].extensions, path))
+            return true;
+    return false;
+}
+
+static int profile_choices(const App *app, const char *path,
+                           const Association *choices[ASSOCIATION_CAP])
+{
+    size_t suffix = 0, folder = 0;
+    for (int i = 0; i < app->association_count; i++) {
+        const Association *profile = &app->associations[i];
+        size_t length = extension_match(profile->extensions, path);
+        if (!length)
+            continue;
+        size_t scope = folder_match(app, profile, path);
+        if (profile->disabled && *profile->content_root && !scope)
+            continue;
+        if (length > suffix) {
+            suffix = length;
+            folder = 0;
+        }
+        if (length == suffix && scope > folder)
+            folder = scope;
+    }
+    int count = 0;
+    for (int i = 0; suffix && i < app->association_count; i++) {
+        const Association *profile = &app->associations[i];
+        if (extension_match(profile->extensions, path) != suffix)
+            continue;
+        size_t scope = folder_match(app, profile, path);
+        if (folder && scope != folder)
+            continue;
+        if (profile->disabled) {
+            if (!*profile->content_root || scope)
+                return 0;
+            continue;
+        }
+        bool duplicate = false;
+        for (int j = 0; j < count; j++)
+            duplicate |= same_handler(profile, choices[j]);
+        if (!duplicate)
+            choices[count++] = profile;
+    }
+    return count;
+}
+
+int association_choices(const App *app, const char *path,
+                        const Association *choices[ASSOCIATION_CAP])
 {
     const Association *custom = association_user(app, path_extension(path));
-    if (custom)
-        return custom->disabled ? NULL : custom;
-    const Association *selected = NULL;
-    size_t longest = 0;
-    for (int index = 0; index < app->association_count; index++) {
-        size_t length = extension_match(app->associations[index].extensions, path);
-        if (length > longest) {
-            selected = &app->associations[index];
-            longest = length;
-        }
+    if (custom) {
+        if (custom->disabled)
+            return 0;
+        choices[0] = custom;
+        return 1;
     }
-    return selected && !selected->disabled ? selected : NULL;
+    return profile_choices(app, path, choices);
+}
+
+const Association *association_find(const App *app, const char *path)
+{
+    const Association *choices[ASSOCIATION_CAP];
+    return association_choices(app, path, choices) == 1 ? choices[0] : NULL;
 }
 
 const char *association_cover(const App *app, const char *path)
@@ -189,13 +271,10 @@ const char *association_cover(const App *app, const char *path)
         return NULL;
     if (*effective->cover)
         return effective->cover;
-    /* Choosing another application for an extension must not erase its
-     * distributed artwork default. Personal profiles can still supply a cover. */
-    for (int i = 0; i < app->association_count; i++) {
-        const Association *profile = &app->associations[i];
-        if (!profile->disabled && *profile->cover && extension_match(profile->extensions, path))
-            return profile->cover;
-    }
+    /* Personal application choices retain the folder-resolved artwork default. */
+    const Association *defaults[ASSOCIATION_CAP];
+    if (profile_choices(app, path, defaults) == 1 && *defaults[0]->cover)
+        return defaults[0]->cover;
     return NULL;
 }
 

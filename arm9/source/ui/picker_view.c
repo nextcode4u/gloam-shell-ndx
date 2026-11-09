@@ -5,8 +5,61 @@
 #include <stdio.h>
 #include <string.h>
 
+static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
+{
+    const PickerState *picker = &app->picker;
+    ThemePalette p = themes_palette(app);
+    themes_background_draw(&app->themes.active, 0, top);
+    themes_background_draw(&app->themes.active, 1, bottom);
+    draw_text(top, 10, 8, "OPEN WITH", p.accent, 32);
+    const char *name = strrchr(picker->target, '/');
+    draw_text_scrolling(top, 10, 31, name ? name + 1 : picker->target, p.text, 231,
+                        picker->idle_frames, !app->reduced_motion);
+    draw_text(top, 10, 57, "Selected application", p.muted, 32);
+    if (picker->count && picker->selected < picker->count) {
+        const Entry *entry = &picker->entries[picker->selected];
+        draw_text_scrolling(top, 10, 77, entry->name, p.accent, 231, picker->idle_frames,
+                            !app->reduced_motion);
+        draw_text_scrolling(top, 10, 98, entry->path, p.text, 231, picker->idle_frames,
+                            !app->reduced_motion);
+        const Association *profile = &app->associations[entry->target];
+        draw_text(top, 10, 120, "Preferred folder", p.muted, 32);
+        draw_text_scrolling(top, 10, 135,
+                            *profile->content_root ? profile->content_root : "Any folder", p.text,
+                            231, picker->idle_frames, !app->reduced_motion);
+    }
+    draw_text_wrapped(top, 10, 155,
+                      *picker->status
+                          ? picker->status
+                          : "Several apps handle this file. Your choice applies to this launch.",
+                      p.muted, 33, 3);
+    draw_text(bottom, 10, 7, "Choose application", p.text, 32);
+    draw_text(bottom, 10, 24, "Folder rules could not select one", p.muted, 33);
+    for (int row = 0; row < PICKER_VISIBLE_ROWS; row++) {
+        int index = picker->scroll + row;
+        if (index >= picker->count)
+            break;
+        int y = PICKER_TOP + row * PICKER_ROW_HEIGHT;
+        bool selected = index == picker->selected;
+        if (selected) {
+            draw_rectangle(bottom, 6, y, 244, PICKER_ROW_HEIGHT, p.surface);
+            draw_rectangle(bottom, 6, y, 2, PICKER_ROW_HEIGHT, p.accent);
+        }
+        draw_placeholder_icon(bottom, 14, y + 3, 12, PLACEHOLDER_APPLICATION,
+                              selected ? p.accent : p.muted);
+        draw_text_scrolling(bottom, 36, y + 3, picker->entries[index].name,
+                            selected ? p.text : p.muted, 203, picker->idle_frames,
+                            selected && !app->reduced_motion);
+    }
+    draw_text(bottom, 10, 176, "A launch  B / START cancel", p.muted, 33);
+}
+
 void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
 {
+    if (app->picker.kind == PICKER_HANDLER) {
+        render_handlers(app, top, bottom);
+        return;
+    }
     const PickerState *picker = &app->picker;
     ThemePalette palette = themes_palette(app);
     uint16_t surface = palette.surface, text = palette.text;
@@ -56,7 +109,7 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
         : picker->kind == PICKER_AUDIO ? "Pick a mono PCM16 WAV track. Music loops in the launcher."
         : picker->kind == PICKER_COVER ? "Pick a PNG or JPEG for this item. Images stay in place."
         : picker->kind == PICKER_EXTENSION_APPLICATION
-            ? "Choose the default homebrew app for this extension."
+            ? "Choose the app for this extension in every folder. Overrides folder rules."
             : "Pick a homebrew app. This file becomes argv[1].",
         text, 18, 8);
     draw_text_wrapped(top, 10, 163, "START cancels. B opens the parent folder.", muted, 33, 2);

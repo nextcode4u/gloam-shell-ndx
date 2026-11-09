@@ -110,6 +110,7 @@ typedef struct {
 } InstalledCatalog;
 typedef struct {
     char extensions[128];
+    char name[64], content_root[PATH_CAP];
     char application[PATH_CAP];
     char cover[PATH_CAP];
     char icon[PATH_CAP];
@@ -161,7 +162,8 @@ typedef enum {
     PICKER_BOTTOM_BACKGROUND,
     PICKER_REPAIR,
     PICKER_CONFIGURATION,
-    PICKER_ICON
+    PICKER_ICON,
+    PICKER_HANDLER
 } PickerKind;
 typedef struct {
     bool open, truncated, failed, confirmed;

@@ -299,9 +299,9 @@
     {
       "folder": "media/books",
       "application": "DSLibris BlocksDS argv fork",
-      "formats": ".epub, .kepub, .fb2/.fbz/.fb2.zip, .mobi/.azw/.azw3/.prc/.pdb, .pdf text, .txt/.text/.markdown, .html/.xhtml, .rtf/.docx/.odt, .opf/.oeb/.oebzip, .htmlz/.txtz, .pml/.pmlz/.tcr",
+      "formats": ".epub, .kepub, .fb2/.fbz/.fb2.zip, .mobi/.azw/.azw3/.prc/.pdb, .pdf text, .txt/.text/.md/.markdown, .html/.xhtml, .rtf/.docx/.odt, .opf/.oeb/.oebzip, .htmlz/.txtz, .pml/.pmlz/.tcr",
       "addon": "dslibris",
-      "notes": "OPF/OEB packages must retain their referenced chapter files. Books use /media/books; supplied fonts use /data/dslibris/font. DRM, scans without text and comics are unsupported. .md remains a Mega Drive association; open Markdown inside the reader or use .markdown for direct launch."
+      "notes": "OPF/OEB packages must retain their referenced chapter files. Supplied fonts use /data/dslibris/font. DRM, scans without text and comics are unsupported. Folder rules route .md in /media/books to DSLibris and .md in /roms/Genesis to PicoDriveTWL; elsewhere Gloam offers a handler chooser."
     }
   ],
   "profiles": [
@@ -551,7 +551,8 @@
       ],
       "settings": {
         "argv": "1",
-        "path": "_nds/dsi-frontend/plugins/apps/PicoDriveTWL.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/PicoDriveTWL.nds",
+        "content_root": "roms/Genesis"
       }
     },
     {
@@ -691,10 +692,11 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds",
+        "content_root": "media/books"
       },
       "repository": "https://github.com/nextcode4u/dslibris",
-      "notes": "BlocksDS argv fork; unprotected text reading. Compound fb2.zip is matched as a suffix; generic ZIPs are not associated."
+      "notes": "BlocksDS argv reader. Folder preference covers /media/books and descendants; shared extensions outside matching folders use the application chooser."
     },
     {
       "id": "dslibris-documents",
@@ -702,6 +704,7 @@
       "extensions": [
         "txt",
         "text",
+        "md",
         "markdown",
         "pdf",
         "html",
@@ -716,10 +719,11 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds",
+        "content_root": "media/books"
       },
       "repository": "https://github.com/nextcode4u/dslibris",
-      "notes": "BlocksDS argv fork; unprotected text reading. Compound fb2.zip is matched as a suffix; generic ZIPs are not associated."
+      "notes": "BlocksDS argv reader. Folder preference covers /media/books and descendants; shared extensions outside matching folders use the application chooser."
     }
   ]
 }

@@ -80,19 +80,7 @@ static bool recognized_file(const App *app, const char *name)
     for (unsigned i = 0; i < sizeof known / sizeof *known; i++)
         if (!strcasecmp(extension, known[i]))
             return true;
-    for (int i = 0; i < app->association_count; i++) {
-        char list[128];
-        path_copy(list, app->associations[i].extensions, sizeof list);
-        char *context = NULL;
-        for (char *token = strtok_r(list, ", ", &context); token;
-             token = strtok_r(NULL, ", ", &context)) {
-            if (*token == '.')
-                token++;
-            if (!strcasecmp(token, extension))
-                return true;
-        }
-    }
-    return false;
+    return association_registered(app, name);
 }
 void browser_display_name(const App *app, const Entry *entry, char output[256])
 {

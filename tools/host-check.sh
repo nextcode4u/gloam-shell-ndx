@@ -64,11 +64,18 @@ with (root / "expected.tsv").open("w") as output:
             settings = profile["settings"]
             application = settings.get("dsipath" if mode else "ntrpath", settings["path"])
             for extension in profile["extensions"]:
-                output.write(f"{mode}\t{extension.upper()}\t{application}\n")
+                folder = settings.get("content_root", "").rstrip("/")
+                content = (folder + "/" if folder else "") + "Content with spaces." + extension.upper()
+                output.write(f"{mode}\t{content}\t{application}\n")
 PY
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" tests/presets_test.c -o build/host/presets-test
 ASAN_OPTIONS=detect_leaks=1 build/host/presets-test "$fixture/presets" "$fixture/presets/expected.tsv"
+
+cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
+    "${model_objects[@]}" "${ui_objects[@]}" tests/association_resolver_test.c -o build/host/association-resolver-test
+mkdir "$fixture/association-resolver"
+ASAN_OPTIONS=detect_leaks=1 build/host/association-resolver-test "$fixture/association-resolver"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" \

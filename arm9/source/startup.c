@@ -4,6 +4,7 @@
 #include "app.h"
 #include "diagnostics.h"
 #include "launch.h"
+#include "picker.h"
 #include <stdio.h>
 
 void startup_prepare(App *app)
@@ -36,6 +37,8 @@ void startup_tick(App *app)
     if (--app->startup_countdown)
         return;
     app->startup_cancelled = true;
+    if (picker_open_handlers(app, app->dashboard.recent[0].path))
+        return;
     if (launch_prepare(app, app->dashboard.recent[0].path, &app->launch, app->message))
         app->launch_requested = app->startup_due = true;
     else {

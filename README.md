@@ -22,8 +22,8 @@ Screenshots show Gloam's renderer with the supplied themes and example content.
   appearance presets and on-console controls.
 - Covers and custom icons for games, folders and associated files, with lazy
   artwork loading and a disposable thumbnail cache.
-- Argv file associations, per-item player choices and return-to-loader support
-  for compatible homebrew.
+- Folder-aware argv associations, a handler chooser for shared extensions,
+  per-item player choices and return-to-loader support for compatible homebrew.
 - nds-bootstrap integration with game options, save slots and cheat selection.
 - System application shortcuts, installed DSiWare discovery, cartridge icons
   and Slot-1 launching through Simple DS Slot-1 Launcher.

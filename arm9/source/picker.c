@@ -130,7 +130,7 @@ static void refresh(App *app, const char *restore)
 void picker_batch(App *app, int direction)
 {
     PickerState *picker = &app->picker;
-    if (!picker->open || picker->directory || !app->storage_ready)
+    if (!picker->open || picker->kind == PICKER_HANDLER || picker->directory || !app->storage_ready)
         return;
     if (direction < 0) {
         if (!picker->batch)
@@ -176,6 +176,45 @@ bool picker_open(App *app, PickerKind kind)
     refresh(app, NULL);
     return true;
 }
+bool picker_open_handlers(App *app, const char *path)
+{
+    if (app->picker.open || !app->storage_ready || !app->dsi_mode ||
+        !path_is_within_root(path, app->root) || icon_is_ds_title(path) ||
+        !strcasecmp(path_extension(path), "argv"))
+        return false;
+    ItemPreferences item;
+    if (item_preferences_load(app->root, path, &item) && *item.application)
+        return false;
+    const Association *choices[ASSOCIATION_CAP];
+    int count = association_choices(app, path, choices);
+    if (count < 2)
+        return false;
+    Entry *entries = calloc((size_t)count, sizeof *entries);
+    if (!entries)
+        return false;
+    PickerState *picker = &app->picker;
+    memset(picker, 0, sizeof *picker);
+    picker->open = true;
+    picker->kind = PICKER_HANDLER;
+    picker->entries = entries;
+    picker->count = count;
+    path_copy(picker->target, path, PATH_CAP);
+    for (int i = 0; i < count; i++) {
+        Entry *entry = &entries[i];
+        const Association *profile = choices[i];
+        const char *name = strrchr(profile->application, '/');
+        path_copy(entry->name,
+                  *profile->name ? profile->name
+                  : name         ? name + 1
+                                 : profile->application,
+                  sizeof entry->name);
+        path_copy(entry->path, profile->application, PATH_CAP);
+        entry->kind = ITEM_FILE;
+        entry->target = (int)(profile - app->associations);
+    }
+    return true;
+}
+
 bool picker_open_extension(App *app, const char *extension)
 {
     if (!app->storage_ready || app->picker.open || !association_extension_valid(extension))
@@ -277,7 +316,7 @@ void picker_move(App *app, int direction)
 void picker_back(App *app)
 {
     PickerState *picker = &app->picker;
-    if (strlen(picker->path) <= strlen(app->root)) {
+    if (picker->kind == PICKER_HANDLER || strlen(picker->path) <= strlen(app->root)) {
         picker_close(app);
         return;
     }
@@ -324,6 +363,16 @@ void picker_activate(App *app)
     if (!picker->open || !picker->count)
         return;
     const Entry *entry = &picker->entries[picker->selected];
+    if (picker->kind == PICKER_HANDLER) {
+        char error[160];
+        if (!launch_prepare_handler(app, picker->target, entry->target, &app->launch, error)) {
+            path_copy(picker->status, error, sizeof picker->status);
+            return;
+        }
+        picker_close(app);
+        app->launch_requested = true;
+        return;
+    }
     if (entry->kind == ITEM_DIRECTORY) {
         path_copy(picker->path, entry->path, PATH_CAP);
         picker->batch = 0;

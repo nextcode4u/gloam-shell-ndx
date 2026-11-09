@@ -8,6 +8,11 @@ bool association_set_default(App *app, const char *extension, const char *applic
 bool association_disable(App *app, const char *extension);
 bool association_clear_default(App *app, const char *extension);
 const char *association_cover(const App *app, const char *path);
+/* Memory-only resolution: zero means no handler/disabled, one selects it,
+ * multiple choices need explicit selection. Folder rules include descendants. */
+int association_choices(const App *app, const char *path,
+                        const Association *choices[ASSOCIATION_CAP]);
+bool association_registered(const App *app, const char *path);
 const Association *association_find(const App *app, const char *path);
 /* Resolves display metadata only. It does not launch applications. */
 bool association_icon_source(const App *app, const Entry *entry, char output[PATH_CAP]);

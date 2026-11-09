@@ -8,5 +8,8 @@ bool launch_is_homebrew_file(const char *path);
 bool launch_prepare_slot1(const App *app, LaunchPlan *plan, char error[160]);
 bool launch_prepare_installer(const App *app, LaunchPlan *plan, char error[160]);
 bool launch_prepare(const App *app, const char *path, LaunchPlan *plan, char error[160]);
+/* Revalidate a handler chosen by the resolver before using its argv/backend flags. */
+bool launch_prepare_handler(const App *app, const char *path, int handler, LaunchPlan *plan,
+                            char error[160]);
 bool launch_platform(const LaunchPlan *plan, char error[160]);
 #endif

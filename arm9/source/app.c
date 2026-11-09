@@ -377,6 +377,8 @@ void app_open(App *app)
         }
         return;
     }
+    if (entry->kind == ITEM_FILE && picker_open_handlers(app, entry->path))
+        return;
     if (launch_prepare(app, entry->path, &app->launch, app->message))
         app->launch_requested = true;
     else {

@@ -5,6 +5,7 @@
 #define PICKER_ROW_HEIGHT 18
 #define PICKER_VISIBLE_ROWS 7
 bool picker_open(App *app, PickerKind kind);
+bool picker_open_handlers(App *app, const char *path);
 bool picker_open_audio(App *app);
 bool picker_open_configuration(App *app);
 bool picker_open_background(App *app, int screen);

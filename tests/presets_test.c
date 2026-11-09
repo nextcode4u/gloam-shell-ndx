@@ -19,13 +19,13 @@ int main(int argc, char **argv)
         char line[1024];
         while (fgets(line, sizeof line, file)) {
             int expected_mode;
-            char extension[32], relative[PATH_CAP];
-            assert(sscanf(line, "%d\t%31[^\t]\t%767[^\n]", &expected_mode, extension, relative) ==
-                   3);
+            char content_relative[PATH_CAP], relative[PATH_CAP];
+            assert(sscanf(line, "%d\t%767[^\t]\t%767[^\n]", &expected_mode, content_relative,
+                          relative) == 3);
             if (expected_mode != mode)
                 continue;
-            char content[128], actual[PATH_CAP], expected[PATH_CAP];
-            snprintf(content, sizeof content, "Content with spaces.%s", extension);
+            char content[PATH_CAP], actual[PATH_CAP], expected[PATH_CAP];
+            assert(path_join(content, argv[1], content_relative));
             assert(association_icon_application(&app, content, actual));
             assert(path_join(expected, argv[1], relative));
             assert(!strcmp(actual, expected));
@@ -33,7 +33,8 @@ int main(int argc, char **argv)
         }
         assert(fclose(file) == 0);
     }
-    assert(checked == 156);
-    puts("PASS: all 78 configured extensions resolve correctly in DS and DSi modes");
+    assert(checked == 158);
+    puts("PASS: all 79 configured handler entries resolve in their preferred folders in DS and DSi "
+         "modes");
     return 0;
 }

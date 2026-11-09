@@ -19,20 +19,26 @@ void association_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
     char filename[32];
     snprintf(filename, sizeof filename, "file.%s", extension);
     const Association *effective = association_find(app, filename);
+    const Association *choices[ASSOCIATION_CAP];
+    bool shared = association_choices(app, filename, choices) > 1;
     draw_text(top, 10, 57,
               custom && custom->disabled ? "Disabled"
-              : custom                   ? "Personal default"
+              : custom                   ? "Personal global default"
+              : shared                   ? "Folder rules / choose on launch"
                                          : "Supplied default",
               p.accent, 32);
     draw_text_wrapped(top, 10, 80,
-                      effective ? effective->application : "No automatic application configured.",
+                      effective ? effective->application
+                      : shared  ? "Matching folders select their preferred app. Other folders open "
+                                  "an application chooser."
+                                : "No automatic application configured.",
                       p.text, 33, 5);
     draw_text_wrapped(top, 10, 146,
                       "Per-file choices take priority. Content and applications stay in place.",
                       p.muted, 33, 3);
     draw_text(bottom, 10, 7, "Extension defaults", p.text, 32);
     draw_text(bottom, 10, 24, "A select  B back  START close", p.muted, 33);
-    static const char *options[] = {"Choose application", "Restore supplied default",
+    static const char *options[] = {"Choose global default", "Restore profile rules",
                                     "Disable automatic association"};
     int count = editor->option >= 0 ? 3 : editor->count;
     for (int row = 0; row < 7; row++) {

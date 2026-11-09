@@ -534,6 +534,7 @@
     "tests/artwork_async_test.c",
     "tests/artwork_cache_test.c",
     "tests/association_dashboard_test.c",
+    "tests/association_resolver_test.c",
     "tests/audio_grid_test.c",
     "tests/background_test.c",
     "tests/bootstrap_test.c",

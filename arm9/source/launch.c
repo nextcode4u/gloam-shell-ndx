@@ -109,7 +109,8 @@ static bool validate_binary(const char *path, bool identified_homebrew, char err
     return true;
 }
 
-bool launch_prepare(const App *app, const char *path, LaunchPlan *plan, char error[160])
+static bool prepare(const App *app, const char *path, const Association *selected, LaunchPlan *plan,
+                    char error[160])
 {
     memset(plan, 0, sizeof *plan);
     path_copy(plan->content, path, PATH_CAP);
@@ -147,9 +148,13 @@ bool launch_prepare(const App *app, const char *path, LaunchPlan *plan, char err
             snprintf(error, 160, "Selected content is missing or unreadable.");
             return false;
         }
-        profile = association_find(app, path);
+        profile = selected ? selected : association_find(app, path);
         if (!profile) {
-            snprintf(error, 160, "No application is configured for this file type.");
+            const Association *choices[ASSOCIATION_CAP];
+            snprintf(error, 160,
+                     association_choices(app, path, choices) > 1
+                         ? "Multiple applications match this file. Choose one to launch."
+                         : "No application is configured for this file type.");
             return false;
         }
         if (profile->bootstrap || profile->hbargv) {
@@ -207,6 +212,24 @@ bool launch_prepare(const App *app, const char *path, LaunchPlan *plan, char err
     return true;
 too_many:
     snprintf(error, 160, "Launch exceeds 16 arguments or 4 KiB of argument data.");
+    return false;
+}
+
+bool launch_prepare(const App *app, const char *path, LaunchPlan *plan, char error[160])
+{
+    return prepare(app, path, NULL, plan, error);
+}
+
+bool launch_prepare_handler(const App *app, const char *path, int handler, LaunchPlan *plan,
+                            char error[160])
+{
+    const Association *choices[ASSOCIATION_CAP];
+    int count = association_choices(app, path, choices);
+    for (int i = 0; handler >= 0 && handler < app->association_count && i < count; i++)
+        if (choices[i] == &app->associations[handler])
+            return prepare(app, path, choices[i], plan, error);
+    memset(plan, 0, sizeof *plan);
+    snprintf(error, 160, "File handlers changed. Reopen the file to choose again.");
     return false;
 }
 

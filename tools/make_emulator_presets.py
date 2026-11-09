@@ -22,7 +22,7 @@ def profile_text(profile: dict) -> str:
     ]
     for key, value in profile["settings"].items():
         output_key = "application" if key == "path" else key
-        if key in ("path", "dsipath", "ntrpath"):
+        if key in ("path", "dsipath", "ntrpath", "content_root"):
             value = "sd:/" + value.lstrip("/")
         lines.append(output_key + "=" + value)
     return "\n".join(lines) + "\n"
