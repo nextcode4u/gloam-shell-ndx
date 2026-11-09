@@ -49,6 +49,22 @@ The original crescent/doorway icon is authored for Gloam. Source lives under
 pinned BlocksDS ARM7/storage compatibility build is reused. Installer software
 remains external; no NTM source or binaries are included.
 
+## Generated TMD and release files
+
+`tools/build_forwarder.py` generates `gloam-forwarder.tmd` locally from the
+exact compiled `.dsi`. The 520-byte file describes our title ID, content size
+and SHA-1. Its RSA signature area is zero; no signed TMD, certificate, ticket
+or console key is imported from a Nintendo title.
+
+This generated metadata accompanies Gloam's own forwarder, with the project's
+license, dependency notices and matching source. Keep the `.dsi` and `.tmd`
+filenames paired. An unsigned TMD does not authorize stock firmware installation;
+see the boot-environment requirements above.
+
+Changing the icon/banner or executable changes the content hash. Rebuild the
+forwarder and regenerate its TMD together; the packaging verifier rejects
+mismatched files. The SD ZIP includes both under `_nds/dsi-frontend/install/`.
+
 ## Compatibility
 
 The tile requires an appropriate modified boot environment; it is not a stock
