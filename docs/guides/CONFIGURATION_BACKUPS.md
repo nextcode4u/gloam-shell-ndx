@@ -1,6 +1,6 @@
 # Portable configuration backups
 
-START → Maintenance → Export configuration saves
+In Advanced settings, START → Maintenance → Export configuration saves
 `_nds/dsi-frontend/configuration/export.dsconfig`. Its previous revision is
 retained as `.bak`. Import configuration opens an SD file picker. A first
 validates the entire selected archive and shows the checked record count;
@@ -104,3 +104,8 @@ uses bounded same-volume renames, not a promise of FAT-level power-loss atomicit
 
 Export diagnostics writes `diagnostics.txt` with observed frontend/build state.
 It excludes content paths, file contents, BIOS/NAND data and console keys.
+
+Games & Apps and Maintenance are Advanced settings pages. Switch from Simple
+using the settings mode control; a configured Simple settings lock prevents
+that switch until its owner changes the configuration. SELECT actions remain
+available according to their own content and storage requirements.

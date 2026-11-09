@@ -348,12 +348,12 @@ static const SettingsOption routes[] = {
      "validation. A refreshes discovery.",
      false, OPT_ROUTE_CAMERA},
     {"Sound",
-     "Read-only NAND discovery. Sound startup remains unresolved in the tested emulator. "
-     "A refreshes discovery.",
+     "Discover installed Sound and check its native route. Playback and recording depend on the "
+     "boot environment. A refreshes discovery.",
      false, OPT_ROUTE_SOUND},
     {"PictoChat",
-     "Read-only NAND discovery. The tested firmware route returns to Menu; it has "
-     "not opened PictoChat. A refreshes discovery.",
+     "Discover PictoChat and check its native route. Local wireless needs compatible firmware "
+     "and peers. A refreshes discovery.",
      false, OPT_ROUTE_PICTO},
     {"Download Play",
      "Read-only NAND discovery. Stock-boot app startup works; wireless transfer "

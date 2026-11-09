@@ -11,7 +11,7 @@ first-run cache/preparation work may take longer than subsequent launches.
 Gloam uses BlocksDS; upstream nds-bootstrap has its own devkitARM build system.
 No private test patches are applied by the release builder.
 
-START → Games & Apps → Game defaults opens global options. SELECT → Title
+In Advanced settings, START → Games & Apps → Game defaults opens global options. SELECT → Title
 options opens overrides for a selected DS title. Up/Down selects, Left/Right
 or A changes, Y resets and B/START saves and returns to the menu that opened
 the editor. A failed save keeps the editor

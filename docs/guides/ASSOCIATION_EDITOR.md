@@ -1,6 +1,6 @@
 # Personal extension defaults
 
-Open **Settings → Games & Apps → Emulator profiles**, or **SELECT → Edit file
+In Advanced settings, open **Settings → Games & Apps → Emulator profiles**, or **SELECT → Edit file
 associations**. The editor lists loaded extensions plus the current file's
 extension. Select an extension, then choose an application, restore the supplied
 default, or disable its automatic association. The application picker validates

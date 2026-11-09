@@ -1,7 +1,7 @@
 # Title cheats
 
 Select a DS title, then SELECT → Title cheats (also accessible from Games & Apps
-settings while that title is selected). Up/Down selects, A toggles a code or
+in Advanced settings while that title is selected). Up/Down selects, A toggles a code or
 expands/collapses a folder, Y disables all and B/START saves and returns to the originating menu. Touch selects
 a row and activates it on the second selection. The top screen shows the note
 and whether a group is exclusive. Enabling one member clears its siblings.
