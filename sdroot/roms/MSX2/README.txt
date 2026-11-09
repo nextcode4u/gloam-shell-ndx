@@ -14,16 +14,22 @@ remains unverified. Stock 1.9 has no selected-file argv support.
 Firmware: Stock binary embeds MSX/MSX2/MSX2+ and disk firmware. Optional Kanji
 font is user-supplied. C-BIOS is not a verified drop-in full replacement.
 
-Add-on package: manual / held; terms: Noncommercial core; firmware/asset
-rights unresolved.
+Add-on package: direct upstream download with shared installer; terms:
+Noncommercial core; firmware/asset rights unresolved.
+
+This application is not bundled because redistribution permission or component
+coverage remains unconfirmed. Use the Python or PowerShell downloader in
+addons.zip/addon-installer, or install directly from upstream. Existing files
+are preserved by default.
 
 Upstream: https://github.com/nextcode4u/Hachibitto
-Release: https://github.com/nextcode4u/Hachibitto/releases
+Release: https://github.com/nextcode4u/Hachibitto/releases/tag/v1.9-argv.1
 
-The configured .mx2/.mxd associations target nextcode4u/Hachibitto.
-Redistribution of its inherited embedded firmware remains unconfirmed, so no
-binary is bundled. Build/install separately; do not replace it with stock 1.9,
-which has no selected-file argv support.
+The configured .mx2/.mxd associations target nextcode4u/Hachibitto
+v1.9-argv.1. Use the shared downloader with noncommercial opt-in to install
+its release. No Hachibitto binary/source/notices are bundled because inherited
+firmware permissions remain unconfirmed. Stock 1.9 has no selected-file argv
+support.
 
 Keep required companion files and saves together. Other emulator-supported
 formats may need its own browser or a per-file application choice. Changing an

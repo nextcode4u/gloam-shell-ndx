@@ -1340,19 +1340,76 @@
     {
       "id": "hachibitto",
       "repository": "https://github.com/nextcode4u/Hachibitto",
-      "version": "argv-launch source c9e9874",
-      "commit": "c9e98748d3cb8143fa9f430f08a069f96823899c",
-      "release": null,
-      "release_assets": [],
+      "version": "v1.9-argv.1",
+      "commit": "f0198347abf0c5e0317c3bd32af171e37bc74ec6",
+      "release": "https://github.com/nextcode4u/Hachibitto/releases/tag/v1.9-argv.1",
+      "release_assets": [
+        {
+          "name": "BUILD-INFO.json",
+          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/BUILD-INFO.json"
+        },
+        {
+          "name": "Hachibitto-v1.9-argv.1-source.tar.gz",
+          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/Hachibitto-v1.9-argv.1-source.tar.gz"
+        },
+        {
+          "name": "Hachibitto-v1.9-argv.1.zip",
+          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/Hachibitto-v1.9-argv.1.zip"
+        },
+        {
+          "name": "Hachibitto.nds",
+          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/Hachibitto.nds"
+        },
+        {
+          "name": "SHA256SUMS",
+          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/SHA256SUMS"
+        }
+      ],
       "argv": "direct",
-      "argv_evidence": "https://github.com/nextcode4u/Hachibitto/blob/c9e98748d3cb8143fa9f430f08a069f96823899c/ARGUMENT_LAUNCH.md",
-      "redistribution": "blocked",
+      "argv_evidence": "https://github.com/nextcode4u/Hachibitto/blob/f0198347abf0c5e0317c3bd32af171e37bc74ec6/ARGUMENT_LAUNCH.md",
+      "redistribution": "download-only",
       "license": "Noncommercial core; firmware/asset rights unresolved",
-      "distribution_notes": "Fork adds argv handling, but inherited embedded MSX firmware has no established redistribution permission. No binary/source package is included in addons.zip or its companions.",
+      "distribution_notes": "Download-only argv fork release. The shared installer retrieves the executable directly from nextcode4u/Hachibitto with noncommercial opt-in. Its binary, source and notices remain excluded from Gloam addon and companion archives; inherited firmware/asset redistribution permissions remain unconfirmed.",
       "bios": "Stock binary embeds MSX/MSX2/MSX2+ and disk firmware. Optional Kanji font is user-supplied. C-BIOS is not a verified drop-in full replacement.",
       "argv_notes": "Fork handles selected .mx2 cartridges and .mxd disks. Cartridge startup has been exercised; disk startup remains unverified. Stock 1.9 has no selected-file argv support.",
       "bios_evidence": "https://github.com/wavemotion-dave/Hachibitto/blob/a388a295945d3929ac41a6369e40ce1c0afefa7e/arm9/source/MSX_BIOS.c",
-      "license_evidence": "https://github.com/wavemotion-dave/Hachibitto/tree/a388a295945d3929ac41a6369e40ce1c0afefa7e"
+      "license_evidence": "https://github.com/wavemotion-dave/Hachibitto/tree/a388a295945d3929ac41a6369e40ce1c0afefa7e",
+      "prerelease": true,
+      "permission_confirmed": false,
+      "download_noncommercial": true,
+      "package": {
+        "source": {
+          "asset": "hachibitto-Hachibitto-v1.9-argv.1-source.tar.gz",
+          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/Hachibitto-v1.9-argv.1-source.tar.gz",
+          "sha256": "41a888cac809a049282b473ef10917ea34e4ec78742137ecf6ab2f25aa002d43"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "hachibitto-Hachibitto.nds",
+              "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/Hachibitto.nds",
+              "sha256": "b94af614e5e70583e699d847adef9cdce5e6bae60df3a916a36c62c620b46cac"
+            },
+            "format": "raw",
+            "destination": "_nds/dsi-frontend/plugins/apps/Hachibitto.nds",
+            "sha256": "b94af614e5e70583e699d847adef9cdce5e6bae60df3a916a36c62c620b46cac"
+          }
+        ],
+        "notices": [
+          {
+            "member": "Hachibitto/release-notices/README.md",
+            "destination": "README.md"
+          },
+          {
+            "member": "Hachibitto/release-notices/ARGUMENT_LAUNCH_LICENSE.md",
+            "destination": "ARGUMENT_LAUNCH_LICENSE.md"
+          },
+          {
+            "member": "Hachibitto/release-notices/ATTRIBUTION.md",
+            "destination": "ATTRIBUTION.md"
+          }
+        ]
+      }
     },
     {
       "id": "jenesisdsplus",

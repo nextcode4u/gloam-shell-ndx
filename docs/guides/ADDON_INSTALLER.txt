@@ -95,3 +95,9 @@ into preserved/custom profiles when updating; no edited profile is overwritten. 
 keep their chapter folders. Generic ZIP files are not associated with a reader;
 .fb2.zip is matched specifically. DRM, comic archives and scans without text
 are not supported by the text reader.
+
+Hachibitto argv release (download-only; noncommercial opt-in):
+  python download-addons.py --target E:/ --only hachibitto --noncommercial
+  .\download-addons.ps1 -Target E:\ -Only hachibitto -Noncommercial
+Its embedded firmware/asset permissions remain unconfirmed. It is not included
+in Gloam binary, source or notice archives; the scripts fetch its fork release.

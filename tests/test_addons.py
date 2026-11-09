@@ -132,6 +132,22 @@ class AddonTests(unittest.TestCase):
         self.assertEqual(tuna["package"]["project_notices"], [{
             "path": "docs/guides/TUNA_VIDS_NOTICES.md", "destination": "DISTRIBUTION.md"}])
 
+    def test_hachibitto_is_download_only_and_requires_noncommercial_opt_in(self):
+        root = Path(__file__).resolve().parents[1]
+        lock = json.loads((root / "config/addon-dependencies.json").read_text())
+        bundled = {a["id"] for a in selected_applications(lock, noncommercial=True)}
+        self.assertNotIn("hachibitto", bundled)
+        with self.assertRaisesRegex(ValueError, "not eligible"):
+            selected_applications(lock, noncommercial=True, only=["hachibitto"])
+        manifest = download_manifest(lock, bundled)
+        app = next(a for a in manifest["applications"] if a["id"] == "hachibitto")
+        self.assertTrue(app["noncommercial"])
+        self.assertEqual(app["version"], "v1.9-argv.1")
+        self.assertNotIn("source", app)
+        self.assertNotIn("notices", app)
+        self.assertEqual(app["files"][0]["destination"],
+                         "_nds/dsi-frontend/plugins/apps/Hachibitto.nds")
+
     def test_permission_filter_and_explicit_selection(self):
         conditional = {**self.app, "id": "conditional", "redistribution": "noncommercial"}
         held = {**self.app, "id": "held", "redistribution": "blocked"}
@@ -162,9 +178,9 @@ class AddonTests(unittest.TestCase):
         catalog = download_manifest(lock, bundled)
         ready = {a["id"] for a in catalog["applications"]}
         self.assertEqual(len(bundled), 15)
-        self.assertEqual(len(ready), 13)
+        self.assertEqual(len(ready), 14)
         self.assertFalse(ready & bundled)
-        self.assertEqual(len(catalog["updates"]), 28)
+        self.assertEqual(len(catalog["updates"]), 29)
         payload = next(a for a in catalog["updates"] if a["id"] == "snemulds")
         self.assertEqual(payload["requires"], ["snemulds", "snemulds-shim"])
         self.assertTrue({"gbarunner3", "nesds", "tuna-vids", "ds994a"} <= ready)
