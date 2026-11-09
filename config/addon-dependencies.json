@@ -2691,65 +2691,64 @@
     },
     {
       "id": "tuna-vids",
-      "repository": "https://github.com/chishm/tuna-vids",
-      "version": "v1.2",
-      "commit": "f1f00243b2f969ebc9ded1a4942f610819f8c673",
-      "release": "https://github.com/chishm/tuna-vids/releases/tag/v1.2",
+      "repository": "https://github.com/DS-Homebrew/tuna-vids",
+      "version": "v1.2-clut",
+      "commit": "6781a1a7ac723cb1274de6bd8734b21a9fbbebc5",
+      "release": "https://github.com/DS-Homebrew/tuna-vids/releases/tag/v1.2-clut",
       "release_assets": [
         {
-          "name": "tuna-vids_v1.2.zip",
-          "url": "https://github.com/chishm/tuna-vids/releases/download/v1.2/tuna-vids_v1.2.zip"
+          "name": "tuna-vids.nds",
+          "url": "https://github.com/DS-Homebrew/tuna-vids/releases/download/v1.2-clut/tuna-vids.nds"
         }
       ],
       "argv": "direct",
-      "argv_evidence": "https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/arm9/source/main.c",
+      "argv_evidence": "https://github.com/DS-Homebrew/tuna-vids/blob/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/arm9/source/main.c",
       "redistribution": "assumed",
       "license": "GPL-2.0-or-later ARM9 + Helix RPSL/RCSL ARM7",
-      "distribution_notes": "Include the unchanged v1.2 release under the documented project distribution assumption. Bundle root GPL, upstream README, Helix LICENSE/RPSL/RCSL and the project distribution/source-availability notice in licenses.zip; retain the pinned player/codec source in source.zip. The executable Helix notice gap remains documented, not claimed fixed by companion documentation.",
+      "distribution_notes": "Include the unchanged DS-Homebrew v1.2-clut release under the documented project distribution assumption. Retain Chishm and contributor attribution, root GPL, upstream README, Helix LICENSE/RPSL/RCSL and the project distribution/source-availability notice in licenses.zip; retain the matching fork player/codec source in source.zip. The executable Helix notice gap remains documented, not claimed fixed by companion documentation.",
       "bios": "No BIOS required; AVI must contain Xvid/MPEG-4 video and MP3 audio in the player-specific format.",
-      "bios_evidence": "https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/README.md",
-      "license_evidence": "https://github.com/chishm/tuna-vids/tree/f1f00243b2f969ebc9ded1a4942f610819f8c673",
+      "bios_evidence": "https://github.com/DS-Homebrew/tuna-vids/blob/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/README.md",
+      "license_evidence": "https://github.com/DS-Homebrew/tuna-vids/tree/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5",
       "license_findings": "Retain root GPL text, README, Helix LICENSE.txt, RPSL.txt and RCSL.txt (the latter is an alternative requiring a valid agreement, not the default grant). Provide corresponding player/codec source and mark downstream changes. RPSL Exhibit B lists GPL with a compatibility footnote; no general GPL-compatible claim is made.",
       "permission_confirmed": false,
       "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
       "package": {
         "source": {
-          "asset": "tuna-vids-source.tar.gz",
-          "url": "https://codeload.github.com/chishm/tuna-vids/tar.gz/f1f00243b2f969ebc9ded1a4942f610819f8c673",
-          "sha256": "641f169ba99388a8daeff3966d128f81d7e12de76bf7a593e3143862c5498a8e"
+          "asset": "tuna-vids-v1.2-clut-source.tar.gz",
+          "url": "https://codeload.github.com/DS-Homebrew/tuna-vids/tar.gz/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5",
+          "sha256": "121235aeba3df4d39c23d52a78b9ce922a1ed9ce7a9bf1888d15a8002a144156"
         },
         "files": [
           {
             "download": {
-              "asset": "tuna-vids-tuna-vids_v1.2.zip",
-              "url": "https://github.com/chishm/tuna-vids/releases/download/v1.2/tuna-vids_v1.2.zip",
-              "sha256": "a6f065d51f687268cbe515b774b68d4c38406e7e07b2839f125df88d921f9cd4"
+              "asset": "tuna-vids-v1.2-clut.nds",
+              "url": "https://github.com/DS-Homebrew/tuna-vids/releases/download/v1.2-clut/tuna-vids.nds",
+              "sha256": "387d436d7def4183cf4745337ae4c80521cf3e2c435171f8f80e5312f3aa2dc5"
             },
-            "format": "zip",
+            "format": "raw",
             "destination": "_nds/dsi-frontend/plugins/apps/tuna-vids.nds",
-            "sha256": "07052817b2a77930a736dce0d99994baa564d1e132b308fecbcde2a8c4523642",
-            "member": "tuna-vids.nds"
+            "sha256": "387d436d7def4183cf4745337ae4c80521cf3e2c435171f8f80e5312f3aa2dc5"
           }
         ],
         "notices": [
           {
-            "member": "tuna-vids-f1f00243b2f969ebc9ded1a4942f610819f8c673/LICENSE",
+            "member": "tuna-vids-6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/LICENSE",
             "destination": "LICENSE"
           },
           {
-            "member": "tuna-vids-f1f00243b2f969ebc9ded1a4942f610819f8c673/README.md",
+            "member": "tuna-vids-6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/README.md",
             "destination": "README.md"
           },
           {
-            "member": "tuna-vids-f1f00243b2f969ebc9ded1a4942f610819f8c673/arm7/source/helix/LICENSE.txt",
+            "member": "tuna-vids-6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/arm7/source/helix/LICENSE.txt",
             "destination": "arm7/source/helix/LICENSE.txt"
           },
           {
-            "member": "tuna-vids-f1f00243b2f969ebc9ded1a4942f610819f8c673/arm7/source/helix/RCSL.txt",
+            "member": "tuna-vids-6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/arm7/source/helix/RCSL.txt",
             "destination": "arm7/source/helix/RCSL.txt"
           },
           {
-            "member": "tuna-vids-f1f00243b2f969ebc9ded1a4942f610819f8c673/arm7/source/helix/RPSL.txt",
+            "member": "tuna-vids-6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/arm7/source/helix/RPSL.txt",
             "destination": "arm7/source/helix/RPSL.txt"
           }
         ],
@@ -2760,7 +2759,8 @@
             "destination": "DISTRIBUTION.md"
           }
         ]
-      }
+      },
+      "argv_notes": "The released fork still opens argv[1] directly. Optional screen filters use /_nds/colorLut/currentSetting.txt and the named .lut file; filter assets are not required or bundled. Later branch-only touch-input/build fixes are not claimed present in this published release."
     },
     {
       "id": "wasabids",

@@ -32,12 +32,15 @@ component terms. Its legacy public-domain notice does not license later code.
 The source companion includes both the pinned RP2A03 submodule and its nested
 ARM6502 submodule, with their original READMEs and credits.
 
-**tuna-viDS v1.2 is included unchanged under the documented distribution
+**tuna-viDS v1.2-clut is included unchanged under the documented distribution
 assumption.** Its GPL/Helix texts, source links and recorded executable-notice
 gap accompany it in `licenses.zip/addons/tuna-vids/DISTRIBUTION.md`; the pinned
 player/codec source is in `source.zip`. See [the full notice](TUNA_VIDS_NOTICES.md).
 The companion document provides recipient information without claiming to alter
 the executable or settle the remaining license questions.
+The DS-Homebrew fork retains direct argv selection and adds optional screen
+filters via `/_nds/colorLut/`; no filter assets are required or bundled. Later
+branch-only touch-input/build fixes are not claimed included in v1.2-clut.
 
 ## GBARunner3 core
 
@@ -156,7 +159,7 @@ requirement; this does not assert that their authors cannot distribute them.
 | [speccyse 2.2](https://github.com/wavemotion-dave/SpeccySE/releases/tag/2.2) | [direct](https://github.com/wavemotion-dave/SpeccySE/blob/85c85862470b69b75f6e49476a9c4ce992064bb3/arm9/source/SpeccySE.c) | Opt-in noncommercial; Custom noncommercial redistribution + core notices |
 | [stellads 8.4a](https://github.com/wavemotion-dave/StellaDS/releases/tag/8.4a) | [direct](https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/arm9/source/main.cpp) | Included; GPL-2.0-or-later + BSD notices |
 | [sugards 1.6](https://github.com/wavemotion-dave/SugarDS/releases/tag/1.6) | [direct](https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/arm9/source/SugarDS.c) | Manual / held; GPL-2.0-or-later code; separately copyrighted firmware |
-| [tuna-vids v1.2](https://github.com/chishm/tuna-vids/releases/tag/v1.2) | [direct](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/arm9/source/main.c) | Included under project assumption; GPL/Helix notices and source bundled; executable-notice gap documented |
+| [tuna-vids v1.2-clut](https://github.com/DS-Homebrew/tuna-vids/releases/tag/v1.2-clut) | [direct](https://github.com/DS-Homebrew/tuna-vids/blob/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/arm9/source/main.c) | Included under project assumption; GPL/Helix notices and source bundled; executable-notice gap documented |
 | [wasabids v0.2.6](https://github.com/FluBBaOfWard/WasabiDS/releases/tag/v0.2.6) | [direct](https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
 
 The companion license archive carries the assumption document and available
@@ -196,7 +199,7 @@ a missing grant or apply Gloam's GPL to those programs.
 - **[speccyse](https://github.com/wavemotion-dave/SpeccySE/tree/85c85862470b69b75f6e49476a9c4ce992064bb3):** No-profit redistribution permitted with full author/core notices. Preserve the Z80, sound and lzav terms.
 - **[stellads](https://github.com/wavemotion-dave/StellaDS/tree/1ff41dc60c4debacd4493bae5bb045cdbbef7800):** Retain LICENSE and Copyright.txt, including the Aaron Giles notice.
 - **[sugards](https://github.com/wavemotion-dave/SugarDS/tree/ca4b95960d55e24d1d5bf815f5fffcacad8e4704):** Built-in Amstrad ROMs rely on the quoted conditional permission; ParaDOS is separately copyrighted. Record the firmware grants before redistributing the prebuilt package.
-- **[tuna-vids](https://github.com/chishm/tuna-vids/tree/f1f00243b2f969ebc9ded1a4942f610819f8c673):** Include the unchanged v1.2 release under the documented project distribution assumption. Bundle root GPL, upstream README, Helix LICENSE/RPSL/RCSL and the project distribution/source-availability notice in licenses.zip; retain the pinned player/codec source in source.zip. The executable Helix notice gap remains documented, not claimed fixed by companion documentation.
+- **[tuna-vids](https://github.com/DS-Homebrew/tuna-vids/tree/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5):** Include the unchanged DS-Homebrew v1.2-clut release under the documented project distribution assumption. Retain Chishm and contributor attribution, root GPL, upstream README, Helix LICENSE/RPSL/RCSL and the project distribution/source-availability notice in licenses.zip; retain the matching fork player/codec source in source.zip. The executable Helix notice gap remains documented, not claimed fixed by companion documentation.
 - **[wasabids](https://github.com/FluBBaOfWard/WasabiDS/tree/b074708a4c0b670e9f3e7d520a776f2bad2695c1):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 
 ## SNEmulDS handoff
@@ -248,7 +251,7 @@ automatic selected-game launch. DSP/S-DD1 variants are not substituted.
 - **[speccyse](https://github.com/wavemotion-dave/SpeccySE/blob/85c85862470b69b75f6e49476a9c4ce992064bb3/readme.md):** Requires 48.ROM and 128.ROM beside emulator or in /roms/bios. OpenSE BASIC is a candidate for 48K only, not a verified full replacement for this required pair.
 - **[stellads](https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/README.md):** No separate Atari 2600 BIOS required.
 - **[sugards](https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/readme.md):** Amstrad CPC firmware and ParaDOS are embedded in the stock binary, with separate terms; no extra download is needed, but embedding is not a free-BIOS license.
-- **[tuna-vids](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/README.md):** No BIOS required; AVI must contain Xvid/MPEG-4 video and MP3 audio in the player-specific format.
+- **[tuna-vids](https://github.com/DS-Homebrew/tuna-vids/blob/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/README.md):** No BIOS required; AVI must contain Xvid/MPEG-4 video and MP3 audio in the player-specific format.
 - **[wasabids](https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/README.md):** No separate Supervision BIOS required.
 
 

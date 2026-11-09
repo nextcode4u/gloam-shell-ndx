@@ -1,7 +1,14 @@
 # tuna-viDS distribution and source notices
 
-This package includes Michael “Chishm” Chisholm's unchanged tuna-viDS v1.2
-release. Gloam's license does not replace the player's component licenses.
+This package includes the unchanged DS-Homebrew tuna-viDS v1.2-clut release,
+derived from Michael “Chishm” Chisholm's player. Credit the original author
+and the fork contributors. Gloam's license does not replace the player's
+component licenses.
+
+The release preserves direct argv video selection and adds optional screen
+filters. It reads `/_nds/colorLut/currentSetting.txt` and the named `.lut` file
+if supplied; these optional assets are not bundled. Later branch-only touch-input
+and build fixes are not claimed present in the published binary.
 
 ## Component notices
 
@@ -24,13 +31,13 @@ using that alternative requires a valid applicable agreement with RealNetworks.
 Player and codec source is provided with this release in
 `source.zip/dependencies/addons/tuna-vids/source.tar.gz`. Extract that archive
 for the source, original build files and per-file notices. Its revision is
-`f1f00243b2f969ebc9ded1a4942f610819f8c673`. The accompanying `release.json`
+`6781a1a7ac723cb1274de6bd8734b21a9fbbebc5`. The accompanying `release.json`
 records download URLs and SHA-256 hashes.
 
-- [Player release and credits](https://github.com/chishm/tuna-vids/releases/tag/v1.2)
-- [Pinned player and codec source](https://github.com/chishm/tuna-vids/tree/f1f00243b2f969ebc9ded1a4942f610819f8c673)
-- [Download the pinned source archive](https://codeload.github.com/chishm/tuna-vids/tar.gz/f1f00243b2f969ebc9ded1a4942f610819f8c673)
-- [Helix RPSL](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/arm7/source/helix/RPSL.txt)
+- [Player release and credits](https://github.com/DS-Homebrew/tuna-vids/releases/tag/v1.2-clut)
+- [Pinned player and codec source](https://github.com/DS-Homebrew/tuna-vids/tree/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5)
+- [Download the pinned source archive](https://codeload.github.com/DS-Homebrew/tuna-vids/tar.gz/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5)
+- [Helix RPSL](https://github.com/DS-Homebrew/tuna-vids/blob/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/arm7/source/helix/RPSL.txt)
 
 ## Recorded distribution assumption
 

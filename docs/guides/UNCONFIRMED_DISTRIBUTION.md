@@ -22,7 +22,7 @@ still require the separate build option and retain their no-profit terms.
 | LodjurDS | v0.1.5 | Included under this assumption. |
 | WasabiDS | v0.2.6 | Included under this assumption. |
 | nesDS | v2.1 | Included; legacy public-domain statement does not establish newer CPU-core terms. |
-| tuna-viDS | v1.2 | Unchanged release included with GPL/Helix notices and source; executable-notice gap documented. |
+| tuna-viDS | DS-Homebrew v1.2-clut | Unchanged release included with GPL/Helix notices and source; executable-notice gap documented. |
 
 DS994a 2.9 is included only with `--noncommercial`, following its explicit
 no-profit distribution statement. Its embedded game speech samples have no
