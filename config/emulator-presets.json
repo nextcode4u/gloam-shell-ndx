@@ -49,12 +49,12 @@
     },
     {
       "folder": "roms/Nintendo DS",
-      "application": "Native DS/DSi backend (launching pending)",
+      "application": "nds-bootstrap adapter",
       "formats": ".nds"
     },
     {
       "folder": "roms/DSiWare",
-      "application": "Native DS/DSi backend (launching pending)",
+      "application": "DSiWare adapter",
       "formats": ".nds, .dsi"
     },
     {
@@ -326,7 +326,10 @@
         "argv": "1",
         "bootstrap": "0",
         "path": "_nds/akmenunext/plugins/apps/DSXP.nds"
-      }
+      },
+      "repository": "https://github.com/nextcode4u/DSXP",
+      "release": "v1.1.0-sd-argv.1",
+      "notes": "Native DSi SD and MP3 argv fork. Upstream dsxp.nds is installed as DSXP.nds to match this profile."
     },
     {
       "id": "fastvideods",

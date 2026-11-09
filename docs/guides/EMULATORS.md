@@ -3,7 +3,9 @@
 Gloam includes 29 grouped profiles covering 50 extensions. These defaults model
 a configured AKMenu-compatible layout and preserve its application filenames
 and mode choices. AKMenu's frontend is not used as the player. The profiles are
-editable examples, not bundled emulator binaries or a universal compatibility list.
+editable examples, not a universal compatibility list. The optional
+[add-ons audit](ADDONS.md) records exact releases, actual argv behavior, license
+conditions and BIOS requirements; only reviewed packages enter `addons.zip`.
 
 Profiles live under `/_nds/dsi-frontend/plugins/`. Their default executable paths
 use `/_nds/akmenunext/plugins/apps/` for compatibility with existing installations.
@@ -58,7 +60,7 @@ These are default collection folders and configured formats, not every format ea
 | `roms/ScummVM/` | ScummVM | ScummVM.nds launcher; game data lives in data/scummvm/games/ |
 | `apps/Homebrew Apps/` | Homebrew application/utility | .nds, .dsi, supported native containers |
 | `roms/Homebrew Games/` | Homebrew game | .nds, .dsi, supported native containers |
-| `media/music/` | DSXP | .mp3 |
+| `media/music/` | [DSXP SD-argv fork](https://github.com/nextcode4u/DSXP) | .mp3 |
 | `media/videos/` | tuna-vids / FastVideoDS / RocketVideoPlayer | .avi / .fv / .rvid, converted for the matching player |
 | `media/books/` | Reader application (manual) | .epub; no argv association configured by default |
 
@@ -118,7 +120,8 @@ All supplied associations declare `argv=1`. Optional `bootstrap=0` flags are ret
 
 ## Prepared builds and format conflicts
 
-- **GimliDS and Hachibitto:** use the configured prepared argv builds. Stock builds may require argv adaptations. A stock binary with the same filename is not proof of equivalent argv behavior. Preserve the MSX2 `.mx2`/`.mxd` conventions from that setup.
+- **GimliDS and Hachibitto:** use the configured prepared argv builds. Stock
+  GimliDS 1.7a only selects a directory; stock Hachibitto 1.9 has no argv handler. Stock builds may require argv adaptations. A stock binary with the same filename is not proof of equivalent argv behavior. Preserve the MSX2 `.mx2`/`.mxd` conventions from that setup.
 - **SNES:** `.sfc` and `.smc` target `snemulds-shim.nds`. Keep `snemulds-shim.ini`, `SNEmulDS.nds` and `SNEmulDS.srl` together. Keep the existing root `snemul.cfg` and TGDS payload if that prepared setup uses them. The shim config mentions an optional legacy payload; install that payload separately only if your setup requires it.
 - **GameYob:** retain both `gameyob_dsi.nds` and `gameyob.nds`; the selected console mode chooses the configured variant.
 - **GBA:** GBARunner3 remains the configured `.gba` default. GBARunner2 is also an alternative, but does not have a competing default profile.
@@ -142,7 +145,8 @@ python3 tools/make_emulator_presets.py --check
 
 Staging preserves edited profiles; review updates instead of overwriting personal
 configuration. No games, BIOS files or optional emulator/player executables are
-included in the SD package. nds-bootstrap and Slot-1 Launcher are separate
+included in the base SD package. The optional `addons.zip` installs the reviewed
+subset documented in [add-ons](ADDONS.md). nds-bootstrap and Slot-1 Launcher are separate
 bundled launch backends, described in [building](../development/BUILDING.md).
 
 Nintellivision needs its BIOS directory set explicitly if files live in `/data/bios`.

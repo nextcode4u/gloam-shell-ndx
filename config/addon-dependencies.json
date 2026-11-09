@@ -1,0 +1,1278 @@
+{
+  "format": 1,
+  "reviewed": "2026-11-08",
+  "default_policy": "approved releases only; --noncommercial adds explicitly no-profit packages",
+  "application_directory": "_nds/akmenunext/plugins/apps",
+  "applications": [
+    {
+      "id": "a5200ds",
+      "repository": "https://github.com/wavemotion-dave/A5200DS",
+      "version": "3.9",
+      "commit": "b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a",
+      "release": "https://github.com/wavemotion-dave/A5200DS/releases/tag/3.9",
+      "release_assets": [
+        {
+          "name": "A5200DS.nds",
+          "url": "https://github.com/wavemotion-dave/A5200DS/releases/download/3.9/A5200DS.nds"
+        },
+        {
+          "name": "readme.md",
+          "url": "https://github.com/wavemotion-dave/A5200DS/releases/download/3.9/readme.md"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/wavemotion-dave/A5200DS/blob/b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a/arm9/source/main.c",
+      "redistribution": "noncommercial",
+      "license": "Custom noncommercial redistribution",
+      "distribution_notes": "Distribution without profit is explicitly permitted with complete notice and thanks to Alekmaul and wavemotion-dave.",
+      "bios": "Altirra 5200 replacement is already compiled in; some games need user-supplied original 5200.rom in /roms/bios or /data/bios.",
+      "package": {
+        "source": {
+          "asset": "a5200ds-source.tar.gz",
+          "url": "https://codeload.github.com/wavemotion-dave/A5200DS/tar.gz/b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a",
+          "sha256": "a0675c9e56ae6543c47daf62ca27eefb47656fe1b79a5033e49ba8c62ab7e0b2"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "a5200ds-A5200DS.nds",
+              "url": "https://github.com/wavemotion-dave/A5200DS/releases/download/3.9/A5200DS.nds",
+              "sha256": "9cc3859a34c1ebd6652cad864e5d9e18087321a64348baf531c4765a86346a81"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/A5200DS.nds",
+            "sha256": "9cc3859a34c1ebd6652cad864e5d9e18087321a64348baf531c4765a86346a81"
+          }
+        ],
+        "notices": [
+          {
+            "member": "A5200DS-b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a/readme.md",
+            "destination": "readme.md"
+          },
+          {
+            "member": "A5200DS-b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a/arm9/source/emu/altirra_5200_os.c",
+            "destination": "arm9/source/emu/altirra_5200_os.c",
+            "header_only": true
+          }
+        ]
+      },
+      "bios_evidence": "https://github.com/wavemotion-dave/A5200DS/blob/b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a/readme.md",
+      "license_evidence": "https://github.com/wavemotion-dave/A5200DS/tree/b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a"
+    },
+    {
+      "id": "a7800ds",
+      "repository": "https://github.com/wavemotion-dave/A7800DS",
+      "version": "5.2c",
+      "commit": "32b7b1ed78f5edbcd29a797a1376e25a9bd9d265",
+      "release": "https://github.com/wavemotion-dave/A7800DS/releases/tag/5.2c",
+      "release_assets": [
+        {
+          "name": "A7800DS.nds",
+          "url": "https://github.com/wavemotion-dave/A7800DS/releases/download/5.2c/A7800DS.nds"
+        },
+        {
+          "name": "README.md",
+          "url": "https://github.com/wavemotion-dave/A7800DS/releases/download/5.2c/README.md"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/wavemotion-dave/A7800DS/blob/32b7b1ed78f5edbcd29a797a1376e25a9bd9d265/arm9/source/main.c",
+      "redistribution": "approved",
+      "license": "GPL-2.0-or-later",
+      "distribution_notes": "README explicitly adopts ProSystem GPLv2-or-later; supply full GPL text and matching source.",
+      "bios": "No BIOS required normally. Optional 7800.rom and highscore.rom go in /roms/bios, /data/bios or beside emulator.",
+      "package": {
+        "source": {
+          "asset": "a7800ds-source.tar.gz",
+          "url": "https://codeload.github.com/wavemotion-dave/A7800DS/tar.gz/32b7b1ed78f5edbcd29a797a1376e25a9bd9d265",
+          "sha256": "7f56774fd5cc905ad7703c04a97b6a23c6216a78dce6279f1bfa42a2c5e81e18"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "a7800ds-A7800DS.nds",
+              "url": "https://github.com/wavemotion-dave/A7800DS/releases/download/5.2c/A7800DS.nds",
+              "sha256": "dbe7706bfafeffb283c1435cfd46a1c4e492dfc8e699684da8fcf32d33599bef"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/A7800DS.nds",
+            "sha256": "dbe7706bfafeffb283c1435cfd46a1c4e492dfc8e699684da8fcf32d33599bef"
+          }
+        ],
+        "notices": [
+          {
+            "member": "A7800DS-32b7b1ed78f5edbcd29a797a1376e25a9bd9d265/README.md",
+            "destination": "README.md"
+          }
+        ]
+      },
+      "bios_evidence": "https://github.com/wavemotion-dave/A7800DS/blob/32b7b1ed78f5edbcd29a797a1376e25a9bd9d265/README.md",
+      "license_evidence": "https://github.com/wavemotion-dave/A7800DS/tree/32b7b1ed78f5edbcd29a797a1376e25a9bd9d265"
+    },
+    {
+      "id": "a8ds",
+      "repository": "https://github.com/wavemotion-dave/A8DS",
+      "version": "4.2",
+      "commit": "b5718df173e0b4037bcb8414640af26458c0bade",
+      "release": "https://github.com/wavemotion-dave/A8DS/releases/tag/4.2",
+      "release_assets": [
+        {
+          "name": "A8DS.nds",
+          "url": "https://github.com/wavemotion-dave/A8DS/releases/download/4.2/A8DS.nds"
+        },
+        {
+          "name": "A8DSi.nds",
+          "url": "https://github.com/wavemotion-dave/A8DS/releases/download/4.2/A8DSi.nds"
+        },
+        {
+          "name": "Copying",
+          "url": "https://github.com/wavemotion-dave/A8DS/releases/download/4.2/Copying"
+        },
+        {
+          "name": "readme.md",
+          "url": "https://github.com/wavemotion-dave/A8DS/releases/download/4.2/readme.md"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/wavemotion-dave/A8DS/blob/b5718df173e0b4037bcb8414640af26458c0bade/arm9/source/main.c",
+      "redistribution": "approved",
+      "license": "GPL-2.0-or-later + Altirra notices",
+      "distribution_notes": "Retain Atari800, Alekmaul, wavemotion-dave and Avery Lee notices.",
+      "bios": "Built-in Altirra OS 3.41 and BASIC 1.58. Optional originals: atarixl.rom, atariosb.rom, ataribas.rom, a5200.rom in /roms/bios or /data/bios.",
+      "package": {
+        "source": {
+          "asset": "a8ds-source.tar.gz",
+          "url": "https://codeload.github.com/wavemotion-dave/A8DS/tar.gz/b5718df173e0b4037bcb8414640af26458c0bade",
+          "sha256": "49ee6f46be6bc82718369931d837962f063a03696af106b6a98559f42d35311a"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "a8ds-A8DS.nds",
+              "url": "https://github.com/wavemotion-dave/A8DS/releases/download/4.2/A8DS.nds",
+              "sha256": "dcc3d3cdb1445d4377e7d58b766790168a361744504b2e9d44b4dd1f96a98a7c"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/A8DS.nds",
+            "sha256": "dcc3d3cdb1445d4377e7d58b766790168a361744504b2e9d44b4dd1f96a98a7c"
+          },
+          {
+            "download": {
+              "asset": "a8ds-A8DSi.nds",
+              "url": "https://github.com/wavemotion-dave/A8DS/releases/download/4.2/A8DSi.nds",
+              "sha256": "ba2583bebca87de626a9b0451605fcdd33b59c33ad5d1a7ec2e24e79befb63bc"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/A8DSi.nds",
+            "sha256": "ba2583bebca87de626a9b0451605fcdd33b59c33ad5d1a7ec2e24e79befb63bc"
+          }
+        ],
+        "notices": [
+          {
+            "member": "A8DS-b5718df173e0b4037bcb8414640af26458c0bade/Copying",
+            "destination": "Copying"
+          },
+          {
+            "member": "A8DS-b5718df173e0b4037bcb8414640af26458c0bade/readme.md",
+            "destination": "readme.md"
+          },
+          {
+            "member": "A8DS-b5718df173e0b4037bcb8414640af26458c0bade/arm9/source/emu/altirra_os.c",
+            "destination": "arm9/source/emu/altirra_os.c",
+            "header_only": true
+          },
+          {
+            "member": "A8DS-b5718df173e0b4037bcb8414640af26458c0bade/arm9/source/emu/altirra_basic.c",
+            "destination": "arm9/source/emu/altirra_basic.c",
+            "header_only": true
+          }
+        ]
+      },
+      "bios_evidence": "https://github.com/wavemotion-dave/A8DS/blob/b5718df173e0b4037bcb8414640af26458c0bade/readme.md",
+      "license_evidence": "https://github.com/wavemotion-dave/A8DS/tree/b5718df173e0b4037bcb8414640af26458c0bade"
+    },
+    {
+      "id": "colecods",
+      "repository": "https://github.com/wavemotion-dave/ColecoDS",
+      "version": "11.1",
+      "commit": "29596955995526a10c8a9ca8c17d39b642f54dbf",
+      "release": "https://github.com/wavemotion-dave/ColecoDS/releases/tag/11.1",
+      "release_assets": [
+        {
+          "name": "cbios.txt",
+          "url": "https://github.com/wavemotion-dave/ColecoDS/releases/download/11.1/cbios.txt"
+        },
+        {
+          "name": "ColecoDS.nds",
+          "url": "https://github.com/wavemotion-dave/ColecoDS/releases/download/11.1/ColecoDS.nds"
+        },
+        {
+          "name": "README.md",
+          "url": "https://github.com/wavemotion-dave/ColecoDS/releases/download/11.1/README.md"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/wavemotion-dave/ColecoDS/blob/29596955995526a10c8a9ca8c17d39b642f54dbf/arm9/source/colecoDS.c",
+      "redistribution": "blocked",
+      "license": "Noncommercial with additional constituent guidance",
+      "distribution_notes": "README permits no-profit distribution but asks users to contact the ColEM author about constituent code. Keep out of automatic redistribution pending that review; C-BIOS alone does not license Coleco firmware.",
+      "bios": "ColecoVision requires coleco.rom; Sord M5 requires sordm5.rom (JP) or sordm5p.rom (PAL). MSX1 has built-in C-BIOS for cartridges, without BASIC/cassette/disk support. Additional machine BIOS files are user-supplied.",
+      "bios_evidence": "https://github.com/wavemotion-dave/ColecoDS/blob/29596955995526a10c8a9ca8c17d39b642f54dbf/README.md",
+      "license_evidence": "https://github.com/wavemotion-dave/ColecoDS/tree/29596955995526a10c8a9ca8c17d39b642f54dbf"
+    },
+    {
+      "id": "dracods",
+      "repository": "https://github.com/wavemotion-dave/DracoDS",
+      "version": "1.9",
+      "commit": "03cddfbddf93056291c69fd512a8d8db0bbb2caa",
+      "release": "https://github.com/wavemotion-dave/DracoDS/releases/tag/1.9",
+      "release_assets": [
+        {
+          "name": "DracoDS.nds",
+          "url": "https://github.com/wavemotion-dave/DracoDS/releases/download/1.9/DracoDS.nds"
+        },
+        {
+          "name": "LICENSE",
+          "url": "https://github.com/wavemotion-dave/DracoDS/releases/download/1.9/LICENSE"
+        },
+        {
+          "name": "README.md",
+          "url": "https://github.com/wavemotion-dave/DracoDS/releases/download/1.9/README.md"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/wavemotion-dave/DracoDS/blob/03cddfbddf93056291c69fd512a8d8db0bbb2caa/arm9/source/DracoDS.c",
+      "redistribution": "noncommercial",
+      "license": "MIT base + README noncommercial condition",
+      "distribution_notes": "Root LICENSE covers the MIT base; README adds a noncommercial condition for the derivative. Preserve both; do not label the whole app MIT.",
+      "bios": "User supplies dragon32.rom or bas12.rom/extbas11.rom; disk11.rom for CoCo disks. Look in /roms/bios or beside emulator.",
+      "package": {
+        "source": {
+          "asset": "dracods-source.tar.gz",
+          "url": "https://codeload.github.com/wavemotion-dave/DracoDS/tar.gz/03cddfbddf93056291c69fd512a8d8db0bbb2caa",
+          "sha256": "12d73440ba17d9c78beae1d6cd5fc86f0112ce0efcef7edb90673485c7f69b93"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "dracods-DracoDS.nds",
+              "url": "https://github.com/wavemotion-dave/DracoDS/releases/download/1.9/DracoDS.nds",
+              "sha256": "8c49727c549e287a6b4b2d26323335f4dff2c159a6a5715f033fa56f4028ab78"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/DracoDS.nds",
+            "sha256": "8c49727c549e287a6b4b2d26323335f4dff2c159a6a5715f033fa56f4028ab78"
+          }
+        ],
+        "notices": [
+          {
+            "member": "DracoDS-03cddfbddf93056291c69fd512a8d8db0bbb2caa/LICENSE",
+            "destination": "LICENSE"
+          },
+          {
+            "member": "DracoDS-03cddfbddf93056291c69fd512a8d8db0bbb2caa/README.md",
+            "destination": "README.md"
+          }
+        ]
+      },
+      "bios_evidence": "https://github.com/wavemotion-dave/DracoDS/blob/03cddfbddf93056291c69fd512a8d8db0bbb2caa/README.md",
+      "license_evidence": "https://github.com/wavemotion-dave/DracoDS/tree/03cddfbddf93056291c69fd512a8d8db0bbb2caa"
+    },
+    {
+      "id": "ds994a",
+      "repository": "https://github.com/wavemotion-dave/DS994a",
+      "version": "2.9",
+      "commit": "85098fcfcaa176a919fa4f2162706ac7814ea263",
+      "release": "https://github.com/wavemotion-dave/DS994a/releases/tag/2.9",
+      "release_assets": [
+        {
+          "name": "DS994a.nds",
+          "url": "https://github.com/wavemotion-dave/DS994a/releases/download/2.9/DS994a.nds"
+        },
+        {
+          "name": "README.md",
+          "url": "https://github.com/wavemotion-dave/DS994a/releases/download/2.9/README.md"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/arm9/source/DS99.c",
+      "redistribution": "blocked",
+      "license": "Noncommercial with constituent permissions",
+      "distribution_notes": "README records permission for the port and asks about ColEM/TI9918A reuse. Additional voice/sample and constituent coverage needs review before automatic redistribution.",
+      "bios": "Requires 994aROM.bin and 994aGROM.bin in /roms/bios or /roms/ti99; 994aDISK.bin is needed for disk support.",
+      "bios_evidence": "https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/README.md",
+      "license_evidence": "https://github.com/wavemotion-dave/DS994a/tree/85098fcfcaa176a919fa4f2162706ac7814ea263"
+    },
+    {
+      "id": "dslibris",
+      "repository": "https://github.com/rhaleblian/dslibris",
+      "version": "v1.6.0 (prerelease)",
+      "commit": "309923e6e46f2f146229498d7d5c98d2e854aaca",
+      "release": "https://github.com/rhaleblian/dslibris/releases/tag/v1.6.0",
+      "release_assets": [
+        {
+          "name": "dslibris-1.6.0.zip",
+          "url": "https://github.com/rhaleblian/dslibris/releases/download/v1.6.0/dslibris-1.6.0.zip"
+        }
+      ],
+      "argv": "none",
+      "argv_evidence": "https://github.com/rhaleblian/dslibris/blob/309923e6e46f2f146229498d7d5c98d2e854aaca/source/main.cpp",
+      "redistribution": "blocked",
+      "license": "GPL-2.0-or-later code; mixed library/font package",
+      "distribution_notes": "main(void) does not consume a selected-book argument. Manual app; complete bundled font/library notices and runtime Book/Font layout need review before automatic redistribution.",
+      "bios": "No BIOS required. Select EPUB files inside the app and preserve its Book/Font configuration.",
+      "bios_evidence": "https://github.com/rhaleblian/dslibris/blob/v1.6.0/INSTALL.txt",
+      "license_evidence": "https://github.com/rhaleblian/dslibris/blob/v1.6.0/source/main.cpp"
+    },
+    {
+      "id": "dsxp",
+      "repository": "https://github.com/nextcode4u/DSXP",
+      "version": "v1.1.0-sd-argv.1",
+      "commit": "485805cffae5ad2cfa32efd6946cc7ec6aa94ae0",
+      "release": "https://github.com/nextcode4u/DSXP/releases/tag/v1.1.0-sd-argv.1",
+      "release_assets": [
+        {
+          "name": "BUILD-INFO.json",
+          "url": "https://github.com/nextcode4u/DSXP/releases/download/v1.1.0-sd-argv.1/BUILD-INFO.json"
+        },
+        {
+          "name": "DSXP-v1.1.0-sd-argv.1-source.tar.gz",
+          "url": "https://github.com/nextcode4u/DSXP/releases/download/v1.1.0-sd-argv.1/DSXP-v1.1.0-sd-argv.1-source.tar.gz"
+        },
+        {
+          "name": "DSXP-v1.1.0-sd-argv.1.zip",
+          "url": "https://github.com/nextcode4u/DSXP/releases/download/v1.1.0-sd-argv.1/DSXP-v1.1.0-sd-argv.1.zip"
+        },
+        {
+          "name": "dsxp.nds",
+          "url": "https://github.com/nextcode4u/DSXP/releases/download/v1.1.0-sd-argv.1/dsxp.nds"
+        },
+        {
+          "name": "mp3.ini",
+          "url": "https://github.com/nextcode4u/DSXP/releases/download/v1.1.0-sd-argv.1/mp3.ini"
+        },
+        {
+          "name": "SHA256SUMS.txt",
+          "url": "https://github.com/nextcode4u/DSXP/releases/download/v1.1.0-sd-argv.1/SHA256SUMS.txt"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/nextcode4u/DSXP/blob/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/source/main.c",
+      "redistribution": "approved",
+      "license": "GPL-2.0-or-later",
+      "distribution_notes": "Use nextcode4u/DSXP SD-argv prerelease; matching release source includes libmad.",
+      "bios": "No emulator BIOS required.",
+      "package": {
+        "source": {
+          "asset": "dsxp-source.tar.gz",
+          "url": "https://github.com/nextcode4u/DSXP/releases/download/v1.1.0-sd-argv.1/DSXP-v1.1.0-sd-argv.1-source.tar.gz",
+          "sha256": "174fcd79ff74be10280180eebdadfd3e5d19690106b99151a1aafaf490eb82c9"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "dsxp-dsxp.nds",
+              "url": "https://github.com/nextcode4u/DSXP/releases/download/v1.1.0-sd-argv.1/dsxp.nds",
+              "sha256": "ac03e935df92b6fc7f7ad5b383b65d9fb3e6c2ecbc2b0153b2038c63904b09ad"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/DSXP.nds",
+            "sha256": "ac03e935df92b6fc7f7ad5b383b65d9fb3e6c2ecbc2b0153b2038c63904b09ad"
+          }
+        ],
+        "notices": [
+          {
+            "member": "DSXP/LICENSE",
+            "destination": "LICENSE"
+          },
+          {
+            "member": "DSXP/README.md",
+            "destination": "README.md"
+          }
+        ],
+        "nested_notices": [
+          {
+            "archive_member": "DSXP/libs/build/libmad-0.15.1b.tar.gz",
+            "member": "libmad-0.15.1b/COPYING",
+            "destination": "libmad/COPYING"
+          }
+        ]
+      },
+      "prerelease": true,
+      "bios_evidence": "https://github.com/nextcode4u/DSXP/blob/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/README.md",
+      "license_evidence": "https://github.com/nextcode4u/DSXP/tree/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0"
+    },
+    {
+      "id": "fastvideods",
+      "repository": "https://github.com/Gericom/FastVideoDSPlayer",
+      "version": "v0.0.1",
+      "commit": "62c909ebf6e509b11eedc2ad4e4549a717f0f6ab",
+      "release": "https://github.com/Gericom/FastVideoDSPlayer/releases/tag/v0.0.1",
+      "release_assets": [
+        {
+          "name": "FastVideoDS.nds",
+          "url": "https://github.com/Gericom/FastVideoDSPlayer/releases/download/v0.0.1/FastVideoDS.nds"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/arm9/source/main.cpp",
+      "redistribution": "blocked",
+      "license": "Project license not stated",
+      "distribution_notes": "Argv is explicit, but upstream issue #15 requests the missing license. A public repository does not establish redistribution permission.",
+      "bios": "No BIOS required; convert videos with the matching FastVideoDS encoder.",
+      "bios_evidence": "https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/readme.md",
+      "license_evidence": "https://github.com/Gericom/FastVideoDSPlayer/tree/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab"
+    },
+    {
+      "id": "gameyob-dsi",
+      "repository": "https://github.com/Lana-chan/GameYob",
+      "version": "v0.5.3b-mavica",
+      "commit": "04f88d96ca653c60fd1b110ce7011db7e8e906a3",
+      "release": "https://github.com/Lana-chan/GameYob/releases/tag/v0.5.3b-mavica",
+      "release_assets": [
+        {
+          "name": "gameyob.nds",
+          "url": "https://github.com/Lana-chan/GameYob/releases/download/v0.5.3b-mavica/gameyob.nds"
+        },
+        {
+          "name": "gameyob_dsi.nds",
+          "url": "https://github.com/Lana-chan/GameYob/releases/download/v0.5.3b-mavica/gameyob_dsi.nds"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/Lana-chan/GameYob/blob/04f88d96ca653c60fd1b110ce7011db7e8e906a3/arm9/source/main.cpp",
+      "redistribution": "approved",
+      "license": "MIT",
+      "distribution_notes": "Retain the Drenn/contributor notice and both DS/DSi variants.",
+      "bios": "No BIOS required for normal GB/GBC play. Optional GBC boot ROM affects boot/palettes; not included.",
+      "package": {
+        "source": {
+          "asset": "gameyob-dsi-source.tar.gz",
+          "url": "https://codeload.github.com/Lana-chan/GameYob/tar.gz/04f88d96ca653c60fd1b110ce7011db7e8e906a3",
+          "sha256": "97f1526dab1df0296e011df9effa58a557e1f2c19958b99b9f340d89c97549e7"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "gameyob-dsi-gameyob_dsi.nds",
+              "url": "https://github.com/Lana-chan/GameYob/releases/download/v0.5.3b-mavica/gameyob_dsi.nds",
+              "sha256": "ea113d2710d4c9b219289fc10cff7629162f368af72e8653808f8ab848bf7392"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/gameyob_dsi.nds",
+            "sha256": "ea113d2710d4c9b219289fc10cff7629162f368af72e8653808f8ab848bf7392"
+          },
+          {
+            "download": {
+              "asset": "gameyob-dsi-gameyob.nds",
+              "url": "https://github.com/Lana-chan/GameYob/releases/download/v0.5.3b-mavica/gameyob.nds",
+              "sha256": "172652cdde450e8dc50c28dff1bbd3f9bdd9a3784014116c2cdd2e438ebacebd"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/gameyob.nds",
+            "sha256": "172652cdde450e8dc50c28dff1bbd3f9bdd9a3784014116c2cdd2e438ebacebd"
+          }
+        ],
+        "notices": [
+          {
+            "member": "GameYob-04f88d96ca653c60fd1b110ce7011db7e8e906a3/LICENSE",
+            "destination": "LICENSE"
+          },
+          {
+            "member": "GameYob-04f88d96ca653c60fd1b110ce7011db7e8e906a3/README.txt",
+            "destination": "README.txt"
+          }
+        ]
+      },
+      "bios_evidence": "https://github.com/Lana-chan/GameYob/blob/04f88d96ca653c60fd1b110ce7011db7e8e906a3/README.txt",
+      "license_evidence": "https://github.com/Lana-chan/GameYob/tree/04f88d96ca653c60fd1b110ce7011db7e8e906a3"
+    },
+    {
+      "id": "gbarunner3",
+      "repository": "https://github.com/Gericom/GBARunner3",
+      "version": "No upstream release; develop source snapshot",
+      "commit": "ecaa817815d9761745606592f04affe5ee9c3731",
+      "release": null,
+      "release_assets": [],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/code/core/arm9/source/main.cpp",
+      "redistribution": "blocked",
+      "license": "Project-wide license not established",
+      "distribution_notes": "No upstream release assets and no project-wide LICENSE/COPYING; upstream issues #200/#208 discuss missing permission. Do not redistribute a private/CI build as an official release.",
+      "bios": "Requires original 16 KiB GBA BIOS at /_gba/bios.bin. Fixed-offset relocation/patches prevent assuming a replacement BIOS is compatible.",
+      "bios_evidence": "https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/README.md",
+      "license_evidence": "https://github.com/Gericom/GBARunner3/tree/ecaa817815d9761745606592f04affe5ee9c3731"
+    },
+    {
+      "id": "gimlids",
+      "repository": "https://github.com/wavemotion-dave/GimliDS",
+      "version": "1.7a",
+      "commit": "e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740",
+      "release": "https://github.com/wavemotion-dave/GimliDS/releases/tag/1.7a",
+      "release_assets": [
+        {
+          "name": "blank.d64",
+          "url": "https://github.com/wavemotion-dave/GimliDS/releases/download/1.7a/blank.d64"
+        },
+        {
+          "name": "GimliDS.nds",
+          "url": "https://github.com/wavemotion-dave/GimliDS/releases/download/1.7a/GimliDS.nds"
+        },
+        {
+          "name": "README.md",
+          "url": "https://github.com/wavemotion-dave/GimliDS/releases/download/1.7a/README.md"
+        }
+      ],
+      "argv": "directory-only",
+      "argv_evidence": "https://github.com/wavemotion-dave/GimliDS/blob/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740/arm9/source/main.cpp",
+      "redistribution": "approved",
+      "license": "GPL-2.0-or-later",
+      "distribution_notes": "Code redistribution permitted, but the stock build only selects a directory. Not auto-installed over the prepared argv build.",
+      "bios": "Requires KERNAL.ROM, BASIC.ROM, CHAR.ROM and 1541.ROM in /roms/bios or /roms/c64. MEGA65 Open ROMs are not a verified complete replacement set for GimliDS.",
+      "argv_notes": "ArgvReceived records the basename and changes directory, then leaves a TODO for auto-loading. The prepared argv build in the backup is different.",
+      "bios_evidence": "https://github.com/wavemotion-dave/GimliDS/blob/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740/README.md",
+      "license_evidence": "https://github.com/wavemotion-dave/GimliDS/tree/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740"
+    },
+    {
+      "id": "hachibitto",
+      "repository": "https://github.com/wavemotion-dave/Hachibitto",
+      "version": "1.9",
+      "commit": "a388a295945d3929ac41a6369e40ce1c0afefa7e",
+      "release": "https://github.com/wavemotion-dave/Hachibitto/releases/tag/1.9",
+      "release_assets": [
+        {
+          "name": "Blank.dsk",
+          "url": "https://github.com/wavemotion-dave/Hachibitto/releases/download/1.9/Blank.dsk"
+        },
+        {
+          "name": "Hachibitto.nds",
+          "url": "https://github.com/wavemotion-dave/Hachibitto/releases/download/1.9/Hachibitto.nds"
+        },
+        {
+          "name": "README.md",
+          "url": "https://github.com/wavemotion-dave/Hachibitto/releases/download/1.9/README.md"
+        }
+      ],
+      "argv": "none",
+      "argv_evidence": "https://github.com/wavemotion-dave/Hachibitto/blob/a388a295945d3929ac41a6369e40ce1c0afefa7e/arm9/source/Hachibitto.c",
+      "redistribution": "blocked",
+      "license": "Noncommercial core; firmware/asset rights unresolved",
+      "distribution_notes": "Stock 1.9 has no argv handling. arm9/source/MSX_BIOS.c explicitly says the embedded MSX firmware is used without permission. Do not redistribute this prebuilt binary based on the emulator-code terms.",
+      "bios": "Stock binary embeds MSX/MSX2/MSX2+ and disk firmware. Optional Kanji font is user-supplied. C-BIOS is not a verified drop-in full replacement.",
+      "argv_notes": "Stock 1.9 main() has no argc/argv or system-argv handling. The prepared 1.8b backup build is different; do not overwrite it with stock.",
+      "bios_evidence": "https://github.com/wavemotion-dave/Hachibitto/blob/a388a295945d3929ac41a6369e40ce1c0afefa7e/arm9/source/MSX_BIOS.c",
+      "license_evidence": "https://github.com/wavemotion-dave/Hachibitto/tree/a388a295945d3929ac41a6369e40ce1c0afefa7e"
+    },
+    {
+      "id": "lodjurds",
+      "repository": "https://github.com/FluBBaOfWard/LodjurDS",
+      "version": "v0.1.5",
+      "commit": "1e8fe92f82bb0c8926e7fc6212139630f46e2e7b",
+      "release": "https://github.com/FluBBaOfWard/LodjurDS/releases/tag/v0.1.5",
+      "release_assets": [
+        {
+          "name": "LodjurDS.zip",
+          "url": "https://github.com/FluBBaOfWard/LodjurDS/releases/download/v0.1.5/LodjurDS.zip"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/FluBBaOfWard/LodjurDS/blob/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/source/Main.c",
+      "redistribution": "blocked",
+      "license": "Project-wide redistribution grant not found",
+      "distribution_notes": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "bios": "Requires a user-supplied Atari Lynx BIOS, selected inside LodjurDS. Upstream explicitly says it is needed to run games; not included.",
+      "bios_evidence": "https://github.com/FluBBaOfWard/LodjurDS/blob/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/README.md",
+      "license_evidence": "https://github.com/FluBBaOfWard/LodjurDS/tree/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b"
+    },
+    {
+      "id": "microds",
+      "repository": "https://github.com/wavemotion-dave/MicroDS",
+      "version": "1.1",
+      "commit": "9a74db2c6aa58df1cfe530f52e723d2aa2e74e09",
+      "release": "https://github.com/wavemotion-dave/MicroDS/releases/tag/1.1",
+      "release_assets": [
+        {
+          "name": "LICENSE",
+          "url": "https://github.com/wavemotion-dave/MicroDS/releases/download/1.1/LICENSE"
+        },
+        {
+          "name": "MicroDS.nds",
+          "url": "https://github.com/wavemotion-dave/MicroDS/releases/download/1.1/MicroDS.nds"
+        },
+        {
+          "name": "README.md",
+          "url": "https://github.com/wavemotion-dave/MicroDS/releases/download/1.1/README.md"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/wavemotion-dave/MicroDS/blob/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09/arm9/source/MicroDS.c",
+      "redistribution": "noncommercial",
+      "license": "MIT base + README noncommercial condition",
+      "distribution_notes": "Root LICENSE covers the MIT base; README adds a noncommercial condition for the derivative. Preserve both; do not label the whole app MIT.",
+      "bios": "Requires MC10.BIN or MC10.ROM; optional MCX.BIN/MCX.ROM. Put them in /roms/bios or beside emulator.",
+      "package": {
+        "source": {
+          "asset": "microds-source.tar.gz",
+          "url": "https://codeload.github.com/wavemotion-dave/MicroDS/tar.gz/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09",
+          "sha256": "bdcadf1c95c1039af2f9d5b90f07e14dd2f90e8d319bc290e2c5dd57eefdd450"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "microds-MicroDS.nds",
+              "url": "https://github.com/wavemotion-dave/MicroDS/releases/download/1.1/MicroDS.nds",
+              "sha256": "273dc429271f5b88bd97cb4296c20da52b3e3823b1412bd599112446770c3063"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/MicroDS.nds",
+            "sha256": "273dc429271f5b88bd97cb4296c20da52b3e3823b1412bd599112446770c3063"
+          }
+        ],
+        "notices": [
+          {
+            "member": "MicroDS-9a74db2c6aa58df1cfe530f52e723d2aa2e74e09/LICENSE",
+            "destination": "LICENSE"
+          },
+          {
+            "member": "MicroDS-9a74db2c6aa58df1cfe530f52e723d2aa2e74e09/README.md",
+            "destination": "README.md"
+          }
+        ]
+      },
+      "bios_evidence": "https://github.com/wavemotion-dave/MicroDS/blob/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09/README.md",
+      "license_evidence": "https://github.com/wavemotion-dave/MicroDS/tree/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09"
+    },
+    {
+      "id": "nesds",
+      "repository": "https://github.com/DS-Homebrew/NesDS",
+      "version": "v2.1",
+      "commit": "928afd9ca3c846f06264dfb1be6a2edf44575b66",
+      "release": "https://github.com/DS-Homebrew/NesDS/releases/tag/v2.1",
+      "release_assets": [
+        {
+          "name": "nesDS.cia",
+          "url": "https://github.com/DS-Homebrew/NesDS/releases/download/v2.1/nesDS.cia"
+        },
+        {
+          "name": "nesDS.dsi",
+          "url": "https://github.com/DS-Homebrew/NesDS/releases/download/v2.1/nesDS.dsi"
+        },
+        {
+          "name": "nesDS.nds",
+          "url": "https://github.com/DS-Homebrew/NesDS/releases/download/v2.1/nesDS.nds"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/arm9/source/romloader_frontend.c",
+      "redistribution": "blocked",
+      "license": "Legacy public-domain statement + newer components",
+      "distribution_notes": "README.TXT dedicates legacy nesDS to the public domain; the modern branch and new N2A03 submodule still need complete license coverage. Legacy dedication alone is not a review of the current binary.",
+      "bios": "NES cartridges need no external BIOS. FDS content requires disksys.rom; user-supplied.",
+      "bios_evidence": "https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/README.TXT",
+      "license_evidence": "https://github.com/DS-Homebrew/NesDS/tree/928afd9ca3c846f06264dfb1be6a2edf44575b66"
+    },
+    {
+      "id": "ngpds",
+      "repository": "https://github.com/FluBBaOfWard/NGPDS",
+      "version": "v0.6.0",
+      "commit": "4dbcc210cdb519414ff20d2886645a530e298206",
+      "release": "https://github.com/FluBBaOfWard/NGPDS/releases/tag/v0.6.0",
+      "release_assets": [
+        {
+          "name": "NGPDS.zip",
+          "url": "https://github.com/FluBBaOfWard/NGPDS/releases/download/v0.6.0/NGPDS.zip"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/FluBBaOfWard/NGPDS/blob/4dbcc210cdb519414ff20d2886645a530e298206/source/Main.c",
+      "redistribution": "blocked",
+      "license": "Project-wide redistribution grant not found",
+      "distribution_notes": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "bios": "Upstream says a real NGP/NGPC BIOS is needed for in-game saving. Select it in emulator settings; not included.",
+      "bios_evidence": "https://github.com/FluBBaOfWard/NGPDS/blob/4dbcc210cdb519414ff20d2886645a530e298206/README.md",
+      "license_evidence": "https://github.com/FluBBaOfWard/NGPDS/tree/4dbcc210cdb519414ff20d2886645a530e298206"
+    },
+    {
+      "id": "nintv-ds",
+      "repository": "https://github.com/wavemotion-dave/NINTV-DS",
+      "version": "6.4",
+      "commit": "c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6",
+      "release": "https://github.com/wavemotion-dave/NINTV-DS/releases/tag/6.4",
+      "release_assets": [
+        {
+          "name": "NINTV-DS.nds",
+          "url": "https://github.com/wavemotion-dave/NINTV-DS/releases/download/6.4/NINTV-DS.nds"
+        },
+        {
+          "name": "README.md",
+          "url": "https://github.com/wavemotion-dave/NINTV-DS/releases/download/6.4/README.md"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/wavemotion-dave/NINTV-DS/blob/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6/arm9/source/main.cpp",
+      "redistribution": "blocked",
+      "license": "Custom redistribution notice; restricted extras",
+      "distribution_notes": "README permits emulator redistribution with attribution, but extras/overlays are explicitly personal-use-only. A source/runtime subset excluding those extras needs a separate completed audit.",
+      "bios": "Requires exec.bin and grom.bin; optional ivoice.bin, ecs.bin and Tutorvision firmware. Configure BIOS location in emulator; /roms/bios is the recommended collection.",
+      "bios_evidence": "https://github.com/wavemotion-dave/NINTV-DS/blob/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6/README.md",
+      "license_evidence": "https://github.com/wavemotion-dave/NINTV-DS/tree/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6"
+    },
+    {
+      "id": "nitrografx",
+      "repository": "https://github.com/FluBBaOfWard/NitroGrafx",
+      "version": "v0.9.1",
+      "commit": "62920a05e9c7e31144d7e16b58797cdd8bc3789a",
+      "release": "https://github.com/FluBBaOfWard/NitroGrafx/releases/tag/v0.9.1",
+      "release_assets": [
+        {
+          "name": "NitroGrafx0_9_1.zip",
+          "url": "https://github.com/FluBBaOfWard/NitroGrafx/releases/download/v0.9.1/NitroGrafx0_9_1.zip"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/FluBBaOfWard/NitroGrafx/blob/62920a05e9c7e31144d7e16b58797cdd8bc3789a/source/Main.c",
+      "redistribution": "blocked",
+      "license": "Project-wide redistribution grant not found",
+      "distribution_notes": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "bios": "PCE cartridge route needs no BIOS. CD-ROM games require a user-supplied CD system BIOS; CD files are not default argv associations.",
+      "bios_evidence": "https://github.com/FluBBaOfWard/NitroGrafx/blob/62920a05e9c7e31144d7e16b58797cdd8bc3789a/README.md",
+      "license_evidence": "https://github.com/FluBBaOfWard/NitroGrafx/tree/62920a05e9c7e31144d7e16b58797cdd8bc3789a"
+    },
+    {
+      "id": "nitroswan",
+      "repository": "https://github.com/FluBBaOfWard/NitroSwan",
+      "version": "v0.7.7",
+      "commit": "564e171fb93c2c11f98f38607493675727676c2c",
+      "release": "https://github.com/FluBBaOfWard/NitroSwan/releases/tag/v0.7.7",
+      "release_assets": [
+        {
+          "name": "NitroSwan.zip",
+          "url": "https://github.com/FluBBaOfWard/NitroSwan/releases/download/v0.7.7/NitroSwan.zip"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/FluBBaOfWard/NitroSwan/blob/564e171fb93c2c11f98f38607493675727676c2c/source/Main.c",
+      "redistribution": "blocked",
+      "license": "Project-wide redistribution grant not found",
+      "distribution_notes": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "bios": "Built-in startup handling permits games without original firmware; optional WS/WSC/Crystal BIOS can be selected in the emulator.",
+      "bios_evidence": "https://github.com/FluBBaOfWard/NitroSwan/blob/564e171fb93c2c11f98f38607493675727676c2c/README.md",
+      "license_evidence": "https://github.com/FluBBaOfWard/NitroSwan/tree/564e171fb93c2c11f98f38607493675727676c2c"
+    },
+    {
+      "id": "picodrivetwl",
+      "repository": "https://github.com/DS-Homebrew/PicoDriveTWL",
+      "version": "v2.1.0",
+      "commit": "4fcdb1f0bef46a4704b1870d787b362afa7bfec0",
+      "release": "https://github.com/DS-Homebrew/PicoDriveTWL/releases/tag/v2.1.0",
+      "release_assets": [
+        {
+          "name": "PicoDriveTWL.nds",
+          "url": "https://github.com/DS-Homebrew/PicoDriveTWL/releases/download/v2.1.0/PicoDriveTWL.nds"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/DS-Homebrew/PicoDriveTWL/blob/4fcdb1f0bef46a4704b1870d787b362afa7bfec0/arm9/source/main.cpp",
+      "redistribution": "blocked",
+      "license": "Noncommercial Pico core; mixed inherited terms",
+      "distribution_notes": "Pico headers allow noncommercial use; bundled MZ80 notice restricts modified redistribution. Verify compiled-core coverage and redistribution permission, rather than treating the whole tree as GPL.",
+      "bios": "Genesis cartridges need no separate BIOS; Sega CD is not a configured route.",
+      "bios_evidence": "https://github.com/DS-Homebrew/PicoDriveTWL/blob/4fcdb1f0bef46a4704b1870d787b362afa7bfec0/README.md",
+      "license_evidence": "https://github.com/DS-Homebrew/PicoDriveTWL/tree/4fcdb1f0bef46a4704b1870d787b362afa7bfec0"
+    },
+    {
+      "id": "pokemini",
+      "repository": "https://github.com/DS-Homebrew/PokeMini",
+      "version": "0.60-arg",
+      "commit": "f8eb158f7082d80739075baa3653afc14fdf3d70",
+      "release": "https://github.com/DS-Homebrew/PokeMini/releases/tag/0.60-arg",
+      "release_assets": [
+        {
+          "name": "PokeMini.nds",
+          "url": "https://github.com/DS-Homebrew/PokeMini/releases/download/0.60-arg/PokeMini.nds"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/platform/nds/PokeMini_NDS.c",
+      "redistribution": "approved",
+      "license": "GPL-3.0 + zlib notices",
+      "distribution_notes": "FreeBIOS is included; retain its source and upstream licensing notices.",
+      "bios": "Upstream replacement FreeBIOS is already compiled in; original Nintendo BIOS is not needed for basic operation.",
+      "argv_notes": "0.60-arg directly copies argv[1], but tests argc >= 1 rather than > 1. Launch via a .min association; no-argument safety is not established.",
+      "package": {
+        "source": {
+          "asset": "pokemini-source.tar.gz",
+          "url": "https://codeload.github.com/DS-Homebrew/PokeMini/tar.gz/f8eb158f7082d80739075baa3653afc14fdf3d70",
+          "sha256": "7b06df892062afd8547a418dca31e8da8fa440a278adb5e7709049e57d684b28"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "pokemini-PokeMini.nds",
+              "url": "https://github.com/DS-Homebrew/PokeMini/releases/download/0.60-arg/PokeMini.nds",
+              "sha256": "a8cacbcda68c23dec8d23254d31afb36bbc13af7638ebc2f70079e8aab07bd64"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/PokeMini.nds",
+            "sha256": "a8cacbcda68c23dec8d23254d31afb36bbc13af7638ebc2f70079e8aab07bd64"
+          }
+        ],
+        "notices": [
+          {
+            "member": "PokeMini-f8eb158f7082d80739075baa3653afc14fdf3d70/LICENSE",
+            "destination": "LICENSE"
+          },
+          {
+            "member": "PokeMini-f8eb158f7082d80739075baa3653afc14fdf3d70/dependencies/zlib/contrib/dotzlib/LICENSE_1_0.txt",
+            "destination": "dependencies/zlib/contrib/dotzlib/LICENSE_1_0.txt"
+          },
+          {
+            "member": "PokeMini-f8eb158f7082d80739075baa3653afc14fdf3d70/readme.txt",
+            "destination": "readme.txt"
+          },
+          {
+            "member": "PokeMini-f8eb158f7082d80739075baa3653afc14fdf3d70/readme_portable.txt",
+            "destination": "readme_portable.txt"
+          },
+          {
+            "member": "PokeMini-f8eb158f7082d80739075baa3653afc14fdf3d70/readme_source.txt",
+            "destination": "readme_source.txt"
+          },
+          {
+            "member": "PokeMini-f8eb158f7082d80739075baa3653afc14fdf3d70/freebios/freebios.asm",
+            "destination": "freebios/freebios.asm",
+            "header_only": false
+          }
+        ]
+      },
+      "bios_evidence": "https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/readme.txt",
+      "license_evidence": "https://github.com/DS-Homebrew/PokeMini/tree/f8eb158f7082d80739075baa3653afc14fdf3d70"
+    },
+    {
+      "id": "rocketvideoplayer",
+      "repository": "https://github.com/RocketRobz/RocketVideoPlayer",
+      "version": "v2.3.1",
+      "commit": "50803b9027ca43ab278c1486442fcfc70c90b309",
+      "release": "https://github.com/RocketRobz/RocketVideoPlayer/releases/tag/v2.3.1",
+      "release_assets": [
+        {
+          "name": "RocketVideoPlayer.cia",
+          "url": "https://github.com/RocketRobz/RocketVideoPlayer/releases/download/v2.3.1/RocketVideoPlayer.cia"
+        },
+        {
+          "name": "RocketVideoPlayer.dsi",
+          "url": "https://github.com/RocketRobz/RocketVideoPlayer/releases/download/v2.3.1/RocketVideoPlayer.dsi"
+        },
+        {
+          "name": "RocketVideoPlayer.nds",
+          "url": "https://github.com/RocketRobz/RocketVideoPlayer/releases/download/v2.3.1/RocketVideoPlayer.nds"
+        },
+        {
+          "name": "rvid.gba",
+          "url": "https://github.com/RocketRobz/RocketVideoPlayer/releases/download/v2.3.1/rvid.gba"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/RocketRobz/RocketVideoPlayer/blob/50803b9027ca43ab278c1486442fcfc70c90b309/nds/arm9/source/main.cpp",
+      "redistribution": "blocked",
+      "license": "MIT code; Nintendo assets separately credited",
+      "distribution_notes": "README credits Nintendo DSi fonts/graphical assets and borrowed FastVideoDS code. MIT on project code does not establish all asset/component redistribution rights.",
+      "bios": "No BIOS required; use matching .rvid conversion.",
+      "bios_evidence": "https://github.com/RocketRobz/RocketVideoPlayer/blob/50803b9027ca43ab278c1486442fcfc70c90b309/README.md",
+      "license_evidence": "https://github.com/RocketRobz/RocketVideoPlayer/tree/50803b9027ca43ab278c1486442fcfc70c90b309"
+    },
+    {
+      "id": "s8ds",
+      "repository": "https://github.com/FluBBaOfWard/S8DS",
+      "version": "v1.1.8",
+      "commit": "90f2c13368f0b2ceac7887802e77d516d6337436",
+      "release": "https://github.com/FluBBaOfWard/S8DS/releases/tag/v1.1.8",
+      "release_assets": [
+        {
+          "name": "S8DS.zip",
+          "url": "https://github.com/FluBBaOfWard/S8DS/releases/download/v1.1.8/S8DS.zip"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/source/Main.c",
+      "redistribution": "blocked",
+      "license": "Project-wide redistribution grant not found",
+      "distribution_notes": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "bios": "Configured SMS/GG/SG-1000 cartridge routes normally bypass BIOS. Other emulated machines can require their own BIOS selected inside S8DS.",
+      "bios_evidence": "https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/README.md",
+      "license_evidence": "https://github.com/FluBBaOfWard/S8DS/tree/90f2c13368f0b2ceac7887802e77d516d6337436"
+    },
+    {
+      "id": "scummvm",
+      "repository": "https://github.com/scummvm/scummvm",
+      "version": "v2.9.1 (published DSi build)",
+      "commit": "9d9b9e93108a276c551aeffa390169ccc5148e15",
+      "release": "https://www.scummvm.org/downloads/",
+      "release_assets": [
+        {
+          "name": "scummvm-2.9.1-ds.zip",
+          "url": "https://downloads.scummvm.org/frs/scummvm/2.9.1/scummvm-2.9.1-ds.zip"
+        }
+      ],
+      "argv": "game-ID options, not ROM-file association",
+      "argv_evidence": "https://github.com/scummvm/scummvm/blob/9d9b9e93108a276c551aeffa390169ccc5148e15/backends/platform/ds/dsmain.cpp",
+      "redistribution": "approved",
+      "license": "GPL-3.0-or-later + constituent notices",
+      "distribution_notes": "DS main forwards argc/argv to scummvm_main. Use its native game-list launcher; arbitrary game data is not a one-ROM association. Official downloads retain 2.9.1 for DSi while newer versions exist for other platforms. Manual installation until the complete platform/resource/source package is pinned.",
+      "bios": "No general console BIOS. Supply the required data files for each supported game; do not bundle commercial game data.",
+      "bios_evidence": "https://docs.scummvm.org/en/latest/other_platforms/nintendo_ds.html",
+      "license_evidence": "https://github.com/scummvm/scummvm/blob/v2.9.1/COPYING"
+    },
+    {
+      "id": "snemulds",
+      "repository": "https://github.com/cotodevel/SnemulDS",
+      "version": "TGDS1.65 (shim-compatible snapshot)",
+      "commit": "d47b02a2a33da2f386b699cbcc9e6f03773c6cfd",
+      "release": "https://github.com/cotodevel/SnemulDS/tree/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd",
+      "release_assets": [],
+      "argv": "TGDS-only",
+      "argv_evidence": "https://github.com/cotodevel/SnemulDS/blob/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/arm9/source/main.c",
+      "redistribution": "approved",
+      "license": "GPL-2.0-or-later",
+      "distribution_notes": "Pinned older TGDS1.65 commit matches both hashes documented by shim v0.15; do not track the moving branch.",
+      "bios": "No separately installed SNES BIOS. This pack selects the normal/CX4 build, not DSP or S-DD1 variants.",
+      "package": {
+        "source": {
+          "asset": "snemulds-source.tar.gz",
+          "url": "https://codeload.github.com/cotodevel/SnemulDS/tar.gz/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd",
+          "sha256": "544ac513a37b57511b299adbe9b746752989d481bb9b481482005b492e516ea5"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "snemulds-source.tar.gz",
+              "url": "https://codeload.github.com/cotodevel/SnemulDS/tar.gz/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd",
+              "sha256": "544ac513a37b57511b299adbe9b746752989d481bb9b481482005b492e516ea5"
+            },
+            "member": "snemulds-d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/release/arm7dldi-ntr/SNEmulDS.nds",
+            "format": "tar.gz",
+            "destination": "_nds/akmenunext/plugins/apps/SNEmulDS.nds",
+            "sha256": "09bc43aad372da4984155d77c24a30a8c0a8a668288aa834eeb0695f1359094b"
+          },
+          {
+            "download": {
+              "asset": "snemulds-source.tar.gz",
+              "url": "https://codeload.github.com/cotodevel/SnemulDS/tar.gz/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd",
+              "sha256": "544ac513a37b57511b299adbe9b746752989d481bb9b481482005b492e516ea5"
+            },
+            "member": "snemulds-d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/release/arm7dldi-twl/SNEmulDS.srl",
+            "format": "tar.gz",
+            "destination": "_nds/akmenunext/plugins/apps/SNEmulDS.srl",
+            "sha256": "f2817e29db1958af6af2957d0ac7ccfce01b5a57f78e522527d1d508c121b7a2"
+          }
+        ],
+        "notices": [
+          {
+            "member": "snemulds-d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/LICENSE",
+            "destination": "LICENSE"
+          },
+          {
+            "member": "snemulds-d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/README.md",
+            "destination": "README.md"
+          }
+        ]
+      },
+      "bios_evidence": "https://github.com/cotodevel/SnemulDS/blob/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/README.md",
+      "license_evidence": "https://github.com/cotodevel/SnemulDS/tree/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd"
+    },
+    {
+      "id": "snemulds-shim",
+      "repository": "https://github.com/Sanrax/snemulds-shim",
+      "version": "v0.15",
+      "commit": "2a7b3ed08a72d28529662cfc9ede8d3e83c2095b",
+      "release": "https://github.com/Sanrax/snemulds-shim/releases/tag/v0.15",
+      "release_assets": [
+        {
+          "name": "snemulds-shim.ini",
+          "url": "https://github.com/Sanrax/snemulds-shim/releases/download/v0.15/snemulds-shim.ini"
+        },
+        {
+          "name": "snemulds-shim.nds",
+          "url": "https://github.com/Sanrax/snemulds-shim/releases/download/v0.15/snemulds-shim.nds"
+        }
+      ],
+      "argv": "shim",
+      "argv_evidence": "https://github.com/Sanrax/snemulds-shim/blob/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/source/arguments.c",
+      "redistribution": "approved",
+      "license": "GPL-3.0-or-later + vendored notices",
+      "distribution_notes": "Retain third_party/NOTICE.md and all vendored license texts.",
+      "bios": "No console BIOS needed for the selected SNEmulDS builds. Keep shim INI and NTR/TWL executables together.",
+      "package": {
+        "source": {
+          "asset": "snemulds-shim-source.tar.gz",
+          "url": "https://codeload.github.com/Sanrax/snemulds-shim/tar.gz/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b",
+          "sha256": "1d904940de23ed1d2f77067a7a89a22ecf94584f11a9d025a5f7adab691c1edc"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "snemulds-shim-snemulds-shim.nds",
+              "url": "https://github.com/Sanrax/snemulds-shim/releases/download/v0.15/snemulds-shim.nds",
+              "sha256": "3cc7ee1637175266ee6b6c443efadc9267956b8374164f23d458c86488c9ad55"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/snemulds-shim.nds",
+            "sha256": "3cc7ee1637175266ee6b6c443efadc9267956b8374164f23d458c86488c9ad55"
+          },
+          {
+            "download": {
+              "asset": "snemulds-shim-snemulds-shim.ini",
+              "url": "https://github.com/Sanrax/snemulds-shim/releases/download/v0.15/snemulds-shim.ini",
+              "sha256": "0be9e8e8ef76478b804be4a95e6921f1f4f59a670597bfb8e7686c1b11d7204f"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/snemulds-shim.ini",
+            "sha256": "0be9e8e8ef76478b804be4a95e6921f1f4f59a670597bfb8e7686c1b11d7204f"
+          }
+        ],
+        "notices": [
+          {
+            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/LICENSE",
+            "destination": "LICENSE"
+          },
+          {
+            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/README.md",
+            "destination": "README.md"
+          },
+          {
+            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/NOTICE.md",
+            "destination": "third_party/NOTICE.md"
+          },
+          {
+            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/blocksds-licenses/libs/libnds/licenses/LICENSE",
+            "destination": "third_party/blocksds-licenses/libs/libnds/licenses/LICENSE"
+          },
+          {
+            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/blocksds-licenses/libs/libnds/licenses/LICENSE.FatFs",
+            "destination": "third_party/blocksds-licenses/libs/libnds/licenses/LICENSE.FatFs"
+          },
+          {
+            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/blocksds-licenses/libs/maxmod/COPYING",
+            "destination": "third_party/blocksds-licenses/libs/maxmod/COPYING"
+          },
+          {
+            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/blocksds-licenses/sys/arm7/main_core/COPYING",
+            "destination": "third_party/blocksds-licenses/sys/arm7/main_core/COPYING"
+          },
+          {
+            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/blocksds-licenses/sys/crts/COPYING.mpl2",
+            "destination": "third_party/blocksds-licenses/sys/crts/COPYING.mpl2"
+          },
+          {
+            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/blocksds-licenses/sys/crts/COPYING.zlib",
+            "destination": "third_party/blocksds-licenses/sys/crts/COPYING.zlib"
+          },
+          {
+            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/libnds-legacy-LICENSE",
+            "destination": "third_party/libnds-legacy-LICENSE"
+          },
+          {
+            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/pico-reference/LICENSE.pico",
+            "destination": "third_party/pico-reference/LICENSE.pico"
+          },
+          {
+            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/pico-reference/LICENSE.txt",
+            "destination": "third_party/pico-reference/LICENSE.txt"
+          }
+        ]
+      },
+      "bios_evidence": "https://github.com/Sanrax/snemulds-shim/blob/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/README.md",
+      "license_evidence": "https://github.com/Sanrax/snemulds-shim/tree/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b"
+    },
+    {
+      "id": "speccyse",
+      "repository": "https://github.com/wavemotion-dave/SpeccySE",
+      "version": "2.2",
+      "commit": "85c85862470b69b75f6e49476a9c4ce992064bb3",
+      "release": "https://github.com/wavemotion-dave/SpeccySE/releases/tag/2.2",
+      "release_assets": [
+        {
+          "name": "readme.md",
+          "url": "https://github.com/wavemotion-dave/SpeccySE/releases/download/2.2/readme.md"
+        },
+        {
+          "name": "SpeccySE.nds",
+          "url": "https://github.com/wavemotion-dave/SpeccySE/releases/download/2.2/SpeccySE.nds"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/wavemotion-dave/SpeccySE/blob/85c85862470b69b75f6e49476a9c4ce992064bb3/arm9/source/SpeccySE.c",
+      "redistribution": "noncommercial",
+      "license": "Custom noncommercial redistribution + core notices",
+      "distribution_notes": "No-profit redistribution permitted with full author/core notices. Preserve the Z80, sound and lzav terms.",
+      "bios": "Requires 48.ROM and 128.ROM beside emulator or in /roms/bios. OpenSE BASIC is a candidate for 48K only, not a verified full replacement for this required pair.",
+      "package": {
+        "source": {
+          "asset": "speccyse-source.tar.gz",
+          "url": "https://codeload.github.com/wavemotion-dave/SpeccySE/tar.gz/85c85862470b69b75f6e49476a9c4ce992064bb3",
+          "sha256": "8a926dfed507ba5fc62732e1c1dd7ac630b3992ee6a53b6267937249f3ced087"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "speccyse-SpeccySE.nds",
+              "url": "https://github.com/wavemotion-dave/SpeccySE/releases/download/2.2/SpeccySE.nds",
+              "sha256": "a15328472a3127861ca833b8e77bd0f5c6d5683a7664b050176a1eda2507f4e0"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/SpeccySE.nds",
+            "sha256": "a15328472a3127861ca833b8e77bd0f5c6d5683a7664b050176a1eda2507f4e0"
+          }
+        ],
+        "notices": [
+          {
+            "member": "SpeccySE-85c85862470b69b75f6e49476a9c4ce992064bb3/readme.md",
+            "destination": "readme.md"
+          }
+        ]
+      },
+      "bios_evidence": "https://github.com/wavemotion-dave/SpeccySE/blob/85c85862470b69b75f6e49476a9c4ce992064bb3/readme.md",
+      "license_evidence": "https://github.com/wavemotion-dave/SpeccySE/tree/85c85862470b69b75f6e49476a9c4ce992064bb3"
+    },
+    {
+      "id": "stellads",
+      "repository": "https://github.com/wavemotion-dave/StellaDS",
+      "version": "8.4a",
+      "commit": "1ff41dc60c4debacd4493bae5bb045cdbbef7800",
+      "release": "https://github.com/wavemotion-dave/StellaDS/releases/tag/8.4a",
+      "release_assets": [
+        {
+          "name": "Copyright.txt",
+          "url": "https://github.com/wavemotion-dave/StellaDS/releases/download/8.4a/Copyright.txt"
+        },
+        {
+          "name": "LICENSE",
+          "url": "https://github.com/wavemotion-dave/StellaDS/releases/download/8.4a/LICENSE"
+        },
+        {
+          "name": "README.md",
+          "url": "https://github.com/wavemotion-dave/StellaDS/releases/download/8.4a/README.md"
+        },
+        {
+          "name": "StellaDS.nds",
+          "url": "https://github.com/wavemotion-dave/StellaDS/releases/download/8.4a/StellaDS.nds"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/arm9/source/main.cpp",
+      "redistribution": "approved",
+      "license": "GPL-2.0-or-later + BSD notices",
+      "distribution_notes": "Retain LICENSE and Copyright.txt, including the Aaron Giles notice.",
+      "bios": "No separate Atari 2600 BIOS required.",
+      "package": {
+        "source": {
+          "asset": "stellads-source.tar.gz",
+          "url": "https://codeload.github.com/wavemotion-dave/StellaDS/tar.gz/1ff41dc60c4debacd4493bae5bb045cdbbef7800",
+          "sha256": "80b91d19baa66e84653c6a79aaf53be702d1a583bee9567f8b948ac3963a4924"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "stellads-StellaDS.nds",
+              "url": "https://github.com/wavemotion-dave/StellaDS/releases/download/8.4a/StellaDS.nds",
+              "sha256": "a5bea4e4e3af79fe940d2229767664a2a7cbf8096916bc94aea302c7da3cec1b"
+            },
+            "format": "raw",
+            "destination": "_nds/akmenunext/plugins/apps/StellaDS.nds",
+            "sha256": "a5bea4e4e3af79fe940d2229767664a2a7cbf8096916bc94aea302c7da3cec1b"
+          }
+        ],
+        "notices": [
+          {
+            "member": "StellaDS-1ff41dc60c4debacd4493bae5bb045cdbbef7800/Copyright.txt",
+            "destination": "Copyright.txt"
+          },
+          {
+            "member": "StellaDS-1ff41dc60c4debacd4493bae5bb045cdbbef7800/LICENSE",
+            "destination": "LICENSE"
+          },
+          {
+            "member": "StellaDS-1ff41dc60c4debacd4493bae5bb045cdbbef7800/README.md",
+            "destination": "README.md"
+          }
+        ]
+      },
+      "bios_evidence": "https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/README.md",
+      "license_evidence": "https://github.com/wavemotion-dave/StellaDS/tree/1ff41dc60c4debacd4493bae5bb045cdbbef7800"
+    },
+    {
+      "id": "sugards",
+      "repository": "https://github.com/wavemotion-dave/SugarDS",
+      "version": "1.6",
+      "commit": "ca4b95960d55e24d1d5bf815f5fffcacad8e4704",
+      "release": "https://github.com/wavemotion-dave/SugarDS/releases/tag/1.6",
+      "release_assets": [
+        {
+          "name": "readme.md",
+          "url": "https://github.com/wavemotion-dave/SugarDS/releases/download/1.6/readme.md"
+        },
+        {
+          "name": "SugarDS.nds",
+          "url": "https://github.com/wavemotion-dave/SugarDS/releases/download/1.6/SugarDS.nds"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/arm9/source/SugarDS.c",
+      "redistribution": "blocked",
+      "license": "GPL-2.0-or-later code; separately copyrighted firmware",
+      "distribution_notes": "Built-in Amstrad ROMs rely on the quoted conditional permission; ParaDOS is separately copyrighted. Record the firmware grants before redistributing the prebuilt package.",
+      "bios": "Amstrad CPC firmware and ParaDOS are embedded in the stock binary, with separate terms; no extra download is needed, but embedding is not a free-BIOS license.",
+      "bios_evidence": "https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/readme.md",
+      "license_evidence": "https://github.com/wavemotion-dave/SugarDS/tree/ca4b95960d55e24d1d5bf815f5fffcacad8e4704"
+    },
+    {
+      "id": "tuna-vids",
+      "repository": "https://github.com/chishm/tuna-vids",
+      "version": "v1.2",
+      "commit": "f1f00243b2f969ebc9ded1a4942f610819f8c673",
+      "release": "https://github.com/chishm/tuna-vids/releases/tag/v1.2",
+      "release_assets": [
+        {
+          "name": "tuna-vids_v1.2.zip",
+          "url": "https://github.com/chishm/tuna-vids/releases/download/v1.2/tuna-vids_v1.2.zip"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/arm9/source/main.c",
+      "redistribution": "blocked",
+      "license": "GPL-2.0-or-later ARM9 + Helix RPSL/RCSL ARM7",
+      "distribution_notes": "Retain full Xvid/GPL and Helix notices. The two-CPU codec licensing/source obligations require an explicit distribution review; root GPL alone is incomplete.",
+      "bios": "No BIOS required; AVI must contain Xvid/MPEG-4 video and MP3 audio in the player-specific format.",
+      "bios_evidence": "https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/README.md",
+      "license_evidence": "https://github.com/chishm/tuna-vids/tree/f1f00243b2f969ebc9ded1a4942f610819f8c673"
+    },
+    {
+      "id": "wasabids",
+      "repository": "https://github.com/FluBBaOfWard/WasabiDS",
+      "version": "v0.2.6",
+      "commit": "b074708a4c0b670e9f3e7d520a776f2bad2695c1",
+      "release": "https://github.com/FluBBaOfWard/WasabiDS/releases/tag/v0.2.6",
+      "release_assets": [
+        {
+          "name": "WasabiDS.zip",
+          "url": "https://github.com/FluBBaOfWard/WasabiDS/releases/download/v0.2.6/WasabiDS.zip"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/source/Main.c",
+      "redistribution": "blocked",
+      "license": "Project-wide redistribution grant not found",
+      "distribution_notes": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "bios": "No separate Supervision BIOS required.",
+      "bios_evidence": "https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/README.md",
+      "license_evidence": "https://github.com/FluBBaOfWard/WasabiDS/tree/b074708a4c0b670e9f3e7d520a776f2bad2695c1"
+    }
+  ],
+  "common_notices": [
+    {
+      "asset": "gpl-2.0.txt",
+      "url": "https://raw.githubusercontent.com/nextcode4u/DSXP/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/LICENSE",
+      "sha256": "32b1062f7da84967e7019d01ab805935caa7ab7321a7ced0e30ebe75e5df1670"
+    }
+  ]
+}

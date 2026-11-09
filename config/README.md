@@ -12,3 +12,7 @@ Keep the package catalog and dependency destinations aligned with the runtime's
 SD layout. Changing just these JSON paths would break packaging or place files
 where Gloam does not look for them. See [SD layout](../docs/guides/SD_LAYOUT.md)
 and [building and packaging](../docs/development/BUILDING.md).
+
+`addon-dependencies.json` records audited emulator/player releases, argv evidence,
+BIOS requirements and distribution conditions. Only entries with an explicitly
+reviewed package and permitted terms can enter the optional add-on build.

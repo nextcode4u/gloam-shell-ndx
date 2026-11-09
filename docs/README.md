@@ -4,6 +4,7 @@ Start with [setup and controls](GETTING_STARTED.md) and [current support](CURREN
 
 ## User guides
 
+- [Optional add-ons, release/argv/license audit and BIOS requirements](guides/ADDONS.md).
 - [SD layout](guides/SD_LAYOUT.md) and [emulators / file associations](guides/EMULATORS.md).
 - [Game loading and saves](guides/GAME_LOADING.md), [cheats](guides/CHEATS.md),
   [homebrew and system applications](guides/HOMEBREW_LAUNCH.md).
