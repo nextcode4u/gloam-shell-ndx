@@ -564,6 +564,32 @@
       "license_evidence": "https://github.com/wavemotion-dave/Hachibitto/tree/a388a295945d3929ac41a6369e40ce1c0afefa7e"
     },
     {
+      "id": "jenesisdsplus",
+      "repository": "https://github.com/DS-Homebrew/jEnesisDSPlus",
+      "version": "v0.8.1",
+      "commit": "ca3bb43d14f8d78ccb6546d753817defaac25937",
+      "release": "https://github.com/DS-Homebrew/jEnesisDSPlus/releases/tag/v0.8.1",
+      "release_assets": [
+        {
+          "name": "jEnesisDSPlus.nds",
+          "url": "https://github.com/DS-Homebrew/jEnesisDSPlus/releases/download/v0.8.1/jEnesisDSPlus.nds"
+        },
+        {
+          "name": "jEnesisDSPlus_macro.nds",
+          "url": "https://github.com/DS-Homebrew/jEnesisDSPlus/releases/download/v0.8.1/jEnesisDSPlus_macro.nds"
+        }
+      ],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/newCode/source/main.s",
+      "argv_notes": "saveArgv validates the standard _arg record, copies argv[1] and loadRomFromArgv starts the ROM. Original jEnesisDS does not establish the Plus behavior. Native DSi SD handoff still needs testing; do not infer it from the BlocksDS toolchain used for the injected code.",
+      "redistribution": "blocked",
+      "license": "No explicit Plus redistribution license; closed-source base terms unconfirmed",
+      "distribution_notes": "README says the original jEnesisDS source was never public and the improvements are ASM patches. The Plus tree has no stated license; verify grants for both Lordus's base and the modifications before bundling. Lack of source by itself does not prohibit redistribution under a suitable freeware license; that grant has not been established here. Original 0.7.4 notices could not be retrieved from the linked download (HTTP 403).",
+      "bios": "No external console BIOS needed for Genesis cartridge ROMs. Plus supports up to 7.5 MiB on DSi (4 MiB on DS debug hardware), with mapper support for ROMs above 4 MiB. Native console-SD compatibility is not yet validated in Gloam.",
+      "bios_evidence": "https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/README.md",
+      "license_evidence": "https://github.com/DS-Homebrew/jEnesisDSPlus/tree/ca3bb43d14f8d78ccb6546d753817defaac25937"
+    },
+    {
       "id": "lodjurds",
       "repository": "https://github.com/FluBBaOfWard/LodjurDS",
       "version": "v0.1.5",

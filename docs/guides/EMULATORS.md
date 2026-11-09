@@ -126,6 +126,10 @@ All supplied associations declare `argv=1`. Optional `bootstrap=0` flags are ret
 - **GameYob:** retain both `gameyob_dsi.nds` and `gameyob.nds`; the selected console mode chooses the configured variant.
 - **GBA:** GBARunner3 remains the configured `.gba` default. GBARunner2 is also an alternative, but does not have a competing default profile.
 - **Shared `.dsk`:** the default assigns it to SugarDS/Amstrad CPC. A CoCo, TI or MSX disk does not become CPC content because of its extension. Use the correct emulator's browser or the implemented per-file application picker; folder-based association overrides are not implemented yet.
+- **Genesis alternative:** [jEnesisDS Plus v0.8.1](https://github.com/DS-Homebrew/jEnesisDSPlus/releases/tag/v0.8.1)
+  has standard argv support and adds ROM support up to 7.5 MiB on DSi. Its
+  redistribution grant and Gloam native-SD route remain unverified, so it is
+  recorded as a manual candidate rather than replacing the PicoDriveTWL profile.
 - **Shared `.md`:** the Genesis association also matches Markdown filenames. The profile treats it as a ROM extension. A Markdown document may therefore display the PicoDrive icon unless its per-file application choice overrides that mapping.
 - **Machine selection:** CoCo and Dragon share DracoDS, while `.c10`/`.k7` share MicroDS. A folder name alone does not prove the application selected the intended machine. Follow the emulator's instructions and preserve its configuration.
 - **Video:** `.avi`, `.fv` and `.rvid` target their respective players. Arbitrary MP4/AVI files need the correct encoding/conversion; no universal video decoder is implied.

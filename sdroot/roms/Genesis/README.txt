@@ -19,7 +19,10 @@ Upstream: https://github.com/DS-Homebrew/PicoDriveTWL
 Release: https://github.com/DS-Homebrew/PicoDriveTWL/releases/tag/v2.1.0
 
 The .md extension is assigned to Genesis ROMs; Markdown documents may match
-this profile too. Use a per-file override for documents.
+this profile too. Use a per-file override for documents. jEnesisDS Plus v0.8.1
+is another normal-argv candidate with up to 7.5 MiB ROM support on DSi. Its
+redistribution terms and Gloam console-SD route remain unverified, so it is
+not bundled or selected by default.
 
 Keep required companion files and saves together. Other emulator-supported
 formats may need its own browser or a per-file application choice. Changing an
