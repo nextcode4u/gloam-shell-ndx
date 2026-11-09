@@ -23,15 +23,29 @@ $(ROM): $(ARM7ELF) $(GAME_ICON)
 
 # The driver override below is pinned to BlocksDS 1.25.0. Review it when upgrading.
 MELONDS_SD_COMPAT ?= 1
+ifneq ($(MELONDS_SD_COMPAT),0)
+ifneq ($(MELONDS_SD_COMPAT),1)
+$(error MELONDS_SD_COMPAT must be 0 or 1)
+endif
+endif
+
+# These custom ARM7 objects are outside the SDK's normal build directory.
+# Invalidate them on a mode switch, including switching back without clean.
+ARM7_CONFIG := build/arm7/sd-compat-$(MELONDS_SD_COMPAT).stamp
+$(ARM7_CONFIG):
+	@mkdir -p $(@D)
+	@rm -f build/arm7/sd-compat-0.stamp build/arm7/sd-compat-1.stamp
+	@touch $@
+
 ARM7_FLAGS := -g -Os -mthumb -mcpu=arm7tdmi -ffunction-sections -fdata-sections \
     -specs=$(BLOCKSDS)/sys/crts/ds_arm7.specs -I$(BLOCKSDS)/libs/libnds/include -Ithird_party/libnds -Icommon/include \
     -DFRONTEND_MELONDS_SD_COMPAT=$(MELONDS_SD_COMPAT)
 
-build/arm7/main.o: arm7/source/main.c common/include/hardware_protocol.h
+build/arm7/main.o: arm7/source/main.c common/include/hardware_protocol.h Makefile $(ARM7_CONFIG)
 	@mkdir -p $(@D)
 	$(ARM_NONE_EABI_PATH)arm-none-eabi-gcc $(ARM7_FLAGS) -c $< -o $@
 
-build/arm7/sdmmc.twl.c.o: third_party/libnds/sdmmc_compat.twl.c third_party/libnds/common/libnds_internal.h
+build/arm7/sdmmc.twl.c.o: third_party/libnds/sdmmc_compat.twl.c third_party/libnds/common/libnds_internal.h Makefile $(ARM7_CONFIG)
 	@mkdir -p $(@D)
 	$(ARM_NONE_EABI_PATH)arm-none-eabi-gcc $(ARM7_FLAGS) -c $< -o $@
 
@@ -45,6 +59,12 @@ build/homebrew-loader/load.bin: $(LOADER_INPUTS) tools/build_homebrew_loader.py
 	python3 tools/build_homebrew_loader.py --blocksds $(BLOCKSDS) --tools $(ARM_NONE_EABI_PATH)
 
 build/$(NAME)/arm9/source/loader_data.s.o: build/homebrew-loader/load.bin
+
+# The SDK cleans the parent's entire build directory, but not the forwarder.
+.PHONY: clean-forwarder
+clean: clean-forwarder
+clean-forwarder:
+	$(MAKE) -C forwarder clean
 
 # Optional DSi Menu return tile is bundled in development SD packages.
 .PHONY: forwarder

@@ -17,7 +17,9 @@ initialize internal NAND block length with CMD16. DMA and NAND write command
 selection remain upstream. The modified source retains its Zlib license.
 
 `MELONDS_SD_COMPAT=1` enables the historical controller workaround by default;
-`make clean && make MELONDS_SD_COMPAT=0` selects upstream SD write commands.
+`make MELONDS_SD_COMPAT=0` selects upstream SD write commands. Switching
+between `0` and `1` invalidates both custom ARM7 objects automatically, including
+switching back without cleaning. CI builds both modes and packages default `1`.
 Review the source/API and repeat read/write checks before carrying this override
 to a different SDK. This is an application dependency, not an emulator build.
 
