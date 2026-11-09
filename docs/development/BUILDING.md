@@ -14,7 +14,7 @@ SDK-specific integration details are in [TOOLCHAIN.md](TOOLCHAIN.md).
 make -j4
 python3 tools/build_release.py
 # Optional audited emulator/player overlay:
-python3 tools/build_addons.py
+python3 tools/build_addons.py  # checks/refreshes upstream pins before building
 ```
 
 The release script builds by default. `--skip-build` packages an already built
@@ -58,6 +58,15 @@ no unrelated CIA/TAD variants enter the SD ZIP. It does not patch downloaded
 backends or modify an SD card/emulator. Cache lives under `build/release-cache`
 and `build/release-sources`; outputs and downloads are ignored by Git.
 
+Online add-on release builds run `tools/prepare_addons_release.py` before
+packaging. It checks upstream releases, refreshes unchanged-layout recipes,
+validates source/notices and hashes, regenerates collection notes, runs the
+Python checks and then builds. `make addons-check` prepares a report only;
+`make addons-pinned` reproduces the existing lock. Complex/changed recipes stop
+for review. Reports and validation logs are under ignored `build/addon-updates/`.
+Use the project virtualenv or install `requirements-dev.txt` for the checks.
+GitHub CLI is optional but avoids unauthenticated API limits when authenticated.
+
 The optional [add-on builder](../guides/ADDONS.md) uses
 `config/addon-dependencies.json`. `python3 tools/build_addons.py --list` lists
 all audited entries without downloading. The default bundles eight applications
@@ -72,8 +81,9 @@ to an explicitly selected SD root. They support selection, dry runs, caching,
 offline use, reviewed-catalog updates and preserving existing configs. Update
 recipes also cover bundled apps, and pair the SNEmulDS shim/payload. See [the add-on guide](../guides/ADDONS.md).
 `--only dsxp gameyob-dsi` restricts bundled applications; the installer catalog
-is generated for everything outside that selection. The build itself never
-fetches binaries/source archives for download-only applications.
+is generated for everything outside that selection. Packaging never embeds download-only binaries/source archives. The online
+preflight may fetch upstream files into the ignored cache to verify prospective
+pins; those remain excluded from release payloads.
 
 `--offline` and `--skip-build` retain the main builder meanings. `make addons`
 is a convenience target; `tools/build_release.py --addons` supports the same

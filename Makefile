@@ -59,6 +59,12 @@ sd:
 	python3 tools/build_release.py
 
 # Optional emulator/player overlay, with matching source and license companions.
-.PHONY: addons
+.PHONY: addons addons-check addons-pinned
 addons:
 	python3 tools/build_addons.py
+
+addons-check:
+	python3 tools/prepare_addons_release.py --check-only
+
+addons-pinned:
+	python3 tools/build_addons.py --pinned

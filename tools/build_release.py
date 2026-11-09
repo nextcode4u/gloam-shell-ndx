@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 import tarfile
 import tempfile
 import urllib.request
@@ -277,12 +278,23 @@ def main() -> None:
     parser.add_argument("--skip-build", action="store_true", help="Use the current verified frontend build")
     parser.add_argument("--offline", action="store_true", help="Require all dependencies in the local cache")
     parser.add_argument("--addons", action="store_true", help="Build the reviewed optional overlay too")
+    parser.add_argument("--pinned-addons", action="store_true", help="With --addons, reuse existing add-on pins")
     parser.add_argument("--noncommercial", action="store_true",
                         help="With --addons, include reviewed no-profit-only applications")
     args = parser.parse_args()
     if args.noncommercial and not args.addons:
         parser.error("--noncommercial requires --addons")
+    if args.pinned_addons and not args.addons:
+        parser.error("--pinned-addons requires --addons")
     try:
+        if args.addons and not args.pinned_addons and not args.offline:
+            command = [sys.executable, str(ROOT / "tools/prepare_addons_release.py")]
+            if args.skip_build:
+                command.append("--skip-build")
+            if args.noncommercial:
+                command.append("--noncommercial")
+            subprocess.run(command, cwd=ROOT, check=True)
+            return
         if not args.skip_build:
             subprocess.run(["make", "-j4"], cwd=ROOT, check=True)
             subprocess.run(["python3", "tools/write_build_info.py"], cwd=ROOT, check=True)

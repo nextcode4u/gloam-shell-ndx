@@ -15,6 +15,50 @@ python3 tools/build_addons.py --noncommercial
 python3 tools/build_addons.py --list
 ```
 
+Normal online builds first run `tools/prepare_addons_release.py`. This checks
+all 26 pinned applications, updates compatible version/source/member hashes,
+regenerates profiles/readmes, runs the Python suite and public-tree check, then
+builds the add-on ZIP and matching companions. It uses the project virtualenv
+for checks when available; otherwise install `requirements-dev.txt` in the
+interpreter running the build. GitHub CLI authentication is used when available;
+the stdlib HTTP fallback uses GitHub's public rate limits.
+
+```sh
+make addons-check                          # report/proposals only
+python3 tools/prepare_addons_release.py --check-only
+python3 tools/prepare_addons_release.py --skip-build --noncommercial
+python3 tools/build_addons.py --pinned     # reproduce existing reviewed pins
+```
+
+Current assets are checked against GitHub digests, or downloaded and hashed
+when upstream provides no digest. Replaced/removed assets stop the build.
+The preflight compares publication dates rather than tag strings, avoids
+replacing a stable pin with a prerelease, and preserves the current prerelease
+channel when one is already pinned. Pinned host snapshots are not replaced by
+guessed branch builds; an unversioned host download must still match its hash.
+The SNEmulDS pair remains explicitly matched. Specialized source bundles,
+changed submodules, notices, asset layouts or missing argv evidence stop the
+build for recipe review instead of silently changing those contracts.
+Redistribution statuses and permission flags are never promoted by this script.
+Preflight success verifies recipes and pins; new-build hardware compatibility
+still needs testing. Apparent backports to an older version track require review.
+
+Reports, proposed pins and notice diffs stay under ignored
+`build/addon-updates/`. `--check-only` writes those files without changing tracked
+pins or building; it exits 2 when compatible updates are proposed. Errors or
+review-required changes stop preparation before applying any proposed pins.
+After a successful preflight, compatible updates are written to the lock and
+audit table and generated collection notes are refreshed. Validation logs are
+in `build/addon-updates/validation.log`. If validation fails, the tracked pin
+changes remain available for review and the archive build does not run. Review
+and commit dependency changes separately; this script never commits or pushes.
+
+`make addons`, `tools/build_addons.py`, and `tools/build_release.py --addons`
+use this online preparation by default. Explicit `--pinned`,
+`--pinned-addons` on the release builder, or `--offline` reuse existing pins
+without claiming a fresh upstream check. `--only` restricts the bundled output,
+while release preparation still checks the complete updater catalog.
+
 The default bundles DSXP (nextcode4u), GameYob, A7800DS, A8DS, StellaDS,
 PokeMini, snemulds-shim and its matching SNEmulDS payload. `--noncommercial`
 also bundles A5200DS, DracoDS, MicroDS, SpeccySE and ColecoDS.

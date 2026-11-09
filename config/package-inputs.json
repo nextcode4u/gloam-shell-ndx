@@ -561,6 +561,7 @@
     "tests/test_forwarder.py",
     "tests/test_native_configuration.py",
     "tests/test_package_development.py",
+    "tests/test_prepare_addons.py",
     "tests/test_release.py",
     "tests/test_staging.py",
     "tests/text_test.c",
@@ -646,6 +647,7 @@
     "tools/pack_banner_icon.py",
     "tools/pack_theme_font.py",
     "tools/package_development.py",
+    "tools/prepare_addons_release.py",
     "tools/preview.c",
     "tools/stage_sd.py",
     "tools/write_build_info.py"

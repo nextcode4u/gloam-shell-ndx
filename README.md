@@ -66,7 +66,7 @@ and Python 3.11+. The default SDK location is `/opt/blocksds/core`.
 ```sh
 make -j4                         # frontend and optional forwarder
 python3 tools/build_release.py   # pinned backends + SD/source archives
-python3 tools/build_addons.py    # optional reviewed emulator/player overlay
+python3 tools/build_addons.py    # check/update pins, validate, build optional overlay
 ```
 
 Outputs: `dist/BOOT.NDS`, `dist/sd.zip`, `dist/licenses.zip`, `dist/source.zip`

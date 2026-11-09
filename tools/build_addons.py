@@ -6,6 +6,7 @@ import io
 import json
 import re
 import subprocess
+import sys
 import tarfile
 import zipfile
 from pathlib import Path
@@ -276,6 +277,7 @@ def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--offline", action="store_true")
+    parser.add_argument("--pinned", action="store_true", help="Rebuild existing pins without upstream preparation")
     parser.add_argument("--skip-build", action="store_true")
     parser.add_argument("--noncommercial", action="store_true",
                         help="Also include reviewed packages restricted to no-profit distribution")
@@ -292,6 +294,16 @@ def main() -> None:
         return
     try:
         selected_applications(json.loads((ROOT / LOCK).read_text()), args.noncommercial, args.only)
+        if not args.pinned and not args.offline:
+            command = [sys.executable, str(ROOT / "tools/prepare_addons_release.py")]
+            if args.skip_build:
+                command.append("--skip-build")
+            if args.noncommercial:
+                command.append("--noncommercial")
+            if args.only:
+                command.extend(["--only", *args.only])
+            subprocess.run(command, cwd=ROOT, check=True)
+            return
         if __package__:
             from .build_release import build_release
         else:
