@@ -144,8 +144,9 @@ void associations_load(App *app)
     }
 }
 
-static bool extension_matches(const char *list, const char *extension)
+static size_t extension_match(const char *list, const char *path)
 {
+    size_t path_length = strlen(path), best = 0;
     while (*list) {
         while (*list == ',' || isspace((unsigned char)*list))
             list++;
@@ -156,11 +157,12 @@ static bool extension_matches(const char *list, const char *extension)
         const char *start = list;
         while (*list && *list != ',' && !isspace((unsigned char)*list))
             list++;
-        if (strlen(extension) == (size_t)(list - start) &&
-            !strncasecmp(start, extension, (size_t)(list - start)))
-            return true;
+        size_t length = (size_t)(list - start);
+        if (length > best && path_length > length && path[path_length - length - 1] == '.' &&
+            !strncasecmp(start, path + path_length - length, length))
+            best = length;
     }
-    return false;
+    return best;
 }
 
 const Association *association_find(const App *app, const char *path)
@@ -168,10 +170,16 @@ const Association *association_find(const App *app, const char *path)
     const Association *custom = association_user(app, path_extension(path));
     if (custom)
         return custom->disabled ? NULL : custom;
-    for (int index = 0; index < app->association_count; index++)
-        if (extension_matches(app->associations[index].extensions, path_extension(path)))
-            return app->associations[index].disabled ? NULL : &app->associations[index];
-    return NULL;
+    const Association *selected = NULL;
+    size_t longest = 0;
+    for (int index = 0; index < app->association_count; index++) {
+        size_t length = extension_match(app->associations[index].extensions, path);
+        if (length > longest) {
+            selected = &app->associations[index];
+            longest = length;
+        }
+    }
+    return selected && !selected->disabled ? selected : NULL;
 }
 
 const char *association_cover(const App *app, const char *path)
@@ -185,8 +193,7 @@ const char *association_cover(const App *app, const char *path)
      * distributed artwork default. Personal profiles can still supply a cover. */
     for (int i = 0; i < app->association_count; i++) {
         const Association *profile = &app->associations[i];
-        if (!profile->disabled && *profile->cover &&
-            extension_matches(profile->extensions, path_extension(path)))
+        if (!profile->disabled && *profile->cover && extension_match(profile->extensions, path))
             return profile->cover;
     }
     return NULL;

@@ -58,11 +58,29 @@ int main(int argc, char **argv)
     text(root, "roms/Content.xyz", "Content, not a ROM");
     text(root, "_nds/dsi-frontend/plugins/xyz.ini",
          "[plugin]\nversion=1\nextensions=xyz\napplication=/apps/Probe.nds\nargv=0\n");
+    text(root, "_nds/dsi-frontend/plugins/books.ini",
+         "[plugin]\nversion=1\nextensions=fb2.zip,epub\napplication=/apps/Probe.nds\nargv=1\n");
     app_init(&app, root, true, true);
     char application[PATH_CAP], content[PATH_CAP];
     assert(path_join(application, root, "apps/Probe.nds"));
     assert(path_join(content, root, "roms/Content.xyz"));
     assert(association_find(&app, content) && !association_find(&app, content)->use_argv);
+    const Association *book = association_find(&app, "sd:/media/books/Story.FB2.ZIP");
+    assert(book && strstr(book->extensions, "fb2.zip"));
+    assert(association_find(&app, "sd:/media/books/Story.epub") == book);
+    assert(!association_find(&app, "sd:/media/books/Other.zip"));
+    assert(!association_find(&app, "sd:/media/books/notfb2.zip"));
+    /* A compound suffix wins even when a generic ZIP rule appears first. */
+    app.associations[app.association_count++] = app.associations[0];
+    path_copy(app.associations[0].extensions, "zip", sizeof app.associations[0].extensions);
+    const Association *specific = association_find(&app, "sd:/media/books/Story.fb2.zip");
+    assert(specific && strstr(specific->extensions, "fb2.zip"));
+    assert(association_find(&app, "sd:/media/books/Other.zip") == &app.associations[0]);
+
+    char book_profile[PATH_CAP];
+    assert(path_join(book_profile, root, "_nds/dsi-frontend/plugins/books.ini"));
+    assert(!remove(book_profile));
+    associations_load(&app);
     assert(association_set_default(&app, "XYZ", application));
     assert(association_find(&app, content)->use_argv);
     assert(association_disable(&app, "xyz") && !association_find(&app, content));
