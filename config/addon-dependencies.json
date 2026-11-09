@@ -2,7 +2,7 @@
   "format": 1,
   "reviewed": "2026-11-08",
   "default_policy": "approved releases only; --noncommercial adds explicitly no-profit packages",
-  "application_directory": "_nds/akmenunext/plugins/apps",
+  "application_directory": "_nds/dsi-frontend/plugins/apps",
   "applications": [
     {
       "id": "a5200ds",
@@ -40,7 +40,7 @@
               "sha256": "9cc3859a34c1ebd6652cad864e5d9e18087321a64348baf531c4765a86346a81"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/A5200DS.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/A5200DS.nds",
             "sha256": "9cc3859a34c1ebd6652cad864e5d9e18087321a64348baf531c4765a86346a81"
           }
         ],
@@ -95,7 +95,7 @@
               "sha256": "dbe7706bfafeffb283c1435cfd46a1c4e492dfc8e699684da8fcf32d33599bef"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/A7800DS.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/A7800DS.nds",
             "sha256": "dbe7706bfafeffb283c1435cfd46a1c4e492dfc8e699684da8fcf32d33599bef"
           }
         ],
@@ -153,7 +153,7 @@
               "sha256": "dcc3d3cdb1445d4377e7d58b766790168a361744504b2e9d44b4dd1f96a98a7c"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/A8DS.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/A8DS.nds",
             "sha256": "dcc3d3cdb1445d4377e7d58b766790168a361744504b2e9d44b4dd1f96a98a7c"
           },
           {
@@ -163,7 +163,7 @@
               "sha256": "ba2583bebca87de626a9b0451605fcdd33b59c33ad5d1a7ec2e24e79befb63bc"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/A8DSi.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/A8DSi.nds",
             "sha256": "ba2583bebca87de626a9b0451605fcdd33b59c33ad5d1a7ec2e24e79befb63bc"
           }
         ],
@@ -260,7 +260,7 @@
               "sha256": "8c49727c549e287a6b4b2d26323335f4dff2c159a6a5715f033fa56f4028ab78"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/DracoDS.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/DracoDS.nds",
             "sha256": "8c49727c549e287a6b4b2d26323335f4dff2c159a6a5715f033fa56f4028ab78"
           }
         ],
@@ -376,7 +376,7 @@
               "sha256": "ac03e935df92b6fc7f7ad5b383b65d9fb3e6c2ecbc2b0153b2038c63904b09ad"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/DSXP.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/DSXP.nds",
             "sha256": "ac03e935df92b6fc7f7ad5b383b65d9fb3e6c2ecbc2b0153b2038c63904b09ad"
           }
         ],
@@ -459,7 +459,7 @@
               "sha256": "ea113d2710d4c9b219289fc10cff7629162f368af72e8653808f8ab848bf7392"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/gameyob_dsi.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/gameyob_dsi.nds",
             "sha256": "ea113d2710d4c9b219289fc10cff7629162f368af72e8653808f8ab848bf7392"
           },
           {
@@ -469,7 +469,7 @@
               "sha256": "172652cdde450e8dc50c28dff1bbd3f9bdd9a3784014116c2cdd2e438ebacebd"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/gameyob.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/gameyob.nds",
             "sha256": "172652cdde450e8dc50c28dff1bbd3f9bdd9a3784014116c2cdd2e438ebacebd"
           }
         ],
@@ -650,7 +650,7 @@
               "sha256": "273dc429271f5b88bd97cb4296c20da52b3e3823b1412bd599112446770c3063"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/MicroDS.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/MicroDS.nds",
             "sha256": "273dc429271f5b88bd97cb4296c20da52b3e3823b1412bd599112446770c3063"
           }
         ],
@@ -839,7 +839,7 @@
               "sha256": "a8cacbcda68c23dec8d23254d31afb36bbc13af7638ebc2f70079e8aab07bd64"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/PokeMini.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/PokeMini.nds",
             "sha256": "a8cacbcda68c23dec8d23254d31afb36bbc13af7638ebc2f70079e8aab07bd64"
           }
         ],
@@ -977,7 +977,7 @@
             },
             "member": "snemulds-d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/release/arm7dldi-ntr/SNEmulDS.nds",
             "format": "tar.gz",
-            "destination": "_nds/akmenunext/plugins/apps/SNEmulDS.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/SNEmulDS.nds",
             "sha256": "09bc43aad372da4984155d77c24a30a8c0a8a668288aa834eeb0695f1359094b"
           },
           {
@@ -988,7 +988,7 @@
             },
             "member": "snemulds-d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/release/arm7dldi-twl/SNEmulDS.srl",
             "format": "tar.gz",
-            "destination": "_nds/akmenunext/plugins/apps/SNEmulDS.srl",
+            "destination": "_nds/dsi-frontend/plugins/apps/SNEmulDS.srl",
             "sha256": "f2817e29db1958af6af2957d0ac7ccfce01b5a57f78e522527d1d508c121b7a2"
           }
         ],
@@ -1042,7 +1042,7 @@
               "sha256": "3cc7ee1637175266ee6b6c443efadc9267956b8374164f23d458c86488c9ad55"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/snemulds-shim.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/snemulds-shim.nds",
             "sha256": "3cc7ee1637175266ee6b6c443efadc9267956b8374164f23d458c86488c9ad55"
           },
           {
@@ -1052,7 +1052,7 @@
               "sha256": "0be9e8e8ef76478b804be4a95e6921f1f4f59a670597bfb8e7686c1b11d7204f"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/snemulds-shim.ini",
+            "destination": "_nds/dsi-frontend/plugins/apps/snemulds-shim.ini",
             "sha256": "0be9e8e8ef76478b804be4a95e6921f1f4f59a670597bfb8e7686c1b11d7204f"
           }
         ],
@@ -1146,7 +1146,7 @@
               "sha256": "a15328472a3127861ca833b8e77bd0f5c6d5683a7664b050176a1eda2507f4e0"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/SpeccySE.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/SpeccySE.nds",
             "sha256": "a15328472a3127861ca833b8e77bd0f5c6d5683a7664b050176a1eda2507f4e0"
           }
         ],
@@ -1204,7 +1204,7 @@
               "sha256": "a5bea4e4e3af79fe940d2229767664a2a7cbf8096916bc94aea302c7da3cec1b"
             },
             "format": "raw",
-            "destination": "_nds/akmenunext/plugins/apps/StellaDS.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/StellaDS.nds",
             "sha256": "a5bea4e4e3af79fe940d2229767664a2a7cbf8096916bc94aea302c7da3cec1b"
           }
         ],

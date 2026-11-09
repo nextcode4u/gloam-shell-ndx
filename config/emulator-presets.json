@@ -1,7 +1,7 @@
 {
   "version": 1,
   "reference": "AKMenu-compatible association conventions",
-  "application_directory": "_nds/akmenunext/plugins/apps",
+  "application_directory": "_nds/dsi-frontend/plugins/apps",
   "rom_directories": [
     "roms/Amstrad CPC",
     "roms/Atari",
@@ -303,7 +303,7 @@
       ],
       "settings": {
         "argv": "1",
-        "path": "_nds/akmenunext/plugins/apps/A5200DS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/A5200DS.nds"
       }
     },
     {
@@ -314,7 +314,7 @@
       ],
       "settings": {
         "argv": "1",
-        "path": "_nds/akmenunext/plugins/apps/A7800DS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/A7800DS.nds"
       }
     },
     {
@@ -326,7 +326,7 @@
       ],
       "settings": {
         "argv": "1",
-        "path": "_nds/akmenunext/plugins/apps/A8DS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/A8DS.nds"
       }
     },
     {
@@ -339,7 +339,7 @@
       ],
       "settings": {
         "argv": "1",
-        "path": "_nds/akmenunext/plugins/apps/ColecoDS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/ColecoDS.nds"
       }
     },
     {
@@ -352,7 +352,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/DracoDS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/DracoDS.nds"
       }
     },
     {
@@ -364,7 +364,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/DS994a.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/DS994a.nds"
       }
     },
     {
@@ -376,7 +376,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/DSXP.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/DSXP.nds"
       },
       "repository": "https://github.com/nextcode4u/DSXP",
       "release": "v1.1.0-sd-argv.1",
@@ -391,7 +391,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/FastVideoDS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/FastVideoDS.nds"
       }
     },
     {
@@ -405,9 +405,9 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "dsipath": "_nds/akmenunext/plugins/apps/gameyob_dsi.nds",
-        "ntrpath": "_nds/akmenunext/plugins/apps/gameyob.nds",
-        "path": "_nds/akmenunext/plugins/apps/gameyob_dsi.nds"
+        "dsipath": "_nds/dsi-frontend/plugins/apps/gameyob_dsi.nds",
+        "ntrpath": "_nds/dsi-frontend/plugins/apps/gameyob.nds",
+        "path": "_nds/dsi-frontend/plugins/apps/gameyob_dsi.nds"
       }
     },
     {
@@ -419,7 +419,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/GBARunner3.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/GBARunner3.nds"
       }
     },
     {
@@ -433,7 +433,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/GimliDS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/GimliDS.nds"
       }
     },
     {
@@ -446,7 +446,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/Hachibitto.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/Hachibitto.nds"
       }
     },
     {
@@ -458,7 +458,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/LodjurDS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/LodjurDS.nds"
       }
     },
     {
@@ -471,7 +471,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/MicroDS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/MicroDS.nds"
       }
     },
     {
@@ -483,7 +483,7 @@
       ],
       "settings": {
         "argv": "1",
-        "path": "_nds/akmenunext/plugins/apps/nesDS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/nesDS.nds"
       }
     },
     {
@@ -495,7 +495,7 @@
       ],
       "settings": {
         "argv": "1",
-        "path": "_nds/akmenunext/plugins/apps/NGPDS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/NGPDS.nds"
       }
     },
     {
@@ -506,7 +506,7 @@
       ],
       "settings": {
         "argv": "1",
-        "path": "_nds/akmenunext/plugins/apps/NINTV-DS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/NINTV-DS.nds"
       }
     },
     {
@@ -517,7 +517,7 @@
       ],
       "settings": {
         "argv": "1",
-        "path": "_nds/akmenunext/plugins/apps/NitroGrafx.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/NitroGrafx.nds"
       }
     },
     {
@@ -529,7 +529,7 @@
       ],
       "settings": {
         "argv": "1",
-        "path": "_nds/akmenunext/plugins/apps/NitroSwan.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/NitroSwan.nds"
       }
     },
     {
@@ -541,7 +541,7 @@
       ],
       "settings": {
         "argv": "1",
-        "path": "_nds/akmenunext/plugins/apps/PicoDriveTWL.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/PicoDriveTWL.nds"
       }
     },
     {
@@ -553,7 +553,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/PokeMini.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/PokeMini.nds"
       }
     },
     {
@@ -565,7 +565,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/RocketVideoPlayer.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/RocketVideoPlayer.nds"
       }
     },
     {
@@ -578,7 +578,7 @@
       ],
       "settings": {
         "argv": "1",
-        "path": "_nds/akmenunext/plugins/apps/S8DS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/S8DS.nds"
       }
     },
     {
@@ -591,7 +591,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/snemulds-shim.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/snemulds-shim.nds"
       }
     },
     {
@@ -605,7 +605,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/SpeccySE.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/SpeccySE.nds"
       }
     },
     {
@@ -616,7 +616,7 @@
       ],
       "settings": {
         "argv": "1",
-        "path": "_nds/akmenunext/plugins/apps/StellaDS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/StellaDS.nds"
       }
     },
     {
@@ -630,7 +630,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/SugarDS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/SugarDS.nds"
       }
     },
     {
@@ -642,7 +642,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/tuna-vids.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/tuna-vids.nds"
       }
     },
     {
@@ -654,7 +654,7 @@
       "settings": {
         "argv": "1",
         "bootstrap": "0",
-        "path": "_nds/akmenunext/plugins/apps/WasabiDS.nds"
+        "path": "_nds/dsi-frontend/plugins/apps/WasabiDS.nds"
       }
     }
   ]

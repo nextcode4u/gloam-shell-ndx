@@ -16,6 +16,7 @@ layout; they are intentional compatibility paths.
 │   │   ├── tabs.ini              custom folder tabs
 │   │   ├── themes/               palette/font/background/audio packs
 │   │   ├── plugins/              argv association profiles
+│   │   │   └── apps/             emulator/player executables and companion files
 │   │   ├── covers/               optional artwork
 │   │   ├── cache/                disposable thumbnails
 │   │   ├── loaders/slot1launch.nds

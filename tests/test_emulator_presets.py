@@ -41,6 +41,20 @@ class EmulatorPresetTests(unittest.TestCase):
         self.assertNotIn("epub", seen)
         self.assertNotIn("bin", seen)
 
+    def test_default_profiles_and_addons_share_frontend_application_directory(self):
+        presets = json.loads(CATALOG.read_text())
+        addons = json.loads((PROJECT_ROOT / "config/addon-dependencies.json").read_text())
+        directory = "_nds/dsi-frontend/plugins/apps"
+        self.assertEqual(presets["application_directory"], directory)
+        self.assertEqual(addons["application_directory"], directory)
+        for profile in presets["profiles"]:
+            for key in ("path", "dsipath", "ntrpath"):
+                if key in profile["settings"]:
+                    self.assertEqual(str(Path(profile["settings"][key]).parent), directory)
+        for application in addons["applications"]:
+            for item in application.get("package", {}).get("files", []):
+                self.assertEqual(str(Path(item["destination"]).parent), directory)
+
     def test_template_matches_catalog_without_old_collection_aliases(self):
         generate(check=True)
         catalog = json.loads(CATALOG.read_text())

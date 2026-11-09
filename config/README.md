@@ -16,3 +16,7 @@ and [building and packaging](../docs/development/BUILDING.md).
 `addon-dependencies.json` records audited emulator/player releases, argv evidence,
 BIOS requirements and distribution conditions. Only entries with an explicitly
 reviewed package and permitted terms can enter the optional add-on build.
+
+Default emulator/player executables live in `/_nds/dsi-frontend/plugins/apps/`.
+Keep that application directory identical in the preset catalog and add-on lock
+so generated associations resolve files installed by `addons.zip`.

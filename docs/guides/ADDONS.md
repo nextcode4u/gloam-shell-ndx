@@ -29,8 +29,8 @@ Back up customized shim settings before replacing its supplied INI. It does
 not install games or proprietary BIOS, rewrite your association profiles or
 replace your settings. Existing prepared GimliDS/Hachibitto binaries are not
 overwritten by stock releases. Use the console association editor if your
-applications live elsewhere. The compatibility paths remain
-`/_nds/akmenunext/plugins/apps/`; DSXP's upstream `dsxp.nds` is installed as
+applications live elsewhere. The default application folder is Gloam's
+`/_nds/dsi-frontend/plugins/apps/`; DSXP's upstream `dsxp.nds` is installed as
 `DSXP.nds` to match the existing profile.
 
 Add-ons use the same `licenses.zip`, combined `source.zip` and `SHA256SUMS` as

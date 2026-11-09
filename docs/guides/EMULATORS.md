@@ -1,14 +1,14 @@
 # Emulator and media associations
 
 Gloam includes 29 grouped profiles covering 50 extensions. These defaults model
-a configured AKMenu-compatible layout and preserve its application filenames
-and mode choices. AKMenu's frontend is not used as the player. The profiles are
-editable examples, not a universal compatibility list. The optional
+established argv association conventions, use upstream application filenames
+and preserve console-mode choices. Profiles are editable defaults; application
+compatibility depends on the chosen build. The optional
 [add-ons audit](ADDONS.md) records exact releases, actual argv behavior, license
 conditions and BIOS requirements; only reviewed packages enter `addons.zip`.
 
 Profiles live under `/_nds/dsi-frontend/plugins/`. Their default executable paths
-use `/_nds/akmenunext/plugins/apps/` for compatibility with existing installations.
+use Gloam's own `/_nds/dsi-frontend/plugins/apps/` directory.
 On a fresh card, install the chosen application and adjust `application`,
 `dsipath` and `ntrpath` through the association editor or INI files. Applications
 may live elsewhere; keep each one's companion files/configuration intact.
@@ -68,7 +68,7 @@ These are default collection folders and configured formats, not every format ea
 
 ## Exact preconfigured associations
 
-Paths in the next table are relative to `_nds/akmenunext/plugins/apps/`. Full paths and flags are in the named profile files. Multiple extensions sharing the same settings are grouped; no original extension is dropped.
+Paths in the next table are relative to `_nds/dsi-frontend/plugins/apps/`. Full paths and flags are in the named profile files. Multiple extensions sharing the same settings are grouped; no original extension is dropped.
 
 | Profile | Extensions | Default application | DS override |
 | --- | --- | --- | --- |
@@ -109,9 +109,9 @@ Example, preserving GameYob mode choices:
 version=1
 name=gameyob_dsi
 extensions=gb,gbc,sgb
-application=sd:/_nds/akmenunext/plugins/apps/gameyob_dsi.nds
-dsipath=sd:/_nds/akmenunext/plugins/apps/gameyob_dsi.nds
-ntrpath=sd:/_nds/akmenunext/plugins/apps/gameyob.nds
+application=sd:/_nds/dsi-frontend/plugins/apps/gameyob_dsi.nds
+dsipath=sd:/_nds/dsi-frontend/plugins/apps/gameyob_dsi.nds
+ntrpath=sd:/_nds/dsi-frontend/plugins/apps/gameyob.nds
 argv=1
 bootstrap=0
 ```
@@ -140,6 +140,20 @@ All supplied associations declare `argv=1`. Optional `bootstrap=0` flags are ret
 Every ROM collection, the `roms/` root and shared BIOS folder includes a
 plain-text `README.txt` with configured formats, argv behavior and firmware
 notes. These are generated from the collection catalog and audited add-on data.
+
+## Updating an older installation
+
+Earlier Gloam defaults pointed at `/_nds/akmenunext/plugins/apps/` because the
+initial association list used the configured AKMenu reference setup. New
+profiles and `addons.zip` use `/_nds/dsi-frontend/plugins/apps/`.
+
+Copy existing emulator executables and their adjacent companion/configuration
+files into the new folder if you want to keep those builds. Leave machine-wide
+support data in the locations required by each emulator. For customized profiles,
+update `application`, `dsipath` and `ntrpath` in Gloam's association editor or INI
+files; preserve your other choices. Fresh default profiles come with `sd.zip`.
+Refresh metadata after updating the profiles. There is no automatic deletion or
+rewrite of another launcher's files or your customized profiles.
 
 ## Maintaining profiles
 
