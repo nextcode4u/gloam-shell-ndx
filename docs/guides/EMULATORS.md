@@ -133,6 +133,10 @@ All supplied associations declare `argv=1`. Optional `bootstrap=0` flags are ret
 - **ScummVM:** use its native launcher and existing `data/scummvm` configuration. No guessed association is added for arbitrary game-data files.
 - Archives, generic `.bin`/`.rom` and unrelated disk formats are not assigned automatically. Extract/prepare content using the application's actual requirements; changing an extension is not a general conversion method.
 
+Every ROM collection, the `roms/` root and shared BIOS folder includes a
+plain-text `README.txt` with configured formats, argv behavior and firmware
+notes. These are generated from the collection catalog and audited add-on data.
+
 ## Maintaining profiles
 
 [config/emulator-presets.json](../../config/emulator-presets.json) defines the

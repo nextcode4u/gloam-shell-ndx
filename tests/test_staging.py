@@ -55,7 +55,7 @@ class SdStagingTests(unittest.TestCase):
                             Path(__file__).resolve().parents[1] / "config/emulator-presets.json"
                         ).read_text()
                     )["rom_directories"]
-                },
+                } | {"README.txt"},
             )
 
             # User tab definitions survive ordinary restaging.

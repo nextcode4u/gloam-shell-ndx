@@ -50,172 +50,222 @@
     {
       "folder": "roms/Nintendo DS",
       "application": "nds-bootstrap adapter",
-      "formats": ".nds"
+      "formats": ".nds",
+      "notes": "Use your own DS cartridge dumps. Gloam uses its nds-bootstrap route for retail titles; nds-bootstrap is bundled in sd.zip, not the emulator add-on."
     },
     {
       "folder": "roms/DSiWare",
       "application": "DSiWare adapter",
-      "formats": ".nds, .dsi"
+      "formats": ".nds, .dsi",
+      "notes": "Use your own DSiWare content. SD files use the DSiWare/nds-bootstrap route; installed NAND titles are discovered separately under System. Save/return support depends on the title and boot environment."
     },
     {
       "folder": "roms/Game Boy",
       "application": "GameYob",
-      "formats": ".gb, .sgb"
+      "formats": ".gb, .sgb",
+      "addon": "gameyob-dsi"
     },
     {
       "folder": "roms/Game Boy Color",
       "application": "GameYob",
-      "formats": ".gbc"
+      "formats": ".gbc",
+      "addon": "gameyob-dsi"
     },
     {
       "folder": "roms/Game Boy Advance",
       "application": "GBARunner3",
-      "formats": ".gba"
+      "formats": ".gba",
+      "addon": "gbarunner3",
+      "notes": "Keep per-game configuration under /_gba/configs as required by your GBARunner3 build. A downloadable replacement GBA BIOS is not automatically compatible with its fixed-offset patches."
     },
     {
       "folder": "roms/NES",
       "application": "nesDS",
-      "formats": ".nes, .fds"
+      "formats": ".nes, .fds",
+      "addon": "nesds",
+      "notes": "FDS images are disk software; supply your own disksys.rom to nesDS if using .fds. Do not assign arbitrary .bin files to this system."
     },
     {
       "folder": "roms/SNES",
       "application": "SNEmulDS through the prepared launcher",
-      "formats": ".sfc, .smc"
+      "formats": ".sfc, .smc",
+      "addon": "snemulds-shim",
+      "notes": "Use snemulds-shim.nds rather than launching SNEmulDS directly with normal argv. Keep the shim INI, SNEmulDS.nds and SNEmulDS.srl together. Console-SD use needs DSi/TWL mode and unlocked SCFG. The add-on pins the exact supported NTR/TWL hashes; 0.6a is not bundled."
     },
     {
       "folder": "roms/Genesis",
       "application": "PicoDriveTWL",
-      "formats": ".md, .gen"
+      "formats": ".md, .gen",
+      "addon": "picodrivetwl",
+      "notes": "The .md extension is assigned to Genesis ROMs; Markdown documents may match this profile too. Use a per-file override for documents."
     },
     {
       "folder": "roms/Master System",
       "application": "S8DS",
-      "formats": ".sms"
+      "formats": ".sms",
+      "addon": "s8ds"
     },
     {
       "folder": "roms/Game Gear",
       "application": "S8DS",
-      "formats": ".gg"
+      "formats": ".gg",
+      "addon": "s8ds"
     },
     {
       "folder": "roms/SG-1000",
       "application": "S8DS",
-      "formats": ".sg"
+      "formats": ".sg",
+      "addon": "s8ds"
     },
     {
       "folder": "roms/PC Engine",
       "application": "NitroGrafx",
-      "formats": ".pce cartridge files"
+      "formats": ".pce cartridge files",
+      "addon": "nitrografx"
     },
     {
       "folder": "roms/Pokemon Mini",
       "application": "PokeMini",
-      "formats": ".min"
+      "formats": ".min",
+      "addon": "pokemini",
+      "notes": "Launch a .min file through its association. PokeMini 0.60-arg reads argv[1] with an overly broad argc check; no-argument launch safety has not been established."
     },
     {
       "folder": "roms/WonderSwan",
       "application": "NitroSwan",
-      "formats": ".ws, .wsc"
+      "formats": ".ws, .wsc",
+      "addon": "nitroswan"
     },
     {
       "folder": "roms/Neo Geo Pocket",
       "application": "NGPDS",
-      "formats": ".ngp, .ngc"
+      "formats": ".ngp, .ngc",
+      "addon": "ngpds"
     },
     {
       "folder": "roms/Atari/2600",
       "application": "StellaDS",
-      "formats": ".a26"
+      "formats": ".a26",
+      "addon": "stellads"
     },
     {
       "folder": "roms/Atari/5200",
       "application": "A5200DS",
-      "formats": ".a52"
+      "formats": ".a52",
+      "addon": "a5200ds"
     },
     {
       "folder": "roms/Atari/7800",
       "application": "A7800DS",
-      "formats": ".a78"
+      "formats": ".a78",
+      "addon": "a7800ds"
     },
     {
       "folder": "roms/Atari/8-bit",
       "application": "A8DS",
-      "formats": ".atr, .xex"
+      "formats": ".atr, .xex",
+      "addon": "a8ds",
+      "notes": "The default profile maps .atr and .xex. Other formats supported by A8DS, such as .atx and .car, may be selected in its own browser; no generic .rom association is added."
     },
     {
       "folder": "roms/Atari/Lynx",
       "application": "LodjurDS",
-      "formats": ".lnx"
+      "formats": ".lnx",
+      "addon": "lodjurds"
     },
     {
       "folder": "roms/ColecoVision",
       "application": "ColecoDS",
-      "formats": ".col"
+      "formats": ".col",
+      "addon": "colecods"
     },
     {
       "folder": "roms/Intellivision",
       "application": "Nintellivision / NINTV-DS",
-      "formats": ".int"
+      "formats": ".int",
+      "addon": "nintv-ds"
     },
     {
       "folder": "roms/MSX",
       "application": "ColecoDS, for MSX1",
-      "formats": ".msx"
+      "formats": ".msx",
+      "addon": "colecods",
+      "notes": "ColecoDS MSX1 cartridge files use .msx in the configured profile. Its own browser supports other content; .dsk is globally assigned to SugarDS and .cas to DracoDS, so use a per-file override or the emulator browser for MSX media."
     },
     {
       "folder": "roms/Sord M5",
       "application": "ColecoDS",
-      "formats": ".m5"
+      "formats": ".m5",
+      "addon": "colecods",
+      "notes": "The .m5 association selects ColecoDS. It does not supply the Sord machine firmware."
     },
     {
       "folder": "roms/ZX Spectrum",
       "application": "SpeccySE",
-      "formats": ".z80, .tap, .tzx"
+      "formats": ".z80, .tap, .tzx",
+      "addon": "speccyse"
     },
     {
       "folder": "roms/TI99",
       "application": "DS994a",
-      "formats": ".rpk; some games also need matching disk files"
+      "formats": ".rpk; some games also need matching disk files",
+      "addon": "ds994a",
+      "notes": "The .rpk association selects DS994a. Some games also need matching disk files and disk-controller firmware; keep their data together."
     },
     {
       "folder": "roms/Amstrad CPC",
       "application": "SugarDS",
-      "formats": ".dsk, compatible .cpr, .dan"
+      "formats": ".dsk, compatible .cpr, .dan",
+      "addon": "sugards",
+      "notes": "The shared .dsk extension defaults to SugarDS. A TI, MSX or CoCo disk is not CPC content; select the correct application explicitly. Only compatible CPR/DAN cartridge layouts work."
     },
     {
       "folder": "roms/Tandy CoCo",
       "application": "DracoDS",
-      "formats": ".ccc cartridges, .cas tapes"
+      "formats": ".ccc cartridges, .cas tapes",
+      "addon": "dracods",
+      "notes": "Select CoCo in DracoDS machine settings. .dsk is assigned globally to SugarDS, so use DracoDS itself or a per-file application override for CoCo disks."
     },
     {
       "folder": "roms/Dragon 32",
       "application": "DracoDS",
-      "formats": ".ccc cartridges, .cas tapes"
+      "formats": ".ccc cartridges, .cas tapes",
+      "addon": "dracods",
+      "notes": "Select Dragon in DracoDS machine settings; the folder name does not select the machine. Shared .cas/.ccc extensions use the same DracoDS profile."
     },
     {
       "folder": "roms/Tandy MC-10",
       "application": "MicroDS",
-      "formats": ".c10 tapes; optional Alice .k7 tapes"
+      "formats": ".c10 tapes; optional Alice .k7 tapes",
+      "addon": "microds",
+      "notes": "Select the appropriate machine in MicroDS. .k7 is for compatible Alice tapes, not a generic tape format."
     },
     {
       "folder": "roms/Watara Supervision",
       "application": "WasabiDS",
-      "formats": ".sv cartridges"
+      "formats": ".sv cartridges",
+      "addon": "wasabids"
     },
     {
       "folder": "roms/Commodore 64",
       "application": "GimliDS, prepared direct loader",
-      "formats": ".d64, .crt, .prg"
+      "formats": ".d64, .crt, .prg",
+      "addon": "gimlids",
+      "notes": "The configured .d64/.crt/.prg associations expect the prepared argv-enabled build. Stock GimliDS 1.7a only changes directory; choose/mount content inside stock GimliDS. It is not automatically installed over the prepared build."
     },
     {
       "folder": "roms/MSX2",
       "application": "Hachibitto, prepared direct loader",
-      "formats": ".mx2 cartridges, .mxd disks"
+      "formats": ".mx2 cartridges, .mxd disks",
+      "addon": "hachibitto",
+      "notes": "The .mx2/.mxd conventions belong to the prepared argv build. Stock Hachibitto 1.9 accepts .rom/.dsk in its own browser and has no argv handler. Renaming a file does not add argv support. The stock binary is not redistributed by this add-on builder."
     },
     {
       "folder": "roms/ScummVM",
       "application": "ScummVM",
-      "formats": "ScummVM.nds launcher; game data lives in data/scummvm/games/"
+      "formats": "ScummVM.nds launcher; game data lives in data/scummvm/games/",
+      "addon": "scummvm",
+      "notes": "Start ScummVM as an app and use Add Game for a game-data directory here or /data/scummvm/games. No arbitrary game-data extension is associated with ScummVM. The published 2.9.1 Nintendo build targets DSi/DSi XL, not the original DS/DS Lite."
     },
     {
       "folder": "apps/Homebrew Apps",
@@ -225,7 +275,8 @@
     {
       "folder": "roms/Homebrew Games",
       "application": "Homebrew game",
-      "formats": ".nds, .dsi, supported native containers"
+      "formats": ".nds, .dsi, supported native containers",
+      "notes": "Put homebrew games here. Utilities and other homebrew applications belong under /apps/Homebrew Apps instead. Keep each game's required support files in the paths its author specifies."
     },
     {
       "folder": "media/music",

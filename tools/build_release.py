@@ -210,7 +210,8 @@ def build_release(root: Path, offline: bool = False) -> None:
             name: data for name, data in sd.items()
             if name not in notices and not name.startswith("docs/")
             and not name.lower().endswith(".md")
-            and Path(name).name.lower() not in {"read me.txt", "readme.txt"}
+            and (Path(name).name.lower() not in {"read me.txt", "readme.txt"}
+                 or (name.startswith("roms/") and Path(name).name == "README.txt"))
         }
         (output / "BOOT.NDS").write_bytes(sd["BOOT.NDS"])
         write_archive(output / "licenses.zip", notices, [])

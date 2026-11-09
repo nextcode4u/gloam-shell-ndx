@@ -25,7 +25,7 @@ requires all verified dependencies/source checkouts in the cache.
 | --- | --- |
 | `dist/BOOT.NDS` | Frontend-only update, byte-identical to `BOOT.NDS` in the SD ZIP. |
 | `dist/licenses.zip` | Required license texts, dependency notices, credits and asset attribution. |
-| `dist/sd.zip` | Root `BOOT.NDS`, themes/profiles, official nds-bootstrap, Slot-1 helper, forwarder and matching TMD; SD runtime files only. |
+| `dist/sd.zip` | Root `BOOT.NDS`, themes/profiles, official nds-bootstrap, Slot-1 helper, forwarder and matching TMD; SD runtime files and per-collection README.txt files. |
 | `dist/source.zip` | Gloam source, build tools, docs, licenses and tests; exact backend/helper sources, submodules and revision manifest under `dependencies/`. |
 | `dist/SHA256SUMS` | SHA-256 of `BOOT.NDS` and all three archives. |
 
@@ -35,6 +35,8 @@ and its TMD are included in `sd.zip` under `/_nds/dsi-frontend/install/`;
 installation is optional. Guides and development docs stay in the repository
 and `source.zip`. `sd.zip` contains no `docs/`, root documentation, package
 manifest or license/credit copies; those notices accompany it in `licenses.zip`.
+Requested per-system `roms/**/README.txt` files are the setup-note exception;
+they list formats, argv behavior and BIOS requirements beside the content.
 The manifest is retained in `source.zip`. Dependency source is part of `source.zip`, so there
 is no separate dependency-source artifact. Replacing only `BOOT.NDS` preserves
 personal settings, themes, backends and libraries; document any required

@@ -1,0 +1,29 @@
+Genesis
+========================================
+
+SD folder: /roms/Genesis/
+
+Content: .md, .gen
+
+Application: PicoDriveTWL
+
+Argv in the audited upstream build: direct.
+
+Firmware: Genesis cartridges need no separate BIOS; Sega CD is not a
+configured route.
+
+Add-on package: manual / held; terms: Noncommercial Pico core; mixed inherited
+terms.
+
+Upstream: https://github.com/DS-Homebrew/PicoDriveTWL
+Release: https://github.com/DS-Homebrew/PicoDriveTWL/releases/tag/v2.1.0
+
+The .md extension is assigned to Genesis ROMs; Markdown documents may match
+this profile too. Use a per-file override for documents.
+
+Keep required companion files and saves together. Other emulator-supported
+formats may need its own browser or a per-file application choice. Changing an
+extension is not a file-format conversion.
+
+Full setup and compatibility audit:
+https://github.com/nextcode4u/gloam-shell-ndx/blob/main/docs/guides/ADDONS.md

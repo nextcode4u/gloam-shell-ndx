@@ -35,6 +35,7 @@ class PackageTests(unittest.TestCase):
             "third_party/blocksds/gcc-COPYING.RUNTIME": b"Runtime exception\n",
             "sdroot/_nds/dsi-frontend/plugins/example.ini": b"[plugin]\n",
             "sdroot/apps/Homebrew Apps/Read me.txt": b"Apps\n",
+            "sdroot/roms/NES/README.txt": b"Use .nes and .fds files\n",
             "gloam-shell-ndx.nds": bytes(512),
         }
         for name, data in files.items():
@@ -237,6 +238,7 @@ class PackageTests(unittest.TestCase):
             self.assertFalse(any(n.startswith(("docs/", "dependencies/"))
                                  or n.lower().endswith(".md") for n in archive.namelist()))
             self.assertNotIn("apps/Homebrew Apps/Read me.txt", archive.namelist())
+            self.assertEqual(archive.read("roms/NES/README.txt"), b"Use .nes and .fds files\n")
             self.assertEqual(archive.read("_nds/dsi-frontend/plugins/example.ini"), b"[plugin]\n")
         with zipfile.ZipFile(dist / "licenses.zip") as archive:
             self.assertEqual(archive.read("LICENSE"), b"Original source GPL-3.0-or-later\n")
