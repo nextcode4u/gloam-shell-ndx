@@ -12,11 +12,13 @@ Argv in the audited upstream build: direct.
 Firmware: Configured SMS/GG/SG-1000 cartridge routes normally bypass BIOS.
 Other emulated machines can require their own BIOS selected inside S8DS.
 
-Add-on package: available; terms: Project-wide redistribution grant not found.
+Add-on package: direct upstream download with shared installer; terms:
+Project-wide redistribution grant not found.
 
-Redistribution is assumed for this pack; upstream permission remains
-unconfirmed. See addons/UNCONFIRMED_DISTRIBUTION.md in the companion
-licenses.zip.
+This application is not bundled because redistribution permission or component
+coverage remains unconfirmed. Use the Python or PowerShell downloader in
+addons.zip/addon-installer, or install directly from upstream. Existing files
+are preserved by default.
 
 Upstream: https://github.com/FluBBaOfWard/S8DS
 Release: https://github.com/FluBBaOfWard/S8DS/releases/tag/v1.1.8

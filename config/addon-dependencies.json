@@ -1,7 +1,7 @@
 {
   "format": 1,
   "reviewed": "2026-11-08",
-  "default_policy": "approved and explicitly assumed redistribution entries with pinned packages; --noncommercial adds no-profit-only packages",
+  "default_policy": "bundle approved entries with confirmed coverage; --noncommercial adds permitted no-profit packages; unconfirmed entries are direct-download only",
   "application_directory": "_nds/dsi-frontend/plugins/apps",
   "applications": [
     {
@@ -326,9 +326,9 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/arm9/source/DS99.c",
-      "redistribution": "noncommercial",
+      "redistribution": "download-only",
       "license": "Noncommercial redistribution with constituent permissions/notices",
-      "distribution_notes": "README permits no-profit redistribution of the remaining code and records permission for SN76496 and Classic99-derived code. Package the unchanged release with lowzip/yxml and ColEM notices. Its embedded speech samples have no separately established redistribution grant; inclusion follows the project policy for this listed release, without claiming clearance for those samples.",
+      "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs. The application has no-profit terms; its embedded speech samples have no separately established grant.",
       "bios": "Requires 994aROM.bin and 994aGROM.bin in /roms/bios or /roms/ti99; 994aDISK.bin is needed for disk support.",
       "bios_evidence": "https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/README.md",
       "license_evidence": "https://github.com/wavemotion-dave/DS994a/tree/85098fcfcaa176a919fa4f2162706ac7814ea263",
@@ -365,7 +365,9 @@
           }
         ],
         "extra_sources": []
-      }
+      },
+      "permission_confirmed": false,
+      "download_noncommercial": true
     },
     {
       "id": "dslibris",
@@ -480,14 +482,13 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/arm9/source/main.cpp",
-      "redistribution": "assumed",
+      "redistribution": "download-only",
       "license": "Project license not stated",
-      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
+      "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.",
       "bios": "No BIOS required; convert videos with the matching FastVideoDS encoder.",
       "bios_evidence": "https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/readme.md",
       "license_evidence": "https://github.com/Gericom/FastVideoDSPlayer/tree/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab",
       "permission_confirmed": false,
-      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
       "license_findings": "Argv is explicit, but upstream issue #15 requests the missing license. A public repository does not establish redistribution permission.",
       "package": {
         "source": {
@@ -596,14 +597,13 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/code/core/arm9/source/main.cpp",
-      "redistribution": "assumed",
+      "redistribution": "download-only",
       "license": "Project-wide license not established",
-      "distribution_notes": "Include the unchanged hash-pinned Deletecat hicode core and its 304 game configs under the documented project assumption. The binary consumes argv[1] directly. Its exact source revision is unknown; the source companion contains labelled reference-only develop source and submodule archives, not verified corresponding source. Do not include the standalone frontend or any GBA BIOS.",
+      "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs. The exact corresponding source revision of the supplied hicode build is unidentified. Direct argv handling is statically verified.",
       "bios": "Requires original 16 KiB GBA BIOS at /_gba/bios.bin. Fixed-offset relocation/patches prevent assuming a replacement BIOS is compatible.",
       "bios_evidence": "https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/README.md",
       "license_evidence": "https://github.com/Gericom/GBARunner3/tree/ecaa817815d9761745606592f04affe5ee9c3731",
       "permission_confirmed": false,
-      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
       "license_findings": "No upstream release assets and no project-wide LICENSE/COPYING; upstream issues #200/#208 discuss missing permission. Do not redistribute a private/CI build as an official release.",
       "standalone_frontend": {
         "repository": "https://github.com/flashcarts/gbar3-frontend",
@@ -1104,14 +1104,13 @@
       "argv": "direct",
       "argv_evidence": "https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/newCode/source/main.s",
       "argv_notes": "saveArgv validates the standard _arg record, copies argv[1] and loadRomFromArgv starts the ROM. Original jEnesisDS does not establish the Plus behavior. Native DSi SD handoff still needs testing; do not infer it from the BlocksDS toolchain used for the injected code.",
-      "redistribution": "assumed",
+      "redistribution": "download-only",
       "license": "No explicit Plus redistribution license; closed-source base terms unconfirmed",
-      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
+      "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.",
       "bios": "No external console BIOS needed for Genesis cartridge ROMs. Plus supports up to 7.5 MiB on DSi (4 MiB on DS debug hardware), with mapper support for ROMs above 4 MiB. Native console-SD compatibility is not yet validated in Gloam.",
       "bios_evidence": "https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/README.md",
       "license_evidence": "https://github.com/DS-Homebrew/jEnesisDSPlus/tree/ca3bb43d14f8d78ccb6546d753817defaac25937",
       "permission_confirmed": false,
-      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
       "license_findings": "README says the original jEnesisDS source was never public and the improvements are ASM patches. The Plus tree has no stated license; verify grants for both Lordus's base and the modifications before bundling. Lack of source by itself does not prohibit redistribution under a suitable freeware license; that grant has not been established here. Original 0.7.4 notices could not be retrieved from the linked download (HTTP 403).",
       "package": {
         "source": {
@@ -1156,14 +1155,13 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/FluBBaOfWard/LodjurDS/blob/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/source/Main.c",
-      "redistribution": "assumed",
+      "redistribution": "download-only",
       "license": "Project-wide redistribution grant not found",
-      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
+      "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.",
       "bios": "Requires a user-supplied Atari Lynx BIOS, selected inside LodjurDS. Upstream explicitly says it is needed to run games; not included.",
       "bios_evidence": "https://github.com/FluBBaOfWard/LodjurDS/blob/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/README.md",
       "license_evidence": "https://github.com/FluBBaOfWard/LodjurDS/tree/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b",
       "permission_confirmed": false,
-      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
       "license_findings": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
       "package": {
         "source": {
@@ -1375,9 +1373,9 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/arm9/source/romloader_frontend.c",
-      "redistribution": "assumed",
+      "redistribution": "download-only",
       "license": "Legacy public-domain statement; newer component grants unconfirmed",
-      "distribution_notes": "Package the unchanged nesDS.nds release under the documented project assumption. Retain README.TXT, README_ORIGINAL.TXT, ARM7/Wi-Fi notices and the exact RP2A03 and nested ARM6502 source pins. Neither submodule pin has a project-wide license file; do not apply the legacy public-domain statement to those additions.",
+      "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.",
       "bios": "NES cartridges need no external BIOS. FDS content requires disksys.rom; user-supplied.",
       "bios_evidence": "https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/README.TXT",
       "license_evidence": "https://github.com/DS-Homebrew/NesDS/tree/928afd9ca3c846f06264dfb1be6a2edf44575b66",
@@ -1452,8 +1450,7 @@
           }
         ]
       },
-      "permission_confirmed": false,
-      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md"
+      "permission_confirmed": false
     },
     {
       "id": "ngpds",
@@ -1469,14 +1466,13 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/FluBBaOfWard/NGPDS/blob/4dbcc210cdb519414ff20d2886645a530e298206/source/Main.c",
-      "redistribution": "assumed",
+      "redistribution": "download-only",
       "license": "Project-wide redistribution grant not found",
-      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
+      "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.",
       "bios": "Upstream says a real NGP/NGPC BIOS is needed for in-game saving. Select it in emulator settings; not included.",
       "bios_evidence": "https://github.com/FluBBaOfWard/NGPDS/blob/4dbcc210cdb519414ff20d2886645a530e298206/README.md",
       "license_evidence": "https://github.com/FluBBaOfWard/NGPDS/tree/4dbcc210cdb519414ff20d2886645a530e298206",
       "permission_confirmed": false,
-      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
       "license_findings": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
       "package": {
         "source": {
@@ -1675,14 +1671,13 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/FluBBaOfWard/NitroGrafx/blob/62920a05e9c7e31144d7e16b58797cdd8bc3789a/source/Main.c",
-      "redistribution": "assumed",
+      "redistribution": "download-only",
       "license": "Project-wide redistribution grant not found",
-      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
+      "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.",
       "bios": "PCE cartridge route needs no BIOS. CD-ROM games require a user-supplied CD system BIOS; CD files are not default argv associations.",
       "bios_evidence": "https://github.com/FluBBaOfWard/NitroGrafx/blob/62920a05e9c7e31144d7e16b58797cdd8bc3789a/README.md",
       "license_evidence": "https://github.com/FluBBaOfWard/NitroGrafx/tree/62920a05e9c7e31144d7e16b58797cdd8bc3789a",
       "permission_confirmed": false,
-      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
       "license_findings": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
       "package": {
         "source": {
@@ -1802,14 +1797,13 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/FluBBaOfWard/NitroSwan/blob/564e171fb93c2c11f98f38607493675727676c2c/source/Main.c",
-      "redistribution": "assumed",
+      "redistribution": "download-only",
       "license": "Project-wide redistribution grant not found",
-      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
+      "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.",
       "bios": "Built-in startup handling permits games without original firmware; optional WS/WSC/Crystal BIOS can be selected in the emulator.",
       "bios_evidence": "https://github.com/FluBBaOfWard/NitroSwan/blob/564e171fb93c2c11f98f38607493675727676c2c/README.md",
       "license_evidence": "https://github.com/FluBBaOfWard/NitroSwan/tree/564e171fb93c2c11f98f38607493675727676c2c",
       "permission_confirmed": false,
-      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
       "license_findings": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
       "package": {
         "source": {
@@ -1983,9 +1977,9 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/DS-Homebrew/PicoDriveTWL/blob/4fcdb1f0bef46a4704b1870d787b362afa7bfec0/arm9/source/main.cpp",
-      "redistribution": "noncommercial",
-      "license": "Noncommercial Pico/DrZ80 cores with inherited component notices",
-      "distribution_notes": "Package the unchanged upstream release for noncommercial distribution. Pinned config.h selects _USE_DRZ80, not _USE_MZ80; mz80.c is gated by ARM9_SOUND, which is not defined for that translation unit by the pinned build. Retain MZ80 terms in the unchanged source archive; this does not authorize distributing modified MZ80 or commercial use. Preserve the Pico, DrZ80 and other source notices.",
+      "redistribution": "download-only",
+      "license": "Noncommercial Pico/DrZ80; complete redistribution coverage unconfirmed",
+      "distribution_notes": "Not bundled: Pico and DrZ80 headers permit noncommercial use, but complete redistribution coverage of the inherited components/source is not confirmed. The pinned configuration selects DrZ80, not MZ80; retaining that distinction does not establish a complete distribution grant. The shared installer downloads the unchanged upstream binary with the noncommercial option.",
       "bios": "Genesis cartridges need no separate BIOS; Sega CD is not a configured route.",
       "bios_evidence": "https://github.com/DS-Homebrew/PicoDriveTWL/blob/4fcdb1f0bef46a4704b1870d787b362afa7bfec0/README.md",
       "license_evidence": "https://github.com/DS-Homebrew/PicoDriveTWL/tree/4fcdb1f0bef46a4704b1870d787b362afa7bfec0",
@@ -2018,7 +2012,9 @@
           }
         ],
         "extra_sources": []
-      }
+      },
+      "permission_confirmed": false,
+      "download_noncommercial": true
     },
     {
       "id": "pokemini",
@@ -2135,14 +2131,13 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/source/Main.c",
-      "redistribution": "assumed",
+      "redistribution": "download-only",
       "license": "Project-wide redistribution grant not found",
-      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
+      "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.",
       "bios": "Configured SMS/GG/SG-1000 cartridge routes normally bypass BIOS. Other emulated machines can require their own BIOS selected inside S8DS.",
       "bios_evidence": "https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/README.md",
       "license_evidence": "https://github.com/FluBBaOfWard/S8DS/tree/90f2c13368f0b2ceac7887802e77d516d6337436",
       "permission_confirmed": false,
-      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
       "license_findings": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
       "package": {
         "source": {
@@ -2703,15 +2698,14 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/DS-Homebrew/tuna-vids/blob/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/arm9/source/main.c",
-      "redistribution": "assumed",
+      "redistribution": "download-only",
       "license": "GPL-2.0-or-later ARM9 + Helix RPSL/RCSL ARM7",
-      "distribution_notes": "Include the unchanged DS-Homebrew v1.2-clut release under the documented project distribution assumption. Retain Chishm and contributor attribution, root GPL, upstream README, Helix LICENSE/RPSL/RCSL and the project distribution/source-availability notice in licenses.zip; retain the matching fork player/codec source in source.zip. The executable Helix notice gap remains documented, not claimed fixed by companion documentation.",
+      "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs. The executable Helix notice gap and GPL/RPSL question remain documented; this is not a confirmed distribution grant.",
       "bios": "No BIOS required; AVI must contain Xvid/MPEG-4 video and MP3 audio in the player-specific format.",
       "bios_evidence": "https://github.com/DS-Homebrew/tuna-vids/blob/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/README.md",
       "license_evidence": "https://github.com/DS-Homebrew/tuna-vids/tree/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5",
       "license_findings": "Retain root GPL text, README, Helix LICENSE.txt, RPSL.txt and RCSL.txt (the latter is an alternative requiring a valid agreement, not the default grant). Provide corresponding player/codec source and mark downstream changes. RPSL Exhibit B lists GPL with a compatibility footnote; no general GPL-compatible claim is made.",
       "permission_confirmed": false,
-      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
       "package": {
         "source": {
           "asset": "tuna-vids-v1.2-clut-source.tar.gz",
@@ -2776,14 +2770,13 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/source/Main.c",
-      "redistribution": "assumed",
+      "redistribution": "download-only",
       "license": "Project-wide redistribution grant not found",
-      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
+      "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.",
       "bios": "No separate Supervision BIOS required.",
       "bios_evidence": "https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/README.md",
       "license_evidence": "https://github.com/FluBBaOfWard/WasabiDS/tree/b074708a4c0b670e9f3e7d520a776f2bad2695c1",
       "permission_confirmed": false,
-      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
       "license_findings": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
       "package": {
         "source": {
@@ -2910,5 +2903,10 @@
       "url": "https://raw.githubusercontent.com/nextcode4u/DSXP/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/LICENSE",
       "sha256": "32b1062f7da84967e7019d01ab805935caa7ab7321a7ced0e30ebe75e5df1670"
     }
-  ]
+  ],
+  "download_installer": {
+    "download-addons.py": "tools/download_addons.py",
+    "download-addons.ps1": "tools/download_addons.ps1",
+    "README.txt": "docs/guides/ADDON_INSTALLER.txt"
+  }
 }

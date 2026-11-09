@@ -54,12 +54,15 @@ def collection_readme(folder: str, catalog: dict, addons: dict) -> str:
             paragraph("Argv in the audited upstream build: " + app["argv"] + ". "
                       + app.get("argv_notes", ""))
             paragraph("Firmware: " + app["bios"])
-            paragraph("Add-on package: " + ("available" if "package" in app else "manual / held")
+            paragraph("Add-on package: " + ("direct upstream download with shared installer"
+                      if app["redistribution"] == "download-only" and "package" in app
+                      else "available" if "package" in app else "manual / held")
                       + "; terms: " + app["license"] + ".")
-            if app["redistribution"] == "assumed":
-                paragraph("Redistribution is assumed for this pack; upstream permission "
-                          "remains unconfirmed. See addons/UNCONFIRMED_DISTRIBUTION.md "
-                          "in the companion licenses.zip.")
+            if app["redistribution"] == "download-only":
+                paragraph("This application is not bundled because redistribution permission "
+                          "or component coverage remains unconfirmed. Use the Python or "
+                          "PowerShell downloader in addons.zip/addon-installer, or install "
+                          "directly from upstream. Existing files are preserved by default.")
             lines.extend(["Upstream: " + app["repository"], "Release: "
                           + (app["release"] or app["repository"] + "/releases"), ""])
         if collection.get("notes"):

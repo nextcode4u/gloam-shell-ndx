@@ -48,21 +48,18 @@ release and its terms. Packaged executables remain separate programs:
   emulator teams; Avery Lee supplies the embedded Altirra replacement firmware.
 - PokeMini: JustBurn, Team Pokeme and contributors, including the replacement FreeBIOS.
 - SNEmulDS: Archeide and Coto; Sanrax supplies the normal-argv launcher shim.
-- Opt-in noncommercial A5200DS, DracoDS, MicroDS and SpeccySE: wavemotion-dave
+- Opt-in noncommercial A5200DS, DracoDS, MicroDS, SpeccySE and ColecoDS: wavemotion-dave
   and the original authors named in each package's complete retained notices.
 
 `licenses.zip` retains original author/license material and `source.zip`
 contains the exact matching upstream source archives for the selected pack.
 These programs are not relicensed under Gloam's original-source license.
 
-Additional releases included under the documented unconfirmed-redistribution
-assumption retain their original authorship:
-
-- S8DS, NitroGrafx, NitroSwan, NGPDS, LodjurDS and WasabiDS: Fredrik Ahlström
-  (FluBBa), with the component authors credited in the retained upstream sources.
-- FastVideoDS Player: Gericom and credited contributors.
-- jEnesisDS Plus: Lordus's original emulator, RocketRobz's improvements and
-  xonn83's bottom-screen patch.
-
-Inclusion is a project assumption about distribution; upstream permission
-remains unconfirmed. See [the recorded scope](docs/guides/UNCONFIRMED_DISTRIBUTION.md).
+Download-only applications retain their original authorship: Gericom and
+contributors (GBARunner3/FastVideoDS), FluBBa and credited component authors
+(S8DS, NitroGrafx, NitroSwan, NGPDS, LodjurDS, WasabiDS and newer nesDS cores),
+Lordus/RocketRobz/xonn83 (jEnesisDS Plus), Chishm and DS-Homebrew contributors
+(tuna-viDS), and wavemotion-dave and credited contributors (DS994a).
+PicoDriveTWL credits Ryan FB, RocketRobz, xonn83 and its core authors.
+These binaries are not bundled; the shared installer links directly to their
+pinned downloads. See [the download-only scope](docs/guides/DOWNLOAD_ONLY_ADDONS.md).

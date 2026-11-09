@@ -10,7 +10,7 @@ import zipfile
 from pathlib import Path
 from unittest.mock import patch
 
-from tools.build_addons import addon_files, archive_members, gba_config_files, selected_applications
+from tools.build_addons import addon_files, archive_members, gba_config_files, selected_applications, download_manifest
 from tools.package_development import sha256
 
 
@@ -111,10 +111,12 @@ class AddonTests(unittest.TestCase):
         lock = json.loads((root / "config/addon-dependencies.json").read_text())
         normal = {app["id"] for app in selected_applications(lock)}
         opted_in = {app["id"] for app in selected_applications(lock, noncommercial=True)}
-        conditional = {"colecods", "ds994a", "picodrivetwl"}
+        conditional = {"colecods"}
         self.assertFalse(normal & conditional)
         self.assertTrue(conditional <= opted_in)
-        self.assertIn("nesds", normal)
+        self.assertNotIn("nesds", normal)
+        self.assertNotIn("ds994a", opted_in)
+        self.assertNotIn("picodrivetwl", opted_in)
         nesds = next(app for app in lock["applications"] if app["id"] == "nesds")
         pins = {source["path"]: source["commit"]
                 for source in nesds["package"]["extra_sources"]}
@@ -124,7 +126,7 @@ class AddonTests(unittest.TestCase):
             "submodules/arm9/source/RP2A03/ARM6502.tar.gz":
                 "8b8b6c82ce29bd26cd76709c75167372b3711484",
         })
-        self.assertIn("tuna-vids", normal)
+        self.assertNotIn("tuna-vids", normal)
         tuna = next(app for app in lock["applications"] if app["id"] == "tuna-vids")
         self.assertFalse(tuna["permission_confirmed"])
         self.assertEqual(tuna["package"]["project_notices"], [{
@@ -142,31 +144,31 @@ class AddonTests(unittest.TestCase):
                 selected_applications(self.lock, only=requested)
         self.assertEqual(selected_applications(self.lock, True, ["conditional"]), [conditional])
 
-    def test_assumed_distribution_stays_unconfirmed_and_carries_document(self):
-        self.app.update(redistribution="assumed", permission_confirmed=False,
-                        assumption_document="docs/guides/UNCONFIRMED_DISTRIBUTION.md")
-        document = self.root / self.app["assumption_document"]
-        document.parent.mkdir(parents=True)
-        document.write_bytes(b"Synthetic fixture: permission is unconfirmed, not a license grant.")
-        self.write_lock()
-        runtime, sources, notices, report = addon_files(self.root, offline=True)
-        self.assertEqual(report["assumed"], ["demo"])
-        self.assertEqual(report["applications"][0]["redistribution"], "assumed")
-        self.assertIs(report["applications"][0]["permission_confirmed"], False)
-        self.assertEqual(notices["addons/UNCONFIRMED_DISTRIBUTION.md"], document.read_bytes())
-        self.assertIn("apps/demo.nds", runtime)
-        self.assertIn("dependencies/addons/manifest.json", sources)
-        self.assertNotIn("addons/UNCONFIRMED_DISTRIBUTION.md", runtime)
-        self.app["permission_confirmed"] = True
-        with self.assertRaisesRegex(ValueError, "unconfirmed"):
-            selected_applications(self.lock)
+    def test_unconfirmed_packages_cannot_be_bundled_even_by_explicit_selection(self):
+        for status in ["download-only", "assumed", "approved", "noncommercial"]:
+            self.app.update(redistribution=status, permission_confirmed=False)
+            with self.assertRaises(ValueError):
+                selected_applications(self.lock, noncommercial=True, only=["demo"])
 
-    def test_recorded_assumption_does_not_invent_a_missing_binary(self):
-        self.app.update(redistribution="assumed", permission_confirmed=False,
-                        assumption_document="docs/guides/UNCONFIRMED_DISTRIBUTION.md")
+    def test_missing_binary_is_not_invented(self):
         del self.app["package"]
         with self.assertRaisesRegex(ValueError, "No pinned binary"):
             selected_applications(self.lock, only=["demo"])
+
+    def test_download_catalog_is_metadata_only_and_excludes_bundled_apps(self):
+        root = Path(__file__).resolve().parents[1]
+        lock = json.loads((root / "config/addon-dependencies.json").read_text())
+        bundled = {a["id"] for a in selected_applications(lock, noncommercial=True)}
+        catalog = download_manifest(lock, bundled)
+        ready = {a["id"] for a in catalog["applications"]}
+        self.assertEqual(len(bundled), 13)
+        self.assertEqual(len(ready), 13)
+        self.assertFalse(ready & bundled)
+        self.assertTrue({"gbarunner3", "nesds", "tuna-vids", "ds994a"} <= ready)
+        for app in catalog["applications"]:
+            self.assertNotIn("source", app)
+            self.assertNotIn("notices", app)
+        self.assertTrue(next(a for a in catalog["applications"] if a["id"] == "ds994a")["noncommercial"])
 
     def test_submodule_source_and_notices_preserve_the_pinned_bytes(self):
         blob = source_tar({"component/LICENSE": b"Synthetic component notice"})
@@ -229,6 +231,9 @@ class AddonTests(unittest.TestCase):
         self.assertEqual([a["id"] for a in selected_applications(self.lock, only=[shim["id"]])],
                          ["snemulds", "snemulds-shim"])
         payload["redistribution"] = "blocked"
+        with self.assertRaisesRegex(ValueError, "eligible SNEmulDS"):
+            selected_applications(self.lock, only=[shim["id"]])
+        payload.update(redistribution="approved", permission_confirmed=False)
         with self.assertRaisesRegex(ValueError, "eligible SNEmulDS"):
             selected_applications(self.lock, only=[shim["id"]])
 

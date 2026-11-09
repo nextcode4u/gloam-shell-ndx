@@ -77,8 +77,9 @@ Downloads and builds stay in ignored directories. The
 packaging script needs Git and internet access on its first run; repeat runs verify cached
 inputs. See [building and packaging](docs/development/BUILDING.md) for checks,
 source archives, dependency updates and offline use. Optional `dist/addons.zip`
-uses the same license/source companions. See the [add-on audit](docs/guides/ADDONS.md)
-for exact releases, argv support, BIOS needs and packages held from redistribution.
+bundles permitted apps with matching license/source companions. Its shared Python
+and PowerShell scripts download the remaining pinned apps directly to a chosen SD
+root. See [usage and the audit](docs/guides/ADDONS.md) for terms and setup.
 
 ## Documentation
 

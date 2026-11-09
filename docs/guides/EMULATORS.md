@@ -124,11 +124,11 @@ All supplied associations declare `argv=1`. Optional `bootstrap=0` flags are ret
   GimliDS 1.7a only selects a directory; stock Hachibitto 1.9 has no argv handler. Stock builds may require argv adaptations. A stock binary with the same filename is not proof of equivalent argv behavior. Preserve the MSX2 `.mx2`/`.mxd` conventions from that setup.
 - **SNES:** `.sfc` and `.smc` target `snemulds-shim.nds`. Keep `snemulds-shim.ini`, `SNEmulDS.nds` and `SNEmulDS.srl` together. Keep the existing root `snemul.cfg` and TGDS payload if that prepared setup uses them. The shim config mentions an optional legacy payload; install that payload separately only if your setup requires it.
 - **GameYob:** retain both `gameyob_dsi.nds` and `gameyob.nds`; the selected console mode chooses the configured variant.
-- **GBA:** GBARunner3 remains the configured `.gba` default. GBARunner2 is also an alternative, but does not have a competing default profile.
+- **GBA:** GBARunner3 remains the configured `.gba` default and is fetched by the shared downloader, not bundled. GBARunner2 is also an alternative, but does not have a competing default profile.
 - **Shared `.dsk`:** the default assigns it to SugarDS/Amstrad CPC. A CoCo, TI or MSX disk does not become CPC content because of its extension. Use the correct emulator's browser or the implemented per-file application picker; folder-based association overrides are not implemented yet.
 - **Genesis alternative:** [jEnesisDS Plus v0.8.1](https://github.com/DS-Homebrew/jEnesisDSPlus/releases/tag/v0.8.1)
   has standard argv support and adds ROM support up to 7.5 MiB on DSi. Its
-  binary is included under the documented unconfirmed-redistribution assumption.
+  binary is download-only through the shared Python/PowerShell installer.
   The native-SD route remains unverified; select it explicitly rather than
   replacing the PicoDriveTWL profile automatically.
 - **Shared `.md`:** the Genesis association also matches Markdown filenames. The profile treats it as a ROM extension. A Markdown document may therefore display the PicoDrive icon unless its per-file application choice overrides that mapping.

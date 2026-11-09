@@ -12,11 +12,13 @@ Argv in the audited upstream build: direct.
 Firmware: Upstream says a real NGP/NGPC BIOS is needed for in-game saving.
 Select it in emulator settings; not included.
 
-Add-on package: available; terms: Project-wide redistribution grant not found.
+Add-on package: direct upstream download with shared installer; terms:
+Project-wide redistribution grant not found.
 
-Redistribution is assumed for this pack; upstream permission remains
-unconfirmed. See addons/UNCONFIRMED_DISTRIBUTION.md in the companion
-licenses.zip.
+This application is not bundled because redistribution permission or component
+coverage remains unconfirmed. Use the Python or PowerShell downloader in
+addons.zip/addon-installer, or install directly from upstream. Existing files
+are preserved by default.
 
 Upstream: https://github.com/FluBBaOfWard/NGPDS
 Release: https://github.com/FluBBaOfWard/NGPDS/releases/tag/v0.6.0

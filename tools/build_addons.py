@@ -30,16 +30,10 @@ def selected_applications(lock: dict, noncommercial: bool = False,
     if any(not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", app["id"])
            for app in lock["applications"]):
         raise ValueError("Unsafe add-on ID")
-    for app in lock["applications"]:
-        if app["redistribution"] == "assumed" and (
-            app.get("permission_confirmed") is not False
-            or app.get("assumption_document") != "docs/guides/UNCONFIRMED_DISTRIBUTION.md"
-        ):
-            raise ValueError("Assumed redistribution must retain its unconfirmed status/document")
     applications = {app["id"]: app for app in lock["applications"]}
     if len(applications) != len(lock["applications"]):
         raise ValueError("Duplicate add-on ID")
-    allowed = {"approved", "assumed"}
+    allowed = {"approved"}
     if noncommercial:
         allowed.add("noncommercial")
     if only:
@@ -47,24 +41,54 @@ def selected_applications(lock: dict, noncommercial: bool = False,
             if name not in applications:
                 raise ValueError(f"Unknown add-on: {name}")
             app = applications[name]
-            if app["redistribution"] not in allowed:
+            if app["redistribution"] not in allowed or app.get("permission_confirmed") is False:
                 raise ValueError(f"Add-on not eligible: {name}; see docs/guides/ADDONS.md")
             if "package" not in app:
                 raise ValueError(f"No pinned binary package available: {name}; see docs/guides/ADDONS.md")
         selected = [applications[name] for name in dict.fromkeys(only)]
     else:
         selected = [app for app in applications.values()
-                    if app["redistribution"] in allowed and "package" in app]
+                    if app["redistribution"] in allowed and "package" in app
+                    and app.get("permission_confirmed") is not False]
     # The shim is useful as an add-on only with its reviewed matching payload.
     if any(app["id"] == "snemulds-shim" for app in selected):
         if "snemulds" not in {app["id"] for app in selected}:
             payload = applications.get("snemulds", {})
-            if payload.get("redistribution") not in allowed or "package" not in payload:
+            if (payload.get("redistribution") not in allowed or "package" not in payload
+                    or payload.get("permission_confirmed") is False):
                 raise ValueError("No eligible SNEmulDS payload for the selected shim")
             selected.append(payload)
     if not selected:
         raise ValueError("No eligible add-ons selected")
     return sorted(selected, key=lambda app: app["id"])
+
+
+def download_manifest(lock: dict, bundled: set[str]) -> dict:
+    """Publish download instructions, never the excluded applications' bytes."""
+    applications, manual = [], []
+    for app in lock["applications"]:
+        if app["id"] in bundled:
+            continue
+        package = app.get("package", {})
+        files = package.get("files", [])
+        if files and all(f["format"] in {"raw", "zip"} for f in files):
+            item = {"id": app["id"], "version": app["version"],
+                    "repository": app["repository"], "terms": app["license"],
+                    "noncommercial": app["redistribution"] == "noncommercial"
+                    or app.get("download_noncommercial", False), "files": files}
+            if "game_configs" in package:
+                item["game_configs"] = package["game_configs"]
+            applications.append(item)
+        else:
+            manual.append({"id": app["id"], "url": app.get("release") or app["repository"],
+                           "reason": app["distribution_notes"]})
+    # A downloaded shim alone cannot provide the matching SNEmulDS payload.
+    if "snemulds" not in bundled and not any(a["id"] == "snemulds" for a in applications):
+        applications = [a for a in applications if a["id"] != "snemulds-shim"]
+        if any(a["id"] == "snemulds-shim" for a in lock["applications"]):
+            manual.append({"id": "snemulds-shim", "url": "https://github.com/Sanrax/snemulds-shim",
+                           "reason": "Install the reviewed matching SNEmulDS payload and shim together."})
+    return {"format": 1, "applications": applications, "manual": manual}
 
 
 def archive_members(data: bytes, kind: str) -> dict[str, bytes]:
@@ -236,22 +260,24 @@ def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
                 runtime[target] = content
     for notice in lock.get("common_notices", []):
         notices["addons/common/" + notice["asset"]] = fetch(notice)
+    downloads = {"applications": []}
+    if lock.get("download_installer"):
+        downloads = download_manifest(lock, {a["id"] for a in selected})
+        runtime["addon-installer/downloads.json"] = json_bytes(downloads)
+        for output, source in lock["download_installer"].items():
+            relative_path(output)
+            runtime["addon-installer/" + output] = read_input(root, source)
     report = {"format": 1, "reviewed": lock["reviewed"], "applications": selected,
               "noncommercial": any(a["redistribution"] == "noncommercial" for a in selected),
-              "assumed": [a["id"] for a in selected if a["redistribution"] == "assumed"],
+              "download_only": [a["id"] for a in downloads["applications"]],
               "runtime_files": {n: sha256(b) for n, b in sorted(runtime.items())}}
-    if report["assumed"]:
-        notices["addons/UNCONFIRMED_DISTRIBUTION.md"] = read_input(
-            root, "docs/guides/UNCONFIRMED_DISTRIBUTION.md"
-        )
     notices["addons/README.txt"] = (
         "Gloam optional add-ons: keep this licenses.zip and the combined source.zip\n"
         "with addons.zip when redistributing. Each app retains its own terms;\n"
         "Gloam's GPL does not replace them. Exact versions, sources and hashes\n"
         "are recorded in source.zip/dependencies/addons/manifest.json.\n"
-        + ("This selection assumes redistribution permission for unconfirmed apps.\n"
-           "Read addons/UNCONFIRMED_DISTRIBUTION.md; no license grant is asserted.\n"
-           if report["assumed"] else "")
+        "Applications with unconfirmed permission are not bundled. Use the shared\n"
+        "Python or PowerShell downloader in addon-installer for direct upstream downloads.\n"
         + ("This selection includes noncommercial apps: no sale/profit.\n"
            if report["noncommercial"] else "This selection excludes the noncommercial-only apps.\n")
     ).encode()
@@ -271,7 +297,9 @@ def main() -> None:
     if args.list:
         lock = json.loads((ROOT / LOCK).read_text())
         for app in lock["applications"]:
-            availability = "packaged" if "package" in app else "no pinned package"
+            eligible = (app["redistribution"] in {"approved", "noncommercial"}
+                        and app.get("permission_confirmed") is not False)
+            availability = ("bundle eligible" if eligible else "direct download") if "package" in app else "manual; no pinned package"
             print(f"{app['id']}: argv={app['argv']}; {app['redistribution']}; {availability}")
         return
     try:

@@ -97,7 +97,7 @@
       "application": "PicoDriveTWL",
       "formats": ".md, .gen",
       "addon": "picodrivetwl",
-      "notes": "The .md extension is assigned to Genesis ROMs; Markdown documents may match this profile too. Use a per-file override for documents. jEnesisDS Plus v0.8.1 is another normal-argv candidate with up to 7.5 MiB ROM support on DSi. It is bundled under an unconfirmed redistribution assumption; its Gloam console-SD route remains unverified. Select it explicitly in the association editor if desired; the existing PicoDriveTWL default is unchanged."
+      "notes": "The .md extension is assigned to Genesis ROMs; Markdown documents may match this profile too. Use a per-file override for documents. jEnesisDS Plus v0.8.1 is another normal-argv candidate with up to 7.5 MiB ROM support on DSi. It is download-only through the shared Python/PowerShell installer; its Gloam console-SD route remains unverified. Select it explicitly in the association editor if desired; the existing PicoDriveTWL default is unchanged."
     },
     {
       "folder": "roms/Master System",

@@ -16,9 +16,10 @@ and [building and packaging](../docs/development/BUILDING.md).
 `addon-dependencies.json` records audited emulator/player releases, argv evidence,
 BIOS requirements and distribution conditions. Only entries with an explicitly
 pinned package and an eligible distribution status can enter the optional
-add-on build. `assumed` entries record the project packaging assumption, retain
-`permission_confirmed: false` and link the unconfirmed-distribution document;
-they must not be presented as licensed/approved.
+add-on build. `download-only` entries retain their pins for the shared Python
+and PowerShell installer, but their binaries and third-party source/notice
+archives are excluded from our release companions. `permission_confirmed: false`
+also prevents bundling. No absence-of-license assumption grants permission.
 
 Default emulator/player executables live in `/_nds/dsi-frontend/plugins/apps/`.
 Keep that application directory identical in the preset catalog and add-on lock

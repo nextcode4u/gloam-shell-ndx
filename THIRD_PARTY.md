@@ -209,7 +209,7 @@ PokeMini (GPLv3 and constituent notices), snemulds-shim (GPL-3.0-or-later with
 vendored notices) and its exact matching SNEmulDS payload (GPL-2.0-or-later).
 Altirra firmware notices and PokeMini replacement-BIOS source are retained.
 
-A5200DS, DracoDS, MicroDS and SpeccySE require the explicit `--noncommercial`
+A5200DS, DracoDS, MicroDS, SpeccySE and ColecoDS require the explicit `--noncommercial`
 option. Their no-profit conditions remain applicable to those programs;
 Gloam's GPL does not replace their licenses. All original notice/README material,
 the full GPLv2 text, nested DSXP/libmad license and firmware notices accompany
@@ -217,17 +217,10 @@ the full GPLv2 text, nested DSXP/libmad license and firmware notices accompany
 including the released DSXP source with libmad, are retained in the updated
 combined `source.zip` under `dependencies/addons/`.
 
-No games or proprietary external BIOS files are supplied. The nine entries in
-[the unconfirmed-distribution document](docs/guides/UNCONFIRMED_DISTRIBUTION.md)
-are assumed distributable for packaging; permission is not verified or asserted.
-Eight have pinned release binaries and are included, while GBARunner3 has no
-pinned binary available. Other held entries remain excluded.
-Manual/held entries are documented individually; a root license or public
-repository is not treated as permission for every bundled asset.
-
-The unconfirmed selection retains original READMEs, attribution and available
-component licenses. Published project source and recursively pinned submodule
-archives accompany the binary download in `source.zip`; jEnesisDS Plus source
-covers only its patches/injected code because the base emulator source was not
-published. `licenses.zip` includes the explicit assumption document, not a
-substitute license grant. The main manifest lists the included assumed IDs.
+No games or proprietary external BIOS files are supplied. Applications with
+unconfirmed permission are not bundled; no grant is inferred from an absent
+prohibition. Their [download-only record](docs/guides/DOWNLOAD_ONLY_ADDONS.md)
+retains source links and unresolved findings. The shared Python/PowerShell
+installer downloads pinned runtime files directly from upstream to a chosen SD
+root. Their third-party source/notice archives are not collected in our release
+companions. Direct downloading does not authorize redistributing those files.

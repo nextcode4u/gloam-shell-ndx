@@ -60,21 +60,24 @@ and `build/release-sources`; outputs and downloads are ignored by Git.
 
 The optional [add-on builder](../guides/ADDONS.md) uses
 `config/addon-dependencies.json`. `python3 tools/build_addons.py --list` lists
-all audited entries without downloading. The default includes eight projects
-with reviewed terms and eleven available builds under the
-[documented assumption](../guides/UNCONFIRMED_DISTRIBUTION.md).
-The supplied GBARunner3 hicode core has labelled reference-only source; its exact
-source revision remains unidentified. See the bundled add-on notices.
-`--noncommercial` opts into seven more with no-profit terms; their component
-notices and remaining assumptions are documented in the add-on guide.
-`--only dsxp gameyob-dsi` selects a permitted subset. `--offline` and
-`--skip-build` have the same meanings as the main builder. `make addons` is a
-convenience target. The release builder also accepts `--addons`, optionally
-with `--noncommercial`. Only `approved`, explicitly documented `assumed`, or
-opted-in `noncommercial` entries with a pinned package can be selected; other
-held entries stay excluded. Available source archives and metadata stay under
-`dependencies/addons/` in the combined source ZIP; downloaded bytes live under
-ignored `build/addons-cache/`.
+all audited entries without downloading. The default bundles eight applications
+with established distribution terms. `--noncommercial` adds five with no-profit
+terms. Apps with unconfirmed permission are excluded from every bundled
+binary/source/notice collection, including explicit `--only` selections.
+
+Every add-on ZIP also contains `addon-installer/`, with one Python script, one
+standalone PowerShell script, a generated download manifest and usage notes.
+The scripts download the remaining pinned applications directly from upstream
+to an explicitly selected SD root. They support selection, dry runs, caching,
+offline use and preserving existing files. See [the add-on guide](../guides/ADDONS.md).
+`--only dsxp gameyob-dsi` restricts bundled applications; the installer catalog
+is generated for everything outside that selection. The build itself never
+fetches binaries/source archives for download-only applications.
+
+`--offline` and `--skip-build` retain the main builder meanings. `make addons`
+is a convenience target; `tools/build_release.py --addons` supports the same
+noncommercial option. Permitted bundled source stays under `dependencies/addons/`
+in `source.zip`; cached build dependencies remain ignored under `build/`.
 
 To update a dependency, review its upstream release, license and source revision,
 refresh the lock and notices, and validate the actual launch route. Do not resolve

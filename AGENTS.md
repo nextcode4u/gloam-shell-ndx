@@ -35,7 +35,8 @@ and [the build guide](docs/development/BUILDING.md) before changing the project.
   update the same combined `source.zip`, `licenses.zip` and checksums with it.
   Keep noncommercial-only apps behind the explicit build flag; never silently
   bundle held apps, games or proprietary external BIOS. The specifically listed
-  `assumed` entries are authorized for packaging under the project assumption in
-  docs/guides/UNCONFIRMED_DISTRIBUTION.md; keep permission explicitly unconfirmed
-  and include that document in the companion license archive.
+  `download-only` entries and entries with `permission_confirmed: false` must
+  never enter binary/source/notice companion collections. Publish only their
+  pinned download instructions through the shared Python/PowerShell installer;
+  it downloads directly from upstream onto the user's chosen SD root.
 - Do not push source or publish artifacts without user authorization.

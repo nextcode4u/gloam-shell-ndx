@@ -14,11 +14,13 @@ requires runtime testing.
 Firmware: Requires original 16 KiB GBA BIOS at /_gba/bios.bin. Fixed-offset
 relocation/patches prevent assuming a replacement BIOS is compatible.
 
-Add-on package: available; terms: Project-wide license not established.
+Add-on package: direct upstream download with shared installer; terms:
+Project-wide license not established.
 
-Redistribution is assumed for this pack; upstream permission remains
-unconfirmed. See addons/UNCONFIRMED_DISTRIBUTION.md in the companion
-licenses.zip.
+This application is not bundled because redistribution permission or component
+coverage remains unconfirmed. Use the Python or PowerShell downloader in
+addons.zip/addon-installer, or install directly from upstream. Existing files
+are preserved by default.
 
 Upstream: https://github.com/Gericom/GBARunner3
 Release: https://files.deletecat.com/GBARunner3-hicode.zip

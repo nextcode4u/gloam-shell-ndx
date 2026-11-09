@@ -1,0 +1,45 @@
+Gloam optional application downloader
+=====================================
+
+Run ONE of these scripts on your computer after extracting addons.zip.
+They are equivalent; PowerShell does not need Python.
+They download the remaining reviewed applications directly from upstream and
+stage their pinned runtime files onto an existing SD root or staging folder.
+No applications with unconfirmed permission are embedded in these scripts.
+
+Python 3.11+:
+  python download-addons.py --list
+  python download-addons.py --target E:/ --dry-run
+  python download-addons.py --target E:/
+  python download-addons.py --target E:/ --only gbarunner3 tuna-vids
+
+PowerShell 5.1+ / PowerShell 7:
+  .\download-addons.ps1 -List
+  .\download-addons.ps1 -Target E:\ -DryRun
+  .\download-addons.ps1 -Target E:\
+  .\download-addons.ps1 -Target E:\ -Only gbarunner3,tuna-vids
+
+Use --noncommercial / -Noncommercial to include applications with no-profit
+conditions. Existing files (including custom game configs) are kept by default.
+Use --overwrite / -Overwrite only when you intend to replace those files.
+The scripts do not remove previously installed apps or alter your settings,
+associations, ROMs, saves or BIOS. GBARunner3 uses your own /_gba/bios.bin.
+
+Downloads and selected archive members are checked against SHA-256 pins.
+A changed or unavailable release stops installation instead of silently switching
+versions. Only the named application/config files are staged; no whole-archive
+extraction. Completed files remain installed if a later download fails. Re-run
+the same command to continue; existing files are preserved.
+
+Cache: ~/.gloam-addons-cache on the computer, not the SD card.
+Change with --cache / -Cache. Use --offline / -Offline with a populated cache.
+--dry-run / -DryRun makes no downloads or writes. --list / -List shows available
+pins and manual-only apps. Keep downloads.json beside the selected script.
+
+If Windows blocks a downloaded script, inspect it first. A per-process command
+can run it without changing the machine's execution policy:
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\download-addons.ps1 -Target E:\
+
+Unconfirmed permissions remain unconfirmed; downloading is not a redistribution
+grant. Upstream terms and complete source/release links are in the repository:
+https://github.com/nextcode4u/gloam-shell-ndx/blob/main/docs/guides/ADDONS.md
