@@ -3,6 +3,7 @@ NAME := gloam-shell-ndx
 GAME_TITLE := Gloam Shell NDX
 GAME_SUBTITLE := DSi SD frontend
 GAME_AUTHOR := Gloam Shell NDX
+GAME_ICON := forwarder/icon.png
 SOURCEDIRS := arm9/source third_party/lodepng
 INCLUDEDIRS := common/include arm9/include third_party/lodepng third_party/stb $(BLOCKSDS)/libs/version/include
 ARM7ELF := build/frontend-arm7.elf
@@ -18,7 +19,7 @@ include $(BLOCKSDS)/sys/default_makefiles/rom_arm9/Makefile
 
 $(ELF): Makefile
 
-$(ROM): $(ARM7ELF)
+$(ROM): $(ARM7ELF) $(GAME_ICON)
 
 # The driver override below is pinned to BlocksDS 1.25.0. Review it when upgrading.
 MELONDS_SD_COMPAT ?= 1

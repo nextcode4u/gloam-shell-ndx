@@ -60,6 +60,17 @@ New public files must be added there. `python3 tools/check_tree.py` checks the
 catalog, local documentation links and unwanted public inputs. Git status is
 not an inventory of ignored build output.
 
+The frontend and forwarder share `forwarder/icon.png`. The approved full-size
+artwork is retained as `forwarder/icon-source.png`. To regenerate the native
+32×32, 16-color banner asset, run:
+
+```sh
+.venv/bin/python tools/pack_banner_icon.py forwarder/icon-source.png forwarder/icon.png
+make -j4
+```
+
+Rebuilding also regenerates the forwarder TMD to match the changed binary.
+
 ## Checks
 
 ```sh
