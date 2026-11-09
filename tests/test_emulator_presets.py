@@ -13,7 +13,7 @@ class EmulatorPresetTests(unittest.TestCase):
     def test_generated_profiles_preserve_configured_fields(self):
         catalog = json.loads(CATALOG.read_text())
         profiles = catalog["profiles"]
-        self.assertEqual(len(profiles), 29)
+        self.assertEqual(len(profiles), 31)
         limits = (PROJECT_ROOT / "arm9/include/types.h").read_text()
         capacity = int(re.search(r"#define ASSOCIATION_CAP (\d+)", limits).group(1))
         self.assertLessEqual(len(profiles), capacity)
@@ -27,6 +27,7 @@ class EmulatorPresetTests(unittest.TestCase):
             self.assertEqual(extensions, profile["extensions"])
             self.assertFalse(seen.intersection(extensions))
             seen.update(extensions)
+            self.assertLess(len(fields["extensions"].encode()), 128)
             for key, value in profile["settings"].items():
                 output_key = "application" if key == "path" else key
                 expected = "sd:/" + value if key in ("path", "dsipath", "ntrpath") else value
@@ -35,10 +36,14 @@ class EmulatorPresetTests(unittest.TestCase):
                 if key in profile["settings"]:
                     relative = profile["settings"][key]
                     self.assertNotIn("..", Path(relative).parts)
-        self.assertEqual(len(seen), 50)
+        self.assertEqual(len(seen), 78)
         self.assertIn("mx2", seen)
         self.assertIn("mxd", seen)
-        self.assertNotIn("epub", seen)
+        self.assertIn("epub", seen)
+        self.assertIn("fb2.zip", seen)
+        self.assertIn("opf", seen)
+        self.assertIn("pmlz", seen)
+        self.assertIn("tcr", seen)
         self.assertNotIn("bin", seen)
 
     def test_default_profiles_and_addons_share_frontend_application_directory(self):
@@ -53,7 +58,11 @@ class EmulatorPresetTests(unittest.TestCase):
                     self.assertEqual(str(Path(profile["settings"][key]).parent), directory)
         for application in addons["applications"]:
             for item in application.get("package", {}).get("files", []):
-                self.assertEqual(str(Path(item["destination"]).parent), directory)
+                if item["destination"].endswith((".nds", ".srl", ".ini")):
+                    self.assertEqual(str(Path(item["destination"]).parent), directory)
+                else:
+                    self.assertEqual(application["id"], "dslibris")
+                    self.assertTrue(item["destination"].startswith("data/dslibris/font/"))
 
     def test_template_matches_catalog_without_old_collection_aliases(self):
         generate(check=True)

@@ -27,6 +27,10 @@ CoCo disks. Look in /roms/bios or beside emulator.
 ds994a: Requires 994aROM.bin and 994aGROM.bin in /roms/bios or /roms/ti99;
 994aDISK.bin is needed for disk support.
 
+dslibris: No BIOS required. Fonts: /data/dslibris/font/. Books: /media/books/.
+New settings: /data/dslibris/dslibris.xml; an existing legacy root settings
+file remains in use unless managed settings exist.
+
 gameyob-dsi: No BIOS required for normal GB/GBC play. Optional GBC boot ROM
 affects boot/palettes; not included.
 

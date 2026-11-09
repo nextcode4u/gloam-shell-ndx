@@ -50,8 +50,8 @@ assets and game saves are outside the reset scope.
 | `config/addon-dependencies.json` | Audited add-on releases, argv/BIOS evidence and distribution decisions. |
 | `tools/prepare_addons_release.py` | Upstream release preflight, compatible pin refresh, validation and release build. |
 | `tools/build_addons.py` | Permitted binary overlay and download-manifest collector; matching bundled source/licenses. |
-| `tools/download_addons.py`, `tools/download_addons.ps1` | Equivalent SD downloaders/updaters; reviewed catalog refresh, file checks and backups. |
-| `tools/make_emulator_presets.py` | Generates profiles and per-system ROM-folder format/BIOS readmes. |
+| `tools/download_addons.py`, `tools/download_addons.ps1` | Equivalent SD downloaders/updaters; reviewed catalog refresh, file checks and backups; narrowly scoped reader fonts and inline profile defaults preserve existing customizations. |
+| `tools/make_emulator_presets.py` | Generates profiles and per-system ROM-folder format/BIOS readmes. The DSLibris profiles are also preserved as install-if-missing defaults in the add-on catalog. |
 | `config/package-inputs.json` | Explicit source/SD package allowlist. |
 | `tools/` | Maintained build, authoring and packaging tools. |
 | `tests/` | Model/render sanitizer checks, synthetic fixtures and Python tool tests. |

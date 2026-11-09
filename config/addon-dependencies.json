@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "reviewed": "2026-11-08",
+  "reviewed": "2026-11-09",
   "default_policy": "bundle approved entries with confirmed coverage; --noncommercial adds permitted no-profit packages; unconfirmed entries are direct-download only",
   "application_directory": "_nds/dsi-frontend/plugins/apps",
   "applications": [
@@ -371,24 +371,221 @@
     },
     {
       "id": "dslibris",
-      "repository": "https://github.com/rhaleblian/dslibris",
-      "version": "v1.6.0 (prerelease)",
-      "commit": "309923e6e46f2f146229498d7d5c98d2e854aaca",
-      "release": "https://github.com/rhaleblian/dslibris/releases/tag/v1.6.0",
+      "repository": "https://github.com/nextcode4u/dslibris",
+      "version": "v1.6.0-blocksds-argv.1",
+      "commit": "0fcd8dc8b18a9a0698a28241a430fd6c003f9bb9",
+      "release": "https://github.com/nextcode4u/dslibris/releases/tag/v1.6.0-blocksds-argv.1",
       "release_assets": [
         {
-          "name": "dslibris-1.6.0.zip",
-          "url": "https://github.com/rhaleblian/dslibris/releases/download/v1.6.0/dslibris-1.6.0.zip"
+          "name": "DSLibris-v1.6.0-blocksds-argv.1.zip",
+          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip"
+        },
+        {
+          "name": "DSLibris-v1.6.0-blocksds-argv.1-source.tar.gz",
+          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1-source.tar.gz"
+        },
+        {
+          "name": "dslibris-blocksds.nds",
+          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/dslibris-blocksds.nds"
+        },
+        {
+          "name": "BUILD-INFO.json",
+          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/BUILD-INFO.json"
+        },
+        {
+          "name": "SHA256SUMS",
+          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/SHA256SUMS"
         }
       ],
-      "argv": "none",
-      "argv_evidence": "https://github.com/rhaleblian/dslibris/blob/309923e6e46f2f146229498d7d5c98d2e854aaca/source/main.cpp",
-      "redistribution": "blocked",
-      "license": "GPL-2.0-or-later code; mixed library/font package",
-      "distribution_notes": "main(void) does not consume a selected-book argument. Manual app; complete bundled font/library notices and runtime Book/Font layout need review before automatic redistribution.",
-      "bios": "No BIOS required. Select EPUB files inside the app and preserve its Book/Font configuration.",
-      "bios_evidence": "https://github.com/rhaleblian/dslibris/blob/v1.6.0/INSTALL.txt",
-      "license_evidence": "https://github.com/rhaleblian/dslibris/blob/v1.6.0/source/main.cpp"
+      "argv": "direct",
+      "argv_evidence": "https://github.com/nextcode4u/dslibris/blob/0fcd8dc8b18a9a0698a28241a430fd6c003f9bb9/ARGUMENT_LAUNCH.md",
+      "redistribution": "approved",
+      "license": "GPL-3.0-or-later combined reader; SIL OFL-1.1 Liberation Fonts; dependency notices retained",
+      "distribution_notes": "BlocksDS argv fork by nextcode4u, based on rhaleblian/dslibris. Runtime includes five unmodified Liberation Fonts 2.1.5; matching source includes pinned parser/font/SDK sources and notices. No user books, BIOS or settings are bundled.",
+      "bios": "No BIOS required. Fonts: /data/dslibris/font/. Books: /media/books/. New settings: /data/dslibris/dslibris.xml; an existing legacy root settings file remains in use unless managed settings exist.",
+      "bios_evidence": "https://github.com/nextcode4u/dslibris/blob/0fcd8dc8b18a9a0698a28241a430fd6c003f9bb9/README.md",
+      "license_evidence": "https://github.com/nextcode4u/dslibris/blob/0fcd8dc8b18a9a0698a28241a430fd6c003f9bb9/ports/README.md",
+      "permission_confirmed": true,
+      "prerelease": true,
+      "package": {
+        "source": {
+          "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1-source.tar.gz",
+          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1-source.tar.gz",
+          "sha256": "e9c796d13f1e1c534fc29388c1d6eeda4fd067bae6801f123a79ea54ab4f6ceb"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1.zip",
+              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip",
+              "sha256": "7a8e8b53d6d937270f126116811c7e7352f9b698d630a232ca7e83526ed69534"
+            },
+            "format": "zip",
+            "member": "_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds",
+            "sha256": "b661074fef79ed2d21d47d40a36698b0e8f1701c2bebb9101c3722db64121d0e"
+          },
+          {
+            "download": {
+              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1.zip",
+              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip",
+              "sha256": "7a8e8b53d6d937270f126116811c7e7352f9b698d630a232ca7e83526ed69534"
+            },
+            "format": "zip",
+            "member": "data/dslibris/font/LiberationSans-Regular.ttf",
+            "destination": "data/dslibris/font/LiberationSans-Regular.ttf",
+            "sha256": "76d04c18ea243f426b7de1f3ad208e927008f961dc5945e5aad352d0dfde8ee8"
+          },
+          {
+            "download": {
+              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1.zip",
+              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip",
+              "sha256": "7a8e8b53d6d937270f126116811c7e7352f9b698d630a232ca7e83526ed69534"
+            },
+            "format": "zip",
+            "member": "data/dslibris/font/LiberationSerif-Bold.ttf",
+            "destination": "data/dslibris/font/LiberationSerif-Bold.ttf",
+            "sha256": "d754ba427cfe0bca54ae052384baa8f842da5bd6550ad4da024ac441e7a7d5ce"
+          },
+          {
+            "download": {
+              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1.zip",
+              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip",
+              "sha256": "7a8e8b53d6d937270f126116811c7e7352f9b698d630a232ca7e83526ed69534"
+            },
+            "format": "zip",
+            "member": "data/dslibris/font/LiberationSerif-BoldItalic.ttf",
+            "destination": "data/dslibris/font/LiberationSerif-BoldItalic.ttf",
+            "sha256": "f17db8af71e24d2066b587546021d4f0b296be389512b658dec3c09affeb11a7"
+          },
+          {
+            "download": {
+              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1.zip",
+              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip",
+              "sha256": "7a8e8b53d6d937270f126116811c7e7352f9b698d630a232ca7e83526ed69534"
+            },
+            "format": "zip",
+            "member": "data/dslibris/font/LiberationSerif-Italic.ttf",
+            "destination": "data/dslibris/font/LiberationSerif-Italic.ttf",
+            "sha256": "0e3dea9f8d613e006ccfa62201f33e265d19167bd0907725c3e145368b04fc2e"
+          },
+          {
+            "download": {
+              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1.zip",
+              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip",
+              "sha256": "7a8e8b53d6d937270f126116811c7e7352f9b698d630a232ca7e83526ed69534"
+            },
+            "format": "zip",
+            "member": "data/dslibris/font/LiberationSerif-Regular.ttf",
+            "destination": "data/dslibris/font/LiberationSerif-Regular.ttf",
+            "sha256": "058ea80864aef09a23f45cbec2bb5400bc3dfbdea01c3f10538a21fcb497fb74"
+          }
+        ],
+        "notices": [
+          {
+            "member": "DSLibris/release-notices/ARGUMENT_LAUNCH_LICENSE.md",
+            "destination": "ARGUMENT_LAUNCH_LICENSE.md"
+          },
+          {
+            "member": "DSLibris/release-notices/ATTRIBUTION.md",
+            "destination": "ATTRIBUTION.md"
+          },
+          {
+            "member": "DSLibris/release-notices/COPYING",
+            "destination": "COPYING"
+          },
+          {
+            "member": "DSLibris/release-notices/COPYING.GPL3",
+            "destination": "COPYING.GPL3"
+          },
+          {
+            "member": "DSLibris/release-notices/blocksds-crts-COPYING.mpl2",
+            "destination": "blocksds-crts-COPYING.mpl2"
+          },
+          {
+            "member": "DSLibris/release-notices/blocksds-crts-COPYING.zlib",
+            "destination": "blocksds-crts-COPYING.zlib"
+          },
+          {
+            "member": "DSLibris/release-notices/blocksds-libnds-LICENSE",
+            "destination": "blocksds-libnds-LICENSE"
+          },
+          {
+            "member": "DSLibris/release-notices/blocksds-libnds-LICENSE.FatFs",
+            "destination": "blocksds-libnds-LICENSE.FatFs"
+          },
+          {
+            "member": "DSLibris/release-notices/expat-COPYING",
+            "destination": "expat-COPYING"
+          },
+          {
+            "member": "DSLibris/release-notices/freetype-FTL.TXT",
+            "destination": "freetype-FTL.TXT"
+          },
+          {
+            "member": "DSLibris/release-notices/freetype-GPLv2.TXT",
+            "destination": "freetype-GPLv2.TXT"
+          },
+          {
+            "member": "DSLibris/release-notices/freetype-LICENSE.TXT",
+            "destination": "freetype-LICENSE.TXT"
+          },
+          {
+            "member": "DSLibris/release-notices/gcc-COPYING.RUNTIME",
+            "destination": "gcc-COPYING.RUNTIME"
+          },
+          {
+            "member": "DSLibris/release-notices/liberation-fonts-LICENSE",
+            "destination": "liberation-fonts-LICENSE"
+          },
+          {
+            "member": "DSLibris/release-notices/libpng-LICENSE",
+            "destination": "libpng-LICENSE"
+          },
+          {
+            "member": "DSLibris/release-notices/md4c-LICENSE.md",
+            "destination": "md4c-LICENSE.md"
+          },
+          {
+            "member": "DSLibris/release-notices/mobi-COPYING",
+            "destination": "mobi-COPYING"
+          },
+          {
+            "member": "DSLibris/release-notices/pdfio-LICENSE",
+            "destination": "pdfio-LICENSE"
+          },
+          {
+            "member": "DSLibris/release-notices/pdfio-NOTICE",
+            "destination": "pdfio-NOTICE"
+          },
+          {
+            "member": "DSLibris/release-notices/picolibc-COPYING",
+            "destination": "picolibc-COPYING"
+          },
+          {
+            "member": "DSLibris/release-notices/zlib-LICENSE",
+            "destination": "zlib-LICENSE"
+          },
+          {
+            "member": "DSLibris/release-notices/zlib-MiniZip64_info.txt",
+            "destination": "zlib-MiniZip64_info.txt"
+          }
+        ],
+        "defaults": [
+          {
+            "path": "sdroot/_nds/dsi-frontend/plugins/dslibris-books.ini",
+            "destination": "_nds/dsi-frontend/plugins/dslibris-books.ini",
+            "content": "; Editable defaults modeled on AKMenu-compatible associations.\n; Application paths may be changed to match your installation.\n[plugin]\nversion=1\nname=DSLibris\nextensions=epub,kepub,fb2,fb2.zip,fbz,pdb,prc,mobi,azw,azw3,opf,oeb,oebzip,pml,pmlz,tcr\nargv=1\nbootstrap=0\napplication=sd:/_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds\n",
+            "sha256": "98b28b492b1520b75ec9958c6622637c0987ac405cbe585cb8449ed5b1833089"
+          },
+          {
+            "path": "sdroot/_nds/dsi-frontend/plugins/dslibris-documents.ini",
+            "destination": "_nds/dsi-frontend/plugins/dslibris-documents.ini",
+            "content": "; Editable defaults modeled on AKMenu-compatible associations.\n; Application paths may be changed to match your installation.\n[plugin]\nversion=1\nname=DSLibris\nextensions=txt,text,markdown,pdf,html,htm,xhtml,rtf,docx,odt,htmlz,txtz\nargv=1\nbootstrap=0\napplication=sd:/_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds\n",
+            "sha256": "12713a35ceac2101ed0a51d514340793aa296fded5685d08d914bb4432183436"
+          }
+        ]
+      }
     },
     {
       "id": "dsxp",
@@ -1027,61 +1224,35 @@
     },
     {
       "id": "gimlids",
-      "repository": "https://github.com/wavemotion-dave/GimliDS",
-      "version": "1.7a",
-      "commit": "e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740",
-      "release": "https://github.com/wavemotion-dave/GimliDS/releases/tag/1.7a",
-      "release_assets": [
-        {
-          "name": "blank.d64",
-          "url": "https://github.com/wavemotion-dave/GimliDS/releases/download/1.7a/blank.d64"
-        },
-        {
-          "name": "GimliDS.nds",
-          "url": "https://github.com/wavemotion-dave/GimliDS/releases/download/1.7a/GimliDS.nds"
-        },
-        {
-          "name": "README.md",
-          "url": "https://github.com/wavemotion-dave/GimliDS/releases/download/1.7a/README.md"
-        }
-      ],
-      "argv": "directory-only",
-      "argv_evidence": "https://github.com/wavemotion-dave/GimliDS/blob/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740/arm9/source/main.cpp",
+      "repository": "https://github.com/nextcode4u/GimliDS",
+      "version": "argv-launch source 7ced430",
+      "commit": "7ced430e0be18033cce3fa9049c537980412c2f7",
+      "release": null,
+      "release_assets": [],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/nextcode4u/GimliDS/blob/7ced430e0be18033cce3fa9049c537980412c2f7/ARGUMENT_LAUNCH.md",
       "redistribution": "approved",
       "license": "GPL-2.0-or-later",
-      "distribution_notes": "Code redistribution permitted, but the stock build only selects a directory. Not auto-installed over the prepared argv build.",
+      "distribution_notes": "Fork adds direct selected-image argv handling; no versioned runtime release is pinned yet. Build the source fork manually. Required user firmware is not supplied.",
       "bios": "Requires KERNAL.ROM, BASIC.ROM, CHAR.ROM and 1541.ROM in /roms/bios or /roms/c64. MEGA65 Open ROMs are not a verified complete replacement set for GimliDS.",
-      "argv_notes": "ArgvReceived records the basename and changes directory, then leaves a TODO for auto-loading. The prepared argv build in the backup is different.",
+      "argv_notes": "Selected PRG, CRT and D64 startup paths are implemented in the fork. Stock upstream 1.7a only changes directory.",
       "bios_evidence": "https://github.com/wavemotion-dave/GimliDS/blob/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740/README.md",
       "license_evidence": "https://github.com/wavemotion-dave/GimliDS/tree/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740"
     },
     {
       "id": "hachibitto",
-      "repository": "https://github.com/wavemotion-dave/Hachibitto",
-      "version": "1.9",
-      "commit": "a388a295945d3929ac41a6369e40ce1c0afefa7e",
-      "release": "https://github.com/wavemotion-dave/Hachibitto/releases/tag/1.9",
-      "release_assets": [
-        {
-          "name": "Blank.dsk",
-          "url": "https://github.com/wavemotion-dave/Hachibitto/releases/download/1.9/Blank.dsk"
-        },
-        {
-          "name": "Hachibitto.nds",
-          "url": "https://github.com/wavemotion-dave/Hachibitto/releases/download/1.9/Hachibitto.nds"
-        },
-        {
-          "name": "README.md",
-          "url": "https://github.com/wavemotion-dave/Hachibitto/releases/download/1.9/README.md"
-        }
-      ],
-      "argv": "none",
-      "argv_evidence": "https://github.com/wavemotion-dave/Hachibitto/blob/a388a295945d3929ac41a6369e40ce1c0afefa7e/arm9/source/Hachibitto.c",
+      "repository": "https://github.com/nextcode4u/Hachibitto",
+      "version": "argv-launch source c9e9874",
+      "commit": "c9e98748d3cb8143fa9f430f08a069f96823899c",
+      "release": null,
+      "release_assets": [],
+      "argv": "direct",
+      "argv_evidence": "https://github.com/nextcode4u/Hachibitto/blob/c9e98748d3cb8143fa9f430f08a069f96823899c/ARGUMENT_LAUNCH.md",
       "redistribution": "blocked",
       "license": "Noncommercial core; firmware/asset rights unresolved",
-      "distribution_notes": "Stock 1.9 has no argv handling. arm9/source/MSX_BIOS.c explicitly says the embedded MSX firmware is used without permission. Do not redistribute this prebuilt binary based on the emulator-code terms.",
+      "distribution_notes": "Fork adds argv handling, but inherited embedded MSX firmware has no established redistribution permission. No binary/source package is included in addons.zip or its companions.",
       "bios": "Stock binary embeds MSX/MSX2/MSX2+ and disk firmware. Optional Kanji font is user-supplied. C-BIOS is not a verified drop-in full replacement.",
-      "argv_notes": "Stock 1.9 main() has no argc/argv or system-argv handling. The prepared 1.8b backup build is different; do not overwrite it with stock.",
+      "argv_notes": "Fork handles selected .mx2 cartridges and .mxd disks. Cartridge startup has been exercised; disk startup remains unverified. Stock 1.9 has no selected-file argv support.",
       "bios_evidence": "https://github.com/wavemotion-dave/Hachibitto/blob/a388a295945d3929ac41a6369e40ce1c0afefa7e/arm9/source/MSX_BIOS.c",
       "license_evidence": "https://github.com/wavemotion-dave/Hachibitto/tree/a388a295945d3929ac41a6369e40ce1c0afefa7e"
     },

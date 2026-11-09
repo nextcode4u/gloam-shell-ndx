@@ -249,17 +249,17 @@
     },
     {
       "folder": "roms/Commodore 64",
-      "application": "GimliDS, prepared direct loader",
+      "application": "GimliDS argv fork",
       "formats": ".d64, .crt, .prg",
       "addon": "gimlids",
-      "notes": "The configured .d64/.crt/.prg associations expect the prepared argv-enabled build. Stock GimliDS 1.7a only changes directory; choose/mount content inside stock GimliDS. It is not automatically installed over the prepared build."
+      "notes": "The configured .d64/.crt/.prg associations target the nextcode4u/GimliDS argv fork. No versioned runtime release is pinned yet; build the fork manually. Stock upstream 1.7a only changes directory."
     },
     {
       "folder": "roms/MSX2",
-      "application": "Hachibitto, prepared direct loader",
+      "application": "Hachibitto argv fork",
       "formats": ".mx2 cartridges, .mxd disks",
       "addon": "hachibitto",
-      "notes": "The .mx2/.mxd conventions belong to the prepared argv build. Stock Hachibitto 1.9 accepts .rom/.dsk in its own browser and has no argv handler. Renaming a file does not add argv support. The stock binary is not redistributed by this add-on builder."
+      "notes": "The configured .mx2/.mxd associations target nextcode4u/Hachibitto. Redistribution of its inherited embedded firmware remains unconfirmed, so no binary is bundled. Build/install separately; do not replace it with stock 1.9, which has no selected-file argv support."
     },
     {
       "folder": "roms/ScummVM",
@@ -298,8 +298,10 @@
     },
     {
       "folder": "media/books",
-      "application": "Reader application (manual)",
-      "formats": ".epub; no argv association configured by default"
+      "application": "DSLibris BlocksDS argv fork",
+      "formats": ".epub, .kepub, .fb2/.fbz/.fb2.zip, .mobi/.azw/.azw3/.prc/.pdb, .pdf text, .txt/.text/.markdown, .html/.xhtml, .rtf/.docx/.odt, .opf/.oeb/.oebzip, .htmlz/.txtz, .pml/.pmlz/.tcr",
+      "addon": "dslibris",
+      "notes": "OPF/OEB packages must retain their referenced chapter files. Books use /media/books; supplied fonts use /data/dslibris/font. DRM, scans without text and comics are unsupported. .md remains a Mega Drive association; open Markdown inside the reader or use .markdown for direct launch."
     }
   ],
   "profiles": [
@@ -664,6 +666,60 @@
         "bootstrap": "0",
         "path": "_nds/dsi-frontend/plugins/apps/WasabiDS.nds"
       }
+    },
+    {
+      "id": "dslibris-books",
+      "application_name": "DSLibris",
+      "extensions": [
+        "epub",
+        "kepub",
+        "fb2",
+        "fb2.zip",
+        "fbz",
+        "pdb",
+        "prc",
+        "mobi",
+        "azw",
+        "azw3",
+        "opf",
+        "oeb",
+        "oebzip",
+        "pml",
+        "pmlz",
+        "tcr"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds"
+      },
+      "repository": "https://github.com/nextcode4u/dslibris",
+      "notes": "BlocksDS argv fork; unprotected text reading. Compound fb2.zip is matched as a suffix; generic ZIPs are not associated."
+    },
+    {
+      "id": "dslibris-documents",
+      "application_name": "DSLibris",
+      "extensions": [
+        "txt",
+        "text",
+        "markdown",
+        "pdf",
+        "html",
+        "htm",
+        "xhtml",
+        "rtf",
+        "docx",
+        "odt",
+        "htmlz",
+        "txtz"
+      ],
+      "settings": {
+        "argv": "1",
+        "bootstrap": "0",
+        "path": "_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds"
+      },
+      "repository": "https://github.com/nextcode4u/dslibris",
+      "notes": "BlocksDS argv fork; unprotected text reading. Compound fb2.zip is matched as a suffix; generic ZIPs are not associated."
     }
   ]
 }

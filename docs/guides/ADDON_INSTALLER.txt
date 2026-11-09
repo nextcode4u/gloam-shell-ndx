@@ -72,3 +72,21 @@ can run it without changing the machine's execution policy:
 Unconfirmed permissions remain unconfirmed; downloading is not a redistribution
 grant. Upstream terms and complete source/release links are in the repository:
 https://github.com/nextcode4u/gloam-shell-ndx/blob/main/docs/guides/ADDONS.md
+
+DSLibris reader
+---------------
+The bundled BlocksDS reader and its updater use:
+  /_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds
+  /data/dslibris/font/                  (five supplied Liberation Fonts)
+  /media/books/                       (your unprotected books/documents)
+New reader settings use /data/dslibris/dslibris.xml. Existing legacy settings
+remain in use unless a managed settings file exists. No settings or books are
+installed by these scripts. Missing reader profiles/fonts are installed during
+--update / -Update; edited profiles and fonts are preserved unless overwrite
+is explicitly requested. Only the reviewed reader font/profile paths are writable.
+Use --only dslibris / -Only dslibris with the update options to select the reader.
+The .md extension remains a Genesis ROM association; use .markdown for direct
+Markdown launching, or select the book inside DSLibris. OPF/OEB packages must
+keep their chapter folders. Generic ZIP files are not associated with a reader;
+.fb2.zip is matched specifically. DRM, comic archives and scans without text
+are not supported by the text reader.

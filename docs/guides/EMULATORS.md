@@ -1,6 +1,6 @@
 # Emulator and media associations
 
-Gloam includes 29 grouped profiles covering 50 extensions. These defaults model
+Gloam includes 31 grouped profiles covering 78 extensions. These defaults model
 established argv association conventions, use upstream application filenames
 and preserve console-mode choices. Profiles are editable defaults; application
 compatibility depends on the chosen build. The optional
@@ -55,14 +55,14 @@ These are default collection folders and configured formats, not every format ea
 | `roms/Dragon 32/` | DracoDS | .ccc cartridges, .cas tapes |
 | `roms/Tandy MC-10/` | MicroDS | .c10 tapes; optional Alice .k7 tapes |
 | `roms/Watara Supervision/` | WasabiDS | .sv cartridges |
-| `roms/Commodore 64/` | GimliDS, prepared direct loader | .d64, .crt, .prg |
-| `roms/MSX2/` | Hachibitto, prepared direct loader | .mx2 cartridges, .mxd disks |
+| `roms/Commodore 64/` | GimliDS argv fork | .d64, .crt, .prg |
+| `roms/MSX2/` | Hachibitto argv fork | .mx2 cartridges, .mxd disks |
 | `roms/ScummVM/` | ScummVM | scummvm.nds launcher; game folders in titles/ |
 | `apps/Homebrew Apps/` | Homebrew application/utility | .nds, .dsi, supported native containers |
 | `roms/Homebrew Games/` | Homebrew game | .nds, .dsi, supported native containers |
 | `media/music/` | [DSXP SD-argv fork](https://github.com/nextcode4u/DSXP) | .mp3 |
 | `media/videos/` | tuna-vids / FastVideoDS / RocketVideoPlayer | .avi / .fv / .rvid, converted for the matching player |
-| `media/books/` | Reader application (manual) | .epub; no argv association configured by default |
+| `media/books/` | DSLibris BlocksDS argv fork | EPUB/MOBI/FB2, PDF text, documents, OPF/OEB, PML/TCR and text archives |
 
 `roms/bios/` is a support location, not a game system. The Atari folder has separate 2600, 5200, 7800, 8-bit and Lynx collections. No old `gb`, `gba`, `nds`, `Music`, `Videos` or mixed `DS(i) Homebrew` aliases are added by this template.
 
@@ -78,6 +78,8 @@ Paths in the next table are relative to `_nds/dsi-frontend/plugins/apps/`. Full 
 | `colecods.ini` | `.col`, `.m5`, `.msx` | `ColecoDS.nds` | — |
 | `dracods.ini` | `.cas`, `.ccc` | `DracoDS.nds` | — |
 | `ds994a.ini` | `.rpk` | `DS994a.nds` | — |
+| `dslibris-books.ini` | EPUB/Kepub, FB2/ZIP, MOBI/AZW, OPF/OEB, PML/TCR | `dslibris-blocksds.nds` | — |
+| `dslibris-documents.ini` | TXT/TEXT/MARKDOWN, PDF/HTML, RTF/DOCX/ODT, HTMLZ/TXTZ | `dslibris-blocksds.nds` | — |
 | `dsxp.ini` | `.mp3` | `DSXP.nds` | — |
 | `fastvideods.ini` | `.fv` | `FastVideoDS.nds` | — |
 | `gameyob-dsi.ini` | `.gb`, `.gbc`, `.sgb` | `gameyob_dsi.nds` | `gameyob.nds` |
@@ -120,8 +122,7 @@ All supplied associations declare `argv=1`. Optional `bootstrap=0` flags are ret
 
 ## Prepared builds and format conflicts
 
-- **GimliDS and Hachibitto:** use the configured prepared argv builds. Stock
-  GimliDS 1.7a only selects a directory; stock Hachibitto 1.9 has no argv handler. Stock builds may require argv adaptations. A stock binary with the same filename is not proof of equivalent argv behavior. Preserve the MSX2 `.mx2`/`.mxd` conventions from that setup.
+- **GimliDS and Hachibitto:** use the nextcode4u argv source forks with the configured filenames. GimliDS has no versioned runtime pin yet; Hachibitto remains held because of embedded firmware permissions. Stock GimliDS 1.7a only selects a directory and stock Hachibitto 1.9 has no selected-file argv handler. Preserve the MSX2 `.mx2`/`.mxd` conventions.
 - **SNES:** `.sfc` and `.smc` target `snemulds-shim.nds`. Keep `snemulds-shim.ini`, `SNEmulDS.nds` and `SNEmulDS.srl` together. Keep the existing root `snemul.cfg` and TGDS payload if that prepared setup uses them. The shim config mentions an optional legacy payload; install that payload separately only if your setup requires it.
 - **GameYob:** retain both `gameyob_dsi.nds` and `gameyob.nds`; the selected console mode chooses the configured variant.
 - **GBA:** GBARunner3 remains the configured `.gba` default and is fetched by the shared downloader, not bundled. GBARunner2 is also an alternative, but does not have a competing default profile.
@@ -134,9 +135,9 @@ All supplied associations declare `argv=1`. Optional `bootstrap=0` flags are ret
 - **Shared `.md`:** the Genesis association also matches Markdown filenames. The profile treats it as a ROM extension. A Markdown document may therefore display the PicoDrive icon unless its per-file application choice overrides that mapping.
 - **Machine selection:** CoCo and Dragon share DracoDS, while `.c10`/`.k7` share MicroDS. A folder name alone does not prove the application selected the intended machine. Follow the emulator's instructions and preserve its configuration.
 - **Video:** `.avi`, `.fv` and `.rvid` target their respective players. Arbitrary MP4/AVI files need the correct encoding/conversion; no universal video decoder is implied.
-- **Books:** launch DSLibris as an application and select books inside it. It has no `.epub` argv profile, so none is invented here. Its existing Book/Font configuration may still be needed even though the frontend's browsing default is `media/books`.
+- **Books:** the DSLibris BlocksDS fork is bundled with fonts and direct argv profiles. Supported unprotected EPUB/MOBI/FB2, PDF text, document and OPF/OEB files open from `/media/books/`; see its [format guide](https://github.com/nextcode4u/dslibris/blob/argv-launch/DOCUMENT_FORMATS.md). OPF packages need their chapter files beside them. Fonts use `/data/dslibris/font/`. `.md` remains assigned to Genesis; use `.markdown`, the reader library, or a per-file application choice for Markdown.
 - **ScummVM:** use the automatic collection discovery described below. Arbitrary game-data files are not ROM associations.
-- Archives, generic `.bin`/`.rom` and unrelated disk formats are not assigned automatically. Extract/prepare content using the application's actual requirements; changing an extension is not a general conversion method.
+- Generic archives, generic `.bin`/`.rom` and unrelated disk formats are not assigned automatically. Extract/prepare content using the application's actual requirements; changing an extension is not a general conversion method.
 
 Every ROM collection, the `roms/` root and shared BIOS folder includes a
 plain-text `README.txt` with configured formats, argv behavior and firmware

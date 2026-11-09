@@ -13,7 +13,7 @@ int main(int argc, char **argv)
     unsigned checked = 0;
     for (int mode = 0; mode <= 1; mode++) {
         app_init(&app, argv[1], true, mode != 0);
-        assert(app.association_count == 29);
+        assert(app.association_count == 31);
         FILE *file = fopen(argv[2], "r");
         assert(file);
         char line[1024];
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
         }
         assert(fclose(file) == 0);
     }
-    assert(checked == 100);
-    puts("PASS: all 50 configured extensions resolve correctly in DS and DSi modes");
+    assert(checked == 156);
+    puts("PASS: all 78 configured extensions resolve correctly in DS and DSi modes");
     return 0;
 }
