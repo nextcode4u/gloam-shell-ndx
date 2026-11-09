@@ -36,3 +36,21 @@ Actual source reuse is identified separately below and in THIRD_PARTY.md.
 
 The [dependency inventory](THIRD_PARTY.md) records exact revisions, source links,
 licenses and local changes. Theme CREDITS.md files identify asset ownership.
+
+## Optional add-ons
+
+The [add-on inventory](docs/guides/ADDONS.md) links every audited upstream
+release and its terms. Packaged executables remain separate programs:
+
+- DSXP: Farzin Abdi; nextcode4u's native-SD/argv fork.
+- GameYob: Drenn and contributors; maple “mavica” syrup's maintained fork.
+- A7800DS, A8DS and StellaDS: wavemotion-dave and their credited upstream
+  emulator teams; Avery Lee supplies the embedded Altirra replacement firmware.
+- PokeMini: JustBurn, Team Pokeme and contributors, including the replacement FreeBIOS.
+- SNEmulDS: Archeide and Coto; Sanrax supplies the normal-argv launcher shim.
+- Opt-in noncommercial A5200DS, DracoDS, MicroDS and SpeccySE: wavemotion-dave
+  and the original authors named in each package's complete retained notices.
+
+`licenses.zip` retains original author/license material and `source.zip`
+contains the exact matching upstream source archives for the selected pack.
+These programs are not relicensed under Gloam's original-source license.

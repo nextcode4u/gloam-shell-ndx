@@ -31,4 +31,8 @@ and [the build guide](docs/development/BUILDING.md) before changing the project.
   and `source.zip`, with license/attribution copies in `licenses.zip`.
   Include the requested per-system `roms/**/README.txt` setup notes in the SD ZIP.
   Keep update-only downloads separate from full SD setup; document any required asset/backend migration.
+- Optional `addons.zip` must use reviewed release/hash pins and distribution terms;
+  update the same combined `source.zip`, `licenses.zip` and checksums with it.
+  Keep noncommercial-only apps behind the explicit build flag; never silently
+  bundle held apps, games or proprietary external BIOS.
 - Do not push source or publish artifacts without user authorization.

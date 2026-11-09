@@ -795,7 +795,7 @@
       "argv": "direct",
       "argv_evidence": "https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/platform/nds/PokeMini_NDS.c",
       "redistribution": "approved",
-      "license": "GPL-3.0 + zlib notices",
+      "license": "GPL-3.0-or-later + zlib notices",
       "distribution_notes": "FreeBIOS is included; retain its source and upstream licensing notices.",
       "bios": "Upstream replacement FreeBIOS is already compiled in; original Nintendo BIOS is not needed for basic operation.",
       "argv_notes": "0.60-arg directly copies argv[1], but tests argc >= 1 rather than > 1. Launch via a .min association; no-argument safety is not established.",
@@ -846,7 +846,7 @@
         ]
       },
       "bios_evidence": "https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/readme.txt",
-      "license_evidence": "https://github.com/DS-Homebrew/PokeMini/tree/f8eb158f7082d80739075baa3653afc14fdf3d70"
+      "license_evidence": "https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/source/PokeMini.c"
     },
     {
       "id": "rocketvideoplayer",

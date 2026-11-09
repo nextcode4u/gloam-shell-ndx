@@ -13,6 +13,8 @@ SDK-specific integration details are in [TOOLCHAIN.md](TOOLCHAIN.md).
 ```sh
 make -j4
 python3 tools/build_release.py
+# Optional audited emulator/player overlay:
+python3 tools/build_addons.py
 ```
 
 The release script builds by default. `--skip-build` packages an already built
@@ -27,9 +29,12 @@ requires all verified dependencies/source checkouts in the cache.
 | `dist/licenses.zip` | Required license texts, dependency notices, credits and asset attribution. |
 | `dist/sd.zip` | Root `BOOT.NDS`, themes/profiles, official nds-bootstrap, Slot-1 helper, forwarder and matching TMD; SD runtime files and per-collection README.txt files. |
 | `dist/source.zip` | Gloam source, build tools, docs, licenses and tests; exact backend/helper sources, submodules and revision manifest under `dependencies/`. |
-| `dist/SHA256SUMS` | SHA-256 of `BOOT.NDS` and all three archives. |
+| `dist/addons.zip` (optional) | Reviewed emulator/player binaries and collection setup notes; produced by the add-on builder. |
+| `dist/SHA256SUMS` | SHA-256 of `BOOT.NDS` and every produced release archive. |
 
-Publish `BOOT.NDS`, all three ZIPs and checksums together for every release. Keep
+Publish `BOOT.NDS`, the three base ZIPs and checksums together for every release.
+When including `addons.zip`, publish its matching updated `licenses.zip`,
+`source.zip` and checksums too. Keep
 source and license downloads beside both binary download options. The forwarder
 and its TMD are included in `sd.zip` under `/_nds/dsi-frontend/install/`;
 installation is optional. Guides and development docs stay in the repository
@@ -52,6 +57,18 @@ missing inputs or unsafe archive paths. It installs only listed backend members;
 no unrelated CIA/TAD variants enter the SD ZIP. It does not patch downloaded
 backends or modify an SD card/emulator. Cache lives under `build/release-cache`
 and `build/release-sources`; outputs and downloads are ignored by Git.
+
+The optional [add-on builder](../guides/ADDONS.md) uses
+`config/addon-dependencies.json`. `python3 tools/build_addons.py --list` lists
+all audited entries without downloading. The default includes eight reviewed
+projects; `--noncommercial` opts into four more with explicit no-profit terms.
+`--only dsxp gameyob-dsi` selects a permitted subset. `--offline` and
+`--skip-build` have the same meanings as the main builder. `make addons` is a
+convenience target. The release builder also accepts `--addons`, optionally
+with `--noncommercial`. Unreviewed/manual entries cannot be forced into the pack
+through selection. Original source archives and metadata stay under
+`dependencies/addons/` in the combined source ZIP; downloaded bytes live under
+ignored `build/addons-cache/`.
 
 To update a dependency, review its upstream release, license and source revision,
 refresh the lock and notices, and validate the actual launch route. Do not resolve

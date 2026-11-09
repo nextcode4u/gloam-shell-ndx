@@ -8,11 +8,12 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 from tools import stage_sd
 from tools.build_forwarder import FILES, TITLE_ID, unsigned_tmd
 from tools.build_release import build_release, release_notices
-from tools.package_development import package
+from tools.package_development import package, sha256
 
 
 class PackageTests(unittest.TestCase):
@@ -269,6 +270,37 @@ class PackageTests(unittest.TestCase):
         for line in sums:
             checksum, name = line.split()
             self.assertEqual(hashlib.sha256((dist / name).read_bytes()).hexdigest(), checksum)
+
+    def test_optional_addon_overlay_keeps_matching_companions(self):
+        self.forwarder()
+        (self.root / "config/release-dependencies.json").write_text(
+            json.dumps({"format": 1, "dependencies": []})
+        )
+        runtime = {"apps/demo.nds": b"Synthetic application"}
+        source = {"dependencies/addons/demo/source.tar.gz": b"Synthetic source archive"}
+        notices = {"addons/demo/LICENSE": b"Synthetic permissive notice"}
+        report = {"format": 1, "applications": [{"id": "demo"}], "noncommercial": False}
+        with patch("tools.build_addons.addon_files", return_value=(runtime, source, notices, report)):
+            build_release(self.root, offline=True, addons=True)
+        dist = self.root / "dist"
+        with zipfile.ZipFile(dist / "sd.zip") as base, zipfile.ZipFile(dist / "addons.zip") as overlay:
+            self.assertNotIn("apps/demo.nds", base.namelist())
+            self.assertEqual(overlay.read("apps/demo.nds"), b"Synthetic application")
+            self.assertEqual(overlay.read("roms/NES/README.txt"), b"Use .nes and .fds files\n")
+            self.assertNotIn("LICENSE", overlay.namelist())
+        with zipfile.ZipFile(dist / "licenses.zip") as archive:
+            self.assertEqual(archive.read("addons/demo/LICENSE"), b"Synthetic permissive notice")
+        with zipfile.ZipFile(dist / "source.zip") as archive:
+            self.assertEqual(archive.read("dependencies/addons/demo/source.tar.gz"),
+                             b"Synthetic source archive")
+            manifest = json.loads(archive.read("package-manifest.json"))
+            self.assertEqual(manifest["addons"]["sha256"], sha256((dist / "addons.zip").read_bytes()))
+            self.assertEqual(manifest["addons"]["applications"], ["demo"])
+        self.assertIn("  addons.zip", (dist / "SHA256SUMS").read_text())
+        # A later base-only build must not retain an add-on with stale companions.
+        build_release(self.root, offline=True)
+        self.assertFalse((dist / "addons.zip").exists())
+        self.assertNotIn("addons.zip", (dist / "SHA256SUMS").read_text())
 
     def test_release_requires_bundled_forwarder(self):
         (self.root / "config/release-dependencies.json").write_text(

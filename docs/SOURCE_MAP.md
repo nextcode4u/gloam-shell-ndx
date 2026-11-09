@@ -47,6 +47,9 @@ assets and game saves are outside the reset scope.
 | --- | --- |
 | `sdroot/` | Reviewed distributable SD template. |
 | `config/emulator-presets.json` | Default association and ROM-folder catalog. |
+| `config/addon-dependencies.json` | Audited add-on releases, argv/BIOS evidence and distribution decisions. |
+| `tools/build_addons.py` | Verified optional overlay collector; main release builder supplies matching source/licenses. |
+| `tools/make_emulator_presets.py` | Generates profiles and per-system ROM-folder format/BIOS readmes. |
 | `config/package-inputs.json` | Explicit source/SD package allowlist. |
 | `tools/` | Maintained build, authoring and packaging tools. |
 | `tests/` | Model/render sanitizer checks, synthetic fixtures and Python tool tests. |

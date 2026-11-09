@@ -14,7 +14,7 @@ argument safety is not established.
 Firmware: Upstream replacement FreeBIOS is already compiled in; original
 Nintendo BIOS is not needed for basic operation.
 
-Add-on package: available; terms: GPL-3.0 + zlib notices.
+Add-on package: available; terms: GPL-3.0-or-later + zlib notices.
 
 Upstream: https://github.com/DS-Homebrew/PokeMini
 Release: https://github.com/DS-Homebrew/PokeMini/releases/tag/0.60-arg

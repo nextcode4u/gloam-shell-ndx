@@ -16,7 +16,10 @@ repository and the source archive; licenses and credits accompany the download
 in `licenses.zip` and do not need to be copied onto the SD card.
 
 The package includes pinned official nds-bootstrap and Slot-1 Launcher builds.
-Other emulators/players, their BIOS files and games are separate. The supplied
+The optional [add-on overlay](guides/ADDONS.md) supplies the reviewed subset of
+emulators/players; merge `addons.zip` after `sd.zip` if wanted. Keep customized
+shim INI files when upgrading. Other applications, proprietary BIOS files and
+games are separate. The supplied
 [association profiles](guides/EMULATORS.md) can be edited on the console or in
 INI files to match an existing installation.
 

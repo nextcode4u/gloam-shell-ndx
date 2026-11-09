@@ -193,3 +193,30 @@ The package manifest records exact release/source URLs and archive/member hashes
 link the source download beside `sd.zip` when publishing. A generic repository
 link is not a substitute for the corresponding revision and local modifications.
 See [building and distribution](docs/development/BUILDING.md).
+
+## Optional emulator/player overlay
+
+`tools/build_addons.py` uses the reviewed pins in
+`config/addon-dependencies.json`. These standalone applications are not linked
+into Gloam. Exact release/source URLs, revisions, SHA-256 hashes, argv evidence,
+BIOS requirements and distribution decisions are in the
+[add-on inventory](docs/guides/ADDONS.md).
+
+The default includes DSXP (nextcode4u's SD-argv fork, GPL-2.0-or-later), GameYob
+(MIT), A7800DS, A8DS and StellaDS (GPL-2.0-or-later with inherited notices),
+PokeMini (GPLv3 and constituent notices), snemulds-shim (GPL-3.0-or-later with
+vendored notices) and its exact matching SNEmulDS payload (GPL-2.0-or-later).
+Altirra firmware notices and PokeMini replacement-BIOS source are retained.
+
+A5200DS, DracoDS, MicroDS and SpeccySE require the explicit `--noncommercial`
+option. Their no-profit conditions remain applicable to those programs;
+Gloam's GPL does not replace their licenses. All original notice/README material,
+the full GPLv2 text, nested DSXP/libmad license and firmware notices accompany
+`addons.zip` in the updated `licenses.zip`. Exact upstream source archives,
+including the released DSXP source with libmad, are retained in the updated
+combined `source.zip` under `dependencies/addons/`.
+
+No games or proprietary external BIOS files are supplied. Apps with unresolved
+release, constituent-code, firmware or asset terms stay out of the builder.
+Manual/held entries are documented individually; a root license or public
+repository is not treated as permission for every bundled asset.

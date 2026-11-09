@@ -57,3 +57,8 @@ forwarder: $(ARM7ELF)
 .PHONY: sd
 sd:
 	python3 tools/build_release.py
+
+# Optional emulator/player overlay, with matching source and license companions.
+.PHONY: addons
+addons:
+	python3 tools/build_addons.py

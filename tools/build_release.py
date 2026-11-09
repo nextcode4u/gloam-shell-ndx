@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 import subprocess
+import tarfile
 import tempfile
 import urllib.request
 import zipfile
@@ -151,7 +152,8 @@ def release_notices(sd: dict[str, bytes], dependencies: list[dict]) -> dict[str,
     return notices
 
 
-def build_release(root: Path, offline: bool = False) -> None:
+def build_release(root: Path, offline: bool = False, *, addons: bool = False,
+                  noncommercial: bool = False, only_addons: list[str] | None = None) -> None:
     lock = json.loads((root / LOCK).read_text())
     if lock["format"] != 1:
         raise ValueError("Unsupported dependency lock format")
@@ -213,6 +215,26 @@ def build_release(root: Path, offline: bool = False) -> None:
             and (Path(name).name.lower() not in {"read me.txt", "readme.txt"}
                  or (name.startswith("roms/") and Path(name).name == "README.txt"))
         }
+        addon_runtime, addon_report = {}, None
+        if addons:
+            if __package__:
+                from .build_addons import addon_files
+            else:
+                from build_addons import addon_files
+            addon_runtime, addon_sources, addon_notices, addon_report = addon_files(
+                root, offline, noncommercial, only_addons
+            )
+            if set(addon_runtime) & set(sd) or set(addon_sources) & set(frontend):
+                raise ValueError("Add-ons conflict with the base release")
+            if set(addon_notices) & set(notices):
+                raise ValueError("Add-on notices conflict with the base release")
+            addon_runtime.update({n: b for n, b in sd.items()
+                                  if n.startswith("roms/") and Path(n).name == "README.txt"})
+            addon_report["runtime_files"] = {n: sha256(b) for n, b in sorted(addon_runtime.items())}
+            addon_sources["dependencies/addons/manifest.json"] = json_bytes(addon_report)
+            frontend.update(addon_sources)
+            notices.update(addon_notices)
+            write_archive(output / "addons.zip", addon_runtime, [])
         (output / "BOOT.NDS").write_bytes(sd["BOOT.NDS"])
         write_archive(output / "licenses.zip", notices, [])
         manifest = {
@@ -226,16 +248,26 @@ def build_release(root: Path, offline: bool = False) -> None:
             "sd_files": {n: sha256(data) for n, data in sorted(sd.items())},
             "source_files": {n: sha256(data) for n, data in sorted(frontend.items())},
         }
+        if addons:
+            manifest["addons"] = {
+                "file": "addons.zip", "sha256": sha256((output / "addons.zip").read_bytes()),
+                "noncommercial": addon_report["noncommercial"],
+                "applications": [a["id"] for a in addon_report["applications"]],
+            }
         frontend["package-manifest.json"] = json_bytes(manifest)
         write_archive(output / "sd.zip", sd, directories)
         write_archive(output / "source.zip", frontend, [], source_modes)
         names = ["BOOT.NDS", "sd.zip", "licenses.zip", "source.zip"]
+        if addons:
+            names.append("addons.zip")
         sums = "".join(f"{sha256((output / n).read_bytes())}  {n}\n" for n in names)
         (output / "SHA256SUMS").write_text(sums)
         for name in [*names, "SHA256SUMS"]:
             os.replace(output / name, dist / name)
         # Remove the superseded output so release uploads cannot pick it up.
         (dist / "dependencies-source.zip").unlink(missing_ok=True)
+        if not addons:
+            (dist / "addons.zip").unlink(missing_ok=True)
     print(f"Built SD and combined source archives in {dist}")
 
 
@@ -243,13 +275,18 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--skip-build", action="store_true", help="Use the current verified frontend build")
     parser.add_argument("--offline", action="store_true", help="Require all dependencies in the local cache")
+    parser.add_argument("--addons", action="store_true", help="Build the reviewed optional overlay too")
+    parser.add_argument("--noncommercial", action="store_true",
+                        help="With --addons, include reviewed no-profit-only applications")
     args = parser.parse_args()
+    if args.noncommercial and not args.addons:
+        parser.error("--noncommercial requires --addons")
     try:
         if not args.skip_build:
             subprocess.run(["make", "-j4"], cwd=ROOT, check=True)
             subprocess.run(["python3", "tools/write_build_info.py"], cwd=ROOT, check=True)
-        build_release(ROOT, args.offline)
-    except (OSError, ValueError, KeyError, zipfile.BadZipFile, subprocess.CalledProcessError) as error:
+        build_release(ROOT, args.offline, addons=args.addons, noncommercial=args.noncommercial)
+    except (OSError, ValueError, KeyError, tarfile.TarError, zipfile.BadZipFile, subprocess.CalledProcessError) as error:
         parser.exit(1, f"Release package not created: {error}\n")
 
 

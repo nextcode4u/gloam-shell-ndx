@@ -66,6 +66,7 @@ and Python 3.11+. The default SDK location is `/opt/blocksds/core`.
 ```sh
 make -j4                         # frontend and optional forwarder
 python3 tools/build_release.py   # pinned backends + SD/source archives
+python3 tools/build_addons.py    # optional reviewed emulator/player overlay
 ```
 
 Outputs: `dist/BOOT.NDS`, `dist/sd.zip`, `dist/licenses.zip`, `dist/source.zip`
@@ -75,7 +76,9 @@ credits are in `licenses.zip`, and guides stay in the repository and source arch
 Downloads and builds stay in ignored directories. The
 packaging script needs Git and internet access on its first run; repeat runs verify cached
 inputs. See [building and packaging](docs/development/BUILDING.md) for checks,
-source archives, dependency updates and offline use.
+source archives, dependency updates and offline use. Optional `dist/addons.zip`
+uses the same license/source companions. See the [add-on audit](docs/guides/ADDONS.md)
+for exact releases, argv support, BIOS needs and packages held from redistribution.
 
 ## Documentation
 
