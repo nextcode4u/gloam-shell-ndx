@@ -12,8 +12,11 @@ Argv in the audited upstream build: direct.
 Firmware: Requires a user-supplied Atari Lynx BIOS, selected inside LodjurDS.
 Upstream explicitly says it is needed to run games; not included.
 
-Add-on package: manual / held; terms: Project-wide redistribution grant not
-found.
+Add-on package: available; terms: Project-wide redistribution grant not found.
+
+Redistribution is assumed for this pack; upstream permission remains
+unconfirmed. See addons/UNCONFIRMED_DISTRIBUTION.md in the companion
+licenses.zip.
 
 Upstream: https://github.com/FluBBaOfWard/LodjurDS
 Release: https://github.com/FluBBaOfWard/LodjurDS/releases/tag/v0.1.5

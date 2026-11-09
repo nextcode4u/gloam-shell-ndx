@@ -202,7 +202,8 @@ into Gloam. Exact release/source URLs, revisions, SHA-256 hashes, argv evidence,
 BIOS requirements and distribution decisions are in the
 [add-on inventory](docs/guides/ADDONS.md).
 
-The default includes DSXP (nextcode4u's SD-argv fork, GPL-2.0-or-later), GameYob
+The reviewed-license portion includes DSXP (nextcode4u's SD-argv fork,
+GPL-2.0-or-later), GameYob
 (MIT), A7800DS, A8DS and StellaDS (GPL-2.0-or-later with inherited notices),
 PokeMini (GPLv3 and constituent notices), snemulds-shim (GPL-3.0-or-later with
 vendored notices) and its exact matching SNEmulDS payload (GPL-2.0-or-later).
@@ -216,7 +217,17 @@ the full GPLv2 text, nested DSXP/libmad license and firmware notices accompany
 including the released DSXP source with libmad, are retained in the updated
 combined `source.zip` under `dependencies/addons/`.
 
-No games or proprietary external BIOS files are supplied. Apps with unresolved
-release, constituent-code, firmware or asset terms stay out of the builder.
+No games or proprietary external BIOS files are supplied. The nine entries in
+[the unconfirmed-distribution document](docs/guides/UNCONFIRMED_DISTRIBUTION.md)
+are assumed distributable for packaging; permission is not verified or asserted.
+Eight have pinned release binaries and are included, while GBARunner3 has no
+pinned binary available. Other held entries remain excluded.
 Manual/held entries are documented individually; a root license or public
 repository is not treated as permission for every bundled asset.
+
+The unconfirmed selection retains original READMEs, attribution and available
+component licenses. Published project source and recursively pinned submodule
+archives accompany the binary download in `source.zip`; jEnesisDS Plus source
+covers only its patches/injected code because the base emulator source was not
+published. `licenses.zip` includes the explicit assumption document, not a
+substitute license grant. The main manifest lists the included assumed IDs.

@@ -14,6 +14,10 @@ relocation/patches prevent assuming a replacement BIOS is compatible.
 
 Add-on package: manual / held; terms: Project-wide license not established.
 
+Redistribution is assumed for this pack; upstream permission remains
+unconfirmed. See addons/UNCONFIRMED_DISTRIBUTION.md in the companion
+licenses.zip.
+
 Upstream: https://github.com/Gericom/GBARunner3
 Release: https://github.com/Gericom/GBARunner3/releases
 

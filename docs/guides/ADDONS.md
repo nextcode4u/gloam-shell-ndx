@@ -17,11 +17,16 @@ python3 tools/build_addons.py --noncommercial
 python3 tools/build_addons.py --list
 ```
 
-The default selects eight reviewed projects: the requested nextcode4u DSXP
-fork, GameYob, A7800DS, A8DS, StellaDS, PokeMini, snemulds-shim and its matching
-SNEmulDS snapshot. Four additional programs have explicit noncommercial terms;
-`--noncommercial` adds A5200DS, DracoDS, MicroDS and SpeccySE. Those terms remain
-separate from Gloam's GPL license. Do not sell or monetize that expanded pack.
+The default includes eight projects with reviewed distribution terms: the
+requested nextcode4u DSXP fork, GameYob, A7800DS, A8DS, StellaDS, PokeMini,
+snemulds-shim and its matching SNEmulDS snapshot. It also includes eight
+available releases under an explicitly documented, unconfirmed redistribution
+assumption: FastVideoDS, jEnesisDS Plus, S8DS, NitroGrafx, NitroSwan, NGPDS,
+LodjurDS and WasabiDS. GBARunner3 has the same assumption recorded but no
+available pinned binary. See [the assumption document](UNCONFIRMED_DISTRIBUTION.md).
+
+`--noncommercial` adds A5200DS, DracoDS, MicroDS and SpeccySE. Their no-profit
+conditions remain separate from Gloam's GPL. Other held entries remain excluded.
 
 `dist/addons.zip` is an optional SD overlay. Merge it after `sd.zip`; it installs
 only reviewed emulator/player files at the paths used by the associations.
@@ -34,8 +39,10 @@ applications live elsewhere. The default application folder is Gloam's
 `DSXP.nds` to match the existing profile.
 
 Add-ons use the same `licenses.zip`, combined `source.zip` and `SHA256SUMS` as
-the release. Exact upstream source archives, including DSXP's provided libmad
-source tarball, are retained under `dependencies/addons/`. There is no separate
+the release. Available upstream source archives, including DSXP's provided libmad
+source tarball and pinned source submodules, are retained under
+`dependencies/addons/`. jEnesisDS Plus provides patches/injected code, not the
+unpublished original emulator source. There is no separate
 dependency-source download. Publish the updated companion archives with
 `addons.zip`; the package manifest records the included versions and hashes.
 A regular release build without add-ons removes a stale generated addons.zip
@@ -44,8 +51,9 @@ so a previous optional pack is not accidentally published with the wrong source.
 ## Releases, argv and distribution
 
 Approved means the recorded terms permit this packaging with the retained
-notices/source. Noncommercial requires the explicit build flag. Held entries
-have a concrete missing grant, asset/component review, release or integration
+notices/source. Assumed means inclusion under the documented project assumption,
+with permission still unconfirmed. Noncommercial requires the explicit build
+flag. Held entries have a concrete missing grant, asset/component review, release or integration
 requirement; this does not assert that their authors cannot distribute them.
 
 | Project / release | Argv in this build | Packaging / recorded terms |
@@ -58,23 +66,23 @@ requirement; this does not assert that their authors cannot distribute them.
 | [ds994a 2.9](https://github.com/wavemotion-dave/DS994a/releases/tag/2.9) | [direct](https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/arm9/source/DS99.c) | Manual / held; Noncommercial with constituent permissions |
 | [dslibris v1.6.0 (prerelease)](https://github.com/rhaleblian/dslibris/releases/tag/v1.6.0) | [none](https://github.com/rhaleblian/dslibris/blob/309923e6e46f2f146229498d7d5c98d2e854aaca/source/main.cpp) | Manual / held; GPL-2.0-or-later code; mixed library/font package |
 | [dsxp v1.1.0-sd-argv.1](https://github.com/nextcode4u/DSXP/releases/tag/v1.1.0-sd-argv.1) | [direct](https://github.com/nextcode4u/DSXP/blob/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/source/main.c) | Included; GPL-2.0-or-later |
-| [fastvideods v0.0.1](https://github.com/Gericom/FastVideoDSPlayer/releases/tag/v0.0.1) | [direct](https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/arm9/source/main.cpp) | Manual / held; Project license not stated |
+| [fastvideods v0.0.1](https://github.com/Gericom/FastVideoDSPlayer/releases/tag/v0.0.1) | [direct](https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/arm9/source/main.cpp) | Included, permission unconfirmed; Project license not stated |
 | [gameyob-dsi v0.5.3b-mavica](https://github.com/Lana-chan/GameYob/releases/tag/v0.5.3b-mavica) | [direct](https://github.com/Lana-chan/GameYob/blob/04f88d96ca653c60fd1b110ce7011db7e8e906a3/arm9/source/main.cpp) | Included; MIT |
-| [gbarunner3 No upstream release; develop source snapshot](https://github.com/Gericom/GBARunner3) | [direct](https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/code/core/arm9/source/main.cpp) | Manual / held; Project-wide license not established |
+| [gbarunner3 No upstream release; develop source snapshot](https://github.com/Gericom/GBARunner3) | [direct](https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/code/core/arm9/source/main.cpp) | No pinned binary; permission unconfirmed; Project-wide license not established |
 | [gimlids 1.7a](https://github.com/wavemotion-dave/GimliDS/releases/tag/1.7a) | [directory-only](https://github.com/wavemotion-dave/GimliDS/blob/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740/arm9/source/main.cpp) | Manual / held; GPL-2.0-or-later |
 | [hachibitto 1.9](https://github.com/wavemotion-dave/Hachibitto/releases/tag/1.9) | [none](https://github.com/wavemotion-dave/Hachibitto/blob/a388a295945d3929ac41a6369e40ce1c0afefa7e/arm9/source/Hachibitto.c) | Manual / held; Noncommercial core; firmware/asset rights unresolved |
-| [jenesisdsplus v0.8.1](https://github.com/DS-Homebrew/jEnesisDSPlus/releases/tag/v0.8.1) | [direct](https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/newCode/source/main.s) | Manual / held; No explicit Plus redistribution license; closed-source base terms unconfirmed |
-| [lodjurds v0.1.5](https://github.com/FluBBaOfWard/LodjurDS/releases/tag/v0.1.5) | [direct](https://github.com/FluBBaOfWard/LodjurDS/blob/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/source/Main.c) | Manual / held; Project-wide redistribution grant not found |
+| [jenesisdsplus v0.8.1](https://github.com/DS-Homebrew/jEnesisDSPlus/releases/tag/v0.8.1) | [direct](https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/newCode/source/main.s) | Included, permission unconfirmed; No explicit Plus redistribution license; closed-source base terms unconfirmed |
+| [lodjurds v0.1.5](https://github.com/FluBBaOfWard/LodjurDS/releases/tag/v0.1.5) | [direct](https://github.com/FluBBaOfWard/LodjurDS/blob/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
 | [microds 1.1](https://github.com/wavemotion-dave/MicroDS/releases/tag/1.1) | [direct](https://github.com/wavemotion-dave/MicroDS/blob/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09/arm9/source/MicroDS.c) | Opt-in noncommercial; MIT base + README noncommercial condition |
 | [nesds v2.1](https://github.com/DS-Homebrew/NesDS/releases/tag/v2.1) | [direct](https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/arm9/source/romloader_frontend.c) | Manual / held; Legacy public-domain statement + newer components |
-| [ngpds v0.6.0](https://github.com/FluBBaOfWard/NGPDS/releases/tag/v0.6.0) | [direct](https://github.com/FluBBaOfWard/NGPDS/blob/4dbcc210cdb519414ff20d2886645a530e298206/source/Main.c) | Manual / held; Project-wide redistribution grant not found |
+| [ngpds v0.6.0](https://github.com/FluBBaOfWard/NGPDS/releases/tag/v0.6.0) | [direct](https://github.com/FluBBaOfWard/NGPDS/blob/4dbcc210cdb519414ff20d2886645a530e298206/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
 | [nintv-ds 6.4](https://github.com/wavemotion-dave/NINTV-DS/releases/tag/6.4) | [direct](https://github.com/wavemotion-dave/NINTV-DS/blob/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6/arm9/source/main.cpp) | Manual / held; Custom redistribution notice; restricted extras |
-| [nitrografx v0.9.1](https://github.com/FluBBaOfWard/NitroGrafx/releases/tag/v0.9.1) | [direct](https://github.com/FluBBaOfWard/NitroGrafx/blob/62920a05e9c7e31144d7e16b58797cdd8bc3789a/source/Main.c) | Manual / held; Project-wide redistribution grant not found |
-| [nitroswan v0.7.7](https://github.com/FluBBaOfWard/NitroSwan/releases/tag/v0.7.7) | [direct](https://github.com/FluBBaOfWard/NitroSwan/blob/564e171fb93c2c11f98f38607493675727676c2c/source/Main.c) | Manual / held; Project-wide redistribution grant not found |
+| [nitrografx v0.9.1](https://github.com/FluBBaOfWard/NitroGrafx/releases/tag/v0.9.1) | [direct](https://github.com/FluBBaOfWard/NitroGrafx/blob/62920a05e9c7e31144d7e16b58797cdd8bc3789a/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
+| [nitroswan v0.7.7](https://github.com/FluBBaOfWard/NitroSwan/releases/tag/v0.7.7) | [direct](https://github.com/FluBBaOfWard/NitroSwan/blob/564e171fb93c2c11f98f38607493675727676c2c/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
 | [picodrivetwl v2.1.0](https://github.com/DS-Homebrew/PicoDriveTWL/releases/tag/v2.1.0) | [direct](https://github.com/DS-Homebrew/PicoDriveTWL/blob/4fcdb1f0bef46a4704b1870d787b362afa7bfec0/arm9/source/main.cpp) | Manual / held; Noncommercial Pico core; mixed inherited terms |
 | [pokemini 0.60-arg](https://github.com/DS-Homebrew/PokeMini/releases/tag/0.60-arg) | [direct](https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/platform/nds/PokeMini_NDS.c) | Included; GPL-3.0-or-later + zlib notices |
 | [rocketvideoplayer v2.3.1](https://github.com/RocketRobz/RocketVideoPlayer/releases/tag/v2.3.1) | [direct](https://github.com/RocketRobz/RocketVideoPlayer/blob/50803b9027ca43ab278c1486442fcfc70c90b309/nds/arm9/source/main.cpp) | Manual / held; MIT code; Nintendo assets separately credited |
-| [s8ds v1.1.8](https://github.com/FluBBaOfWard/S8DS/releases/tag/v1.1.8) | [direct](https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/source/Main.c) | Manual / held; Project-wide redistribution grant not found |
+| [s8ds v1.1.8](https://github.com/FluBBaOfWard/S8DS/releases/tag/v1.1.8) | [direct](https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
 | [scummvm v2.9.1 (published DSi build)](https://www.scummvm.org/downloads/) | [game-ID options, not ROM-file association](https://github.com/scummvm/scummvm/blob/9d9b9e93108a276c551aeffa390169ccc5148e15/backends/platform/ds/dsmain.cpp) | Manual / held; GPL-3.0-or-later + constituent notices |
 | [snemulds TGDS1.65 (shim-compatible snapshot)](https://github.com/cotodevel/SnemulDS/tree/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd) | [TGDS-only](https://github.com/cotodevel/SnemulDS/blob/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/arm9/source/main.c) | Included; GPL-2.0-or-later |
 | [snemulds-shim v0.15](https://github.com/Sanrax/snemulds-shim/releases/tag/v0.15) | [shim](https://github.com/Sanrax/snemulds-shim/blob/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/source/arguments.c) | Included; GPL-3.0-or-later + vendored notices |
@@ -82,7 +90,11 @@ requirement; this does not assert that their authors cannot distribute them.
 | [stellads 8.4a](https://github.com/wavemotion-dave/StellaDS/releases/tag/8.4a) | [direct](https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/arm9/source/main.cpp) | Included; GPL-2.0-or-later + BSD notices |
 | [sugards 1.6](https://github.com/wavemotion-dave/SugarDS/releases/tag/1.6) | [direct](https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/arm9/source/SugarDS.c) | Manual / held; GPL-2.0-or-later code; separately copyrighted firmware |
 | [tuna-vids v1.2](https://github.com/chishm/tuna-vids/releases/tag/v1.2) | [direct](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/arm9/source/main.c) | Manual / held; GPL-2.0-or-later ARM9 + Helix RPSL/RCSL ARM7 |
-| [wasabids v0.2.6](https://github.com/FluBBaOfWard/WasabiDS/releases/tag/v0.2.6) | [direct](https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/source/Main.c) | Manual / held; Project-wide redistribution grant not found |
+| [wasabids v0.2.6](https://github.com/FluBBaOfWard/WasabiDS/releases/tag/v0.2.6) | [direct](https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
+
+The companion license archive carries the assumption document and available
+upstream notices for every selected unconfirmed entry. This does not establish
+a missing grant or apply Gloam's GPL to those programs.
 
 ## Conditions and exceptions
 
@@ -94,23 +106,23 @@ requirement; this does not assert that their authors cannot distribute them.
 - **[ds994a](https://github.com/wavemotion-dave/DS994a/tree/85098fcfcaa176a919fa4f2162706ac7814ea263):** README records permission for the port and asks about ColEM/TI9918A reuse. Additional voice/sample and constituent coverage needs review before automatic redistribution.
 - **[dslibris](https://github.com/rhaleblian/dslibris/blob/v1.6.0/source/main.cpp):** main(void) does not consume a selected-book argument. Manual app; complete bundled font/library notices and runtime Book/Font layout need review before automatic redistribution.
 - **[dsxp](https://github.com/nextcode4u/DSXP/tree/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0):** Use nextcode4u/DSXP SD-argv prerelease; matching release source includes libmad.
-- **[fastvideods](https://github.com/Gericom/FastVideoDSPlayer/tree/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab):** Argv is explicit, but upstream issue #15 requests the missing license. A public repository does not establish redistribution permission.
+- **[fastvideods](https://github.com/Gericom/FastVideoDSPlayer/tree/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 - **[gameyob-dsi](https://github.com/Lana-chan/GameYob/tree/04f88d96ca653c60fd1b110ce7011db7e8e906a3):** Retain the Drenn/contributor notice and both DS/DSi variants.
-- **[gbarunner3](https://github.com/Gericom/GBARunner3/tree/ecaa817815d9761745606592f04affe5ee9c3731):** No upstream release assets and no project-wide LICENSE/COPYING; upstream issues #200/#208 discuss missing permission. Do not redistribute a private/CI build as an official release.
+- **[gbarunner3](https://github.com/Gericom/GBARunner3/tree/ecaa817815d9761745606592f04affe5ee9c3731):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. No official release or current public CI artifact is available, so there is no pinned binary package to include.
 - **[gimlids](https://github.com/wavemotion-dave/GimliDS/tree/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740):** Code redistribution permitted, but the stock build only selects a directory. Not auto-installed over the prepared argv build. ArgvReceived records the basename and changes directory, then leaves a TODO for auto-loading. The prepared argv build in the backup is different.
 - **[hachibitto](https://github.com/wavemotion-dave/Hachibitto/tree/a388a295945d3929ac41a6369e40ce1c0afefa7e):** Stock 1.9 has no argv handling. arm9/source/MSX_BIOS.c explicitly says the embedded MSX firmware is used without permission. Do not redistribute this prebuilt binary based on the emulator-code terms. Stock 1.9 main() has no argc/argv or system-argv handling. The prepared 1.8b backup build is different; do not overwrite it with stock.
-- **[jenesisdsplus](https://github.com/DS-Homebrew/jEnesisDSPlus/tree/ca3bb43d14f8d78ccb6546d753817defaac25937):** README says the original jEnesisDS source was never public and the improvements are ASM patches. The Plus tree has no stated license; verify grants for both Lordus's base and the modifications before bundling. Lack of source by itself does not prohibit redistribution under a suitable freeware license; that grant has not been established here. Original 0.7.4 notices could not be retrieved from the linked download (HTTP 403). saveArgv validates the standard _arg record, copies argv[1] and loadRomFromArgv starts the ROM. Original jEnesisDS does not establish the Plus behavior. Native DSi SD handoff still needs testing; do not infer it from the BlocksDS toolchain used for the injected code.
-- **[lodjurds](https://github.com/FluBBaOfWard/LodjurDS/tree/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b):** No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.
+- **[jenesisdsplus](https://github.com/DS-Homebrew/jEnesisDSPlus/tree/ca3bb43d14f8d78ccb6546d753817defaac25937):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL. saveArgv validates the standard _arg record, copies argv[1] and loadRomFromArgv starts the ROM. Original jEnesisDS does not establish the Plus behavior. Native DSi SD handoff still needs testing; do not infer it from the BlocksDS toolchain used for the injected code.
+- **[lodjurds](https://github.com/FluBBaOfWard/LodjurDS/tree/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 - **[microds](https://github.com/wavemotion-dave/MicroDS/tree/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09):** Root LICENSE covers the MIT base; README adds a noncommercial condition for the derivative. Preserve both; do not label the whole app MIT.
 - **[nesds](https://github.com/DS-Homebrew/NesDS/tree/928afd9ca3c846f06264dfb1be6a2edf44575b66):** README.TXT dedicates legacy nesDS to the public domain; the modern branch and new N2A03 submodule still need complete license coverage. Legacy dedication alone is not a review of the current binary.
-- **[ngpds](https://github.com/FluBBaOfWard/NGPDS/tree/4dbcc210cdb519414ff20d2886645a530e298206):** No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.
+- **[ngpds](https://github.com/FluBBaOfWard/NGPDS/tree/4dbcc210cdb519414ff20d2886645a530e298206):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 - **[nintv-ds](https://github.com/wavemotion-dave/NINTV-DS/tree/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6):** README permits emulator redistribution with attribution, but extras/overlays are explicitly personal-use-only. A source/runtime subset excluding those extras needs a separate completed audit.
-- **[nitrografx](https://github.com/FluBBaOfWard/NitroGrafx/tree/62920a05e9c7e31144d7e16b58797cdd8bc3789a):** No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.
-- **[nitroswan](https://github.com/FluBBaOfWard/NitroSwan/tree/564e171fb93c2c11f98f38607493675727676c2c):** No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.
+- **[nitrografx](https://github.com/FluBBaOfWard/NitroGrafx/tree/62920a05e9c7e31144d7e16b58797cdd8bc3789a):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
+- **[nitroswan](https://github.com/FluBBaOfWard/NitroSwan/tree/564e171fb93c2c11f98f38607493675727676c2c):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 - **[picodrivetwl](https://github.com/DS-Homebrew/PicoDriveTWL/tree/4fcdb1f0bef46a4704b1870d787b362afa7bfec0):** Pico headers allow noncommercial use; bundled MZ80 notice restricts modified redistribution. Verify compiled-core coverage and redistribution permission, rather than treating the whole tree as GPL.
 - **[pokemini](https://github.com/DS-Homebrew/PokeMini/tree/f8eb158f7082d80739075baa3653afc14fdf3d70):** FreeBIOS is included; retain its source and upstream licensing notices. 0.60-arg directly copies argv[1], but tests argc >= 1 rather than > 1. Launch via a .min association; no-argument safety is not established.
 - **[rocketvideoplayer](https://github.com/RocketRobz/RocketVideoPlayer/tree/50803b9027ca43ab278c1486442fcfc70c90b309):** README credits Nintendo DSi fonts/graphical assets and borrowed FastVideoDS code. MIT on project code does not establish all asset/component redistribution rights.
-- **[s8ds](https://github.com/FluBBaOfWard/S8DS/tree/90f2c13368f0b2ceac7887802e77d516d6337436):** No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.
+- **[s8ds](https://github.com/FluBBaOfWard/S8DS/tree/90f2c13368f0b2ceac7887802e77d516d6337436):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 - **[scummvm](https://github.com/scummvm/scummvm/blob/v2.9.1/COPYING):** DS main forwards argc/argv to scummvm_main. Use its native game-list launcher; arbitrary game data is not a one-ROM association. Official downloads retain 2.9.1 for DSi while newer versions exist for other platforms. Manual installation until the complete platform/resource/source package is pinned.
 - **[snemulds](https://github.com/cotodevel/SnemulDS/tree/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd):** Pinned older TGDS1.65 commit matches both hashes documented by shim v0.15; do not track the moving branch.
 - **[snemulds-shim](https://github.com/Sanrax/snemulds-shim/tree/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b):** Retain third_party/NOTICE.md and all vendored license texts.
@@ -118,7 +130,7 @@ requirement; this does not assert that their authors cannot distribute them.
 - **[stellads](https://github.com/wavemotion-dave/StellaDS/tree/1ff41dc60c4debacd4493bae5bb045cdbbef7800):** Retain LICENSE and Copyright.txt, including the Aaron Giles notice.
 - **[sugards](https://github.com/wavemotion-dave/SugarDS/tree/ca4b95960d55e24d1d5bf815f5fffcacad8e4704):** Built-in Amstrad ROMs rely on the quoted conditional permission; ParaDOS is separately copyrighted. Record the firmware grants before redistributing the prebuilt package.
 - **[tuna-vids](https://github.com/chishm/tuna-vids/tree/f1f00243b2f969ebc9ded1a4942f610819f8c673):** Retain full Xvid/GPL and Helix notices. The two-CPU codec licensing/source obligations require an explicit distribution review; root GPL alone is incomplete.
-- **[wasabids](https://github.com/FluBBaOfWard/WasabiDS/tree/b074708a4c0b670e9f3e7d520a776f2bad2695c1):** No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.
+- **[wasabids](https://github.com/FluBBaOfWard/WasabiDS/tree/b074708a4c0b670e9f3e7d520a776f2bad2695c1):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 
 ## SNEmulDS handoff
 

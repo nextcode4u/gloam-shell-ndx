@@ -252,6 +252,7 @@ def build_release(root: Path, offline: bool = False, *, addons: bool = False,
             manifest["addons"] = {
                 "file": "addons.zip", "sha256": sha256((output / "addons.zip").read_bytes()),
                 "noncommercial": addon_report["noncommercial"],
+                "assumed": addon_report.get("assumed", []),
                 "applications": [a["id"] for a in addon_report["applications"]],
             }
         frontend["package-manifest.json"] = json_bytes(manifest)

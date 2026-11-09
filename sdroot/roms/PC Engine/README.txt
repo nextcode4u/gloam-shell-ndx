@@ -12,8 +12,11 @@ Argv in the audited upstream build: direct.
 Firmware: PCE cartridge route needs no BIOS. CD-ROM games require a user-
 supplied CD system BIOS; CD files are not default argv associations.
 
-Add-on package: manual / held; terms: Project-wide redistribution grant not
-found.
+Add-on package: available; terms: Project-wide redistribution grant not found.
+
+Redistribution is assumed for this pack; upstream permission remains
+unconfirmed. See addons/UNCONFIRMED_DISTRIBUTION.md in the companion
+licenses.zip.
 
 Upstream: https://github.com/FluBBaOfWard/NitroGrafx
 Release: https://github.com/FluBBaOfWard/NitroGrafx/releases/tag/v0.9.1

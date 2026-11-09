@@ -56,6 +56,10 @@ def collection_readme(folder: str, catalog: dict, addons: dict) -> str:
             paragraph("Firmware: " + app["bios"])
             paragraph("Add-on package: " + ("available" if "package" in app else "manual / held")
                       + "; terms: " + app["license"] + ".")
+            if app["redistribution"] == "assumed":
+                paragraph("Redistribution is assumed for this pack; upstream permission "
+                          "remains unconfirmed. See addons/UNCONFIRMED_DISTRIBUTION.md "
+                          "in the companion licenses.zip.")
             lines.extend(["Upstream: " + app["repository"], "Release: "
                           + (app["release"] or app["repository"] + "/releases"), ""])
         if collection.get("notes"):

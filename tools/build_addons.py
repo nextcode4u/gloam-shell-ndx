@@ -12,9 +12,9 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 if __package__:
-    from .package_development import json_bytes, relative_path, sha256
+    from .package_development import json_bytes, read_input, relative_path, sha256
 else:
-    from package_development import json_bytes, relative_path, sha256
+    from package_development import json_bytes, read_input, relative_path, sha256
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = "config/addon-dependencies.json"
@@ -30,17 +30,27 @@ def selected_applications(lock: dict, noncommercial: bool = False,
     if any(not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", app["id"])
            for app in lock["applications"]):
         raise ValueError("Unsafe add-on ID")
+    for app in lock["applications"]:
+        if app["redistribution"] == "assumed" and (
+            app.get("permission_confirmed") is not False
+            or app.get("assumption_document") != "docs/guides/UNCONFIRMED_DISTRIBUTION.md"
+        ):
+            raise ValueError("Assumed redistribution must retain its unconfirmed status/document")
     applications = {app["id"]: app for app in lock["applications"]}
     if len(applications) != len(lock["applications"]):
         raise ValueError("Duplicate add-on ID")
-    allowed = {"approved", "noncommercial"} if noncommercial else {"approved"}
+    allowed = {"approved", "assumed"}
+    if noncommercial:
+        allowed.add("noncommercial")
     if only:
         for name in only:
             if name not in applications:
                 raise ValueError(f"Unknown add-on: {name}")
             app = applications[name]
-            if app["redistribution"] not in allowed or "package" not in app:
+            if app["redistribution"] not in allowed:
                 raise ValueError(f"Add-on not eligible: {name}; see docs/guides/ADDONS.md")
+            if "package" not in app:
+                raise ValueError(f"No pinned binary package available: {name}; see docs/guides/ADDONS.md")
         selected = [applications[name] for name in dict.fromkeys(only)]
     else:
         selected = [app for app in applications.values()
@@ -135,19 +145,38 @@ def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
         sources[prefix + "release.json"] = json_bytes(app)
         if not package["notices"]:
             raise ValueError(f"Missing add-on notices: {app['id']}")
-        for item in package["notices"]:
-            relative_path(item["destination"])
-            content = members[item["member"]]
-            if item.get("header_only"):
-                # Preserve the complete original firmware license comment.
-                start = content.find(b"/*")
-                end = content.find(b"*/", start)
-                if start < 0 or end < 0:
-                    raise ValueError("Missing firmware license comment")
-                content = content[start:end + 2] + b"\n"
-            if not content.strip():
-                raise ValueError("Empty add-on notice")
-            notices[f"addons/{app['id']}/{item['destination']}"] = content
+
+        def keep_notices(items: list[dict], archive: dict[str, bytes], folder: str) -> None:
+            for item in items:
+                relative_path(item["destination"])
+                content = archive[item["member"]]
+                if item.get("header_only"):
+                    start = content.find(b"/*")
+                    end = content.find(b"*/", start)
+                    if start < 0 or end < 0:
+                        raise ValueError("Missing firmware license comment")
+                    content = content[start:end + 2] + b"\n"
+                if not content.strip():
+                    raise ValueError("Empty add-on notice")
+                target = f"addons/{app['id']}/{folder}{item['destination']}"
+                if target in notices:
+                    raise ValueError("Overlapping add-on notices")
+                notices[target] = content
+
+        keep_notices(package["notices"], members, "")
+        for extra in package.get("extra_sources", []):
+            relative_path(extra["path"])
+            blob = fetch(extra["download"])
+            target = prefix + extra["path"]
+            if not extra["path"].startswith("submodules/") or target in sources:
+                raise ValueError("Overlapping or misplaced add-on source archive")
+            sources[target] = blob
+            extra_members = archive_members(blob, "tar.gz")
+            keep_notices(extra.get("notices", []), extra_members,
+                         extra["path"].removesuffix(".tar.gz") + "/")
+        for item in package.get("runtime_notices", []):
+            archive = archive_members(fetch(item["download"]), item["format"])
+            keep_notices([item], archive, "")
         for item in package.get("nested_notices", []):
             relative_path(item["destination"])
             nested = archive_members(members[item["archive_member"]], "tar.gz")
@@ -170,12 +199,20 @@ def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
         notices["addons/common/" + notice["asset"]] = fetch(notice)
     report = {"format": 1, "reviewed": lock["reviewed"], "applications": selected,
               "noncommercial": any(a["redistribution"] == "noncommercial" for a in selected),
+              "assumed": [a["id"] for a in selected if a["redistribution"] == "assumed"],
               "runtime_files": {n: sha256(b) for n, b in sorted(runtime.items())}}
+    if report["assumed"]:
+        notices["addons/UNCONFIRMED_DISTRIBUTION.md"] = read_input(
+            root, "docs/guides/UNCONFIRMED_DISTRIBUTION.md"
+        )
     notices["addons/README.txt"] = (
         "Gloam optional add-ons: keep this licenses.zip and the combined source.zip\n"
         "with addons.zip when redistributing. Each app retains its own terms;\n"
         "Gloam's GPL does not replace them. Exact versions, sources and hashes\n"
         "are recorded in source.zip/dependencies/addons/manifest.json.\n"
+        + ("This selection assumes redistribution permission for unconfirmed apps.\n"
+           "Read addons/UNCONFIRMED_DISTRIBUTION.md; no license grant is asserted.\n"
+           if report["assumed"] else "")
         + ("This selection includes noncommercial apps: no sale/profit.\n"
            if report["noncommercial"] else "This selection excludes the noncommercial-only apps.\n")
     ).encode()
@@ -195,8 +232,8 @@ def main() -> None:
     if args.list:
         lock = json.loads((ROOT / LOCK).read_text())
         for app in lock["applications"]:
-            print(f"{app['id']}: argv={app['argv']}; {app['redistribution']}; "
-                  f"{'packaged' if 'package' in app else 'manual / held'}")
+            availability = "packaged" if "package" in app else "no pinned package"
+            print(f"{app['id']}: argv={app['argv']}; {app['redistribution']}; {availability}")
         return
     try:
         selected_applications(json.loads((ROOT / LOCK).read_text()), args.noncommercial, args.only)

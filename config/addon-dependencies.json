@@ -1,7 +1,7 @@
 {
   "format": 1,
   "reviewed": "2026-11-08",
-  "default_policy": "approved releases only; --noncommercial adds explicitly no-profit packages",
+  "default_policy": "approved and explicitly assumed redistribution entries with pinned packages; --noncommercial adds no-profit-only packages",
   "application_directory": "_nds/dsi-frontend/plugins/apps",
   "applications": [
     {
@@ -416,12 +416,43 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/arm9/source/main.cpp",
-      "redistribution": "blocked",
+      "redistribution": "assumed",
       "license": "Project license not stated",
-      "distribution_notes": "Argv is explicit, but upstream issue #15 requests the missing license. A public repository does not establish redistribution permission.",
+      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
       "bios": "No BIOS required; convert videos with the matching FastVideoDS encoder.",
       "bios_evidence": "https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/readme.md",
-      "license_evidence": "https://github.com/Gericom/FastVideoDSPlayer/tree/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab"
+      "license_evidence": "https://github.com/Gericom/FastVideoDSPlayer/tree/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab",
+      "permission_confirmed": false,
+      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
+      "license_findings": "Argv is explicit, but upstream issue #15 requests the missing license. A public repository does not establish redistribution permission.",
+      "package": {
+        "source": {
+          "asset": "fastvideods-source.tar.gz",
+          "url": "https://codeload.github.com/Gericom/FastVideoDSPlayer/tar.gz/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab",
+          "sha256": "4d9bc4aac4b47620049b83fd75089e0190313e45bf52005acda5884f6c080de6"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "fastvideods-FastVideoDS.nds",
+              "url": "https://github.com/Gericom/FastVideoDSPlayer/releases/download/v0.0.1/FastVideoDS.nds",
+              "sha256": "a891bd68617688e43c1f8b7e5d46a79d87e84eefa9cc4b794f83f17a4d4155a3"
+            },
+            "format": "raw",
+            "destination": "_nds/dsi-frontend/plugins/apps/FastVideoDS.nds",
+            "sha256": "a891bd68617688e43c1f8b7e5d46a79d87e84eefa9cc4b794f83f17a4d4155a3"
+          }
+        ],
+        "notices": [
+          {
+            "member": "FastVideoDSPlayer-62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/readme.md",
+            "destination": "readme.md"
+          }
+        ],
+        "extra_sources": [],
+        "runtime_notices": []
+      },
+      "source_coverage": "Published project source plus source submodules at their recorded commits."
     },
     {
       "id": "gameyob-dsi",
@@ -496,12 +527,15 @@
       "release_assets": [],
       "argv": "direct",
       "argv_evidence": "https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/code/core/arm9/source/main.cpp",
-      "redistribution": "blocked",
+      "redistribution": "assumed",
       "license": "Project-wide license not established",
-      "distribution_notes": "No upstream release assets and no project-wide LICENSE/COPYING; upstream issues #200/#208 discuss missing permission. Do not redistribute a private/CI build as an official release.",
+      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. No official release or current public CI artifact is available, so there is no pinned binary package to include.",
       "bios": "Requires original 16 KiB GBA BIOS at /_gba/bios.bin. Fixed-offset relocation/patches prevent assuming a replacement BIOS is compatible.",
       "bios_evidence": "https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/README.md",
-      "license_evidence": "https://github.com/Gericom/GBARunner3/tree/ecaa817815d9761745606592f04affe5ee9c3731"
+      "license_evidence": "https://github.com/Gericom/GBARunner3/tree/ecaa817815d9761745606592f04affe5ee9c3731",
+      "permission_confirmed": false,
+      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
+      "license_findings": "No upstream release assets and no project-wide LICENSE/COPYING; upstream issues #200/#208 discuss missing permission. Do not redistribute a private/CI build as an official release."
     },
     {
       "id": "gimlids",
@@ -582,12 +616,43 @@
       "argv": "direct",
       "argv_evidence": "https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/newCode/source/main.s",
       "argv_notes": "saveArgv validates the standard _arg record, copies argv[1] and loadRomFromArgv starts the ROM. Original jEnesisDS does not establish the Plus behavior. Native DSi SD handoff still needs testing; do not infer it from the BlocksDS toolchain used for the injected code.",
-      "redistribution": "blocked",
+      "redistribution": "assumed",
       "license": "No explicit Plus redistribution license; closed-source base terms unconfirmed",
-      "distribution_notes": "README says the original jEnesisDS source was never public and the improvements are ASM patches. The Plus tree has no stated license; verify grants for both Lordus's base and the modifications before bundling. Lack of source by itself does not prohibit redistribution under a suitable freeware license; that grant has not been established here. Original 0.7.4 notices could not be retrieved from the linked download (HTTP 403).",
+      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
       "bios": "No external console BIOS needed for Genesis cartridge ROMs. Plus supports up to 7.5 MiB on DSi (4 MiB on DS debug hardware), with mapper support for ROMs above 4 MiB. Native console-SD compatibility is not yet validated in Gloam.",
       "bios_evidence": "https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/README.md",
-      "license_evidence": "https://github.com/DS-Homebrew/jEnesisDSPlus/tree/ca3bb43d14f8d78ccb6546d753817defaac25937"
+      "license_evidence": "https://github.com/DS-Homebrew/jEnesisDSPlus/tree/ca3bb43d14f8d78ccb6546d753817defaac25937",
+      "permission_confirmed": false,
+      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
+      "license_findings": "README says the original jEnesisDS source was never public and the improvements are ASM patches. The Plus tree has no stated license; verify grants for both Lordus's base and the modifications before bundling. Lack of source by itself does not prohibit redistribution under a suitable freeware license; that grant has not been established here. Original 0.7.4 notices could not be retrieved from the linked download (HTTP 403).",
+      "package": {
+        "source": {
+          "asset": "jenesisdsplus-source.tar.gz",
+          "url": "https://codeload.github.com/DS-Homebrew/jEnesisDSPlus/tar.gz/ca3bb43d14f8d78ccb6546d753817defaac25937",
+          "sha256": "eb4657813247271efbe21d372dcf04ae19dfc7517f616f2af503186b89cdd5c1"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "jenesisdsplus-jEnesisDSPlus.nds",
+              "url": "https://github.com/DS-Homebrew/jEnesisDSPlus/releases/download/v0.8.1/jEnesisDSPlus.nds",
+              "sha256": "1416b68c09ccf7e4c5dd6bbca8ec70c6f5499f0b3470b0ab2b3803aa1f2628a0"
+            },
+            "format": "raw",
+            "destination": "_nds/dsi-frontend/plugins/apps/jEnesisDSPlus.nds",
+            "sha256": "1416b68c09ccf7e4c5dd6bbca8ec70c6f5499f0b3470b0ab2b3803aa1f2628a0"
+          }
+        ],
+        "notices": [
+          {
+            "member": "jEnesisDSPlus-ca3bb43d14f8d78ccb6546d753817defaac25937/README.md",
+            "destination": "README.md"
+          }
+        ],
+        "extra_sources": [],
+        "runtime_notices": []
+      },
+      "source_coverage": "Patch and injected-code source only; the original jEnesisDS base source is unavailable."
     },
     {
       "id": "lodjurds",
@@ -603,12 +668,144 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/FluBBaOfWard/LodjurDS/blob/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/source/Main.c",
-      "redistribution": "blocked",
+      "redistribution": "assumed",
       "license": "Project-wide redistribution grant not found",
-      "distribution_notes": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
       "bios": "Requires a user-supplied Atari Lynx BIOS, selected inside LodjurDS. Upstream explicitly says it is needed to run games; not included.",
       "bios_evidence": "https://github.com/FluBBaOfWard/LodjurDS/blob/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/README.md",
-      "license_evidence": "https://github.com/FluBBaOfWard/LodjurDS/tree/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b"
+      "license_evidence": "https://github.com/FluBBaOfWard/LodjurDS/tree/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b",
+      "permission_confirmed": false,
+      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
+      "license_findings": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "package": {
+        "source": {
+          "asset": "lodjurds-source.tar.gz",
+          "url": "https://codeload.github.com/FluBBaOfWard/LodjurDS/tar.gz/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b",
+          "sha256": "cebfb5e8fa5e9ccd61082584edc8ef8e20c57d8aa2112af0ffbc6b537e74cbb7"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "lodjurds-LodjurDS.zip",
+              "url": "https://github.com/FluBBaOfWard/LodjurDS/releases/download/v0.1.5/LodjurDS.zip",
+              "sha256": "06a824fd5662f313125b66c4f46a5c45f3f48b270213ba3e5cd31e13d469439b"
+            },
+            "format": "zip",
+            "member": "LodjurDS.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/LodjurDS.nds",
+            "sha256": "0e45d131f237c5e002967a0dd2d2e82cde288c1b83c2c59f48d2baa8f8077de7"
+          }
+        ],
+        "notices": [
+          {
+            "member": "LodjurDS-1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/README.md",
+            "destination": "README.md"
+          }
+        ],
+        "extra_sources": [
+          {
+            "download": {
+              "asset": "FluBBaOfWard-NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/NDS_Shared/tar.gz/d5166c2dbb1052cbdf238a1f2a6293c0fc18180e",
+              "sha256": "772f3c95901a1211320e498a63088437d5e556b1b2a896f7a22ea3b176b8973d"
+            },
+            "path": "submodules/source/Shared.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/NDS_Shared",
+            "commit": "d5166c2dbb1052cbdf238a1f2a6293c0fc18180e",
+            "notices": [
+              {
+                "member": "NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e/LICENSE.txt",
+                "destination": "LICENSE.txt"
+              },
+              {
+                "member": "NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-Unzip-63769d6d58ee5600293c1e1300e49e9031858fca.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/Unzip/tar.gz/63769d6d58ee5600293c1e1300e49e9031858fca",
+              "sha256": "349e7fb1bce1aae7f481d7deae3f154b4ba8f28375de0bc47626502116832be3"
+            },
+            "path": "submodules/source/Shared/Unzip.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/Unzip",
+            "commit": "63769d6d58ee5600293c1e1300e49e9031858fca",
+            "notices": [
+              {
+                "member": "Unzip-63769d6d58ee5600293c1e1300e49e9031858fca/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-ARMMikey-336a4d18ff81821b84d2622ac74fe5022e2aacda.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/ARMMikey/tar.gz/336a4d18ff81821b84d2622ac74fe5022e2aacda",
+              "sha256": "fc7037830d7be49e05ba6966b1321a169ddc0db3ef6bd2bc8c4c057e2c65e79c"
+            },
+            "path": "submodules/source/ARMMikey.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/ARMMikey",
+            "commit": "336a4d18ff81821b84d2622ac74fe5022e2aacda",
+            "notices": [
+              {
+                "member": "ARMMikey-336a4d18ff81821b84d2622ac74fe5022e2aacda/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-ARM6502-321ceccac207c8845a9053cbb107f0663a757a56.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/ARM6502/tar.gz/321ceccac207c8845a9053cbb107f0663a757a56",
+              "sha256": "9556c070435be3521e81a5eebf327c5fdc5cfa215f8943a92e64a9475e9f9bc4"
+            },
+            "path": "submodules/source/ARMMikey/ARM6502.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/ARM6502",
+            "commit": "321ceccac207c8845a9053cbb107f0663a757a56",
+            "notices": [
+              {
+                "member": "ARM6502-321ceccac207c8845a9053cbb107f0663a757a56/LICENSE.md",
+                "destination": "LICENSE.md"
+              },
+              {
+                "member": "ARM6502-321ceccac207c8845a9053cbb107f0663a757a56/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-ARMSuzy-5bc3c91a6a0c14e0fd19114f9ad16e286259adf5.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/ARMSuzy/tar.gz/5bc3c91a6a0c14e0fd19114f9ad16e286259adf5",
+              "sha256": "d4c317d1722a7e3d74737121d5c815516a269f16c3e832e1eee17baaf8b6c780"
+            },
+            "path": "submodules/source/ARMSuzy.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/ARMSuzy",
+            "commit": "5bc3c91a6a0c14e0fd19114f9ad16e286259adf5",
+            "notices": [
+              {
+                "member": "ARMSuzy-5bc3c91a6a0c14e0fd19114f9ad16e286259adf5/README.md",
+                "destination": "README.md"
+              }
+            ]
+          }
+        ],
+        "runtime_notices": [
+          {
+            "download": {
+              "asset": "lodjurds-LodjurDS.zip",
+              "url": "https://github.com/FluBBaOfWard/LodjurDS/releases/download/v0.1.5/LodjurDS.zip",
+              "sha256": "06a824fd5662f313125b66c4f46a5c45f3f48b270213ba3e5cd31e13d469439b"
+            },
+            "format": "zip",
+            "member": "README.md",
+            "destination": "release/README.md"
+          }
+        ]
+      },
+      "source_coverage": "Published project source plus source submodules at their recorded commits."
     },
     {
       "id": "microds",
@@ -711,12 +908,172 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/FluBBaOfWard/NGPDS/blob/4dbcc210cdb519414ff20d2886645a530e298206/source/Main.c",
-      "redistribution": "blocked",
+      "redistribution": "assumed",
       "license": "Project-wide redistribution grant not found",
-      "distribution_notes": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
       "bios": "Upstream says a real NGP/NGPC BIOS is needed for in-game saving. Select it in emulator settings; not included.",
       "bios_evidence": "https://github.com/FluBBaOfWard/NGPDS/blob/4dbcc210cdb519414ff20d2886645a530e298206/README.md",
-      "license_evidence": "https://github.com/FluBBaOfWard/NGPDS/tree/4dbcc210cdb519414ff20d2886645a530e298206"
+      "license_evidence": "https://github.com/FluBBaOfWard/NGPDS/tree/4dbcc210cdb519414ff20d2886645a530e298206",
+      "permission_confirmed": false,
+      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
+      "license_findings": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "package": {
+        "source": {
+          "asset": "ngpds-source.tar.gz",
+          "url": "https://codeload.github.com/FluBBaOfWard/NGPDS/tar.gz/4dbcc210cdb519414ff20d2886645a530e298206",
+          "sha256": "eb0c3f5beeccb6392928e1b6af4acc4cd4c554a1ebac09edf97f88e9ad1bf0ec"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "ngpds-NGPDS.zip",
+              "url": "https://github.com/FluBBaOfWard/NGPDS/releases/download/v0.6.0/NGPDS.zip",
+              "sha256": "7e8981155fa6ed01657334127a013cdb8d910d4747cf0ce0ea70a1281010711d"
+            },
+            "format": "zip",
+            "member": "NGPDS.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/NGPDS.nds",
+            "sha256": "af2ed33f28a0b0f4d27d31e3084f1932c7b5e4c86b84521cac0d29ef059a24dd"
+          }
+        ],
+        "notices": [
+          {
+            "member": "NGPDS-4dbcc210cdb519414ff20d2886645a530e298206/README.md",
+            "destination": "README.md"
+          }
+        ],
+        "extra_sources": [
+          {
+            "download": {
+              "asset": "FluBBaOfWard-SN76496-482b7a954b74f5207c396609e5a625775f62d463.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/SN76496/tar.gz/482b7a954b74f5207c396609e5a625775f62d463",
+              "sha256": "03ada39a893aee17626f5309b4b432dd06f840fe7a7f5ad43c68fc899b0f7ed6"
+            },
+            "path": "submodules/source/K2Audio.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/SN76496",
+            "commit": "482b7a954b74f5207c396609e5a625775f62d463",
+            "notices": [
+              {
+                "member": "SN76496-482b7a954b74f5207c396609e5a625775f62d463/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-K2GE-e6b936de7abe43b5244893e59a4323d97e910c17.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/K2GE/tar.gz/e6b936de7abe43b5244893e59a4323d97e910c17",
+              "sha256": "e3afab1d305d9f1f30290bc0a10d1200b269ceb785bf7af92d857dc2d67152ed"
+            },
+            "path": "submodules/source/K2GE.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/K2GE",
+            "commit": "e6b936de7abe43b5244893e59a4323d97e910c17",
+            "notices": [
+              {
+                "member": "K2GE-e6b936de7abe43b5244893e59a4323d97e910c17/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-TLCS900H-d5884bd3145aaf2e5ed8914d4aefde297e3e256f.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/TLCS900H/tar.gz/d5884bd3145aaf2e5ed8914d4aefde297e3e256f",
+              "sha256": "2d36212725e53a98f75360b11f35eb9c03a2c613ad31ae9b8409db75e7a72ab8"
+            },
+            "path": "submodules/source/TLCS900H.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/TLCS900H",
+            "commit": "d5884bd3145aaf2e5ed8914d4aefde297e3e256f",
+            "notices": [
+              {
+                "member": "TLCS900H-d5884bd3145aaf2e5ed8914d4aefde297e3e256f/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-ARMZ80-920a177b7ee268cb8ab475daf74cd0bd800bfc79.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/ARMZ80/tar.gz/920a177b7ee268cb8ab475daf74cd0bd800bfc79",
+              "sha256": "47a7a534f390f063a9c28a676fa1566cbf6b27fcface6b1fd2fe9e6d3a381bfa"
+            },
+            "path": "submodules/source/ARMZ80.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/ARMZ80",
+            "commit": "920a177b7ee268cb8ab475daf74cd0bd800bfc79",
+            "notices": [
+              {
+                "member": "ARMZ80-920a177b7ee268cb8ab475daf74cd0bd800bfc79/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/NDS_Shared/tar.gz/d5166c2dbb1052cbdf238a1f2a6293c0fc18180e",
+              "sha256": "772f3c95901a1211320e498a63088437d5e556b1b2a896f7a22ea3b176b8973d"
+            },
+            "path": "submodules/source/Shared.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/NDS_Shared",
+            "commit": "d5166c2dbb1052cbdf238a1f2a6293c0fc18180e",
+            "notices": [
+              {
+                "member": "NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e/LICENSE.txt",
+                "destination": "LICENSE.txt"
+              },
+              {
+                "member": "NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-Unzip-63769d6d58ee5600293c1e1300e49e9031858fca.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/Unzip/tar.gz/63769d6d58ee5600293c1e1300e49e9031858fca",
+              "sha256": "349e7fb1bce1aae7f481d7deae3f154b4ba8f28375de0bc47626502116832be3"
+            },
+            "path": "submodules/source/Shared/Unzip.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/Unzip",
+            "commit": "63769d6d58ee5600293c1e1300e49e9031858fca",
+            "notices": [
+              {
+                "member": "Unzip-63769d6d58ee5600293c1e1300e49e9031858fca/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-NGPFlash-be56050eaaeb92964bc2ddcb7ecde339547a3e87.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/NGPFlash/tar.gz/be56050eaaeb92964bc2ddcb7ecde339547a3e87",
+              "sha256": "1dbf1f5d70727198140af239e3ac8a037878c0eb131b8b96e400d5fc599b8f6b"
+            },
+            "path": "submodules/source/NGPFlash.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/NGPFlash",
+            "commit": "be56050eaaeb92964bc2ddcb7ecde339547a3e87",
+            "notices": [
+              {
+                "member": "NGPFlash-be56050eaaeb92964bc2ddcb7ecde339547a3e87/README.md",
+                "destination": "README.md"
+              }
+            ]
+          }
+        ],
+        "runtime_notices": [
+          {
+            "download": {
+              "asset": "ngpds-NGPDS.zip",
+              "url": "https://github.com/FluBBaOfWard/NGPDS/releases/download/v0.6.0/NGPDS.zip",
+              "sha256": "7e8981155fa6ed01657334127a013cdb8d910d4747cf0ce0ea70a1281010711d"
+            },
+            "format": "zip",
+            "member": "README.md",
+            "destination": "release/README.md"
+          }
+        ]
+      },
+      "source_coverage": "Published project source plus source submodules at their recorded commits."
     },
     {
       "id": "nintv-ds",
@@ -757,12 +1114,118 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/FluBBaOfWard/NitroGrafx/blob/62920a05e9c7e31144d7e16b58797cdd8bc3789a/source/Main.c",
-      "redistribution": "blocked",
+      "redistribution": "assumed",
       "license": "Project-wide redistribution grant not found",
-      "distribution_notes": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
       "bios": "PCE cartridge route needs no BIOS. CD-ROM games require a user-supplied CD system BIOS; CD files are not default argv associations.",
       "bios_evidence": "https://github.com/FluBBaOfWard/NitroGrafx/blob/62920a05e9c7e31144d7e16b58797cdd8bc3789a/README.md",
-      "license_evidence": "https://github.com/FluBBaOfWard/NitroGrafx/tree/62920a05e9c7e31144d7e16b58797cdd8bc3789a"
+      "license_evidence": "https://github.com/FluBBaOfWard/NitroGrafx/tree/62920a05e9c7e31144d7e16b58797cdd8bc3789a",
+      "permission_confirmed": false,
+      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
+      "license_findings": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "package": {
+        "source": {
+          "asset": "nitrografx-source.tar.gz",
+          "url": "https://codeload.github.com/FluBBaOfWard/NitroGrafx/tar.gz/62920a05e9c7e31144d7e16b58797cdd8bc3789a",
+          "sha256": "904e20767feabba72033a4e3777d321d432848c9dd4b4db2e58da698a02c7546"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "nitrografx-NitroGrafx0_9_1.zip",
+              "url": "https://github.com/FluBBaOfWard/NitroGrafx/releases/download/v0.9.1/NitroGrafx0_9_1.zip",
+              "sha256": "32b2969e657a59b8c42fd79ec5ad0aa83b74803549d5a3954d626f6260e3fd64"
+            },
+            "format": "zip",
+            "member": "NitroGrafx.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/NitroGrafx.nds",
+            "sha256": "264d9553ee59887e8e02c5d3fc710a143b8037ca1a998e494dd919ac62cf7cf2"
+          }
+        ],
+        "notices": [
+          {
+            "member": "NitroGrafx-62920a05e9c7e31144d7e16b58797cdd8bc3789a/README.md",
+            "destination": "README.md"
+          }
+        ],
+        "extra_sources": [
+          {
+            "download": {
+              "asset": "FluBBaOfWard-ARMH6280-41411e4bb51ee548abe3ea40ea895357a764a999.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/ARMH6280/tar.gz/41411e4bb51ee548abe3ea40ea895357a764a999",
+              "sha256": "ebe52c30aba42b57396e4ce5eaf63f309bb0dc50d878253211219b74e5311221"
+            },
+            "path": "submodules/source/ARMH6280.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/ARMH6280",
+            "commit": "41411e4bb51ee548abe3ea40ea895357a764a999",
+            "notices": [
+              {
+                "member": "ARMH6280-41411e4bb51ee548abe3ea40ea895357a764a999/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-NDS_Shared-fd00f621e201616e57b6ffeb9b23678078217bbf.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/NDS_Shared/tar.gz/fd00f621e201616e57b6ffeb9b23678078217bbf",
+              "sha256": "b1fcd82c2efd3ab0173c18b398aa892d1c82c103ac8603bad6e065ac7bc12411"
+            },
+            "path": "submodules/source/Shared.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/NDS_Shared",
+            "commit": "fd00f621e201616e57b6ffeb9b23678078217bbf",
+            "notices": [
+              {
+                "member": "NDS_Shared-fd00f621e201616e57b6ffeb9b23678078217bbf/LICENSE.txt",
+                "destination": "LICENSE.txt"
+              },
+              {
+                "member": "NDS_Shared-fd00f621e201616e57b6ffeb9b23678078217bbf/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-Unzip-63769d6d58ee5600293c1e1300e49e9031858fca.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/Unzip/tar.gz/63769d6d58ee5600293c1e1300e49e9031858fca",
+              "sha256": "349e7fb1bce1aae7f481d7deae3f154b4ba8f28375de0bc47626502116832be3"
+            },
+            "path": "submodules/source/Shared/Unzip.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/Unzip",
+            "commit": "63769d6d58ee5600293c1e1300e49e9031858fca",
+            "notices": [
+              {
+                "member": "Unzip-63769d6d58ee5600293c1e1300e49e9031858fca/README.md",
+                "destination": "README.md"
+              }
+            ]
+          }
+        ],
+        "runtime_notices": [
+          {
+            "download": {
+              "asset": "nitrografx-NitroGrafx0_9_1.zip",
+              "url": "https://github.com/FluBBaOfWard/NitroGrafx/releases/download/v0.9.1/NitroGrafx0_9_1.zip",
+              "sha256": "32b2969e657a59b8c42fd79ec5ad0aa83b74803549d5a3954d626f6260e3fd64"
+            },
+            "format": "zip",
+            "member": "CDROM_readme.txt",
+            "destination": "release/CDROM_readme.txt"
+          },
+          {
+            "download": {
+              "asset": "nitrografx-NitroGrafx0_9_1.zip",
+              "url": "https://github.com/FluBBaOfWard/NitroGrafx/releases/download/v0.9.1/NitroGrafx0_9_1.zip",
+              "sha256": "32b2969e657a59b8c42fd79ec5ad0aa83b74803549d5a3954d626f6260e3fd64"
+            },
+            "format": "zip",
+            "member": "README.md",
+            "destination": "release/README.md"
+          }
+        ]
+      },
+      "source_coverage": "Published project source plus source submodules at their recorded commits."
     },
     {
       "id": "nitroswan",
@@ -778,12 +1241,172 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/FluBBaOfWard/NitroSwan/blob/564e171fb93c2c11f98f38607493675727676c2c/source/Main.c",
-      "redistribution": "blocked",
+      "redistribution": "assumed",
       "license": "Project-wide redistribution grant not found",
-      "distribution_notes": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
       "bios": "Built-in startup handling permits games without original firmware; optional WS/WSC/Crystal BIOS can be selected in the emulator.",
       "bios_evidence": "https://github.com/FluBBaOfWard/NitroSwan/blob/564e171fb93c2c11f98f38607493675727676c2c/README.md",
-      "license_evidence": "https://github.com/FluBBaOfWard/NitroSwan/tree/564e171fb93c2c11f98f38607493675727676c2c"
+      "license_evidence": "https://github.com/FluBBaOfWard/NitroSwan/tree/564e171fb93c2c11f98f38607493675727676c2c",
+      "permission_confirmed": false,
+      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
+      "license_findings": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "package": {
+        "source": {
+          "asset": "nitroswan-source.tar.gz",
+          "url": "https://codeload.github.com/FluBBaOfWard/NitroSwan/tar.gz/564e171fb93c2c11f98f38607493675727676c2c",
+          "sha256": "086aaefab2c2e0370f563375733eb15480f0d64575e90493a2bd893c35fcbb40"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "nitroswan-NitroSwan.zip",
+              "url": "https://github.com/FluBBaOfWard/NitroSwan/releases/download/v0.7.7/NitroSwan.zip",
+              "sha256": "5f573fed26071943c5d7c68f159a7c2803e7773fd2c52485c839ac1e361d4008"
+            },
+            "format": "zip",
+            "member": "NitroSwan.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/NitroSwan.nds",
+            "sha256": "48c7104b90324943da34c667c82f0f6711e77afa8a36398fafc4cf9bbecce3f0"
+          }
+        ],
+        "notices": [
+          {
+            "member": "NitroSwan-564e171fb93c2c11f98f38607493675727676c2c/README.md",
+            "destination": "README.md"
+          }
+        ],
+        "extra_sources": [
+          {
+            "download": {
+              "asset": "FluBBaOfWard-NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/NDS_Shared/tar.gz/d5166c2dbb1052cbdf238a1f2a6293c0fc18180e",
+              "sha256": "772f3c95901a1211320e498a63088437d5e556b1b2a896f7a22ea3b176b8973d"
+            },
+            "path": "submodules/source/Shared.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/NDS_Shared",
+            "commit": "d5166c2dbb1052cbdf238a1f2a6293c0fc18180e",
+            "notices": [
+              {
+                "member": "NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e/LICENSE.txt",
+                "destination": "LICENSE.txt"
+              },
+              {
+                "member": "NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-Unzip-63769d6d58ee5600293c1e1300e49e9031858fca.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/Unzip/tar.gz/63769d6d58ee5600293c1e1300e49e9031858fca",
+              "sha256": "349e7fb1bce1aae7f481d7deae3f154b4ba8f28375de0bc47626502116832be3"
+            },
+            "path": "submodules/source/Shared/Unzip.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/Unzip",
+            "commit": "63769d6d58ee5600293c1e1300e49e9031858fca",
+            "notices": [
+              {
+                "member": "Unzip-63769d6d58ee5600293c1e1300e49e9031858fca/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-ARMV30MZ-146f5fb4d664f8874792299d3a6e4bd8415df287.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/ARMV30MZ/tar.gz/146f5fb4d664f8874792299d3a6e4bd8415df287",
+              "sha256": "799237c756394fb614d42c3be4f863bac595e6ea49b3f30bcffd0ea4a87d4b58"
+            },
+            "path": "submodules/source/ARMV30MZ.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/ARMV30MZ",
+            "commit": "146f5fb4d664f8874792299d3a6e4bd8415df287",
+            "notices": [
+              {
+                "member": "ARMV30MZ-146f5fb4d664f8874792299d3a6e4bd8415df287/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-Sphinx-8b625f118caa5a58f09c9fb2a32e1d1b70746f78.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/Sphinx/tar.gz/8b625f118caa5a58f09c9fb2a32e1d1b70746f78",
+              "sha256": "87d544b9a2b363170183d4f3234d98bb8f97aca98ae0a5c2ae4d32fc85d0fa03"
+            },
+            "path": "submodules/source/Sphinx.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/Sphinx",
+            "commit": "8b625f118caa5a58f09c9fb2a32e1d1b70746f78",
+            "notices": [
+              {
+                "member": "Sphinx-8b625f118caa5a58f09c9fb2a32e1d1b70746f78/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-WSCart-0d330edfce53a4a3089a7691474fce236f4b6df6.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/WSCart/tar.gz/0d330edfce53a4a3089a7691474fce236f4b6df6",
+              "sha256": "32864413d16a53d89b0343ecad0b46511dbc69b2cb0d25b2c3e54c00dd3e1dc2"
+            },
+            "path": "submodules/source/WSCart.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/WSCart",
+            "commit": "0d330edfce53a4a3089a7691474fce236f4b6df6",
+            "notices": [
+              {
+                "member": "WSCart-0d330edfce53a4a3089a7691474fce236f4b6df6/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-WSRTC-4d6c2450f2010a64d5b0b6b20104719a4abdd9ba.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/WSRTC/tar.gz/4d6c2450f2010a64d5b0b6b20104719a4abdd9ba",
+              "sha256": "37039df9ecc48d91ffe8e56f6b857321fb1077f76b964374385a1f6bce4cbac9"
+            },
+            "path": "submodules/source/WSCart/WSRTC.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/WSRTC",
+            "commit": "4d6c2450f2010a64d5b0b6b20104719a4abdd9ba",
+            "notices": [
+              {
+                "member": "WSRTC-4d6c2450f2010a64d5b0b6b20104719a4abdd9ba/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-WSEEPROM-c168f3ed5ebc967b6adc2c4b41b2b502bcefd80a.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/WSEEPROM/tar.gz/c168f3ed5ebc967b6adc2c4b41b2b502bcefd80a",
+              "sha256": "afd8e7484d448858a5461ba487b216c1719bf3b8e239e41467a2973bab971e3e"
+            },
+            "path": "submodules/source/WSEEPROM.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/WSEEPROM",
+            "commit": "c168f3ed5ebc967b6adc2c4b41b2b502bcefd80a",
+            "notices": [
+              {
+                "member": "WSEEPROM-c168f3ed5ebc967b6adc2c4b41b2b502bcefd80a/README.md",
+                "destination": "README.md"
+              }
+            ]
+          }
+        ],
+        "runtime_notices": [
+          {
+            "download": {
+              "asset": "nitroswan-NitroSwan.zip",
+              "url": "https://github.com/FluBBaOfWard/NitroSwan/releases/download/v0.7.7/NitroSwan.zip",
+              "sha256": "5f573fed26071943c5d7c68f159a7c2803e7773fd2c52485c839ac1e361d4008"
+            },
+            "format": "zip",
+            "member": "README.md",
+            "destination": "release/README.md"
+          }
+        ]
+      },
+      "source_coverage": "Published project source plus source submodules at their recorded commits."
     },
     {
       "id": "picodrivetwl",
@@ -921,12 +1544,236 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/source/Main.c",
-      "redistribution": "blocked",
+      "redistribution": "assumed",
       "license": "Project-wide redistribution grant not found",
-      "distribution_notes": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
       "bios": "Configured SMS/GG/SG-1000 cartridge routes normally bypass BIOS. Other emulated machines can require their own BIOS selected inside S8DS.",
       "bios_evidence": "https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/README.md",
-      "license_evidence": "https://github.com/FluBBaOfWard/S8DS/tree/90f2c13368f0b2ceac7887802e77d516d6337436"
+      "license_evidence": "https://github.com/FluBBaOfWard/S8DS/tree/90f2c13368f0b2ceac7887802e77d516d6337436",
+      "permission_confirmed": false,
+      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
+      "license_findings": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "package": {
+        "source": {
+          "asset": "s8ds-source.tar.gz",
+          "url": "https://codeload.github.com/FluBBaOfWard/S8DS/tar.gz/90f2c13368f0b2ceac7887802e77d516d6337436",
+          "sha256": "4500c4e0b0e02e7178430ffa84961f223b5104058b51d1b50b216f80b0fa8636"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "s8ds-S8DS.zip",
+              "url": "https://github.com/FluBBaOfWard/S8DS/releases/download/v1.1.8/S8DS.zip",
+              "sha256": "01e5312f2af0685c5e64fd8d4fc5e4d460df9de03b8f97b1df6eaa76c2d702f6"
+            },
+            "format": "zip",
+            "member": "S8DS.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/S8DS.nds",
+            "sha256": "22df6b1a3426269562bc771c12d98a40ea6dd9adae0d049ba641a81af281b892"
+          }
+        ],
+        "notices": [
+          {
+            "member": "S8DS-90f2c13368f0b2ceac7887802e77d516d6337436/README.md",
+            "destination": "README.md"
+          }
+        ],
+        "extra_sources": [
+          {
+            "download": {
+              "asset": "FluBBaOfWard-ARMZ80-920a177b7ee268cb8ab475daf74cd0bd800bfc79.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/ARMZ80/tar.gz/920a177b7ee268cb8ab475daf74cd0bd800bfc79",
+              "sha256": "47a7a534f390f063a9c28a676fa1566cbf6b27fcface6b1fd2fe9e6d3a381bfa"
+            },
+            "path": "submodules/source/ARMZ80.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/ARMZ80",
+            "commit": "920a177b7ee268cb8ab475daf74cd0bd800bfc79",
+            "notices": [
+              {
+                "member": "ARMZ80-920a177b7ee268cb8ab475daf74cd0bd800bfc79/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-ARMZ80CTC-0ba94f89ada61676905e21a28ea96588bf318ec8.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/ARMZ80CTC/tar.gz/0ba94f89ada61676905e21a28ea96588bf318ec8",
+              "sha256": "62aebbac716566bb102c8fff07708f36fdded5a6145342c6bc749c38319d75f1"
+            },
+            "path": "submodules/source/ARMZ80CTC.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/ARMZ80CTC",
+            "commit": "0ba94f89ada61676905e21a28ea96588bf318ec8",
+            "notices": [
+              {
+                "member": "ARMZ80CTC-0ba94f89ada61676905e21a28ea96588bf318ec8/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-SegaVDP-0e4493f76335188baf0c5848750a330be2d03e1a.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/SegaVDP/tar.gz/0e4493f76335188baf0c5848750a330be2d03e1a",
+              "sha256": "997e4ce889eb2500b773ac0351747a06021c2417ebdbbae258532a4405b1ae62"
+            },
+            "path": "submodules/source/SegaVDP.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/SegaVDP",
+            "commit": "0e4493f76335188baf0c5848750a330be2d03e1a",
+            "notices": [
+              {
+                "member": "SegaVDP-0e4493f76335188baf0c5848750a330be2d03e1a/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-SN76496-482b7a954b74f5207c396609e5a625775f62d463.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/SN76496/tar.gz/482b7a954b74f5207c396609e5a625775f62d463",
+              "sha256": "03ada39a893aee17626f5309b4b432dd06f840fe7a7f5ad43c68fc899b0f7ed6"
+            },
+            "path": "submodules/source/SN76496.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/SN76496",
+            "commit": "482b7a954b74f5207c396609e5a625775f62d463",
+            "notices": [
+              {
+                "member": "SN76496-482b7a954b74f5207c396609e5a625775f62d463/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/NDS_Shared/tar.gz/d5166c2dbb1052cbdf238a1f2a6293c0fc18180e",
+              "sha256": "772f3c95901a1211320e498a63088437d5e556b1b2a896f7a22ea3b176b8973d"
+            },
+            "path": "submodules/source/Shared.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/NDS_Shared",
+            "commit": "d5166c2dbb1052cbdf238a1f2a6293c0fc18180e",
+            "notices": [
+              {
+                "member": "NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e/LICENSE.txt",
+                "destination": "LICENSE.txt"
+              },
+              {
+                "member": "NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-Unzip-63769d6d58ee5600293c1e1300e49e9031858fca.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/Unzip/tar.gz/63769d6d58ee5600293c1e1300e49e9031858fca",
+              "sha256": "349e7fb1bce1aae7f481d7deae3f154b4ba8f28375de0bc47626502116832be3"
+            },
+            "path": "submodules/source/Shared/Unzip.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/Unzip",
+            "commit": "63769d6d58ee5600293c1e1300e49e9031858fca",
+            "notices": [
+              {
+                "member": "Unzip-63769d6d58ee5600293c1e1300e49e9031858fca/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-AY38910-15f3b3963718fa03e778684ad3ab4b06616dea82.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/AY38910/tar.gz/15f3b3963718fa03e778684ad3ab4b06616dea82",
+              "sha256": "5086a81a50c4c55b29fabe341bf9a6ef4aab19a18697889eccd733e47b3c7a30"
+            },
+            "path": "submodules/source/AY38910.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/AY38910",
+            "commit": "15f3b3963718fa03e778684ad3ab4b06616dea82",
+            "notices": [
+              {
+                "member": "AY38910-15f3b3963718fa03e778684ad3ab4b06616dea82/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-YM2413-1e471bf90cfb76899b2b819047b0b410f0e356b6.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/YM2413/tar.gz/1e471bf90cfb76899b2b819047b0b410f0e356b6",
+              "sha256": "bd5600c31e31b647e4ba28487f4bb81c69d664cfd4870f7f8d0ac77dfba579d8"
+            },
+            "path": "submodules/source/YM2413.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/YM2413",
+            "commit": "1e471bf90cfb76899b2b819047b0b410f0e356b6",
+            "notices": [
+              {
+                "member": "YM2413-1e471bf90cfb76899b2b819047b0b410f0e356b6/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-PPI8255-ee9f75aacfa5651ff0041745ce73a52f30c1bb7b.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/PPI8255/tar.gz/ee9f75aacfa5651ff0041745ce73a52f30c1bb7b",
+              "sha256": "12b41fdb0703a715a9c1b5bc886e4ffe57f25a74f4cf7b6d2769793ffe0c419a"
+            },
+            "path": "submodules/source/PPI8255.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/PPI8255",
+            "commit": "ee9f75aacfa5651ff0041745ce73a52f30c1bb7b",
+            "notices": [
+              {
+                "member": "PPI8255-ee9f75aacfa5651ff0041745ce73a52f30c1bb7b/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-SCC-d7f4acfce19f13c9933b331e162a38dec6f3eed5.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/SCC/tar.gz/d7f4acfce19f13c9933b331e162a38dec6f3eed5",
+              "sha256": "48a057bbbf575c91934e15ec8e2c44114e4862188b219874fa6189f4ff3bc97c"
+            },
+            "path": "submodules/source/SCC.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/SCC",
+            "commit": "d7f4acfce19f13c9933b331e162a38dec6f3eed5",
+            "notices": [
+              {
+                "member": "SCC-d7f4acfce19f13c9933b331e162a38dec6f3eed5/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-CXD1095Q-3dabcf10bafd79c85b7620bda4c71834e8b2365b.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/CXD1095Q/tar.gz/3dabcf10bafd79c85b7620bda4c71834e8b2365b",
+              "sha256": "9198da3bc7062bbe41f5f6ca835e5c5c6db33368f4b13291354d95d2eddaaf2c"
+            },
+            "path": "submodules/source/CXD1095Q.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/CXD1095Q",
+            "commit": "3dabcf10bafd79c85b7620bda4c71834e8b2365b",
+            "notices": [
+              {
+                "member": "CXD1095Q-3dabcf10bafd79c85b7620bda4c71834e8b2365b/README.md",
+                "destination": "README.md"
+              }
+            ]
+          }
+        ],
+        "runtime_notices": [
+          {
+            "download": {
+              "asset": "s8ds-S8DS.zip",
+              "url": "https://github.com/FluBBaOfWard/S8DS/releases/download/v1.1.8/S8DS.zip",
+              "sha256": "01e5312f2af0685c5e64fd8d4fc5e4d460df9de03b8f97b1df6eaa76c2d702f6"
+            },
+            "format": "zip",
+            "member": "README.md",
+            "destination": "release/README.md"
+          }
+        ]
+      },
+      "source_coverage": "Published project source plus source submodules at their recorded commits."
     },
     {
       "id": "scummvm",
@@ -1286,12 +2133,132 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/source/Main.c",
-      "redistribution": "blocked",
+      "redistribution": "assumed",
       "license": "Project-wide redistribution grant not found",
-      "distribution_notes": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "distribution_notes": "Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.",
       "bios": "No separate Supervision BIOS required.",
       "bios_evidence": "https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/README.md",
-      "license_evidence": "https://github.com/FluBBaOfWard/WasabiDS/tree/b074708a4c0b670e9f3e7d520a776f2bad2695c1"
+      "license_evidence": "https://github.com/FluBBaOfWard/WasabiDS/tree/b074708a4c0b670e9f3e7d520a776f2bad2695c1",
+      "permission_confirmed": false,
+      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
+      "license_findings": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
+      "package": {
+        "source": {
+          "asset": "wasabids-source.tar.gz",
+          "url": "https://codeload.github.com/FluBBaOfWard/WasabiDS/tar.gz/b074708a4c0b670e9f3e7d520a776f2bad2695c1",
+          "sha256": "f5c171f34f8e8da14facaf0302c6222d8242e08368106d115a7d7ac558d60d22"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "wasabids-WasabiDS.zip",
+              "url": "https://github.com/FluBBaOfWard/WasabiDS/releases/download/v0.2.6/WasabiDS.zip",
+              "sha256": "f71597264d895c13d8f8c7e6c688c05b42c4b58ffd497b234d89318a34e23e48"
+            },
+            "format": "zip",
+            "member": "WasabiDS.nds",
+            "destination": "_nds/dsi-frontend/plugins/apps/WasabiDS.nds",
+            "sha256": "378f07b54c50538613d77de2dbcc3531d3dafb7bfa35c57bc2adc92afc25db5e"
+          }
+        ],
+        "notices": [
+          {
+            "member": "WasabiDS-b074708a4c0b670e9f3e7d520a776f2bad2695c1/README.md",
+            "destination": "README.md"
+          },
+          {
+            "member": "WasabiDS-b074708a4c0b670e9f3e7d520a776f2bad2695c1/readme.txt",
+            "destination": "readme.txt"
+          }
+        ],
+        "extra_sources": [
+          {
+            "download": {
+              "asset": "FluBBaOfWard-NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/NDS_Shared/tar.gz/d5166c2dbb1052cbdf238a1f2a6293c0fc18180e",
+              "sha256": "772f3c95901a1211320e498a63088437d5e556b1b2a896f7a22ea3b176b8973d"
+            },
+            "path": "submodules/source/Shared.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/NDS_Shared",
+            "commit": "d5166c2dbb1052cbdf238a1f2a6293c0fc18180e",
+            "notices": [
+              {
+                "member": "NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e/LICENSE.txt",
+                "destination": "LICENSE.txt"
+              },
+              {
+                "member": "NDS_Shared-d5166c2dbb1052cbdf238a1f2a6293c0fc18180e/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-Unzip-63769d6d58ee5600293c1e1300e49e9031858fca.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/Unzip/tar.gz/63769d6d58ee5600293c1e1300e49e9031858fca",
+              "sha256": "349e7fb1bce1aae7f481d7deae3f154b4ba8f28375de0bc47626502116832be3"
+            },
+            "path": "submodules/source/Shared/Unzip.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/Unzip",
+            "commit": "63769d6d58ee5600293c1e1300e49e9031858fca",
+            "notices": [
+              {
+                "member": "Unzip-63769d6d58ee5600293c1e1300e49e9031858fca/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-KS5360-c4e844b6a8706a8b8b31f7a1e07d6c91d7cd996c.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/KS5360/tar.gz/c4e844b6a8706a8b8b31f7a1e07d6c91d7cd996c",
+              "sha256": "72548eacd6cd6eed7d920c7ca9c19cfad98e174eb4cba4f33b1021071f028c0f"
+            },
+            "path": "submodules/source/KS5360.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/KS5360",
+            "commit": "c4e844b6a8706a8b8b31f7a1e07d6c91d7cd996c",
+            "notices": [
+              {
+                "member": "KS5360-c4e844b6a8706a8b8b31f7a1e07d6c91d7cd996c/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-ARM6502-470059bc50e7cdbe843f3abde537db1c882967da.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/ARM6502/tar.gz/470059bc50e7cdbe843f3abde537db1c882967da",
+              "sha256": "6634142c787976ae9bdbb16ff7e93f70dfbbdddb78dd0b09e637482753856e84"
+            },
+            "path": "submodules/source/KS5360/ARM6502.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/ARM6502",
+            "commit": "470059bc50e7cdbe843f3abde537db1c882967da",
+            "notices": [
+              {
+                "member": "ARM6502-470059bc50e7cdbe843f3abde537db1c882967da/LICENSE.md",
+                "destination": "LICENSE.md"
+              },
+              {
+                "member": "ARM6502-470059bc50e7cdbe843f3abde537db1c882967da/README.md",
+                "destination": "README.md"
+              }
+            ]
+          }
+        ],
+        "runtime_notices": [
+          {
+            "download": {
+              "asset": "wasabids-WasabiDS.zip",
+              "url": "https://github.com/FluBBaOfWard/WasabiDS/releases/download/v0.2.6/WasabiDS.zip",
+              "sha256": "f71597264d895c13d8f8c7e6c688c05b42c4b58ffd497b234d89318a34e23e48"
+            },
+            "format": "zip",
+            "member": "README.md",
+            "destination": "release/README.md"
+          }
+        ]
+      },
+      "source_coverage": "Published project source plus source submodules at their recorded commits."
     }
   ],
   "common_notices": [

@@ -34,5 +34,8 @@ and [the build guide](docs/development/BUILDING.md) before changing the project.
 - Optional `addons.zip` must use reviewed release/hash pins and distribution terms;
   update the same combined `source.zip`, `licenses.zip` and checksums with it.
   Keep noncommercial-only apps behind the explicit build flag; never silently
-  bundle held apps, games or proprietary external BIOS.
+  bundle held apps, games or proprietary external BIOS. The specifically listed
+  `assumed` entries are authorized for packaging under the project assumption in
+  docs/guides/UNCONFIRMED_DISTRIBUTION.md; keep permission explicitly unconfirmed
+  and include that document in the companion license archive.
 - Do not push source or publish artifacts without user authorization.

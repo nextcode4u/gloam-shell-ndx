@@ -11,8 +11,11 @@ Argv in the audited upstream build: direct.
 
 Firmware: No separate Supervision BIOS required.
 
-Add-on package: manual / held; terms: Project-wide redistribution grant not
-found.
+Add-on package: available; terms: Project-wide redistribution grant not found.
+
+Redistribution is assumed for this pack; upstream permission remains
+unconfirmed. See addons/UNCONFIRMED_DISTRIBUTION.md in the companion
+licenses.zip.
 
 Upstream: https://github.com/FluBBaOfWard/WasabiDS
 Release: https://github.com/FluBBaOfWard/WasabiDS/releases/tag/v0.2.6

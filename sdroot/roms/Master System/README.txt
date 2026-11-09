@@ -12,8 +12,11 @@ Argv in the audited upstream build: direct.
 Firmware: Configured SMS/GG/SG-1000 cartridge routes normally bypass BIOS.
 Other emulated machines can require their own BIOS selected inside S8DS.
 
-Add-on package: manual / held; terms: Project-wide redistribution grant not
-found.
+Add-on package: available; terms: Project-wide redistribution grant not found.
+
+Redistribution is assumed for this pack; upstream permission remains
+unconfirmed. See addons/UNCONFIRMED_DISTRIBUTION.md in the companion
+licenses.zip.
 
 Upstream: https://github.com/FluBBaOfWard/S8DS
 Release: https://github.com/FluBBaOfWard/S8DS/releases/tag/v1.1.8

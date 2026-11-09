@@ -278,8 +278,11 @@ class PackageTests(unittest.TestCase):
         )
         runtime = {"apps/demo.nds": b"Synthetic application"}
         source = {"dependencies/addons/demo/source.tar.gz": b"Synthetic source archive"}
-        notices = {"addons/demo/LICENSE": b"Synthetic permissive notice"}
-        report = {"format": 1, "applications": [{"id": "demo"}], "noncommercial": False}
+        notices = {"addons/demo/LICENSE": b"Synthetic retained notice",
+                   "addons/UNCONFIRMED_DISTRIBUTION.md": b"Synthetic unconfirmed assumption"}
+        report = {"format": 1, "applications": [{"id": "demo", "redistribution": "assumed",
+                                                "permission_confirmed": False}],
+                  "noncommercial": False, "assumed": ["demo"]}
         with patch("tools.build_addons.addon_files", return_value=(runtime, source, notices, report)):
             build_release(self.root, offline=True, addons=True)
         dist = self.root / "dist"
@@ -289,13 +292,16 @@ class PackageTests(unittest.TestCase):
             self.assertEqual(overlay.read("roms/NES/README.txt"), b"Use .nes and .fds files\n")
             self.assertNotIn("LICENSE", overlay.namelist())
         with zipfile.ZipFile(dist / "licenses.zip") as archive:
-            self.assertEqual(archive.read("addons/demo/LICENSE"), b"Synthetic permissive notice")
+            self.assertEqual(archive.read("addons/demo/LICENSE"), b"Synthetic retained notice")
+            self.assertEqual(archive.read("addons/UNCONFIRMED_DISTRIBUTION.md"),
+                             b"Synthetic unconfirmed assumption")
         with zipfile.ZipFile(dist / "source.zip") as archive:
             self.assertEqual(archive.read("dependencies/addons/demo/source.tar.gz"),
                              b"Synthetic source archive")
             manifest = json.loads(archive.read("package-manifest.json"))
             self.assertEqual(manifest["addons"]["sha256"], sha256((dist / "addons.zip").read_bytes()))
             self.assertEqual(manifest["addons"]["applications"], ["demo"])
+            self.assertEqual(manifest["addons"]["assumed"], ["demo"])
         self.assertIn("  addons.zip", (dist / "SHA256SUMS").read_text())
         # A later base-only build must not retain an add-on with stale companions.
         build_release(self.root, offline=True)

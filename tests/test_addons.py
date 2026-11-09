@@ -1,4 +1,4 @@
-"""Verify optional downloads cannot bypass licensing or archive/hash checks."""
+"""Keep distribution decisions explicit and enforce archive/hash checks."""
 
 import copy
 import io
@@ -66,6 +66,66 @@ class AddonTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 selected_applications(self.lock, only=requested)
         self.assertEqual(selected_applications(self.lock, True, ["conditional"]), [conditional])
+
+    def test_assumed_distribution_stays_unconfirmed_and_carries_document(self):
+        self.app.update(redistribution="assumed", permission_confirmed=False,
+                        assumption_document="docs/guides/UNCONFIRMED_DISTRIBUTION.md")
+        document = self.root / self.app["assumption_document"]
+        document.parent.mkdir(parents=True)
+        document.write_bytes(b"Synthetic fixture: permission is unconfirmed, not a license grant.")
+        self.write_lock()
+        runtime, sources, notices, report = addon_files(self.root, offline=True)
+        self.assertEqual(report["assumed"], ["demo"])
+        self.assertEqual(report["applications"][0]["redistribution"], "assumed")
+        self.assertIs(report["applications"][0]["permission_confirmed"], False)
+        self.assertEqual(notices["addons/UNCONFIRMED_DISTRIBUTION.md"], document.read_bytes())
+        self.assertIn("apps/demo.nds", runtime)
+        self.assertIn("dependencies/addons/manifest.json", sources)
+        self.assertNotIn("addons/UNCONFIRMED_DISTRIBUTION.md", runtime)
+        self.app["permission_confirmed"] = True
+        with self.assertRaisesRegex(ValueError, "unconfirmed"):
+            selected_applications(self.lock)
+
+    def test_recorded_assumption_does_not_invent_a_missing_binary(self):
+        self.app.update(redistribution="assumed", permission_confirmed=False,
+                        assumption_document="docs/guides/UNCONFIRMED_DISTRIBUTION.md")
+        del self.app["package"]
+        with self.assertRaisesRegex(ValueError, "No pinned binary"):
+            selected_applications(self.lock, only=["demo"])
+
+    def test_submodule_source_and_notices_preserve_the_pinned_bytes(self):
+        blob = source_tar({"component/LICENSE": b"Synthetic component notice"})
+        (self.cache / "component.tar.gz").write_bytes(blob)
+        self.app["package"]["extra_sources"] = [{
+            "download": {"asset": "component.tar.gz", "url": "https://example.invalid/component",
+                         "sha256": sha256(blob)},
+            "path": "submodules/lib/component.tar.gz",
+            "notices": [{"member": "component/LICENSE", "destination": "LICENSE"}],
+        }]
+        self.write_lock()
+        _, sources, notices, _ = addon_files(self.root, offline=True)
+        self.assertEqual(sources["dependencies/addons/demo/submodules/lib/component.tar.gz"], blob)
+        self.assertEqual(notices["addons/demo/submodules/lib/component/LICENSE"],
+                         b"Synthetic component notice")
+
+    def test_release_zip_notices_do_not_enter_the_runtime_overlay(self):
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as archive:
+            archive.writestr("demo.nds", self.binary)
+            archive.writestr("README.md", b"Synthetic author attribution")
+            archive.writestr("__MACOSX/._README.md", b"Unneeded archive metadata")
+        blob = buffer.getvalue()
+        (self.cache / "release.zip").write_bytes(blob)
+        download = {"asset": "release.zip", "url": "https://example.invalid/release",
+                    "sha256": sha256(blob)}
+        self.app["package"]["files"][0].update(download=download, format="zip", member="demo.nds")
+        self.app["package"]["runtime_notices"] = [{"download": download, "format": "zip",
+            "member": "README.md", "destination": "release/README.md"}]
+        self.write_lock()
+        runtime, _, notices, _ = addon_files(self.root, offline=True)
+        self.assertEqual(runtime, {"apps/demo.nds": self.binary})
+        self.assertEqual(notices["addons/demo/release/README.md"], b"Synthetic author attribution")
+        self.assertFalse(any("__MACOSX" in name for name in runtime))
 
     def test_shim_dependency_cannot_bypass_permission_review(self):
         shim = {**self.app, "id": "snemulds-shim"}

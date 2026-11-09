@@ -60,13 +60,16 @@ and `build/release-sources`; outputs and downloads are ignored by Git.
 
 The optional [add-on builder](../guides/ADDONS.md) uses
 `config/addon-dependencies.json`. `python3 tools/build_addons.py --list` lists
-all audited entries without downloading. The default includes eight reviewed
-projects; `--noncommercial` opts into four more with explicit no-profit terms.
+all audited entries without downloading. The default includes eight projects
+with reviewed terms and eight available releases under the
+[documented assumption](../guides/UNCONFIRMED_DISTRIBUTION.md).
+`--noncommercial` opts into four more with explicit no-profit terms.
 `--only dsxp gameyob-dsi` selects a permitted subset. `--offline` and
 `--skip-build` have the same meanings as the main builder. `make addons` is a
 convenience target. The release builder also accepts `--addons`, optionally
-with `--noncommercial`. Unreviewed/manual entries cannot be forced into the pack
-through selection. Original source archives and metadata stay under
+with `--noncommercial`. Only `approved`, explicitly documented `assumed`, or
+opted-in `noncommercial` entries with a pinned package can be selected; other
+held entries stay excluded. Available source archives and metadata stay under
 `dependencies/addons/` in the combined source ZIP; downloaded bytes live under
 ignored `build/addons-cache/`.
 

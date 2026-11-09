@@ -54,3 +54,15 @@ release and its terms. Packaged executables remain separate programs:
 `licenses.zip` retains original author/license material and `source.zip`
 contains the exact matching upstream source archives for the selected pack.
 These programs are not relicensed under Gloam's original-source license.
+
+Additional releases included under the documented unconfirmed-redistribution
+assumption retain their original authorship:
+
+- S8DS, NitroGrafx, NitroSwan, NGPDS, LodjurDS and WasabiDS: Fredrik Ahlström
+  (FluBBa), with the component authors credited in the retained upstream sources.
+- FastVideoDS Player: Gericom and credited contributors.
+- jEnesisDS Plus: Lordus's original emulator, RocketRobz's improvements and
+  xonn83's bottom-screen patch.
+
+Inclusion is a project assumption about distribution; upstream permission
+remains unconfirmed. See [the recorded scope](docs/guides/UNCONFIRMED_DISTRIBUTION.md).
