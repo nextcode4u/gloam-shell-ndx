@@ -73,7 +73,11 @@ class AddonTests(unittest.TestCase):
             "submodules/arm9/source/RP2A03/ARM6502.tar.gz":
                 "8b8b6c82ce29bd26cd76709c75167372b3711484",
         })
-        self.assertNotIn("tuna-vids", opted_in)
+        self.assertIn("tuna-vids", normal)
+        tuna = next(app for app in lock["applications"] if app["id"] == "tuna-vids")
+        self.assertFalse(tuna["permission_confirmed"])
+        self.assertEqual(tuna["package"]["project_notices"], [{
+            "path": "docs/guides/TUNA_VIDS_NOTICES.md", "destination": "DISTRIBUTION.md"}])
 
     def test_permission_filter_and_explicit_selection(self):
         conditional = {**self.app, "id": "conditional", "redistribution": "noncommercial"}
@@ -127,6 +131,26 @@ class AddonTests(unittest.TestCase):
         self.assertEqual(sources["dependencies/addons/demo/submodules/lib/component.tar.gz"], blob)
         self.assertEqual(notices["addons/demo/submodules/lib/component/LICENSE"],
                          b"Synthetic component notice")
+
+    def test_project_distribution_notice_is_bundled_without_overwriting_upstream(self):
+        document = self.root / "docs/distribution.md"
+        document.parent.mkdir()
+        document.write_bytes(b"Synthetic source location and recorded distribution assumption")
+        self.app["package"]["project_notices"] = [{
+            "path": "docs/distribution.md", "destination": "DISTRIBUTION.md"}]
+        self.write_lock()
+        runtime, _, notices, _ = addon_files(self.root, offline=True)
+        self.assertEqual(notices["addons/demo/DISTRIBUTION.md"], document.read_bytes())
+        self.assertEqual(notices["addons/demo/LICENSE"], b"Synthetic permissive fixture notice")
+        self.assertNotIn("addons/demo/DISTRIBUTION.md", runtime)
+        self.app["package"]["project_notices"][0]["destination"] = "LICENSE"
+        self.write_lock()
+        with self.assertRaisesRegex(ValueError, "Overlapping"):
+            addon_files(self.root, offline=True)
+        self.app["package"]["project_notices"][0]["destination"] = "../DISTRIBUTION.md"
+        self.write_lock()
+        with self.assertRaises(ValueError):
+            addon_files(self.root, offline=True)
 
     def test_release_zip_notices_do_not_enter_the_runtime_overlay(self):
         buffer = io.BytesIO()

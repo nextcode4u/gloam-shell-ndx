@@ -22,6 +22,7 @@ still require the separate build option and retain their no-profit terms.
 | LodjurDS | v0.1.5 | Included under this assumption. |
 | WasabiDS | v0.2.6 | Included under this assumption. |
 | nesDS | v2.1 | Included; legacy public-domain statement does not establish newer CPU-core terms. |
+| tuna-viDS | v1.2 | Unchanged release included with GPL/Helix notices and source; executable-notice gap documented. |
 
 DS994a 2.9 is included only with `--noncommercial`, following its explicit
 no-profit distribution statement. Its embedded game speech samples have no
@@ -62,6 +63,13 @@ and nested ARM6502 `8b8b6c82ce29bd26cd76709c75167372b3711484` source archives.
 Their pinned READMEs provide attribution, but neither pin has a project-wide
 license file. Inclusion follows the stated assumption, rather than assigning
 them the older nesDS public-domain dedication or a license from newer revisions.
+
+tuna-viDS is included unchanged with the [distribution and source notice](TUNA_VIDS_NOTICES.md)
+in `licenses.zip/addons/tuna-vids/DISTRIBUTION.md`, alongside the original GPL
+and Helix license texts. Matching published player/codec source accompanies it
+in `source.zip`. The missing executable Helix notice and GPL/RPSL compatibility
+question remain recorded; bundling documentation is not asserted to resolve
+them. This is the project distribution decision for this pinned release.
 
 ## Maintaining this policy
 

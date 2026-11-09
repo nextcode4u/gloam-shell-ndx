@@ -181,6 +181,15 @@ def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
             relative_path(item["destination"])
             nested = archive_members(members[item["archive_member"]], "tar.gz")
             notices[f"addons/{app['id']}/{item['destination']}"] = nested[item["member"]]
+        for item in package.get("project_notices", []):
+            relative_path(item["destination"])
+            target = f"addons/{app['id']}/{item['destination']}"
+            if target in notices:
+                raise ValueError("Overlapping add-on notices")
+            content = read_input(root, item["path"])
+            if not content.strip():
+                raise ValueError("Empty add-on notice")
+            notices[target] = content
         for item in package["files"]:
             target = item["destination"]
             relative_path(target)

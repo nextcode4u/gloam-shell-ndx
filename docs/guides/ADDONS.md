@@ -32,16 +32,12 @@ component terms. Its legacy public-domain notice does not license later code.
 The source companion includes both the pinned RP2A03 submodule and its nested
 ARM6502 submodule, with their original READMEs and credits.
 
-**tuna-viDS v1.2 remains pending an executable-notice fix.** Its README supports
-GPL/RPSL distribution, but [Helix RPSL section 2.1(e)](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/arm7/source/helix/RPSL.txt)
-requires source-availability information in the executable and the Exhibit A
-Helix object-code notice where copyright notices appear. The stock binary and
-startup source lack that notice. A release-ready downstream build must add the
-notice and source location, record the change, retain GPL/Helix license texts
-and provide matching player/codec source. The RCSL text is an alternative for
-holders of a valid agreement, not an automatic replacement for the RPSL. This
-is a concrete packaging obligation, not a finding that all redistribution is
-forbidden. The current builder excludes it until such a build is prepared.
+**tuna-viDS v1.2 is included unchanged under the documented distribution
+assumption.** Its GPL/Helix texts, source links and recorded executable-notice
+gap accompany it in `licenses.zip/addons/tuna-vids/DISTRIBUTION.md`; the pinned
+player/codec source is in `source.zip`. See [the full notice](TUNA_VIDS_NOTICES.md).
+The companion document provides recipient information without claiming to alter
+the executable or settle the remaining license questions.
 
 ## GBARunner3 core and optional browser
 
@@ -88,10 +84,10 @@ python3 tools/build_addons.py --list
 
 The default includes eight projects with reviewed distribution terms: the
 requested nextcode4u DSXP fork, GameYob, A7800DS, A8DS, StellaDS, PokeMini,
-snemulds-shim and its matching SNEmulDS snapshot. It also includes nine
+snemulds-shim and its matching SNEmulDS snapshot. It also includes ten
 available releases under an explicitly documented, unconfirmed redistribution
 assumption: FastVideoDS, jEnesisDS Plus, S8DS, NitroGrafx, NitroSwan, NGPDS,
-LodjurDS, WasabiDS and nesDS. GBARunner3 has the same assumption recorded but no
+LodjurDS, WasabiDS, nesDS and tuna-viDS. GBARunner3 has the same assumption recorded but no
 automatically packaged binary; the supplied third-party hicode build is recorded
 above. See [the assumption document](UNCONFIRMED_DISTRIBUTION.md).
 
@@ -160,7 +156,7 @@ requirement; this does not assert that their authors cannot distribute them.
 | [speccyse 2.2](https://github.com/wavemotion-dave/SpeccySE/releases/tag/2.2) | [direct](https://github.com/wavemotion-dave/SpeccySE/blob/85c85862470b69b75f6e49476a9c4ce992064bb3/arm9/source/SpeccySE.c) | Opt-in noncommercial; Custom noncommercial redistribution + core notices |
 | [stellads 8.4a](https://github.com/wavemotion-dave/StellaDS/releases/tag/8.4a) | [direct](https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/arm9/source/main.cpp) | Included; GPL-2.0-or-later + BSD notices |
 | [sugards 1.6](https://github.com/wavemotion-dave/SugarDS/releases/tag/1.6) | [direct](https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/arm9/source/SugarDS.c) | Manual / held; GPL-2.0-or-later code; separately copyrighted firmware |
-| [tuna-vids v1.2](https://github.com/chishm/tuna-vids/releases/tag/v1.2) | [direct](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/arm9/source/main.c) | Pending executable Helix/source notice; GPL + RPSL |
+| [tuna-vids v1.2](https://github.com/chishm/tuna-vids/releases/tag/v1.2) | [direct](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/arm9/source/main.c) | Included under project assumption; GPL/Helix notices and source bundled; executable-notice gap documented |
 | [wasabids v0.2.6](https://github.com/FluBBaOfWard/WasabiDS/releases/tag/v0.2.6) | [direct](https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
 
 The companion license archive carries the assumption document and available
@@ -200,7 +196,7 @@ a missing grant or apply Gloam's GPL to those programs.
 - **[speccyse](https://github.com/wavemotion-dave/SpeccySE/tree/85c85862470b69b75f6e49476a9c4ce992064bb3):** No-profit redistribution permitted with full author/core notices. Preserve the Z80, sound and lzav terms.
 - **[stellads](https://github.com/wavemotion-dave/StellaDS/tree/1ff41dc60c4debacd4493bae5bb045cdbbef7800):** Retain LICENSE and Copyright.txt, including the Aaron Giles notice.
 - **[sugards](https://github.com/wavemotion-dave/SugarDS/tree/ca4b95960d55e24d1d5bf815f5fffcacad8e4704):** Built-in Amstrad ROMs rely on the quoted conditional permission; ParaDOS is separately copyrighted. Record the firmware grants before redistributing the prebuilt package.
-- **[tuna-vids](https://github.com/chishm/tuna-vids/tree/f1f00243b2f969ebc9ded1a4942f610819f8c673):** Upstream README explicitly describes GPL v2 ARM9 and GPL v2/RPSL ARM7 distribution. RPSL 2.1(e) requires an executable source-availability notice plus the Exhibit A object-code notice. The stock v1.2 executable/startup source does not contain that Helix notice. Keep packaging pending a reproducible notice-bearing build; accompanying license files alone do not establish that the executable condition is met. This is a notice/source obligation, not a blanket prohibition on redistribution.
+- **[tuna-vids](https://github.com/chishm/tuna-vids/tree/f1f00243b2f969ebc9ded1a4942f610819f8c673):** Include the unchanged v1.2 release under the documented project distribution assumption. Bundle root GPL, upstream README, Helix LICENSE/RPSL/RCSL and the project distribution/source-availability notice in licenses.zip; retain the pinned player/codec source in source.zip. The executable Helix notice gap remains documented, not claimed fixed by companion documentation.
 - **[wasabids](https://github.com/FluBBaOfWard/WasabiDS/tree/b074708a4c0b670e9f3e7d520a776f2bad2695c1):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 
 ## SNEmulDS handoff
@@ -252,7 +248,7 @@ automatic selected-game launch. DSP/S-DD1 variants are not substituted.
 - **[speccyse](https://github.com/wavemotion-dave/SpeccySE/blob/85c85862470b69b75f6e49476a9c4ce992064bb3/readme.md):** Requires 48.ROM and 128.ROM beside emulator or in /roms/bios. OpenSE BASIC is a candidate for 48K only, not a verified full replacement for this required pair.
 - **[stellads](https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/README.md):** No separate Atari 2600 BIOS required.
 - **[sugards](https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/readme.md):** Amstrad CPC firmware and ParaDOS are embedded in the stock binary, with separate terms; no extra download is needed, but embedding is not a free-BIOS license.
-- **[tuna-vids](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/README.md):** Upstream README explicitly describes GPL v2 ARM9 and GPL v2/RPSL ARM7 distribution. RPSL 2.1(e) requires an executable source-availability notice plus the Exhibit A object-code notice. The stock v1.2 executable/startup source does not contain that Helix notice. Keep packaging pending a reproducible notice-bearing build; accompanying license files alone do not establish that the executable condition is met. This is a notice/source obligation, not a blanket prohibition on redistribution.
+- **[tuna-vids](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/README.md):** Include the unchanged v1.2 release under the documented project distribution assumption. Bundle root GPL, upstream README, Helix LICENSE/RPSL/RCSL and the project distribution/source-availability notice in licenses.zip; retain the pinned player/codec source in source.zip. The executable Helix notice gap remains documented, not claimed fixed by companion documentation.
 - **[wasabids](https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/README.md):** No separate Supervision BIOS required.
 
 ## Free replacements

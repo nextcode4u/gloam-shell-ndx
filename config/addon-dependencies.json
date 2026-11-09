@@ -2307,13 +2307,64 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/arm9/source/main.c",
-      "redistribution": "blocked",
+      "redistribution": "assumed",
       "license": "GPL-2.0-or-later ARM9 + Helix RPSL/RCSL ARM7",
-      "distribution_notes": "Upstream README explicitly describes GPL v2 ARM9 and GPL v2/RPSL ARM7 distribution. RPSL 2.1(e) requires an executable source-availability notice plus the Exhibit A object-code notice. The stock v1.2 executable/startup source does not contain that Helix notice. Keep packaging pending a reproducible notice-bearing build; accompanying license files alone do not establish that the executable condition is met. This is a notice/source obligation, not a blanket prohibition on redistribution.",
+      "distribution_notes": "Include the unchanged v1.2 release under the documented project distribution assumption. Bundle root GPL, upstream README, Helix LICENSE/RPSL/RCSL and the project distribution/source-availability notice in licenses.zip; retain the pinned player/codec source in source.zip. The executable Helix notice gap remains documented, not claimed fixed by companion documentation.",
       "bios": "No BIOS required; AVI must contain Xvid/MPEG-4 video and MP3 audio in the player-specific format.",
       "bios_evidence": "https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/README.md",
       "license_evidence": "https://github.com/chishm/tuna-vids/tree/f1f00243b2f969ebc9ded1a4942f610819f8c673",
-      "license_findings": "Retain root GPL text, README, Helix LICENSE.txt, RPSL.txt and RCSL.txt (the latter is an alternative requiring a valid agreement, not the default grant). Provide corresponding player/codec source and mark downstream changes. RPSL Exhibit B lists GPL with a compatibility footnote; no general GPL-compatible claim is made."
+      "license_findings": "Retain root GPL text, README, Helix LICENSE.txt, RPSL.txt and RCSL.txt (the latter is an alternative requiring a valid agreement, not the default grant). Provide corresponding player/codec source and mark downstream changes. RPSL Exhibit B lists GPL with a compatibility footnote; no general GPL-compatible claim is made.",
+      "permission_confirmed": false,
+      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md",
+      "package": {
+        "source": {
+          "asset": "tuna-vids-source.tar.gz",
+          "url": "https://codeload.github.com/chishm/tuna-vids/tar.gz/f1f00243b2f969ebc9ded1a4942f610819f8c673",
+          "sha256": "641f169ba99388a8daeff3966d128f81d7e12de76bf7a593e3143862c5498a8e"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "tuna-vids-tuna-vids_v1.2.zip",
+              "url": "https://github.com/chishm/tuna-vids/releases/download/v1.2/tuna-vids_v1.2.zip",
+              "sha256": "a6f065d51f687268cbe515b774b68d4c38406e7e07b2839f125df88d921f9cd4"
+            },
+            "format": "zip",
+            "destination": "_nds/dsi-frontend/plugins/apps/tuna-vids.nds",
+            "sha256": "07052817b2a77930a736dce0d99994baa564d1e132b308fecbcde2a8c4523642",
+            "member": "tuna-vids.nds"
+          }
+        ],
+        "notices": [
+          {
+            "member": "tuna-vids-f1f00243b2f969ebc9ded1a4942f610819f8c673/LICENSE",
+            "destination": "LICENSE"
+          },
+          {
+            "member": "tuna-vids-f1f00243b2f969ebc9ded1a4942f610819f8c673/README.md",
+            "destination": "README.md"
+          },
+          {
+            "member": "tuna-vids-f1f00243b2f969ebc9ded1a4942f610819f8c673/arm7/source/helix/LICENSE.txt",
+            "destination": "arm7/source/helix/LICENSE.txt"
+          },
+          {
+            "member": "tuna-vids-f1f00243b2f969ebc9ded1a4942f610819f8c673/arm7/source/helix/RCSL.txt",
+            "destination": "arm7/source/helix/RCSL.txt"
+          },
+          {
+            "member": "tuna-vids-f1f00243b2f969ebc9ded1a4942f610819f8c673/arm7/source/helix/RPSL.txt",
+            "destination": "arm7/source/helix/RPSL.txt"
+          }
+        ],
+        "extra_sources": [],
+        "project_notices": [
+          {
+            "path": "docs/guides/TUNA_VIDS_NOTICES.md",
+            "destination": "DISTRIBUTION.md"
+          }
+        ]
+      }
     },
     {
       "id": "wasabids",
