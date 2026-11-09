@@ -197,13 +197,21 @@ def build_release(root: Path, offline: bool = False) -> None:
         if set(sources) & set(frontend):
             raise ValueError("Dependency sources conflict with frontend source paths")
         frontend.update(sources)
-        sd["DEPENDENCY_SOURCES.txt"] = (
+        notices = release_notices(sd, lock["dependencies"])
+        notices["DEPENDENCY_SOURCES.txt"] = (
             "Matching source: source.zip, alongside this SD download.\n"
             "Backend/helper source is under dependencies/ in that archive.\n"
-            "See package-manifest.json for exact revisions, hashes, repository and release URLs.\n"
+            "See source.zip/package-manifest.json for exact revisions, hashes and upstream URLs.\n"
             "Redistributors must make that matching source available with the binaries.\n"
         ).encode()
-        notices = release_notices(sd, lock["dependencies"])
+        # The SD download contains runtime files only. Keep all original notices
+        # in the companion license archive and all guides in the source archive.
+        sd = {
+            name: data for name, data in sd.items()
+            if name not in notices and not name.startswith("docs/")
+            and not name.lower().endswith(".md")
+            and Path(name).name.lower() not in {"read me.txt", "readme.txt"}
+        }
         (output / "BOOT.NDS").write_bytes(sd["BOOT.NDS"])
         write_archive(output / "licenses.zip", notices, [])
         manifest = {
@@ -217,7 +225,6 @@ def build_release(root: Path, offline: bool = False) -> None:
             "sd_files": {n: sha256(data) for n, data in sorted(sd.items())},
             "source_files": {n: sha256(data) for n, data in sorted(frontend.items())},
         }
-        sd["package-manifest.json"] = json_bytes(manifest)
         frontend["package-manifest.json"] = json_bytes(manifest)
         write_archive(output / "sd.zip", sd, directories)
         write_archive(output / "source.zip", frontend, [], source_modes)

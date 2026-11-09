@@ -233,15 +233,15 @@ class PackageTests(unittest.TestCase):
             for name, data in forwarder.items():
                 self.assertEqual(archive.read("_nds/dsi-frontend/install/" + name), data)
             self.assertEqual(archive.read("_nds/loader.nds"), b"synthetic backend")
-            self.assertIn(b"source.zip", archive.read("DEPENDENCY_SOURCES.txt"))
-            self.assertNotIn(b"dependencies-source.zip", archive.read("DEPENDENCY_SOURCES.txt"))
-            self.assertFalse(any(n.startswith("dependencies/") for n in archive.namelist()))
-            manifest = json.loads(archive.read("package-manifest.json"))
-            self.assertEqual(manifest["update_artifact"]["sha256"], hashlib.sha256(binary).hexdigest())
-            self.assertEqual(manifest["license_archive"]["sha256"],
-                             hashlib.sha256((dist / "licenses.zip").read_bytes()).hexdigest())
+            self.assertEqual({n for n in archive.namelist() if "/" not in n}, {"BOOT.NDS"})
+            self.assertFalse(any(n.startswith(("docs/", "dependencies/"))
+                                 or n.lower().endswith(".md") for n in archive.namelist()))
+            self.assertNotIn("apps/Homebrew Apps/Read me.txt", archive.namelist())
+            self.assertEqual(archive.read("_nds/dsi-frontend/plugins/example.ini"), b"[plugin]\n")
         with zipfile.ZipFile(dist / "licenses.zip") as archive:
             self.assertEqual(archive.read("LICENSE"), b"Original source GPL-3.0-or-later\n")
+            self.assertIn(b"source.zip", archive.read("DEPENDENCY_SOURCES.txt"))
+            self.assertNotIn(b"dependencies-source.zip", archive.read("DEPENDENCY_SOURCES.txt"))
             self.assertIn("CREDITS.md", archive.namelist())
             self.assertIn("THIRD_PARTY.md", archive.namelist())
             self.assertEqual(archive.read("docs/notices/third_party/test/LICENSE"), b"Full test license\n")
@@ -254,6 +254,10 @@ class PackageTests(unittest.TestCase):
             self.assertEqual(archive.read("README.md"), b"Development frontend\n")
             manifest = json.loads(archive.read("package-manifest.json"))
             self.assertEqual(manifest["source_archive"]["file"], "source.zip")
+            self.assertEqual(manifest["update_artifact"]["sha256"], hashlib.sha256(binary).hexdigest())
+            self.assertEqual(manifest["license_archive"]["sha256"],
+                             hashlib.sha256((dist / "licenses.zip").read_bytes()).hexdigest())
+            self.assertEqual(archive.read("docs/GETTING_STARTED.md"), b"Installation\n")
             for name, checksum in manifest["source_files"].items():
                 self.assertEqual(hashlib.sha256(archive.read(name)).hexdigest(), checksum)
         self.assertFalse((dist / "dependencies-source.zip").exists())

@@ -164,7 +164,8 @@ Copyright (C) 2024 Lorenzooone; GPL-3.0-or-later. Upstream credits TWiLight Menu
 Apache Thunder's NTR Launcher and Michael “Chishm” Chisholm's NitroHax.
 
 The full notice is in `third_party/slot1launcher/COPYING` and
-`sdroot/_nds/dsi-frontend/loaders/slot1launch.txt`. Matching complete upstream
+`sdroot/_nds/dsi-frontend/loaders/slot1launch.txt`; release copies accompany
+the binary download in `licenses.zip`. Matching complete upstream
 source is retained under `dependencies/` in `source.zip`. Gloam invokes the
 helper as a separate executable and makes no authorship claim over its implementation.
 

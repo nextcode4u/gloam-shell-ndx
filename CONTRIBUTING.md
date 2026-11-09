@@ -36,7 +36,8 @@ into one session-sized commit or include unrelated user edits.
 
 Every release includes standalone `BOOT.NDS` for frontend-only updates, `sd.zip`
 for full setup, required licenses/notices, a combined frontend/dependency source
-archive and checksums. Keep the source and license downloads beside both binary
+archive and checksums. Keep `sd.zip` runtime-only: guides stay in the repository
+and `source.zip`; notices and credits go in `licenses.zip`. Keep the source and license downloads beside both binary
 download options. Document required asset/backend changes when an update needs
 more than replacing `BOOT.NDS`; never silently overwrite personal settings.
 

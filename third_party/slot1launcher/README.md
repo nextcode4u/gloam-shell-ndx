@@ -13,6 +13,6 @@ claiming its cartridge-boot implementation as original frontend code.
 
 `tools/build_release.py` downloads the official binary with pinned hashes and
 installs only slot1launch.nds. Full attribution/GPL text accompanies it as
-`_nds/dsi-frontend/loaders/slot1launch.txt`. Matching complete upstream source,
+`_nds/dsi-frontend/loaders/slot1launch.txt` inside `licenses.zip`. Matching complete upstream source,
 including its build instructions, ships under `dependencies/` in `source.zip`,
 beside `sd.zip`. The dependency lock records release and source identities.

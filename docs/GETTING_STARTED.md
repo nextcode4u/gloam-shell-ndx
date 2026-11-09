@@ -10,7 +10,10 @@ replacing the whole `_nds` folder or your edited configuration.
 For a frontend-only update, copy the standalone release `BOOT.NDS` to the SD
 root instead of extracting `sd.zip`. This preserves your settings, themes,
 backends and libraries. Check release notes for required asset/backend updates.
-Each release also supplies licenses, a combined source archive and checksums.
+Each release also supplies `licenses.zip`, a combined `source.zip` and checksums.
+The SD ZIP contains runtime files only. Documentation is available in this
+repository and the source archive; licenses and credits accompany the download
+in `licenses.zip` and do not need to be copied onto the SD card.
 
 The package includes pinned official nds-bootstrap and Slot-1 Launcher builds.
 Other emulators/players, their BIOS files and games are separate. The supplied

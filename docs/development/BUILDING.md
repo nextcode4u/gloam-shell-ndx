@@ -25,14 +25,17 @@ requires all verified dependencies/source checkouts in the cache.
 | --- | --- |
 | `dist/BOOT.NDS` | Frontend-only update, byte-identical to `BOOT.NDS` in the SD ZIP. |
 | `dist/licenses.zip` | Required license texts, dependency notices, credits and asset attribution. |
-| `dist/sd.zip` | Root `BOOT.NDS`, themes/profiles, official nds-bootstrap, Slot-1 helper, forwarder and matching TMD, setup guides and notices. |
+| `dist/sd.zip` | Root `BOOT.NDS`, themes/profiles, official nds-bootstrap, Slot-1 helper, forwarder and matching TMD; SD runtime files only. |
 | `dist/source.zip` | Gloam source, build tools, docs, licenses and tests; exact backend/helper sources, submodules and revision manifest under `dependencies/`. |
 | `dist/SHA256SUMS` | SHA-256 of `BOOT.NDS` and all three archives. |
 
 Publish `BOOT.NDS`, all three ZIPs and checksums together for every release. Keep
 source and license downloads beside both binary download options. The forwarder
 and its TMD are included in `sd.zip` under `/_nds/dsi-frontend/install/`;
-installation is optional. Dependency source is part of `source.zip`, so there
+installation is optional. Guides and development docs stay in the repository
+and `source.zip`. `sd.zip` contains no `docs/`, root documentation, package
+manifest or license/credit copies; those notices accompany it in `licenses.zip`.
+The manifest is retained in `source.zip`. Dependency source is part of `source.zip`, so there
 is no separate dependency-source artifact. Replacing only `BOOT.NDS` preserves
 personal settings, themes, backends and libraries; document any required
 asset/backend migrations in the release notes. A standalone binary

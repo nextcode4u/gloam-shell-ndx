@@ -27,5 +27,7 @@ and [the build guide](docs/development/BUILDING.md) before changing the project.
 - Every release must include standalone `BOOT.NDS`, `sd.zip`, required licenses
   and notices, a combined `source.zip` (including dependency source) and checksums.
   Include the forwarder and matching TMD in `sd.zip`; no separate dependency-source
-  artifact. Keep update-only downloads separate from full SD setup; document any required asset/backend migration.
+  artifact. Keep `sd.zip` runtime-only; documentation belongs in the repository
+  and `source.zip`, with license/attribution copies in `licenses.zip`.
+  Keep update-only downloads separate from full SD setup; document any required asset/backend migration.
 - Do not push source or publish artifacts without user authorization.
