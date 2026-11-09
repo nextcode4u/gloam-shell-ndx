@@ -248,7 +248,9 @@ def refresh_audit_table(root, lock):
         return
     text = path.read_text()
     start = text.index("| App / pinned version |")
-    end = text.index("\n## Conditions and exceptions", start)
+    end = text.find("\n\n", start)
+    if end < 0:
+        end = len(text)
     rows = ["| App / pinned version | Argv | Delivery / terms |", "| --- | --- | --- |"]
     for app in lock["applications"]:
         delivery = {"approved": "Bundled when pinned", "noncommercial": "Noncommercial opt-in",
@@ -257,7 +259,7 @@ def refresh_audit_table(root, lock):
             delivery = "Manual setup; no reviewed runtime pin"
         rows.append(f"| [{app['id']} {app['version']}]({app.get('release') or app['repository']}) | "
                     f"[{app['argv']}]({app['argv_evidence']}) | {delivery}; {app['license']} |")
-    path.write_text(text[:start] + "\n".join(rows) + "\n" + text[end:])
+    path.write_text(text[:start] + "\n".join(rows) + text[end:])
 
 
 def prepare(root, check_only=False, skip_build=False, noncommercial=False, only=None):

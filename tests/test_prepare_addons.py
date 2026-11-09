@@ -10,7 +10,7 @@ import unittest
 from unittest.mock import patch
 
 from tools.prepare_addons_release import (ReviewRequired, checksum, newer_release,
-                                          inspect_catalog, prepare, updated_recipe)
+                                          inspect_catalog, prepare, updated_recipe, refresh_audit_table)
 
 
 def archive(files):
@@ -57,6 +57,22 @@ class PrepareAddonTests(unittest.TestCase):
         with patch('tools.prepare_addons_release.github', return_value={'sha': 'new'}), \
                 patch('tools.prepare_addons_release.get_blob', side_effect=[self.new, self.binary]):
             return updated_recipe(self.app, self.release, self.cache, self.root / 'report')
+
+    def test_audit_refresh_preserves_guidance_following_the_table(self):
+        folder = self.root / 'docs/guides'
+        folder.mkdir(parents=True)
+        path = folder / 'ADDONS.md'
+        following = '\n\nShared extension guidance must remain here.\n\n## Conditions and exceptions\n\nKeep these notes.\n'
+        path.write_text('Intro\n\n| App / pinned version | Argv | Delivery / terms |\n'
+                        '| --- | --- | --- |\n| old | old | old |' + following)
+        app = {**self.app, 'license': 'Synthetic license'}
+        refresh_audit_table(self.root, {'applications': [app]})
+        result = path.read_text()
+        self.assertTrue(result.endswith(following))
+        self.assertIn('[demo v1]', result)
+        self.assertNotIn('| old |', result)
+        refresh_audit_table(self.root, {'applications': [app]})
+        self.assertEqual(path.read_text(), result)
 
     def test_newer_release_uses_dates_and_preserves_prerelease_channel(self):
         old = {**self.release, 'tag_name': 'v1', 'published_at': '2026-01-01T00:00:00Z'}
