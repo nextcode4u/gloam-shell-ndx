@@ -69,6 +69,9 @@ artwork is retained as `forwarder/icon-source.png`. To regenerate the native
 make -j4
 ```
 
+The icon exporter trims transparent outer padding before scaling the tile to
+fill the banner. The full-size source remains unchanged.
+
 Rebuilding also regenerates the forwarder TMD to match the changed binary.
 
 ## Checks

@@ -12,7 +12,11 @@ def pack_icon(source: Path, output: Path) -> None:
         icon = artwork.convert("RGBA")
     if icon.width != icon.height:
         raise ValueError("Banner artwork must be square")
-    icon = icon.resize((32, 32), Image.Resampling.LANCZOS)
+    # Ignore faint export noise outside the tile when removing transparent padding.
+    bounds = icon.getchannel("A").point(lambda alpha: 255 if alpha >= 128 else 0).getbbox()
+    if bounds is None:
+        raise ValueError("Banner artwork has no visible pixels")
+    icon = icon.crop(bounds).resize((32, 32), Image.Resampling.LANCZOS)
     # DS banners reserve palette index zero for fully transparent pixels.
     # Quantize without dithering so tiny details do not become isolated noise.
     pixels = list(icon.get_flattened_data())
