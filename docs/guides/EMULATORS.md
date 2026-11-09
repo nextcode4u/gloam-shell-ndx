@@ -183,8 +183,11 @@ Set `auto_add=0` to use the normal launcher without a scan. Missing collection
 folders also fall back to the normal launcher. Explicit `.argv` shortcuts/game-ID
 arguments take precedence. This integration applies when launched through Gloam;
 launching the same executable from another menu does not apply Gloam's profile.
-Native scan/game/save/return compatibility on DSi still needs launch testing;
-frontend tests verify argument preparation and preservation of explicit choices.
+ScummVM startup is currently blocked in available DSi emulation, including direct
+boots and launches without discovery options. Treat automatic discovery as a
+prepared integration pending a compatible native startup path. Game detection,
+play, saves and return behavior are not established; frontend tests cover argument
+preparation and preservation of explicit choices.
 
 ## Updating an older installation
 
