@@ -165,6 +165,28 @@ int main(int argc, char **argv)
         render_app(&app, top, bottom, "12:00");
     }
     assert(game_editor_close(&app) && !app.game_editor.open);
+    /* SELECT submenus return to their original menu row and keep saved edits. */
+    app_panel(&app, PANEL_ACTIONS);
+    app_panel_move(&app, 8);
+    int actions_scroll = app.panel_scroll;
+    app_panel_activate(&app);
+    assert(app.game_editor.open);
+    game_editor_adjust(&app, 1);
+    GameOptions edited = app.game_editor.options;
+    app_back(&app);
+    assert(!app.game_editor.open && app.panel == PANEL_ACTIONS);
+    assert(app.panel_selection == 8 && app.panel_scroll == actions_scroll);
+    GameOptions saved;
+    assert(game_options_read(root, game, &saved) && !memcmp(&saved, &edited, sizeof saved));
+    app_panel_activate(&app);
+    path_copy(app.game_editor.path, "/outside/title.nds", PATH_CAP);
+    app_back(&app);
+    assert(app.game_editor.open && *app.game_editor.status); /* Save failure stays in editor. */
+    path_copy(app.game_editor.path, game, PATH_CAP);
+    app_back(&app);
+    assert(!app.game_editor.open && app.panel == PANEL_ACTIONS);
+    app_back(&app);
+    assert(app.panel == PANEL_NONE);
     game_editor_open(&app, true);
     assert(app.game_editor.open && app.game_editor.defaults);
     assert(game_editor_close(&app));

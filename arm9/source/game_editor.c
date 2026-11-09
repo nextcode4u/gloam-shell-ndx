@@ -26,7 +26,8 @@ void game_editor_open(App *app, bool defaults)
     else
         game_options_read(app->root, editor->path, &editor->options);
     editor->open = true;
-    app->panel = PANEL_NONE;
+    if (app->panel != PANEL_ACTIONS)
+        app->panel = PANEL_NONE;
 }
 void game_editor_move(App *app, int direction)
 {

@@ -35,7 +35,8 @@ void cheats_open(App *app)
     cheats_load(state, app->root, entry->path);
     app->cheats = state;
     state->open = true;
-    app->panel = PANEL_NONE;
+    if (app->panel != PANEL_ACTIONS)
+        app->panel = PANEL_NONE;
 }
 void cheats_move(App *app, int direction)
 {

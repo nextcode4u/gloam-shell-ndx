@@ -107,6 +107,33 @@ int main(int argc, char **argv)
     assert(app.picker.open);
     picker_activate(&app);
     assert(!app.picker.open && app.panel == PANEL_MESSAGE);
+    app_back(&app); /* Assignment confirmation -> SELECT menu, not browser. */
+    assert(app.panel == PANEL_ACTIONS && app.panel_selection == 3);
+    assert(app.action_enabled[4]); /* Clear cover is refreshed after assigning one. */
+    app.panel_selection = 2;
+    app_panel_activate(&app);
+    assert(app.panel == PANEL_INFO);
+    app_back(&app);
+    assert(app.panel == PANEL_ACTIONS && app.panel_selection == 2);
+    app.panel_selection = 4;
+    app_panel_activate(&app);
+    assert(app.panel == PANEL_MESSAGE);
+    app_panel_activate(&app); /* A also dismisses confirmations by one level. */
+    assert(app.panel == PANEL_ACTIONS && app.panel_selection == 4 && !app.action_enabled[4]);
+    app_back(&app);
+    assert(app.panel == PANEL_NONE);
+    /* Ordinary browser messages must not reopen a previous SELECT menu. */
+    app_panel(&app, PANEL_MESSAGE);
+    app_back(&app);
+    assert(app.panel == PANEL_NONE);
+    app_panel(&app, PANEL_ACTIONS);
+    app_panel_move(&app, 3);
+    app_panel_activate(&app);
+    choose("images");
+    choose("Good.png");
+    picker_activate(&app);
+    app_back(&app);
+    assert(app.panel == PANEL_ACTIONS && app.panel_selection == 3);
     assert(!memcmp(&origin, &app.locations[app.category], sizeof origin));
     assert(!strcmp(content.path, app_selected(&app)->path));
     assert(item_preferences_load(root, content.path, &item) && strstr(item.cover, "Good.png"));

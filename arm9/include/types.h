@@ -296,7 +296,8 @@ typedef struct {
     bool directory_error;
     char favorites[FAVORITE_CAP][PATH_CAP];
     int favorite_count;
-    Panel panel;
+    Panel panel, panel_parent;
+    int panel_parent_selection, panel_parent_scroll;
     bool action_enabled[ACTION_COUNT];
     int panel_selection, panel_scroll, accent_index, detail_tab;
     bool reduced_motion, preferences_dirty;

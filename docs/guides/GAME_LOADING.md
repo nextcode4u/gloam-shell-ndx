@@ -13,7 +13,8 @@ No private test patches are applied by the release builder.
 
 START → Games & Apps → Game defaults opens global options. SELECT → Title
 options opens overrides for a selected DS title. Up/Down selects, Left/Right
-or A changes, Y resets and B/START saves/closes. A failed save keeps the editor
+or A changes, Y resets and B/START saves and returns to the menu that opened
+the editor. A failed save keeps the editor
 open. Per-title `Use default` resolves through global defaults, then built-in
 Auto values. Effective options are captured during launch preflight.
 

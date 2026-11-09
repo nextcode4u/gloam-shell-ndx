@@ -16,6 +16,7 @@ void app_open(App *app);
 void app_back(App *app);
 void app_request_system_menu(App *app);
 void app_panel(App *app, Panel panel);
+void app_panel_close(App *app);
 void app_panel_move(App *app, int delta);
 void app_panel_activate(App *app);
 void app_panel_adjust(App *app, int direction);

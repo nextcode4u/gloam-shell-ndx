@@ -56,5 +56,5 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
         draw_text_clipped(bottom, 132, y + 3, value, p.accent, 16);
     }
     draw_text_clipped(bottom, 10, 170, editor->status, p.muted, 33);
-    draw_text(bottom, 10, 182, "B / START save and close", p.muted, 33);
+    draw_text(bottom, 10, 182, "B / START save and back", p.muted, 33);
 }

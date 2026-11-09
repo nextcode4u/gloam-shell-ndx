@@ -236,6 +236,17 @@ void app_page(App *app, int direction)
 
 void app_panel(App *app, Panel p)
 {
+    /* Editors/pickers retain their underlying menu. Info and message overlays
+     * replace it, so remember the item-menu row until that overlay is dismissed. */
+    if (p == PANEL_INFO || p == PANEL_MESSAGE) {
+        if (app->panel == PANEL_ACTIONS) {
+            app->panel_parent = PANEL_ACTIONS;
+            app->panel_parent_selection = app->panel_selection;
+            app->panel_parent_scroll = app->panel_scroll;
+        } else if (app->panel != PANEL_INFO && app->panel != PANEL_MESSAGE)
+            app->panel_parent = PANEL_NONE;
+    } else
+        app->panel_parent = PANEL_NONE;
     if (p == PANEL_ACTIONS) {
         const Entry *entry = app_selected(app);
         bool item = entry && *entry->path && app->storage_ready &&
@@ -269,6 +280,18 @@ void app_panel(App *app, Panel p)
     app->panel_selection = 0;
     app->panel_scroll = 0;
     app->panel_age = 0;
+}
+
+void app_panel_close(App *app)
+{
+    bool return_to_actions = app->panel != PANEL_NONE && app->panel_parent == PANEL_ACTIONS;
+    int selected = app->panel_parent_selection, scroll = app->panel_parent_scroll;
+    app->panel = app->panel_parent = PANEL_NONE;
+    if (return_to_actions) {
+        app_panel(app, PANEL_ACTIONS); /* Recheck assignments changed by a picker. */
+        app->panel_selection = selected;
+        app->panel_scroll = scroll;
+    }
 }
 
 void app_open(App *app)
@@ -397,7 +420,7 @@ void app_back(App *app)
         return;
     }
     if (app->panel != PANEL_NONE) {
-        app->panel = PANEL_NONE;
+        app_panel_close(app);
         return;
     }
     if (app->category == CATEGORY_HOME)
@@ -597,7 +620,6 @@ void app_panel_activate(App *app)
             browser_batch(app, app->panel_selection == 12 ? 1 : -1);
             break;
         case 10:
-            app->panel = PANEL_NONE;
             if (!picker_open(app, PICKER_REPAIR))
                 app_show_message(app, "Locate unavailable. Check SD access.");
             break;
@@ -640,7 +662,7 @@ void app_panel_activate(App *app)
             break;
         }
     } else
-        app->panel = PANEL_NONE;
+        app_panel_close(app);
 }
 
 void app_tick(App *app)

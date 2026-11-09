@@ -33,7 +33,7 @@ file type. The [personal extension-default editor](ASSOCIATION_EDITOR.md) is ava
 
 Both pickers preserve the originating tab, path, selection, scroll and action
 menu. Cancel returns to that view. Applying an assignment reports the result;
-B closes that message. Invalid images/applications and failed saves leave the
+B or A dismisses that message and returns to the same SELECT-menu row. Invalid images/applications and failed saves leave the
 picker available with a status message. Pickers scan at most 16 directory
 records per frame and display 512 matching entries per batch. L/R or the touch
 header arrows reaches additional batches; Left/Right moves by seven rows.
@@ -106,3 +106,13 @@ file association or launch route. Assigned artwork, actual native banners and
 configured emulator/player icons retain their existing priority. The bundled
 text/album cover demos use neutral versions of the same document/note symbols;
 they remain real sidecar examples rather than theme-tinted runtime placeholders.
+
+## Returning from title submenus
+
+SELECT-menu children return to their parent instead of closing the whole menu.
+B/START saves and leaves Title options or Title cheats, restoring the SELECT
+menu's row and scroll position. Failed saves keep the editor open for retry.
+Item information and assignment/availability messages return to the same menu;
+press Back again to close SELECT. The association editor retains its own
+options/list levels before returning to SELECT. File pickers still use B to
+visit parent folders and START to cancel directly back to their originating view.

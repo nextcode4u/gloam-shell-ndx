@@ -92,6 +92,16 @@ int main(int argc, char **argv)
         render_app(&app, top, bottom, "12:00");
     }
     assert(cheats_close(&app) && !app.cheats);
+    app_panel(&app, PANEL_ACTIONS);
+    app_panel_move(&app, 9);
+    int actions_scroll = app.panel_scroll;
+    app_panel_activate(&app);
+    assert(app.cheats && app.cheats->record);
+    app_back(&app);
+    assert(!app.cheats && app.panel == PANEL_ACTIONS);
+    assert(app.panel_selection == 9 && app.panel_scroll == actions_scroll);
+    app_back(&app);
+    assert(app.panel == PANEL_NONE);
     puts("PASS: revision-matched bounded cheat parsing, exclusive groups, read-only database, "
          "persisted selection, payload ownership and malformed input");
 }

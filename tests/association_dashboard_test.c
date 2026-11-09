@@ -75,7 +75,9 @@ int main(int argc, char **argv)
     app_category(&app, CATEGORY_GAMES);
     assert(!strcmp(app_selected(&app)->path, content));
     Location origin = app.locations[app.category];
-    association_editor_open(&app);
+    app_panel(&app, PANEL_ACTIONS);
+    app_panel_move(&app, 7);
+    app_panel_activate(&app);
     assert(app.association_editor.count == 1);
     association_editor_activate(&app);
     association_editor_activate(&app);
@@ -84,8 +86,12 @@ int main(int argc, char **argv)
     assert(!app.picker.open && association_user(&app, "xyz"));
     assert(!memcmp(&origin, &app.locations[app.category], sizeof origin));
     render_app(&app, top, bottom, "12:00");
-    association_editor_back(&app);
-    association_editor_back(&app);
+    app_back(&app); /* Extension options -> extension list. */
+    assert(app.association_editor.open && app.association_editor.option == -1);
+    app_back(&app); /* Extension list -> SELECT menu. */
+    assert(!app.association_editor.open && app.panel == PANEL_ACTIONS && app.panel_selection == 7);
+    app_back(&app);
+    assert(app.panel == PANEL_NONE);
     LaunchPlan plan;
     char error[160];
     assert(launch_prepare(&app, content, &plan, error) && plan.arguments.count == 2);
