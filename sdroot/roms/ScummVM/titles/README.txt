@@ -8,8 +8,8 @@ game-data files
 
 Application: ScummVM
 
-Argv in the audited upstream build: native game-ID and discovery options; not
-a ROM-file association.
+Argv in the audited upstream build: disabled in stock DS build; requires a
+command-line-enabled build.
 
 Firmware: No general console BIOS. Supply the required data files for each
 supported game; do not bundle commercial game data.

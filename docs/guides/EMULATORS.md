@@ -235,11 +235,13 @@ Set `auto_add=0` to use the normal launcher without a scan. Missing collection
 folders also fall back to the normal launcher. Explicit `.argv` shortcuts/game-ID
 arguments take precedence. This integration applies when launched through Gloam;
 launching the same executable from another menu does not apply Gloam's profile.
-ScummVM startup is currently blocked in available DSi emulation, including direct
-boots and launches without discovery options. Treat automatic discovery as a
-prepared integration pending a compatible native startup path. Game detection,
-play, saves and return behavior are not established; frontend tests cover argument
-preparation and preservation of explicit choices.
+The [stock DS port disables command-line parsing](https://github.com/scummvm/scummvm/blob/v2.9.1/backends/platform/ds/portdefs.h).
+Its launcher can open in available development controls, but its default build
+ignores the discovery options above. Use its normal Add Game interface and set
+`auto_add=0` when using that binary. Automatic discovery requires a compatible
+CLI-enabled DS build and remains a prepared integration pending native validation.
+Frontend tests cover argument preparation and preservation of explicit choices;
+passing options alone does not establish game detection, play or save support.
 
 ## Updating an older installation
 

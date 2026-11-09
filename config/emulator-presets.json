@@ -266,7 +266,7 @@
       "application": "ScummVM",
       "formats": "scummvm.nds launcher; one game-data folder per title under titles/",
       "addon": "scummvm",
-      "notes": "Place the official scummvm.nds here and each supported game in titles/<game>/. Gloam uses plugins/startup/scummvm.ini to request native add/recursive/no-exit discovery whenever this app is launched without explicit arguments. ScummVM keeps its own configuration and saves. Unknown folders are skipped; moved or removed entries need manual review. This requires a command-line-capable ScummVM build; the published 2.9.1 Nintendo build targets DSi/DSi XL."
+      "notes": "Keep scummvm.nds here and supported game data in titles/<game>/. The stock 2.9.1 DS build disables command-line parsing; use its Add Game interface. Gloam can request automatic discovery through plugins/startup/scummvm.ini only with a compatible CLI-enabled build. ScummVM owns its entries and saves; moved or removed entries need manual review."
     },
     {
       "folder": "roms/ScummVM/titles",
