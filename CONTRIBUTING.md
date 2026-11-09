@@ -39,3 +39,7 @@ for full setup, required licenses/notices, matching frontend/dependency source
 archives and checksums. Keep the source and license downloads beside both binary
 download options. Document required asset/backend changes when an update needs
 more than replacing `BOOT.NDS`; never silently overwrite personal settings.
+
+Image-generation prompts, prompt logs and draft design concepts are local working
+artifacts. Keep them under ignored `build/` or outside the source tree; exclude
+them from commits and release/source packages. Commit production assets only.

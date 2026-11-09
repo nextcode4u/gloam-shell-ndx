@@ -15,6 +15,9 @@ and [the build guide](docs/development/BUILDING.md) before changing the project.
   details in the source map; do not add chronological test logs to public docs.
 - Keep generated builds, release dependencies, archives and private runtime data
   ignored. Artifacts belong under `build/` or `dist/`, never source directories.
+- Keep image-generation prompts, prompt logs and draft design concepts out of
+  Git and release/source packages. Store them under ignored `build/` or in the
+  private workspace. Only production assets belong in version control.
 - Report compatibility limits honestly. Do not turn successful preparation into
   an unverified claim of application boot, save or return support.
 - Commit each completed logical change separately after its relevant checks pass.

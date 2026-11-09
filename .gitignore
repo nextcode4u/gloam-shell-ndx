@@ -83,3 +83,13 @@ Thumbs.db
 /docs/emulator/
 /config/test-environments*.json
 /release-cache/
+
+# Local image-generation prompts and draft concepts
+**/icon-concepts/
+**/design-drafts/
+prompt.txt
+prompts.txt
+*-prompt*.txt
+*-prompt*.md
+*_prompt*.txt
+*_prompt*.md
