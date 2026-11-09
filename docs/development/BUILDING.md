@@ -61,8 +61,10 @@ and `build/release-sources`; outputs and downloads are ignored by Git.
 The optional [add-on builder](../guides/ADDONS.md) uses
 `config/addon-dependencies.json`. `python3 tools/build_addons.py --list` lists
 all audited entries without downloading. The default includes eight projects
-with reviewed terms and ten available releases under the
+with reviewed terms and eleven available builds under the
 [documented assumption](../guides/UNCONFIRMED_DISTRIBUTION.md).
+The supplied GBARunner3 hicode core has labelled reference-only source; its exact
+source revision remains unidentified. See the bundled add-on notices.
 `--noncommercial` opts into seven more with no-profit terms; their component
 notices and remaining assumptions are documented in the add-on guide.
 `--only dsxp gameyob-dsi` selects a permitted subset. `--offline` and

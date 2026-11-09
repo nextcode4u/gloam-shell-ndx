@@ -39,31 +39,31 @@ player/codec source is in `source.zip`. See [the full notice](TUNA_VIDS_NOTICES.
 The companion document provides recipient information without claiming to alter
 the executable or settle the remaining license questions.
 
-## GBARunner3 core and optional browser
+## GBARunner3 core
 
-The [supplied hicode ZIP](https://files.deletecat.com/GBARunner3-hicode.zip)
-contains `GBARunner3.nds` and 304 game-specific JSON files under `/_gba/configs/`.
-It contains no BIOS, license notice or build/source manifest. Download and core
-hashes are recorded in the [dependency lock](../../config/addon-dependencies.json).
-The archive name alone does not establish the matching hicode source revision;
-301 of its 304 configs match the audited develop snapshot, which also does not
-establish core provenance. Automatic packaging remains pending identification
-of corresponding source, independently of the recorded redistribution assumption.
+The [supplied hicode ZIP](https://files.deletecat.com/GBARunner3-hicode.zip) is
+included under the documented distribution assumption. The builder installs
+`GBARunner3.nds` at `/_nds/dsi-frontend/plugins/apps/GBARunner3.nds` and its
+304 hash-pinned game configs under `/_gba/configs/`. It does not import other
+ZIP members or supply a BIOS. The user must provide the original 16 KiB GBA BIOS
+at `/_gba/bios.bin`; a replacement BIOS is not assumed compatible. Preserve
+custom per-game configs when merging an update.
 
-For manual use, put the core at
-`/_nds/dsi-frontend/plugins/apps/GBARunner3.nds` to match Gloam's `.gba`
-association, preserve `/_gba/configs/`, and supply your own original BIOS at
-`/_gba/bios.bin`. This is a setup route, not a new launch-compatibility result.
+Static disassembly of the supplied core confirms that startup forwards
+argc/argv and its ROM-loading path selects `argv[1]` when present. The binary
+hash and ARM9 image offsets are recorded in the dependency lock. Gloam's existing
+`.gba` association launches this core directly. Runtime launch/save compatibility
+is not established by that static check.
 
-The [flashcarts frontend v0.10.0-fcnet2](https://github.com/flashcarts/gbar3-frontend/releases/tag/v0.10.0-fcnet2)
-is a separate browser derived from nds-hb-menu, with GPL-2.0-or-later notices.
-Its default binary expects `/GBARunner3.nds`; the AOS and TWiLight variants use
-their own fixed paths. It opens its own browser instead of accepting an incoming
-selected-ROM argument. Gloam should continue passing the ROM directly to the core;
-replacing that association with this frontend would open another browser.
-The frontend source revision, binary hash and exception-stub submodule pin are
-recorded alongside the core candidate. Redistributing it requires its GPL
-notices and corresponding source; its license does not cover the separate core.
+The exact source revision of this third-party build remains unidentified.
+`source.zip` labels the available develop source as `reference-source.tar.gz`,
+with `source_role: reference-only` and `binary_source_commit: null`; it is not
+presented as verified corresponding source. The [distribution notice](GBARUNNER3_NOTICES.md)
+is also bundled in `licenses.zip/addons/gbarunner3/DISTRIBUTION.md`.
+
+The separate [flashcarts frontend](https://github.com/flashcarts/gbar3-frontend/releases/tag/v0.10.0-fcnet2)
+is excluded. It opens its own browser and the default release expects the core
+at SD root, while Gloam already selects and passes the ROM to its configured core.
 
 TWiLight Menu++'s app-launcher credits are useful attribution and source links,
 not a single license covering every emulator. The supplied Virtual Console
@@ -84,12 +84,11 @@ python3 tools/build_addons.py --list
 
 The default includes eight projects with reviewed distribution terms: the
 requested nextcode4u DSXP fork, GameYob, A7800DS, A8DS, StellaDS, PokeMini,
-snemulds-shim and its matching SNEmulDS snapshot. It also includes ten
-available releases under an explicitly documented, unconfirmed redistribution
+snemulds-shim and its matching SNEmulDS snapshot. It also includes eleven
+available builds under an explicitly documented, unconfirmed redistribution
 assumption: FastVideoDS, jEnesisDS Plus, S8DS, NitroGrafx, NitroSwan, NGPDS,
-LodjurDS, WasabiDS, nesDS and tuna-viDS. GBARunner3 has the same assumption recorded but no
-automatically packaged binary; the supplied third-party hicode build is recorded
-above. See [the assumption document](UNCONFIRMED_DISTRIBUTION.md).
+LodjurDS, WasabiDS, nesDS, tuna-viDS and the supplied GBARunner3 hicode core.
+See [the assumption document](UNCONFIRMED_DISTRIBUTION.md).
 
 `--noncommercial` adds A5200DS, DracoDS, MicroDS, SpeccySE, ColecoDS, DS994a
 and PicoDriveTWL. Their no-profit
@@ -109,7 +108,8 @@ Add-ons use the same `licenses.zip`, combined `source.zip` and `SHA256SUMS` as
 the release. Available upstream source archives, including DSXP's provided libmad
 source tarball and pinned source submodules, are retained under
 `dependencies/addons/`. jEnesisDS Plus provides patches/injected code, not the
-unpublished original emulator source. There is no separate
+unpublished original emulator source. GBARunner3 has labelled reference source,
+not verified corresponding source for the supplied hicode build. There is no separate
 dependency-source download. Publish the updated companion archives with
 `addons.zip`; the package manifest records the included versions and hashes.
 A regular release build without add-ons removes a stale generated addons.zip
@@ -135,7 +135,7 @@ requirement; this does not assert that their authors cannot distribute them.
 | [dsxp v1.1.0-sd-argv.1](https://github.com/nextcode4u/DSXP/releases/tag/v1.1.0-sd-argv.1) | [direct](https://github.com/nextcode4u/DSXP/blob/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/source/main.c) | Included; GPL-2.0-or-later |
 | [fastvideods v0.0.1](https://github.com/Gericom/FastVideoDSPlayer/releases/tag/v0.0.1) | [direct](https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/arm9/source/main.cpp) | Included, permission unconfirmed; Project license not stated |
 | [gameyob-dsi v0.5.3b-mavica](https://github.com/Lana-chan/GameYob/releases/tag/v0.5.3b-mavica) | [direct](https://github.com/Lana-chan/GameYob/blob/04f88d96ca653c60fd1b110ce7011db7e8e906a3/arm9/source/main.cpp) | Included; MIT |
-| [gbarunner3 No upstream release; develop source snapshot](https://github.com/Gericom/GBARunner3) | [direct](https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/code/core/arm9/source/main.cpp) | Third-party hicode candidate; exact build source unconfirmed; permission unconfirmed |
+| [gbarunner3 hicode third-party snapshot](https://files.deletecat.com/GBARunner3-hicode.zip) | [direct](https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/code/core/arm9/source/main.cpp) | Included under project assumption; direct argv checked in binary; source revision unidentified |
 | [gimlids 1.7a](https://github.com/wavemotion-dave/GimliDS/releases/tag/1.7a) | [directory-only](https://github.com/wavemotion-dave/GimliDS/blob/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740/arm9/source/main.cpp) | Manual / held; GPL-2.0-or-later |
 | [hachibitto 1.9](https://github.com/wavemotion-dave/Hachibitto/releases/tag/1.9) | [none](https://github.com/wavemotion-dave/Hachibitto/blob/a388a295945d3929ac41a6369e40ce1c0afefa7e/arm9/source/Hachibitto.c) | Manual / held; Noncommercial core; firmware/asset rights unresolved |
 | [jenesisdsplus v0.8.1](https://github.com/DS-Homebrew/jEnesisDSPlus/releases/tag/v0.8.1) | [direct](https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/newCode/source/main.s) | Included, permission unconfirmed; No explicit Plus redistribution license; closed-source base terms unconfirmed |
@@ -175,7 +175,7 @@ a missing grant or apply Gloam's GPL to those programs.
 - **[dsxp](https://github.com/nextcode4u/DSXP/tree/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0):** Use nextcode4u/DSXP SD-argv prerelease; matching release source includes libmad.
 - **[fastvideods](https://github.com/Gericom/FastVideoDSPlayer/tree/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 - **[gameyob-dsi](https://github.com/Lana-chan/GameYob/tree/04f88d96ca653c60fd1b110ce7011db7e8e906a3):** Retain the Drenn/contributor notice and both DS/DSi variants.
-- **[gbarunner3](https://github.com/Gericom/GBARunner3/tree/ecaa817815d9761745606592f04affe5ee9c3731):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The supplied third-party hicode ZIP is hash-pinned as a candidate. Its exact source revision is unidentified; the recorded develop commit is reference source only. It is not automatically packaged yet.
+- **[gbarunner3](https://github.com/Gericom/GBARunner3/tree/ecaa817815d9761745606592f04affe5ee9c3731):** Include the unchanged hash-pinned Deletecat hicode core and its 304 game configs under the documented project assumption. The binary consumes argv[1] directly. Its exact source revision is unknown; the source companion contains labelled reference-only develop source and submodule archives, not verified corresponding source. Do not include the standalone frontend or any GBA BIOS.
 - **[gimlids](https://github.com/wavemotion-dave/GimliDS/tree/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740):** Code redistribution permitted, but the stock build only selects a directory. Not auto-installed over the prepared argv build. ArgvReceived records the basename and changes directory, then leaves a TODO for auto-loading. The prepared argv build in the backup is different.
 - **[hachibitto](https://github.com/wavemotion-dave/Hachibitto/tree/a388a295945d3929ac41a6369e40ce1c0afefa7e):** Stock 1.9 has no argv handling. arm9/source/MSX_BIOS.c explicitly says the embedded MSX firmware is used without permission. Do not redistribute this prebuilt binary based on the emulator-code terms. Stock 1.9 main() has no argc/argv or system-argv handling. The prepared 1.8b backup build is different; do not overwrite it with stock.
 - **[jenesisdsplus](https://github.com/DS-Homebrew/jEnesisDSPlus/tree/ca3bb43d14f8d78ccb6546d753817defaac25937):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL. saveArgv validates the standard _arg record, copies argv[1] and loadRomFromArgv starts the ROM. Original jEnesisDS does not establish the Plus behavior. Native DSi SD handoff still needs testing; do not infer it from the BlocksDS toolchain used for the injected code.
@@ -220,9 +220,9 @@ automatic selected-game launch. DSP/S-DD1 variants are not substituted.
 - **[a5200ds](https://github.com/wavemotion-dave/A5200DS/blob/b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a/readme.md):** Altirra 5200 replacement is already compiled in; some games need user-supplied original 5200.rom in /roms/bios or /data/bios.
 - **[a7800ds](https://github.com/wavemotion-dave/A7800DS/blob/32b7b1ed78f5edbcd29a797a1376e25a9bd9d265/README.md):** No BIOS required normally. Optional 7800.rom and highscore.rom go in /roms/bios, /data/bios or beside emulator.
 - **[a8ds](https://github.com/wavemotion-dave/A8DS/blob/b5718df173e0b4037bcb8414640af26458c0bade/readme.md):** Built-in Altirra OS 3.41 and BASIC 1.58. Optional originals: atarixl.rom, atariosb.rom, ataribas.rom, a5200.rom in /roms/bios or /data/bios.
-- **[colecods](https://github.com/wavemotion-dave/ColecoDS/blob/29596955995526a10c8a9ca8c17d39b642f54dbf/README.md):** README explicitly permits no-profit distribution of the emulator with notices and credits to wavemotion-dave, Alekmaul and Marat Fayzullin. Package the unchanged release only; preserve its ColEM contact request and FluBBa notices. No external proprietary BIOS is included.
+- **[colecods](https://github.com/wavemotion-dave/ColecoDS/blob/29596955995526a10c8a9ca8c17d39b642f54dbf/README.md):** ColecoVision requires coleco.rom; Sord M5 requires sordm5.rom (JP) or sordm5p.rom (PAL). MSX1 has built-in C-BIOS for cartridges, without BASIC/cassette/disk support. Additional machine BIOS files are user-supplied.
 - **[dracods](https://github.com/wavemotion-dave/DracoDS/blob/03cddfbddf93056291c69fd512a8d8db0bbb2caa/README.md):** User supplies dragon32.rom or bas12.rom/extbas11.rom; disk11.rom for CoCo disks. Look in /roms/bios or beside emulator.
-- **[ds994a](https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/README.md):** README permits no-profit redistribution of the remaining code and records permission for SN76496 and Classic99-derived code. Package the unchanged release with lowzip/yxml and ColEM notices. Its embedded speech samples have no separately established redistribution grant; inclusion follows the project policy for this listed release, without claiming clearance for those samples.
+- **[ds994a](https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/README.md):** Requires 994aROM.bin and 994aGROM.bin in /roms/bios or /roms/ti99; 994aDISK.bin is needed for disk support.
 - **[dslibris](https://github.com/rhaleblian/dslibris/blob/v1.6.0/INSTALL.txt):** No BIOS required. Select EPUB files inside the app and preserve its Book/Font configuration.
 - **[dsxp](https://github.com/nextcode4u/DSXP/blob/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/README.md):** No emulator BIOS required.
 - **[fastvideods](https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/readme.md):** No BIOS required; convert videos with the matching FastVideoDS encoder.
@@ -233,12 +233,12 @@ automatic selected-game launch. DSP/S-DD1 variants are not substituted.
 - **[jenesisdsplus](https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/README.md):** No external console BIOS needed for Genesis cartridge ROMs. Plus supports up to 7.5 MiB on DSi (4 MiB on DS debug hardware), with mapper support for ROMs above 4 MiB. Native console-SD compatibility is not yet validated in Gloam.
 - **[lodjurds](https://github.com/FluBBaOfWard/LodjurDS/blob/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/README.md):** Requires a user-supplied Atari Lynx BIOS, selected inside LodjurDS. Upstream explicitly says it is needed to run games; not included.
 - **[microds](https://github.com/wavemotion-dave/MicroDS/blob/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09/README.md):** Requires MC10.BIN or MC10.ROM; optional MCX.BIN/MCX.ROM. Put them in /roms/bios or beside emulator.
-- **[nesds](https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/README.TXT):** Package the unchanged nesDS.nds release under the documented project assumption. Retain README.TXT, README_ORIGINAL.TXT, ARM7/Wi-Fi notices and the exact RP2A03 and nested ARM6502 source pins. Neither submodule pin has a project-wide license file; do not apply the legacy public-domain statement to those additions.
+- **[nesds](https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/README.TXT):** NES cartridges need no external BIOS. FDS content requires disksys.rom; user-supplied.
 - **[ngpds](https://github.com/FluBBaOfWard/NGPDS/blob/4dbcc210cdb519414ff20d2886645a530e298206/README.md):** Upstream says a real NGP/NGPC BIOS is needed for in-game saving. Select it in emulator settings; not included.
 - **[nintv-ds](https://github.com/wavemotion-dave/NINTV-DS/blob/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6/README.md):** Requires exec.bin and grom.bin; optional ivoice.bin, ecs.bin and Tutorvision firmware. Configure BIOS location in emulator; /roms/bios is the recommended collection.
 - **[nitrografx](https://github.com/FluBBaOfWard/NitroGrafx/blob/62920a05e9c7e31144d7e16b58797cdd8bc3789a/README.md):** PCE cartridge route needs no BIOS. CD-ROM games require a user-supplied CD system BIOS; CD files are not default argv associations.
 - **[nitroswan](https://github.com/FluBBaOfWard/NitroSwan/blob/564e171fb93c2c11f98f38607493675727676c2c/README.md):** Built-in startup handling permits games without original firmware; optional WS/WSC/Crystal BIOS can be selected in the emulator.
-- **[picodrivetwl](https://github.com/DS-Homebrew/PicoDriveTWL/blob/4fcdb1f0bef46a4704b1870d787b362afa7bfec0/README.md):** Package the unchanged upstream release for noncommercial distribution. Pinned config.h selects _USE_DRZ80, not _USE_MZ80; mz80.c is gated by ARM9_SOUND, which is not defined for that translation unit by the pinned build. Retain MZ80 terms in the unchanged source archive; this does not authorize distributing modified MZ80 or commercial use. Preserve the Pico, DrZ80 and other source notices.
+- **[picodrivetwl](https://github.com/DS-Homebrew/PicoDriveTWL/blob/4fcdb1f0bef46a4704b1870d787b362afa7bfec0/README.md):** Genesis cartridges need no separate BIOS; Sega CD is not a configured route.
 - **[pokemini](https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/readme.txt):** Upstream replacement FreeBIOS is already compiled in; original Nintendo BIOS is not needed for basic operation.
 - **[rocketvideoplayer](https://github.com/RocketRobz/RocketVideoPlayer/blob/50803b9027ca43ab278c1486442fcfc70c90b309/README.md):** No BIOS required; use matching .rvid conversion.
 - **[s8ds](https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/README.md):** Configured SMS/GG/SG-1000 cartridge routes normally bypass BIOS. Other emulated machines can require their own BIOS selected inside S8DS.
@@ -248,8 +248,9 @@ automatic selected-game launch. DSP/S-DD1 variants are not substituted.
 - **[speccyse](https://github.com/wavemotion-dave/SpeccySE/blob/85c85862470b69b75f6e49476a9c4ce992064bb3/readme.md):** Requires 48.ROM and 128.ROM beside emulator or in /roms/bios. OpenSE BASIC is a candidate for 48K only, not a verified full replacement for this required pair.
 - **[stellads](https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/README.md):** No separate Atari 2600 BIOS required.
 - **[sugards](https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/readme.md):** Amstrad CPC firmware and ParaDOS are embedded in the stock binary, with separate terms; no extra download is needed, but embedding is not a free-BIOS license.
-- **[tuna-vids](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/README.md):** Include the unchanged v1.2 release under the documented project distribution assumption. Bundle root GPL, upstream README, Helix LICENSE/RPSL/RCSL and the project distribution/source-availability notice in licenses.zip; retain the pinned player/codec source in source.zip. The executable Helix notice gap remains documented, not claimed fixed by companion documentation.
+- **[tuna-vids](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/README.md):** No BIOS required; AVI must contain Xvid/MPEG-4 video and MP3 audio in the player-specific format.
 - **[wasabids](https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/README.md):** No separate Supervision BIOS required.
+
 
 ## Free replacements
 

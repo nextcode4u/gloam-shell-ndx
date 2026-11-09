@@ -12,7 +12,7 @@ still require the separate build option and retain their no-profit terms.
 
 | Project | Recorded version | Package availability |
 | --- | --- | --- |
-| GBARunner3 | develop snapshot `ecaa817815d9761745606592f04affe5ee9c3731` | Third-party hicode ZIP pinned as a candidate; exact core source revision unidentified; not bundled. |
+| GBARunner3 | Hash-pinned third-party hicode core | Included with 304 game configs; exact core source revision unidentified; reference source labelled separately. |
 | FastVideoDS Player | v0.0.1 | Included under this assumption. |
 | jEnesisDS Plus | v0.8.1 | Included under this assumption; original base is closed source. |
 | S8DS | v1.1.8 | Included under this assumption. |
@@ -52,11 +52,13 @@ For jEnesisDS Plus this is the available patch/injected
 code, not the unpublished original jEnesisDS emulator source. No complete-source
 claim is made for that base.
 
-The supplied GBARunner3 hicode ZIP now has pinned archive/core hashes, but no
-build manifest identifying its exact source revision. The recorded develop
-snapshot is reference source only. The core and its 304 configs remain a manual
-candidate until corresponding source is identified; this is independent of the
-redistribution assumption. See [the core/frontend setup notes](ADDONS.md#gbarunner3-core-and-optional-browser).
+The supplied GBARunner3 hicode core and its 304 game configs are included under
+this assumption. Its direct argv path is statically checked in the actual binary.
+No BIOS or standalone frontend is included. Its exact source revision remains
+unidentified; available develop source is stored as `reference-source.tar.gz`
+with `source_role: reference-only`. It is not presented as verified corresponding
+source. The [GBARunner3 notice](GBARUNNER3_NOTICES.md) accompanies the package in
+`licenses.zip/addons/gbarunner3/DISTRIBUTION.md`.
 
 nesDS includes the exact RP2A03 `d4b8d3dffaf9f0eced4cf707a2ce2208eb1bdaa0`
 and nested ARM6502 `8b8b6c82ce29bd26cd76709c75167372b3711484` source archives.

@@ -7,19 +7,21 @@ Content: .gba
 
 Application: GBARunner3
 
-Argv in the audited upstream build: direct.
+Argv in the audited upstream build: direct. Direct argv[1] selection verified
+by static disassembly of the supplied core; launch/save compatibility still
+requires runtime testing.
 
 Firmware: Requires original 16 KiB GBA BIOS at /_gba/bios.bin. Fixed-offset
 relocation/patches prevent assuming a replacement BIOS is compatible.
 
-Add-on package: manual / held; terms: Project-wide license not established.
+Add-on package: available; terms: Project-wide license not established.
 
 Redistribution is assumed for this pack; upstream permission remains
 unconfirmed. See addons/UNCONFIRMED_DISTRIBUTION.md in the companion
 licenses.zip.
 
 Upstream: https://github.com/Gericom/GBARunner3
-Release: https://github.com/Gericom/GBARunner3/releases
+Release: https://files.deletecat.com/GBARunner3-hicode.zip
 
 Keep per-game configuration under /_gba/configs as required by your GBARunner3
 build. A downloadable replacement GBA BIOS is not automatically compatible
