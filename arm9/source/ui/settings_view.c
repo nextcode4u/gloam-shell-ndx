@@ -9,10 +9,16 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
     ThemePalette palette = themes_palette(app);
     const SettingsState *state = &app->settings;
     unsigned elapsed = app->frame_count - state->text_started_frame;
-    const SettingsOption *option = settings_option(state->section, state->selected);
+    const SettingsOption *option = settings_option(app, state->section, state->selected);
+    if (!option)
+        option = settings_option(app, 0, 0);
     themes_background_draw(&app->themes.active, 0, top);
     themes_background_draw(&app->themes.active, 1, bottom);
-    draw_text(top, 10, 8, "GLOAM SHELL NDX SETTINGS", palette.accent, 28);
+    draw_text(top, 10, 8,
+              app->simple_settings_lock ? "SIMPLE SETTINGS - LOCKED"
+              : settings_is_simple(app) ? "SIMPLE SETTINGS"
+                                        : "ADVANCED SETTINGS",
+              palette.accent, 33);
     draw_rectangle(top, 10, 23, 236, 1, palette.line);
     draw_text_clipped(top, 10, 31, option->label, palette.text, 33);
     char value[96];
@@ -26,14 +32,14 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
                                                  : "Preferences saved",
                         palette.muted, 231, elapsed, !app->reduced_motion);
     draw_text(top, 10, 179, "L/R pages  B / START close", palette.muted, 33);
-    draw_text_clipped(bottom, 10, 7, settings_section_name(state->section), palette.text, 26);
+    draw_text_clipped(bottom, 10, 7, settings_section_name(app, state->section), palette.text, 26);
     char page[24];
-    snprintf(page, sizeof page, "%d/%d", state->section + 1, SETTINGS_SECTION_COUNT);
+    snprintf(page, sizeof page, "%d/%d", state->section + 1, settings_section_count(app));
     draw_text(bottom, 222, 7, page, palette.accent, 4);
     draw_text(bottom, 10, 24, "< L previous", palette.muted, 14);
     draw_text(bottom, 178, 24, "R next >", palette.muted, 10);
     draw_rectangle(bottom, 10, 36, 236, 1, palette.line);
-    int count = settings_option_count(state->section);
+    int count = settings_option_count(app, state->section);
     for (int row = 0; row < SETTINGS_VISIBLE_ROWS; row++) {
         int index = state->scroll + row;
         if (index >= count)
@@ -44,7 +50,7 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
             draw_rectangle(bottom, 6, y, 244, SETTINGS_ROW_HEIGHT, palette.surface);
             draw_rectangle(bottom, 6, y, 2, SETTINGS_ROW_HEIGHT, palette.accent);
         }
-        const SettingsOption *item = settings_option(state->section, index);
+        const SettingsOption *item = settings_option(app, state->section, index);
         draw_text_scrolling(bottom, 14, y + 3, item->label, selected ? palette.text : palette.muted,
                             126, elapsed, selected && !app->reduced_motion);
         settings_value(app, item, value, sizeof value);

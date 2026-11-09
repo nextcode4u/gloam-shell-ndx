@@ -69,14 +69,23 @@ static bool read_state_file(App *app, const char *filename)
         return false;
     }
 
+    /* Older state files had the full settings UI; preserve that view on upgrade. */
+    app->advanced_settings = true;
+    app->simple_settings_lock = false;
     char active_tab[TAB_ID_CAP] = "";
     bool has_active_tab = false;
     bool reset_locations[TAB_CAP] = {false};
     while (fgets(line, sizeof line, file)) {
         line[strcspn(line, "\r\n")] = '\0';
         int value;
-        if (!strncmp(line, "selected_path=", 14) && strlen(line + 14) < PATH_CAP &&
-            path_is_within_root(line + 14, app->root))
+        if (!strcmp(line, "settings_mode=simple"))
+            app->advanced_settings = false;
+        else if (!strcmp(line, "settings_mode=advanced"))
+            app->advanced_settings = true;
+        else if (sscanf(line, "simple_settings_lock=%d", &value) == 1)
+            app->simple_settings_lock = value == 1;
+        else if (!strncmp(line, "selected_path=", 14) && strlen(line + 14) < PATH_CAP &&
+                 path_is_within_root(line + 14, app->root))
             path_copy(app->scan_restore_path, line + 14, sizeof app->scan_restore_path);
         else if (!strcmp(line, "auto_launch_delay=0"))
             app->auto_launch_delay = 0;
@@ -254,6 +263,8 @@ bool app_save(App *app)
             app->filter_recognized,
             app->recovery_mode ? app->recovery_preferences.clock_12_hour : app->clock_12_hour,
             app->startup_tab);
+    fprintf(file, "settings_mode=%s\nsimple_settings_lock=%d\n",
+            app->advanced_settings ? "advanced" : "simple", app->simple_settings_lock);
     char music_reference[PATH_CAP] = "";
     if (*app->audio.custom_path && path_is_within_root(app->audio.custom_path, app->root)) {
         const char *relative = app->audio.custom_path + strlen(app->root);

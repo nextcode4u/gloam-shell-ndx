@@ -65,10 +65,11 @@ int main(int argc, char **argv)
     assert(!configuration_reset(argv[1], error));
     check_text(state, "version=1\n");
     assert(!unlink(path));
+    app.advanced_settings = true;
     settings_open(&app);
     app.settings.section = 5;
-    for (int i = 0; i < settings_option_count(app.settings.section); i++)
-        if (!strcmp(settings_option(app.settings.section, i)->label, "Reset configuration"))
+    for (int i = 0; i < settings_option_count(&app, app.settings.section); i++)
+        if (!strcmp(settings_option(&app, app.settings.section, i)->label, "Reset configuration"))
             app.settings.selected = i;
     settings_activate(&app);
     assert(app.settings.reset_confirm && !app.configuration_reload_requested);
@@ -78,18 +79,20 @@ int main(int argc, char **argv)
     settings_activate(&app);
     settings_back(&app);
     assert(!app.settings.reset_confirm);
+    app.advanced_settings = true;
     settings_open(&app);
     app.settings.section = 5;
-    app.settings.selected = settings_option_count(app.settings.section) - 1;
+    app.settings.selected = settings_option_count(&app, app.settings.section) - 1;
     settings_activate(&app);
     settings_activate(&app);
     assert(app.configuration_reload_requested && !app.settings.open);
     assert(path_preferences_file(old, argv[1], "configuration/reset-backup-001/00"));
     assert(!access(old, F_OK));
     app_init_mode(&app, argv[1], true, true, true);
+    app.advanced_settings = true;
     settings_open(&app);
     app.settings.section = 5;
-    app.settings.selected = settings_option_count(app.settings.section) - 1;
+    app.settings.selected = settings_option_count(&app, app.settings.section) - 1;
     settings_activate(&app);
     assert(!app.settings.reset_confirm && !app.configuration_reload_requested);
     puts("PASS: archived reset, default reload, saves retained, interrupted rollback, external "

@@ -37,6 +37,13 @@ frames, while browser/picker views use selection-idle counters. Repetitions
 follow each other through a three-cell gap without stopping at the end. Reduced
 motion keeps text static.
 
+`settings.c` owns both settings catalogs: Simple references a bounded subset of
+the same option definitions and handlers used by Advanced. Its app-aware catalog
+functions enforce `simple_settings_lock` for controller navigation and rendering;
+`preferences.c` persists the mode and config-only lock. Fresh installs use Simple,
+while existing state files without a mode retain Advanced. Hidden technical
+values are preserved rather than reset.
+
 Configuration import and reset retain rollback data before changing settings.
 Do not replace them with recursive deletion of frontend folders: installed
 assets and game saves are outside the reset scope.

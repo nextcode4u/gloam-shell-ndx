@@ -195,8 +195,9 @@ int main(int argc, char **argv)
     assert(appearance_save(&app, 1));
     app.settings.preset_slot = 1;
     char displayed[64];
-    for (int i = 0; i < settings_option_count(0); i++) {
-        const SettingsOption *option = settings_option(0, i);
+    app.advanced_settings = true;
+    for (int i = 0; i < settings_option_count(&app, 0); i++) {
+        const SettingsOption *option = settings_option(&app, 0, i);
         if (!strcmp(option->label, "Preset slot")) {
             settings_value(&app, option, displayed, sizeof displayed);
             assert(!strcmp(displayed, "Evening"));

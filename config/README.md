@@ -24,3 +24,10 @@ also prevents bundling. No absence-of-license assumption grants permission.
 Default emulator/player executables live in `/_nds/dsi-frontend/plugins/apps/`.
 Keep that application directory identical in the preset catalog and add-on lock
 so generated associations resolve files installed by `addons.zip`.
+
+Frontend settings use `/_nds/dsi-frontend/state.ini`, written at runtime rather
+than shipped over existing preferences. `settings_mode=simple` or `advanced`
+selects the UI; `simple_settings_lock=1` forces Simple mode and hides its mode
+switch. The lock defaults to `0` and can only be changed in the config, not the
+settings UI. See [setup and locking](../docs/GETTING_STARTED.md#simple-and-advanced-settings)
+for defaults, upgrade behavior and editing instructions.

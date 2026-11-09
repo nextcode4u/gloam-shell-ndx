@@ -46,6 +46,104 @@ static void option(int section, int index)
     app.settings.selected = index;
     app.settings.scroll = 0;
 }
+static bool select_setting(App *target, const char *label)
+{
+    for (int page = 0; page < settings_section_count(target); page++)
+        for (int row = 0; row < settings_option_count(target, page); row++)
+            if (!strcmp(settings_option(target, page, row)->label, label)) {
+                target->settings.section = page;
+                target->settings.selected = row;
+                target->settings.scroll = row > 6 ? row - 6 : 0;
+                return true;
+            }
+    return false;
+}
+static void check_settings_levels(const char *root)
+{
+    static App levels, loaded;
+    char isolated[PATH_CAP], state_path[PATH_CAP];
+    assert(path_join(isolated, root, "settings-levels") && !mkdir(isolated, 0777));
+    app_init(&levels, isolated, true, true);
+    assert(settings_is_simple(&levels) && !levels.advanced_settings &&
+           !levels.simple_settings_lock);
+    settings_open(&levels);
+    assert(settings_section_count(&levels) == 4);
+    const char *technical[] = {"Game defaults",        "Emulator profiles",   "Unlaunch setup",
+                               "Import configuration", "Reset configuration", "Folder tabs",
+                               "Auto-launch recent",   "Show hidden",         "Show system files"};
+    for (unsigned i = 0; i < sizeof technical / sizeof *technical; i++)
+        assert(!select_setting(&levels, technical[i]));
+    assert(select_setting(&levels, "Accent"));
+    int accent = levels.accent_index;
+    settings_adjust(&levels, 1);
+    assert(levels.accent_index != accent);
+    levels.auto_launch_delay = 5; /* A configured technical choice must survive view changes. */
+    settings_open(&levels);
+    settings_section(&levels, -1);
+    assert(levels.settings.section == 3);
+    settings_touch(&levels, 190, 27);
+    assert(levels.settings.section == 0);
+    assert(select_setting(&levels, "Settings mode"));
+    settings_activate(&levels);
+    assert(!settings_is_simple(&levels) && settings_section_count(&levels) == 7);
+    assert(levels.auto_launch_delay == 5 && select_setting(&levels, "Game defaults"));
+    assert(select_setting(&levels, "Settings mode"));
+    settings_adjust(&levels, -1);
+    assert(settings_is_simple(&levels) && levels.settings.section == 0);
+    assert(app_save(&levels));
+    app_init(&loaded, isolated, true, true);
+    assert(settings_is_simple(&loaded) && !loaded.simple_settings_lock);
+    assert(loaded.auto_launch_delay == 5 && loaded.accent_index == levels.accent_index);
+    assert(path_preferences_file(state_path, isolated, "state.ini"));
+    FILE *state = fopen(state_path, "w");
+    assert(state &&
+           fputs("version=1\nsettings_mode=advanced\nsimple_settings_lock=1\n"
+                 "auto_launch_delay=5\n",
+                 state) >= 0 &&
+           !fclose(state));
+    app_init(&levels, isolated, true, true);
+    assert(levels.advanced_settings && levels.simple_settings_lock && settings_is_simple(&levels));
+    settings_open(&levels);
+    assert(!select_setting(&levels, "Settings mode"));
+    for (unsigned i = 0; i < sizeof technical / sizeof *technical; i++)
+        assert(!select_setting(&levels, technical[i]));
+    levels.settings.section = 6; /* A stale Advanced page cannot expose its action. */
+    levels.settings.selected = 0;
+    assert(!settings_option(&levels, 6, 0));
+    settings_adjust(&levels, 1);
+    settings_activate(&levels);
+    assert(!levels.configuration_reload_requested && !levels.system_discovery_requested);
+    settings_open(&levels);
+    for (int page = 0; page < 12; page++) {
+        settings_section(&levels, 1);
+        assert(levels.settings.section < 4);
+        for (int row = 0; row < settings_option_count(&levels, levels.settings.section); row++) {
+            levels.settings.selected = row;
+            top.before = bottom.before = 0x12345678;
+            top.after = bottom.after = 0x87654321;
+            settings_render(&levels, top.pixels, bottom.pixels);
+            assert(top.before == 0x12345678 && bottom.before == 0x12345678);
+            assert(top.after == 0x87654321 && bottom.after == 0x87654321);
+        }
+    }
+    assert(app_save(&levels));
+    app_init_mode(&loaded, isolated, true, true, true);
+    assert(loaded.simple_settings_lock && settings_is_simple(&loaded));
+    assert(app_save(&loaded)); /* Recovery saves retain the administrative lock too. */
+    app_init(&loaded, isolated, true, true);
+    assert(loaded.simple_settings_lock && loaded.advanced_settings && settings_is_simple(&loaded));
+    state = fopen(state_path, "w");
+    assert(state && fputs("version=1\n", state) >= 0 && !fclose(state));
+    app_init(&loaded, isolated, true, true);
+    assert(loaded.advanced_settings && !loaded.simple_settings_lock &&
+           !settings_is_simple(&loaded));
+    state = fopen(state_path, "w");
+    assert(state &&
+           fputs("version=1\nsettings_mode=simple\nsimple_settings_lock=0\n", state) >= 0 &&
+           !fclose(state));
+    app_init(&loaded, isolated, true, true);
+    assert(settings_is_simple(&loaded) && !loaded.simple_settings_lock);
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -65,6 +163,7 @@ int main(int argc, char **argv)
     assert(app.show_covers && app.show_extensions && !app.show_hidden);
     assert(find(".hidden.txt") == -1);
     app_move(&app, find("Alpha.nds") - app.locations[1].selected);
+    app.advanced_settings = true;
     settings_open(&app);
     assert(app.settings.open && app.settings.section == 0);
     settings_section(&app, 1);
@@ -123,6 +222,7 @@ int main(int argc, char **argv)
     assert(restored.filter_recognized && restored.sort_mode == SORT_MODIFIED);
     app.category = CATEGORY_GAMES;
     app_scan(&app);
+    app.advanced_settings = true;
     settings_open(&app);
     /* Placeholder sections explain availability; they cannot silently change settings. */
     option(2, 5);
@@ -132,7 +232,7 @@ int main(int argc, char **argv)
     assert(!app.preferences_dirty);
     for (int section = 0; section < SETTINGS_SECTION_COUNT; section++) {
         option(section, 0);
-        for (int index = 0; index < settings_option_count(section); index++) {
+        for (int index = 0; index < settings_option_count(&app, section); index++) {
             app.settings.selected = index;
             top.before = top.after = bottom.before = bottom.after = 0x12345678;
             render_app(&app, top.pixels, bottom.pixels, "12:03 AM");
@@ -160,19 +260,23 @@ int main(int argc, char **argv)
     settings_activate(&app);
     assert(!app.settings.open && app.category == CATEGORY_SYSTEM);
     /* The route page reports observed installation/discovery, never success. */
+    app.advanced_settings = true;
     settings_open(&app);
     settings_section(&app, -1);
-    assert(!strcmp(settings_section_name(app.settings.section), "Launch status"));
+    assert(!strcmp(settings_section_name(&app, app.settings.section), "Launch status"));
     assert(app.system_discovery_requested);
     char route_value[96];
-    settings_value(&app, settings_option(app.settings.section, 1), route_value, sizeof route_value);
+    settings_value(&app, settings_option(&app, app.settings.section, 1), route_value,
+                   sizeof route_value);
     assert(!strcmp(route_value, "Missing/invalid"));
     app.system_catalog.attempted = true;
     app.system_catalog.titles[0].available = true;
-    settings_value(&app, settings_option(app.settings.section, 4), route_value, sizeof route_value);
+    settings_value(&app, settings_option(&app, app.settings.section, 4), route_value,
+                   sizeof route_value);
     assert(!strcmp(route_value, "Title found"));
     app.storage_lost = true;
-    settings_value(&app, settings_option(app.settings.section, 1), route_value, sizeof route_value);
+    settings_value(&app, settings_option(&app, app.settings.section, 1), route_value,
+                   sizeof route_value);
     assert(!strcmp(route_value, "SD unavailable"));
     app.storage_lost = false;
     /* Save folders are presentation-only, exact-name and case-insensitive.
@@ -201,9 +305,10 @@ int main(int argc, char **argv)
         assert(strcmp(app.picker.entries[i].name, "saves") &&
                strcmp(app.picker.entries[i].name, "SAVESTATES"));
     picker_close(&app);
+    app.advanced_settings = true;
     settings_open(&app);
     option(1, 5);
-    assert(!strcmp(settings_option(1, 5)->label, "Hide save folders"));
+    assert(!strcmp(settings_option(&app, 1, 5)->label, "Hide save folders"));
     settings_adjust(&app, 1);
     assert(!app.hide_save_folders && find("saves") >= 0 && find("SAVESTATES") >= 0);
     assert(!strcmp(app_selected(&app)->name, "Alpha.nds"));
@@ -247,9 +352,10 @@ int main(int argc, char **argv)
     for (int i = 0; i < app.picker.count; i++)
         assert(strcmp(app.picker.entries[i].name, "BiOs"));
     picker_close(&app);
+    app.advanced_settings = true;
     settings_open(&app);
     option(1, 6);
-    assert(!strcmp(settings_option(1, 6)->label, "Hide BIOS folders"));
+    assert(!strcmp(settings_option(&app, 1, 6)->label, "Hide BIOS folders"));
     settings_adjust(&app, 1);
     assert(!app.hide_bios_folders && app.hide_save_folders && find("BiOs") >= 0);
     assert(app_save(&app));
@@ -281,7 +387,9 @@ int main(int argc, char **argv)
     assert(save && fread(contents, 1, sizeof contents - 1, save) == strlen("Earned progress") &&
            !fclose(save));
     assert(!strcmp(contents, "Earned progress"));
-    puts("PASS: full settings, sorting/selection, filters, display names, clock, startup and "
+    check_settings_levels(root);
+    puts("PASS: Simple/Advanced settings, config-only lock, migration, recovery persistence; full "
+         "settings, sorting/selection, filters, display names, clock, startup and "
          "persistence");
     return 0;
 }

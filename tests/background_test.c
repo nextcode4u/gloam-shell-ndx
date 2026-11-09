@@ -60,6 +60,7 @@ int main(int argc, char **argv)
     assert(image_decode_background(top.pixels, data, bytes, 0x8421, 0));
     assert(top.pixels[0] == 0x8421);
     assert(!image_decode_background(top.pixels, data, bytes, 0x8421, 36));
+    restored.advanced_settings = true;
     settings_open(&restored);
     restored.settings.selected = 10;
     restored.wallpaper_strength = 33;

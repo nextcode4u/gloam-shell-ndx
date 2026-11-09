@@ -29,6 +29,7 @@
 #endif
 
 enum {
+    OPT_SETTINGS_MODE,
     OPT_AUTO_LAUNCH,
     OPT_CONFIG_EXPORT,
     OPT_CONFIG_IMPORT,
@@ -156,6 +157,10 @@ static const SettingsOption appearance[] = {
     {"Reset appearance",
      "Restore built-in appearance choices. Theme packages and source images remain on SD.", false,
      OPT_RESET_APPEARANCE},
+    {"Settings mode",
+     "Simple keeps everyday controls. Advanced adds launch, boot and maintenance settings. "
+     "Switching views preserves your existing choices.",
+     true, OPT_SETTINGS_MODE},
 };
 static const SettingsOption browser[] = {
     {"Sort order",
@@ -390,19 +395,71 @@ static void refresh_routes(App *app)
     app->system_discovery_requested = app->dsi_mode;
 }
 
-const char *settings_section_name(int section)
+/* Simple pages reference the same options and handlers as the full catalog. */
+static const int simple_appearance[] = {OPT_SETTINGS_MODE, OPT_THEME,  OPT_BRIGHTNESS,
+                                        OPT_ACCENT,        OPT_MOTION, OPT_ICONS,
+                                        OPT_VIEW,          OPT_COVERS, OPT_CLOCK};
+static const int simple_browser[] = {OPT_SORT,      OPT_EXTENSIONS, OPT_HIDE_SAVES,
+                                     OPT_HIDE_BIOS, OPT_SPEED,      OPT_TITLE_SOURCE};
+static const int simple_audio[] = {OPT_MUSIC_MODE, OPT_MUSIC_PATH, OPT_MUSIC_VOLUME, OPT_EFFECTS,
+                                   OPT_EFFECTS_VOLUME};
+static const int simple_console[] = {OPT_BATTERY, OPT_SYSTEM, OPT_SYSTEM_MENU, OPT_SAVE, OPT_ABOUT};
+static const struct {
+    const char *name;
+    const int *ids;
+    int count;
+} simple_sections[] = {
+    {"Appearance", simple_appearance, sizeof simple_appearance / sizeof *simple_appearance},
+    {"Browsing", simple_browser, sizeof simple_browser / sizeof *simple_browser},
+    {"Audio", simple_audio, sizeof simple_audio / sizeof *simple_audio},
+    {"Console", simple_console, sizeof simple_console / sizeof *simple_console},
+};
+
+bool settings_is_simple(const App *app)
 {
-    return section >= 0 && section < SETTINGS_SECTION_COUNT ? section_names[section]
-                                                            : "Frontend Settings";
+    return app->simple_settings_lock || !app->advanced_settings;
 }
-int settings_option_count(int section)
+int settings_section_count(const App *app)
 {
-    return section >= 0 && section < SETTINGS_SECTION_COUNT ? sections[section].count : 0;
+    return settings_is_simple(app) ? sizeof simple_sections / sizeof *simple_sections
+                                   : SETTINGS_SECTION_COUNT;
 }
-const SettingsOption *settings_option(int section, int index)
+const char *settings_section_name(const App *app, int section)
 {
-    return index >= 0 && index < settings_option_count(section) ? &sections[section].options[index]
-                                                                : NULL;
+    if (section < 0 || section >= settings_section_count(app))
+        return "Frontend Settings";
+    return settings_is_simple(app) ? simple_sections[section].name : section_names[section];
+}
+int settings_option_count(const App *app, int section)
+{
+    if (section < 0 || section >= settings_section_count(app))
+        return 0;
+    if (!settings_is_simple(app))
+        return sections[section].count;
+    int count = 0;
+    for (int i = 0; i < simple_sections[section].count; i++)
+        if (!app->simple_settings_lock || simple_sections[section].ids[i] != OPT_SETTINGS_MODE)
+            count++;
+    return count;
+}
+const SettingsOption *settings_option(const App *app, int section, int index)
+{
+    if (index < 0 || index >= settings_option_count(app, section))
+        return NULL;
+    if (!settings_is_simple(app))
+        return &sections[section].options[index];
+    for (int i = 0; i < simple_sections[section].count; i++) {
+        int id = simple_sections[section].ids[i];
+        if (app->simple_settings_lock && id == OPT_SETTINGS_MODE)
+            continue;
+        if (index--)
+            continue;
+        for (int page = 0; page < SETTINGS_SECTION_COUNT; page++)
+            for (int row = 0; row < sections[page].count; row++)
+                if (sections[page].options[row].id == id)
+                    return &sections[page].options[row];
+    }
+    return NULL;
 }
 void settings_open(App *app)
 {
@@ -435,7 +492,9 @@ void settings_move(App *app, int direction)
     SettingsState *state = &app->settings;
     state->text_started_frame = app->frame_count;
     state->reset_confirm = false;
-    int count = settings_option_count(state->section);
+    int count = settings_option_count(app, state->section);
+    if (!count)
+        return;
     state->selected = (state->selected + direction + count) % count;
     if (state->selected < state->scroll)
         state->scroll = state->selected;
@@ -447,8 +506,8 @@ void settings_section(App *app, int direction)
 {
     app->settings.text_started_frame = app->frame_count;
     app->settings.reset_confirm = false;
-    app->settings.section =
-        (app->settings.section + direction + SETTINGS_SECTION_COUNT) % SETTINGS_SECTION_COUNT;
+    app->settings.section = (app->settings.section + direction + settings_section_count(app)) %
+                            settings_section_count(app);
     app->settings.selected = app->settings.scroll = 0;
     app->settings.status[0] = 0;
     if (app->settings.section == 6)
@@ -456,12 +515,19 @@ void settings_section(App *app, int direction)
 }
 void settings_adjust(App *app, int direction)
 {
-    const SettingsOption *option = settings_option(app->settings.section, app->settings.selected);
+    const SettingsOption *option =
+        settings_option(app, app->settings.section, app->settings.selected);
     if (!option || !option->adjustable || !direction)
         return;
     app->settings.text_started_frame = app->frame_count;
     bool refresh = false;
     switch (option->id) {
+    case OPT_SETTINGS_MODE:
+        if (app->simple_settings_lock)
+            return;
+        app->advanced_settings = !app->advanced_settings;
+        app->settings.section = app->settings.selected = app->settings.scroll = 0;
+        break;
     case OPT_AUTO_LAUNCH: {
         static const int delays[] = {0, 3, 5, 10};
         int index = 0;
@@ -595,7 +661,8 @@ void settings_adjust(App *app, int direction)
 void settings_activate(App *app)
 {
     app->settings.text_started_frame = app->frame_count;
-    const SettingsOption *option = settings_option(app->settings.section, app->settings.selected);
+    const SettingsOption *option =
+        settings_option(app, app->settings.section, app->settings.selected);
     if (!option)
         return;
     if (option->id >= OPT_ROUTE_DIRECT && option->id <= OPT_ROUTE_MENU) {
@@ -782,7 +849,8 @@ void settings_touch(App *app, int x, int y)
         return;
     int row = (y - SETTINGS_LIST_TOP) / SETTINGS_ROW_HEIGHT;
     int selected = app->settings.scroll + row;
-    if (row >= SETTINGS_VISIBLE_ROWS || selected >= settings_option_count(app->settings.section))
+    if (row >= SETTINGS_VISIBLE_ROWS ||
+        selected >= settings_option_count(app, app->settings.section))
         return;
     if (selected == app->settings.selected)
         settings_activate(app);
@@ -802,6 +870,9 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
         return;
     }
     switch (option->id) {
+    case OPT_SETTINGS_MODE:
+        value = settings_is_simple(app) ? "Simple" : "Advanced";
+        break;
     case OPT_AUTO_LAUNCH:
         if (app->auto_launch_delay)
             snprintf(out, capacity, "%d seconds", app->auto_launch_delay);

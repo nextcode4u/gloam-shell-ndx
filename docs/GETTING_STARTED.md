@@ -53,6 +53,39 @@ Touch selects an entry; tap again to open. Overflow text loops while selected,
 unless Reduced motion is enabled. Frontend settings are separate from Nintendo
 DSi System Settings in the System tab.
 
+## Simple and Advanced settings
+
+Press START to open settings. **Simple** has four pages: Appearance, Browsing,
+Audio and Console. **Advanced** retains all seven pages, including emulator
+profiles, game defaults, boot setup, configuration import/reset and diagnostics.
+L/R cycles through the pages available in the current mode.
+
+Choose **Appearance → Settings mode** to switch. In Advanced mode this row is at
+the end of Appearance. Switching views preserves existing settings, including
+technical choices hidden by Simple mode. New installations start in Simple mode;
+existing state files without a mode entry keep the previous Advanced view.
+
+For a console you are setting up for someone else, close Gloam and edit
+`/_nds/dsi-frontend/state.ini` on the SD card, keeping its other entries:
+
+```ini
+settings_mode=simple
+simple_settings_lock=1
+```
+
+If the file does not exist yet, create it with `version=1` on the first line,
+followed by these entries.
+
+The lock forces Simple mode even if `settings_mode=advanced` is stored, and
+removes the mode switch from the UI. It survives normal preference saves and
+recovery startup. To unlock, close Gloam and change `simple_settings_lock` back
+to `0`. The lock is **off by default**; saved preferences include
+`simple_settings_lock=0` until explicitly configured otherwise.
+
+This limits Gloam's frontend settings screen; it does not lock the SD card,
+per-title menus, Nintendo system apps or other applications. Appearance and
+ordinary browsing/audio controls remain available while locked.
+
 ## Recovery and diagnostics
 
 Hold SELECT at startup to bypass external appearance, audio and automatic launch.

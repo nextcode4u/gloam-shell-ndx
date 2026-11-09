@@ -80,7 +80,8 @@ int main(int argc, char **argv)
             themes_accent_override(&app);
             assert(strlen(themes_accent_name(accent)) <= 6);
             char value[16];
-            settings_value(&app, settings_option(0, 0), value, sizeof value);
+            app.advanced_settings = true;
+            settings_value(&app, settings_option(&app, 0, 0), value, sizeof value);
             assert(!strcmp(value, themes_accent_name(accent)));
             ThemePalette palette = app.themes.active.palette;
             assert(abs(luminance(palette.accent) - luminance(palette.bg)) >= 8);
@@ -128,6 +129,7 @@ int main(int argc, char **argv)
                     draw();
                 }
         }
+        app.advanced_settings = true;
         settings_open(&app);
         for (int section = 0; section < SETTINGS_SECTION_COUNT; section++) {
             draw();

@@ -55,6 +55,9 @@ name. It was kept after naming the project to preserve existing settings,
 themes, artwork and loader paths. The JSON configs use that same working path;
 see [configuration notes](config/README.md).
 
+Simple and Advanced settings support a config-only Simple-mode lock for prepared
+consoles; the lock is off by default.
+
 See [setup and controls](docs/GETTING_STARTED.md), [SD layout](docs/guides/SD_LAYOUT.md)
 and [emulator associations](docs/guides/EMULATORS.md).
 
