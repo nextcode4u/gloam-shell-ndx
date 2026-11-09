@@ -19,6 +19,32 @@ PowerShell 5.1+ / PowerShell 7:
   .\download-addons.ps1 -Target E:\
   .\download-addons.ps1 -Target E:\ -Only gbarunner3,tuna-vids
 
+Check and stage reviewed add-on updates (including bundled applications):
+  python download-addons.py --target E:/ --check-updates
+  python download-addons.py --target E:/ --update --dry-run
+  python download-addons.py --target E:/ --update
+  .\download-addons.ps1 -Target E:\ -CheckUpdates
+  .\download-addons.ps1 -Target E:\ -Update -DryRun
+  .\download-addons.ps1 -Target E:\ -Update
+
+Update checks compare installed executable hashes with the current reviewed
+catalog from Gloam's GitHub repository. If unavailable or older, the packaged
+pins remain in use. New reviewed pins become available remotely after that
+catalog is published. --catalog FILE / -Catalog FILE uses a local reviewed lock
+or generated manifest. Offline mode uses packaged pins and cached downloads.
+
+Update mode selects installed apps by default; --only / -Only also permits
+staging a selected app into an empty target. Matching binaries are skipped.
+Different executables (including custom/other versions) are backed up under
+CACHE/previous-files/OLD-SHA256/FILENAME before replacement. Copy a backup back
+to its original SD path to restore it. Configs are preserved unless overwrite
+is requested. Both SNEmulDS components are selected together.
+
+Add --upstream / -Upstream to an online update check to report other upstream
+stable-release tags. They are not automatically installed, and can be older than
+pinned prereleases. Only reviewed download/member hashes are staged. GitHub
+API errors are reported without concealing the reviewed-file check results.
+
 Use --noncommercial / -Noncommercial to include applications with no-profit
 conditions. Existing files (including custom game configs) are kept by default.
 Use --overwrite / -Overwrite only when you intend to replace those files.
@@ -31,9 +57,12 @@ versions. Only the named application/config files are staged; no whole-archive
 extraction. Completed files remain installed if a later download fails. Re-run
 the same command to continue; existing files are preserved.
 
+Cache entries include their content hash to support reused release filenames.
 Cache: ~/.gloam-addons-cache on the computer, not the SD card.
 Change with --cache / -Cache. Use --offline / -Offline with a populated cache.
---dry-run / -DryRun makes no downloads or writes. --list / -List shows available
+Install dry runs make no downloads or writes. Update dry runs can read the
+online catalog, but never download runtime files or write SD/cache files.
+--list / -List shows available
 pins and manual-only apps. Keep downloads.json beside the selected script.
 
 If Windows blocks a downloaded script, inspect it first. A per-process command

@@ -69,7 +69,8 @@ Every add-on ZIP also contains `addon-installer/`, with one Python script, one
 standalone PowerShell script, a generated download manifest and usage notes.
 The scripts download the remaining pinned applications directly from upstream
 to an explicitly selected SD root. They support selection, dry runs, caching,
-offline use and preserving existing files. See [the add-on guide](../guides/ADDONS.md).
+offline use, reviewed-catalog updates and preserving existing configs. Update
+recipes also cover bundled apps, and pair the SNEmulDS shim/payload. See [the add-on guide](../guides/ADDONS.md).
 `--only dsxp gameyob-dsi` restricts bundled applications; the installer catalog
 is generated for everything outside that selection. The build itself never
 fetches binaries/source archives for download-only applications.

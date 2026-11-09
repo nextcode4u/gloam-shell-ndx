@@ -164,6 +164,9 @@ class AddonTests(unittest.TestCase):
         self.assertEqual(len(bundled), 13)
         self.assertEqual(len(ready), 13)
         self.assertFalse(ready & bundled)
+        self.assertEqual(len(catalog["updates"]), 26)
+        payload = next(a for a in catalog["updates"] if a["id"] == "snemulds")
+        self.assertEqual(payload["requires"], ["snemulds", "snemulds-shim"])
         self.assertTrue({"gbarunner3", "nesds", "tuna-vids", "ds994a"} <= ready)
         for app in catalog["applications"]:
             self.assertNotIn("source", app)

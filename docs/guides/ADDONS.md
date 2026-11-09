@@ -64,16 +64,67 @@ DS994a, PicoDriveTWL and any noncommercial apps omitted by the chosen bundled se
 
 `--cache` / `-Cache` changes the computer-side cache, whose default is
 `~/.gloam-addons-cache`. `--offline` / `-Offline` uses a populated cache only.
-`--dry-run` / `-DryRun` performs no downloads or writes. A failed download or
+Normal install `--dry-run` / `-DryRun` performs no downloads or writes. A failed download or
 hash mismatch stops the run; files already completed stay installed. Re-run to
 continue. The scripts do not remove older installations, rewrite associations
 or settings, or supply firmware. `--list` / `-List` identifies apps requiring
 manual setup because a reviewed runtime download is not yet pinned.
 
 The manifest depends on the selected bundle: already bundled apps are excluded
-from its download list. The SNEmulDS shim is offered only when its matching
-payload is also available. [Portable usage](ADDON_INSTALLER.txt) includes the
+from its download list. SNEmulDS shim/payload recipes are always selected together. [Portable usage](ADDON_INSTALLER.txt) includes the
 Windows per-process execution-policy command when needed.
+
+## Check and stage updates
+
+The same scripts update bundled applications as well as download-only ones.
+The generated manifest carries all 26 reviewed runtime recipes, including the
+matching SNEmulDS shim/payload pair. Check an SD card without changing it:
+
+```sh
+python download-addons.py --target E:/ --check-updates
+python download-addons.py --target E:/ --update --dry-run
+python download-addons.py --target E:/ --update
+```
+
+```powershell
+.\download-addons.ps1 -Target E:\ -CheckUpdates
+.\download-addons.ps1 -Target E:\ -Update -DryRun
+.\download-addons.ps1 -Target E:\ -Update
+```
+
+Update modes refresh the reviewed dependency catalog from Gloam's public GitHub
+repository. An unavailable or older catalog leaves the packaged pins in use,
+with an explicit message. The updated catalog must be published before remote
+users can receive its new pins. `--catalog FILE` / `-Catalog FILE` uses a local
+reviewed dependency lock or generated manifest instead; `--offline` / `-Offline`
+uses packaged pins and cached runtime downloads without network access.
+
+By default `--update` / `-Update` selects only installed apps. `--only` / `-Only`
+can select an app explicitly, including staging it into a new directory.
+Noncommercial selections still require the noncommercial option. Selecting
+either SNEmulDS component automatically selects its matching partner. ZIP and
+tar.gz payload members are read without extracting other archive members.
+
+Executables already matching reviewed hashes are left alone. Differing `.nds`
+and `.srl` files are replaced only in update/overwrite mode; a difference may
+also be a custom or newer build, so inspect the check output first. Update mode
+backs up each replaced file under the computer-side cache's
+`previous-files/<old-sha256>/<filename>`. Copy that file back to its original SD
+path to restore it. Custom `.ini`/`.json` files remain untouched unless overwrite
+is requested. No ROM, save or BIOS is updated. A failed run can leave completed
+files updated; keep the backups and re-run to finish the reviewed pair/selection.
+
+Add `--upstream` / `-Upstream` to an online update check to report other upstream
+GitHub stable-release tags. A different tag can be older than a pinned prerelease;
+it is not automatically treated as a newer compatible build. Unreviewed upstream
+assets are never silently installed: version/member mappings and hashes must be
+reviewed in the catalog first. API limits/errors are reported separately from
+the installed-file check. Unversioned host snapshots use reviewed pins.
+
+Update dry runs may read the online catalog, but do not download runtime files
+or write SD/cache data. Use offline mode to avoid all network access. Cache
+entries include their expected hash so newer bytes can reuse an upstream asset
+name without conflicting with older cached versions.
 
 ## Permission and source coverage
 

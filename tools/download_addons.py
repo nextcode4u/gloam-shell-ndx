@@ -8,11 +8,116 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import re
+import tarfile
 import tempfile
 import urllib.request
 import zipfile
 
 MAX_DOWNLOAD = 64 * 1024 * 1024
+CATALOG_URL = "https://raw.githubusercontent.com/nextcode4u/gloam-shell-ndx/main/config/addon-dependencies.json"
+
+
+def reviewed_apps(catalog):
+    """Convert reviewed build recipes to portable runtime-only instructions."""
+    if catalog["format"] != 1:
+        raise ValueError("Unsupported update catalog")
+    if "updates" in catalog:
+        return catalog["updates"]
+    result = []
+    for app in catalog["applications"]:
+        package = app.get("package", {})
+        files = package.get("files", [])
+        if not files or any(f["format"] not in {"raw", "zip", "tar.gz"} for f in files):
+            continue
+        item = {"id": app["id"], "version": app["version"], "repository": app["repository"],
+                "terms": app["license"], "noncommercial": app["redistribution"] == "noncommercial"
+                or app.get("download_noncommercial", False), "files": files}
+        if "game_configs" in package:
+            item["game_configs"] = package["game_configs"]
+        if app["id"] in {"snemulds", "snemulds-shim"}:
+            item["requires"] = ["snemulds", "snemulds-shim"]
+        release = app.get("release") or ""
+        if "/releases/tag/" in release:
+            item["release_tag"] = release.split("/releases/tag/", 1)[1]
+        result.append(item)
+    return result
+
+
+def read_remote_json(url):
+    if not url.startswith("https://"):
+        raise ValueError("Update catalogs require HTTPS")
+    request = urllib.request.Request(url, headers={"User-Agent": "Gloam-addon-installer"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        data = response.read(2 * 1024 * 1024 + 1)
+    if len(data) > 2 * 1024 * 1024:
+        raise ValueError("Oversized update response")
+    return json.loads(data)
+
+
+def update_manifest(manifest, catalog=None, offline=False):
+    if catalog is not None:
+        apps = reviewed_apps(json.loads(Path(catalog).read_text(encoding="utf-8")))
+    elif offline:
+        apps = manifest.get("updates", manifest["applications"])
+    else:
+        try:
+            remote = read_remote_json(manifest.get("catalog_url", CATALOG_URL))
+            apps = reviewed_apps(remote)
+            if remote.get("reviewed", "") < manifest.get("reviewed", ""):
+                print("Remote catalog is older than this package; keeping packaged reviewed pins.")
+                apps = manifest.get("updates", manifest["applications"])
+        except OSError as error:
+            print(f"Remote catalog unavailable ({error}); using packaged reviewed pins.")
+            apps = manifest.get("updates", manifest["applications"])
+    return {"format": 1, "applications": apps, "manual": manifest.get("manual", [])}
+
+
+def select_apps(manifest, only, noncommercial):
+    apps = {a["id"]: a for a in manifest["applications"]}
+    if len(apps) != len(manifest["applications"]):
+        raise ValueError("Duplicate application ID")
+    wanted = list(dict.fromkeys(only)) if only else list(apps)
+    selected = []
+    for name in wanted:
+        if name not in apps:
+            raise ValueError(f"No pinned download for: {name}; use --list for manual entries")
+        app = apps[name]
+        if app.get("noncommercial") and not noncommercial:
+            if only:
+                raise ValueError(f"{name} requires --noncommercial")
+            continue
+        selected.append(app)
+        for required in app.get("requires", []):
+            if required not in apps:
+                raise ValueError(f"Missing paired application: {required}")
+            if required not in wanted:
+                wanted.append(required)
+    return selected
+
+
+def check_updates(manifest, target, only=None, noncommercial=False, upstream=False):
+    root = Path(target).resolve(strict=True)
+    if not root.is_dir():
+        raise ValueError("Target must be an existing SD root or staging directory")
+    for app in select_apps(manifest, only, noncommercial):
+        files = [f for f in app["files"] if f["destination"].endswith((".nds", ".srl"))]
+        paths = [destination(root, f["destination"]) for f in files]
+        status = "not installed"
+        if any(p.exists() for p in paths):
+            current = all(p.is_file() and digest(p.read_bytes()) == f["sha256"]
+                          for p, f in zip(paths, files))
+            status = "up to date" if current else "differs from reviewed executable"
+        print(f"{app['id']}: {status}; reviewed {app['version']}")
+        if upstream and app.get("release_tag"):
+            repository = app["repository"].removeprefix("https://github.com/").removesuffix(".git")
+            if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
+                raise ValueError("Invalid upstream repository")
+            try:
+                release = read_remote_json(f"https://api.github.com/repos/{repository}/releases/latest")
+                if release["tag_name"] != app["release_tag"]:
+                    print(f"  Other upstream release: {release['tag_name']} (not selected; review required).")
+            except OSError as error:
+                print(f"  Upstream check unavailable: {error}")
 
 
 def digest(data):
@@ -54,7 +159,15 @@ def fetch(item, cache, offline):
         raise ValueError("Invalid download hash")
     if not item["url"].startswith("https://"):
         raise ValueError("Downloads require HTTPS")
-    path = cache / name
+    path = cache / (item["sha256"] + "-" + name)
+    legacy = cache / name
+    if not path.exists() and legacy.exists():
+        if legacy.is_symlink():
+            raise ValueError("Download cache entry is a symlink")
+        if digest(legacy.read_bytes()) == item["sha256"]:
+            path = legacy
+        elif offline:
+            raise ValueError(f"Download cache hash mismatch: {name}")
     if path.is_symlink():
         raise ValueError("Download cache entry is a symlink")
     if path.exists():
@@ -75,26 +188,18 @@ def fetch(item, cache, offline):
 
 
 def stage(manifest, target, cache, only=None, noncommercial=False, overwrite=False,
-          offline=False, dry_run=False):
+          offline=False, dry_run=False, update=False):
     if manifest["format"] != 1:
         raise ValueError("Unsupported download manifest")
     target = Path(target).resolve(strict=True)
     if not target.is_dir():
         raise ValueError("Target must be an existing SD root or staging directory")
-    apps = {a["id"]: a for a in manifest["applications"]}
-    if len(apps) != len(manifest["applications"]):
-        raise ValueError("Duplicate application ID")
-    wanted = list(dict.fromkeys(only)) if only else list(apps)
-    selected = []
-    for name in wanted:
-        if name not in apps:
-            raise ValueError(f"No pinned download for: {name}; use --list for manual entries")
-        app = apps[name]
-        if app.get("noncommercial") and not noncommercial:
-            if only:
-                raise ValueError(f"{name} requires --noncommercial")
-            continue
-        selected.append(app)
+    selected = select_apps(manifest, only, noncommercial)
+    if update and not only:
+        installed = {app["id"] for app in selected if any(
+            destination(target, f["destination"]).is_file() for f in app["files"]
+            if f["destination"].endswith((".nds", ".srl")))}
+        selected = select_apps(manifest, list(installed), noncommercial) if installed else []
     planned, seen = [], set()
     for app in selected:
         for item in application_files(app):
@@ -106,7 +211,11 @@ def stage(manifest, target, cache, only=None, noncommercial=False, overwrite=Fal
             planned.append((app["id"], item, path))
     fetched, installed, skipped = {}, 0, 0
     for name, item, path in planned:
-        if path.exists() and not overwrite:
+        replace = overwrite or (update and path.suffix.lower() in {".nds", ".srl"})
+        if path.is_file() and update and digest(path.read_bytes()) == item["sha256"]:
+            skipped += 1
+            continue
+        if path.exists() and not replace:
             print(f"Keep existing: {item['destination']}")
             skipped += 1
             continue
@@ -124,6 +233,20 @@ def stage(manifest, target, cache, only=None, noncommercial=False, overwrite=Fal
                 if len(entries) != 1 or entries[0].file_size > MAX_DOWNLOAD:
                     raise ValueError("Missing, duplicate or oversized archive member")
                 data = archive.read(entries[0])
+        elif item["format"] == "tar.gz":
+            found, total = [], 0
+            with tarfile.open(fileobj=io.BytesIO(data), mode="r|gz") as archive:
+                for member in archive:
+                    total += member.size
+                    if total > 256 * 1024 * 1024:
+                        raise ValueError("Oversized tar archive")
+                    if member.name == item["member"]:
+                        if not member.isfile() or member.size > MAX_DOWNLOAD:
+                            raise ValueError("Non-regular or oversized archive member")
+                        found.append(archive.extractfile(member).read())
+            if len(found) != 1:
+                raise ValueError("Missing or duplicate archive member")
+            data = found[0]
         elif item["format"] != "raw":
             raise ValueError("Unsupported download format")
         if digest(data) != item["sha256"]:
@@ -131,13 +254,19 @@ def stage(manifest, target, cache, only=None, noncommercial=False, overwrite=Fal
         if item["destination"].endswith(".json") and not isinstance(json.loads(data), dict):
             raise ValueError("Game config must be a JSON object")
         destination(target, item["destination"])
+        if update and path.is_file():
+            previous = path.read_bytes()
+            backup = Path(cache) / "previous-files" / digest(previous) / path.name
+            backup.parent.mkdir(parents=True, exist_ok=True)
+            if not backup.exists():
+                backup.write_bytes(previous)
         path.parent.mkdir(parents=True, exist_ok=True)
         temporary = None
         try:
             with tempfile.NamedTemporaryFile(dir=path.parent, delete=False) as output:
                 temporary = Path(output.name)
                 output.write(data)
-            if path.exists() and not overwrite:
+            if path.exists() and not replace:
                 skipped += 1
                 continue
             os.replace(temporary, path)
@@ -160,6 +289,10 @@ def main():
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--offline", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--check-updates", action="store_true", help="Compare installed apps with current reviewed pins")
+    parser.add_argument("--update", action="store_true", help="Stage reviewed updates, backing up replaced files")
+    parser.add_argument("--catalog", type=Path, help="Use a local reviewed catalog instead of refreshing online")
+    parser.add_argument("--upstream", action="store_true", help="Also report other upstream release tags; never auto-install them")
     args = parser.parse_args()
     try:
         manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
@@ -172,9 +305,18 @@ def main():
             return
         if args.target is None:
             parser.error("--target is required unless using --list")
+        if args.check_updates and args.update:
+            parser.error("choose --check-updates or --update, not both")
+        if args.upstream and (not args.check_updates or args.offline):
+            parser.error("--upstream requires --check-updates and online access")
+        if args.check_updates or args.update:
+            manifest = update_manifest(manifest, args.catalog, args.offline)
+        if args.check_updates:
+            check_updates(manifest, args.target, args.only, args.noncommercial, args.upstream)
+            return
         stage(manifest, args.target, args.cache, args.only, args.noncommercial,
-              args.overwrite, args.offline, args.dry_run)
-    except (OSError, ValueError, KeyError, zipfile.BadZipFile) as error:
+              args.overwrite, args.offline, args.dry_run, args.update)
+    except (OSError, ValueError, KeyError, zipfile.BadZipFile, tarfile.TarError) as error:
         parser.exit(1, f"Installation stopped: {error}\n")
 
 

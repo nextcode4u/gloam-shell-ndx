@@ -65,30 +65,18 @@ def selected_applications(lock: dict, noncommercial: bool = False,
 
 def download_manifest(lock: dict, bundled: set[str]) -> dict:
     """Publish download instructions, never the excluded applications' bytes."""
-    applications, manual = [], []
-    for app in lock["applications"]:
-        if app["id"] in bundled:
-            continue
-        package = app.get("package", {})
-        files = package.get("files", [])
-        if files and all(f["format"] in {"raw", "zip"} for f in files):
-            item = {"id": app["id"], "version": app["version"],
-                    "repository": app["repository"], "terms": app["license"],
-                    "noncommercial": app["redistribution"] == "noncommercial"
-                    or app.get("download_noncommercial", False), "files": files}
-            if "game_configs" in package:
-                item["game_configs"] = package["game_configs"]
-            applications.append(item)
-        else:
-            manual.append({"id": app["id"], "url": app.get("release") or app["repository"],
-                           "reason": app["distribution_notes"]})
-    # A downloaded shim alone cannot provide the matching SNEmulDS payload.
-    if "snemulds" not in bundled and not any(a["id"] == "snemulds" for a in applications):
-        applications = [a for a in applications if a["id"] != "snemulds-shim"]
-        if any(a["id"] == "snemulds-shim" for a in lock["applications"]):
-            manual.append({"id": "snemulds-shim", "url": "https://github.com/Sanrax/snemulds-shim",
-                           "reason": "Install the reviewed matching SNEmulDS payload and shim together."})
-    return {"format": 1, "applications": applications, "manual": manual}
+    if __package__:
+        from .download_addons import CATALOG_URL, reviewed_apps
+    else:
+        from download_addons import CATALOG_URL, reviewed_apps
+    updates = reviewed_apps(lock)
+    ready = {app["id"] for app in updates}
+    manual = [{"id": app["id"], "url": app.get("release") or app["repository"],
+               "reason": app["distribution_notes"]}
+              for app in lock["applications"] if app["id"] not in ready]
+    return {"format": 1, "reviewed": lock["reviewed"],
+            "applications": [a for a in updates if a["id"] not in bundled],
+            "updates": updates, "catalog_url": CATALOG_URL, "manual": manual}
 
 
 def archive_members(data: bytes, kind: str) -> dict[str, bytes]:

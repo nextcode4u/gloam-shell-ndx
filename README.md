@@ -79,7 +79,7 @@ inputs. See [building and packaging](docs/development/BUILDING.md) for checks,
 source archives, dependency updates and offline use. Optional `dist/addons.zip`
 bundles permitted apps with matching license/source companions. Its shared Python
 and PowerShell scripts download the remaining pinned apps directly to a chosen SD
-root. See [usage and the audit](docs/guides/ADDONS.md) for terms and setup.
+root, check installed add-ons and stage reviewed updates with backups. See [usage and the audit](docs/guides/ADDONS.md) for terms and setup.
 
 ## Documentation
 
