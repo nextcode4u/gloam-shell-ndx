@@ -32,6 +32,7 @@
     "roms/SG-1000",
     "roms/SNES",
     "roms/ScummVM",
+    "roms/ScummVM/titles",
     "roms/Sord M5",
     "roms/TI99",
     "roms/Tandy CoCo",
@@ -263,9 +264,16 @@
     {
       "folder": "roms/ScummVM",
       "application": "ScummVM",
-      "formats": "ScummVM.nds launcher; game data lives in data/scummvm/games/",
+      "formats": "scummvm.nds launcher; one game-data folder per title under titles/",
       "addon": "scummvm",
-      "notes": "Start ScummVM as an app and use Add Game for a game-data directory here or /data/scummvm/games. No arbitrary game-data extension is associated with ScummVM. The published 2.9.1 Nintendo build targets DSi/DSi XL, not the original DS/DS Lite."
+      "notes": "Place the official scummvm.nds here and each supported game in titles/<game>/. Gloam uses plugins/startup/scummvm.ini to request native add/recursive/no-exit discovery whenever this app is launched without explicit arguments. ScummVM keeps its own configuration and saves. Unknown folders are skipped; moved or removed entries need manual review. This requires a command-line-capable ScummVM build; the published 2.9.1 Nintendo build targets DSi/DSi XL."
+    },
+    {
+      "folder": "roms/ScummVM/titles",
+      "application": "ScummVM",
+      "formats": "one directory per supported game containing its required original game-data files",
+      "addon": "scummvm",
+      "notes": "Keep each complete game in its own subfolder. New supported titles are detected the next time scummvm.nds is opened through Gloam. Folder names alone do not identify a game. Existing configured IDs and saves are retained; deleting or moving folders does not automatically remove or repair old entries."
     },
     {
       "folder": "apps/Homebrew Apps",

@@ -6,6 +6,7 @@
 #include "icons.h"
 #include "item_preferences.h"
 #include "paths.h"
+#include "scummvm.h"
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -201,6 +202,8 @@ bool launch_prepare(const App *app, const char *path, LaunchPlan *plan, char err
         if (!arguments_add(&plan->arguments, argument))
             goto too_many;
     }
+    if (!scummvm_prepare_arguments(app->root, plan, error))
+        return false;
     return true;
 too_many:
     snprintf(error, 160, "Launch exceeds 16 arguments or 4 KiB of argument data.");

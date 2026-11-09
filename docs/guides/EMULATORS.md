@@ -57,7 +57,7 @@ These are default collection folders and configured formats, not every format ea
 | `roms/Watara Supervision/` | WasabiDS | .sv cartridges |
 | `roms/Commodore 64/` | GimliDS, prepared direct loader | .d64, .crt, .prg |
 | `roms/MSX2/` | Hachibitto, prepared direct loader | .mx2 cartridges, .mxd disks |
-| `roms/ScummVM/` | ScummVM | ScummVM.nds launcher; game data lives in data/scummvm/games/ |
+| `roms/ScummVM/` | ScummVM | scummvm.nds launcher; game folders in titles/ |
 | `apps/Homebrew Apps/` | Homebrew application/utility | .nds, .dsi, supported native containers |
 | `roms/Homebrew Games/` | Homebrew game | .nds, .dsi, supported native containers |
 | `media/music/` | [DSXP SD-argv fork](https://github.com/nextcode4u/DSXP) | .mp3 |
@@ -135,12 +135,56 @@ All supplied associations declare `argv=1`. Optional `bootstrap=0` flags are ret
 - **Machine selection:** CoCo and Dragon share DracoDS, while `.c10`/`.k7` share MicroDS. A folder name alone does not prove the application selected the intended machine. Follow the emulator's instructions and preserve its configuration.
 - **Video:** `.avi`, `.fv` and `.rvid` target their respective players. Arbitrary MP4/AVI files need the correct encoding/conversion; no universal video decoder is implied.
 - **Books:** launch DSLibris as an application and select books inside it. It has no `.epub` argv profile, so none is invented here. Its existing Book/Font configuration may still be needed even though the frontend's browsing default is `media/books`.
-- **ScummVM:** use its native launcher and existing `data/scummvm` configuration. No guessed association is added for arbitrary game-data files.
+- **ScummVM:** use the automatic collection discovery described below. Arbitrary game-data files are not ROM associations.
 - Archives, generic `.bin`/`.rom` and unrelated disk formats are not assigned automatically. Extract/prepare content using the application's actual requirements; changing an extension is not a general conversion method.
 
 Every ROM collection, the `roms/` root and shared BIOS folder includes a
 plain-text `README.txt` with configured formats, argv behavior and firmware
 notes. These are generated from the collection catalog and audited add-on data.
+
+## ScummVM collection discovery
+
+Keep the launcher beside the collection, with complete games one level down:
+
+```text
+roms/ScummVM/
+  scummvm.nds
+  titles/
+    Game One/       required files for this game
+    Game Two/       required files for another game
+```
+
+Copy the official DSi executable from its release archive. Gloam's template contains
+setup notes and directories; the ScummVM binary is still a manual install. Keep any
+required companion files from the matching release and its existing support paths.
+SD/FAT paths are case-insensitive; this template retains the established `ScummVM`
+folder spelling.
+
+Edit `/_nds/dsi-frontend/plugins/startup/scummvm.ini` to set `application`, `titles`,
+`auto_add=1` and `recursive=1`. On a normal, argument-free launch of that configured
+`scummvm.nds`, Gloam supplies native `--add --recursive --path=<titles> --no-exit`
+options. ScummVM detects supported games, saves newly added entries and opens its
+normal game list. New folders are picked up on the next launch, with no scanning
+cost during Gloam startup or ordinary folder browsing. Large collections can make
+ScummVM's startup scan slow.
+
+This uses the [stock 2.9.1 discovery implementation](https://github.com/scummvm/scummvm/blob/v2.9.1/base/commandLine.cpp)
+and [DS argument forwarding](https://github.com/scummvm/scummvm/blob/v2.9.1/backends/platform/ds/dsmain.cpp),
+with no ScummVM source fork. It requires a build retaining those command-line
+options. Folder names alone are not games: unsupported/incomplete data is skipped.
+
+ScummVM owns its game configuration, game options and saves. Gloam does not replace
+its native `scummvm.ini`. Existing default target IDs are normally skipped rather
+than overwritten; manually renamed targets or multiple editions can need review.
+Removing/moving a folder does not delete or repair its old entry. Keep existing
+configured paths, or update them in ScummVM when reorganizing an older installation.
+
+Set `auto_add=0` to use the normal launcher without a scan. Missing collection
+folders also fall back to the normal launcher. Explicit `.argv` shortcuts/game-ID
+arguments take precedence. This integration applies when launched through Gloam;
+launching the same executable from another menu does not apply Gloam's profile.
+Native scan/game/save/return compatibility on DSi still needs launch testing;
+frontend tests verify argument preparation and preservation of explicit choices.
 
 ## Updating an older installation
 

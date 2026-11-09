@@ -16,7 +16,8 @@ layout; they are intentional compatibility paths.
 │   │   ├── tabs.ini              custom folder tabs
 │   │   ├── themes/               palette/font/background/audio packs
 │   │   ├── plugins/              argv association profiles
-│   │   │   └── apps/             emulator/player executables and companion files
+│   │   │   ├── apps/             emulator/player executables and companion files
+│   │   │   └── startup/scummvm.ini optional native collection discovery
 │   │   ├── covers/               optional artwork
 │   │   ├── cache/                disposable thumbnails
 │   │   ├── loaders/slot1launch.nds
@@ -29,6 +30,9 @@ layout; they are intentional compatibility paths.
 │   ├── Homebrew Games/
 │   ├── Nintendo DS/
 │   ├── DSiWare/
+│   ├── ScummVM/
+│   │   ├── scummvm.nds           manually installed native launcher
+│   │   └── titles/              one complete game-data folder per title
 │   └── ...                       system collections
 ├── media/
 │   ├── books/

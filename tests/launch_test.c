@@ -153,5 +153,27 @@ int main(int argc, char **argv)
     app.storage_lost = true;
     assert(!diagnostics_record_launch(&app, LAUNCH_REPORT_REJECTED, "SD unavailable"));
     app.storage_lost = false;
+    /* Native ScummVM discovery is attached by the full launch planner as well. */
+    app.dsi_mode = true;
+    const char *scumm_dirs[] = {"roms", "roms/ScummVM", "roms/ScummVM/titles",
+                                "_nds/dsi-frontend/plugins/startup"};
+    for (unsigned i = 0; i < sizeof scumm_dirs / sizeof scumm_dirs[0]; ++i) {
+        assert(path_join(path, root, scumm_dirs[i]));
+        assert(!mkdir(path, 0777));
+    }
+    binary(root, "####", 0x02000000, false);
+    char scumm_app[PATH_CAP];
+    assert(path_join(scumm_app, root, "roms/ScummVM/scummvm.nds"));
+    assert(!rename(path, scumm_app));
+    assert(path_join(path, root, "_nds/dsi-frontend/plugins/startup/scummvm.ini"));
+    FILE *scumm_config = fopen(path, "w");
+    assert(scumm_config && fputs("[scummvm]\nauto_add=1\n", scumm_config) >= 0);
+    assert(!fclose(scumm_config));
+    assert(launch_prepare(&app, scumm_app, &plan, error));
+    assert(plan.arguments.count == 5 && !strcmp(arguments_get(&plan.arguments, 1), "--add"));
+    shortcut(root, "/roms/ScummVM/scummvm.nds explicit-game-id");
+    assert(launch_prepare(&app, path, &plan, error));
+    assert(plan.arguments.count == 2);
+    assert(!strcmp(arguments_get(&plan.arguments, 1), "explicit-game-id"));
     puts("Launch parser and preflight checks passed.");
 }

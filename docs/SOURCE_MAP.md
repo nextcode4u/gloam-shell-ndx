@@ -11,7 +11,7 @@ protocol definitions live in `common/include`.
 | Browser and navigation | `browser.c`, `directory_scan.c`, `entry_sort.c`, `tabs.c`, `grid.c`, `layout.h`, `paths.c`. |
 | Settings and persistence | `settings.c`, `preferences.c`, `configuration.c`, `configuration_reset.c`, `appearance.c`. |
 | Home and associations | `dashboard.c`, `associations.c`, `association_editor.c`, `item_preferences.c`, `picker.c`. |
-| Launch preparation | `launch.c`, `arguments.c`, `homebrew.c`, `bootstrap.c`, `dsiware.c`. |
+| Launch preparation | `launch.c`, `arguments.c`, `homebrew.c`, `bootstrap.c`, `dsiware.c`; `scummvm.c` adds configured native collection-discovery options for argument-free ScummVM launches. |
 | Platform handoff | `launch_platform.c`, `loader_data.s`, `third_party/nds-bootloader/`. |
 | Optional DSi Menu return tile | `forwarder/arm9/`, shared `system_routes.c`, `tools/build_forwarder.py`. |
 | Native system titles | `system_catalog.c` reads built-in NAND and Launcher metadata; `installed_titles.c` cooperatively discovers and revalidates installed DSiWare; `system_routes.c` builds warmboot/autoload records. Slot-1 helper discovery lives in `launch.c`. |
