@@ -4,6 +4,9 @@ A customizable **BlocksDS shell for the Nintendo DSi SD card**. Browse a game
 library, open homebrew and media, and reach system applications from one place,
 with both screens doing useful work.
 
+“[Gloam](https://ahdictionary.com/word/search.html?q=gloam)” is an older word for
+**twilight**. The name was chosen as a play on the Nintendo DSi's **TWL** codename.
+
 <p align="center">
   <img src="docs/images/browser.png" width="256" alt="Gloam two-screen game browser">
   <img src="docs/images/settings.png" width="256" alt="Gloam theme and settings controls">
