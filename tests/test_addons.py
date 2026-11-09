@@ -10,7 +10,7 @@ import zipfile
 from pathlib import Path
 from unittest.mock import patch
 
-from tools.build_addons import addon_files, archive_members, selected_applications
+from tools.build_addons import addon_files, archive_members, gba_config_files, selected_applications
 from tools.package_development import sha256
 
 
@@ -54,6 +54,57 @@ class AddonTests(unittest.TestCase):
 
     def write_lock(self):
         (self.root / "config/addon-dependencies.json").write_text(json.dumps(self.lock))
+
+    def test_gba_config_allowlist_does_not_import_firmware_or_unlisted_members(self):
+        buffer = io.BytesIO()
+        config = b'{"runSettings": {}}'
+        name = "_gba/configs/ABCE01.json"
+        with zipfile.ZipFile(buffer, "w") as archive:
+            archive.writestr(name, config)
+            archive.writestr("_gba/bios.bin", b"Synthetic forbidden firmware fixture")
+            archive.writestr("GBARunner3.nds", self.binary)
+        blob = buffer.getvalue()
+        self.assertEqual(gba_config_files(blob, {name: sha256(config)}), {name: config})
+        with self.assertRaisesRegex(ValueError, "hash mismatch"):
+            gba_config_files(blob, {name: "0" * 64})
+        for unsafe in ["_gba/bios.bin", "../ABCE01.json", "_gba/configs/custom.json"]:
+            with self.assertRaisesRegex(ValueError, "config path"):
+                gba_config_files(blob, {unsafe: sha256(config)})
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as archive:
+            archive.writestr(name, b"[]")
+        with self.assertRaisesRegex(ValueError, "JSON object"):
+            gba_config_files(buffer.getvalue(), {name: sha256(b"[]")})
+
+    def test_reference_source_is_not_labelled_as_corresponding_source(self):
+        self.app["package"]["source_role"] = "reference-only"
+        self.write_lock()
+        _, sources, _, _ = addon_files(self.root, offline=True)
+        self.assertEqual(sources["dependencies/addons/demo/reference-source.tar.gz"], self.source)
+        self.assertNotIn("dependencies/addons/demo/source.tar.gz", sources)
+
+    def test_gba_configs_require_the_right_application_and_no_path_overlap(self):
+        name = "_gba/configs/ABCE01.json"
+        config = b"{}"
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as archive:
+            archive.writestr(name, config)
+        blob = buffer.getvalue()
+        (self.cache / "gba.zip").write_bytes(blob)
+        self.app["package"]["game_configs"] = {
+            "download": {"asset": "gba.zip", "url": "https://example.invalid/gba",
+                         "sha256": sha256(blob)}, "files": {name: sha256(config)}}
+        self.write_lock()
+        with self.assertRaisesRegex(ValueError, "another application"):
+            addon_files(self.root, offline=True)
+        self.app["id"] = "gbarunner3"
+        self.write_lock()
+        runtime, _, _, _ = addon_files(self.root, offline=True)
+        self.assertEqual(runtime[name], config)
+        self.lock["applications"].append({**self.app, "id": "other"})
+        self.write_lock()
+        with self.assertRaisesRegex(ValueError, "overlapping"):
+            addon_files(self.root, offline=True)
 
     def test_constituent_review_keeps_noncommercial_gates_and_source_pins(self):
         root = Path(__file__).resolve().parents[1]

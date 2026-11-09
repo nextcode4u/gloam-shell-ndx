@@ -108,6 +108,24 @@ def archive_members(data: bytes, kind: str) -> dict[str, bytes]:
     return result
 
 
+def gba_config_files(data: bytes, hashes: dict[str, str]) -> dict[str, bytes]:
+    """Keep only explicitly pinned GBARunner3 game configs, never firmware."""
+    members = archive_members(data, "zip")
+    result = {}
+    if not hashes:
+        raise ValueError("Missing GBARunner3 game config pins")
+    for name, digest in hashes.items():
+        if not re.fullmatch(r"_gba/configs/[A-Z0-9]{6}\.json", name):
+            raise ValueError("Invalid GBARunner3 game config path")
+        content = members[name]
+        if sha256(content) != digest:
+            raise ValueError(f"GBARunner3 game config hash mismatch: {name}")
+        if not isinstance(json.loads(content), dict):
+            raise ValueError("GBARunner3 game config must be a JSON object")
+        result[name] = content
+    return result
+
+
 def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
                 only: list[str] | None = None) -> tuple[dict, dict, dict, dict]:
     if __package__:
@@ -141,7 +159,11 @@ def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
         source_data = fetch(package["source"])
         members = archive_members(source_data, "tar.gz")
         prefix = "dependencies/addons/" + app["id"] + "/"
-        sources[prefix + "source.tar.gz"] = source_data
+        source_role = package.get("source_role", "upstream")
+        if source_role not in {"upstream", "reference-only"}:
+            raise ValueError("Unsupported add-on source role")
+        source_name = "reference-source.tar.gz" if source_role == "reference-only" else "source.tar.gz"
+        sources[prefix + source_name] = source_data
         sources[prefix + "release.json"] = json_bytes(app)
         if not package["notices"]:
             raise ValueError(f"Missing add-on notices: {app['id']}")
@@ -204,6 +226,14 @@ def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
             if sha256(data) != item["sha256"]:
                 raise ValueError(f"Add-on member hash mismatch: {target}")
             runtime[target] = data
+        if "game_configs" in package:
+            if app["id"] != "gbarunner3":
+                raise ValueError("GBARunner3 game configs assigned to another application")
+            configs = package["game_configs"]
+            for target, content in gba_config_files(fetch(configs["download"]), configs["files"]).items():
+                if target.casefold() in {name.casefold() for name in runtime}:
+                    raise ValueError("Add-ons install overlapping paths")
+                runtime[target] = content
     for notice in lock.get("common_notices", []):
         notices["addons/common/" + notice["asset"]] = fetch(notice)
     report = {"format": 1, "reviewed": lock["reviewed"], "applications": selected,
