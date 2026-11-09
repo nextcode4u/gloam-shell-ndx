@@ -21,6 +21,13 @@ still require the separate build option and retain their no-profit terms.
 | NGPDS | v0.6.0 | Included under this assumption. |
 | LodjurDS | v0.1.5 | Included under this assumption. |
 | WasabiDS | v0.2.6 | Included under this assumption. |
+| nesDS | v2.1 | Included; legacy public-domain statement does not establish newer CPU-core terms. |
+
+DS994a 2.9 is included only with `--noncommercial`, following its explicit
+no-profit distribution statement. Its embedded game speech samples have no
+separately established grant; the project assumes redistribution of the unchanged
+release is permitted, without asserting clearance for those samples. This does
+not extend to separately distributed recordings or games.
 
 ## Attribution and source
 
@@ -49,6 +56,12 @@ build manifest identifying its exact source revision. The recorded develop
 snapshot is reference source only. The core and its 304 configs remain a manual
 candidate until corresponding source is identified; this is independent of the
 redistribution assumption. See [the core/frontend setup notes](ADDONS.md#gbarunner3-core-and-optional-browser).
+
+nesDS includes the exact RP2A03 `d4b8d3dffaf9f0eced4cf707a2ce2208eb1bdaa0`
+and nested ARM6502 `8b8b6c82ce29bd26cd76709c75167372b3711484` source archives.
+Their pinned READMEs provide attribution, but neither pin has a project-wide
+license file. Inclusion follows the stated assumption, rather than assigning
+them the older nesDS public-domain dedication or a license from newer revisions.
 
 ## Maintaining this policy
 

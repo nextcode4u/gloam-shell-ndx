@@ -12,8 +12,12 @@ Argv in the audited upstream build: direct.
 Firmware: NES cartridges need no external BIOS. FDS content requires
 disksys.rom; user-supplied.
 
-Add-on package: manual / held; terms: Legacy public-domain statement + newer
-components.
+Add-on package: available; terms: Legacy public-domain statement; newer
+component grants unconfirmed.
+
+Redistribution is assumed for this pack; upstream permission remains
+unconfirmed. See addons/UNCONFIRMED_DISTRIBUTION.md in the companion
+licenses.zip.
 
 Upstream: https://github.com/DS-Homebrew/NesDS
 Release: https://github.com/DS-Homebrew/NesDS/releases/tag/v2.1

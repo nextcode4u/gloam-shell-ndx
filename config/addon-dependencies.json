@@ -213,12 +213,42 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/wavemotion-dave/ColecoDS/blob/29596955995526a10c8a9ca8c17d39b642f54dbf/arm9/source/colecoDS.c",
-      "redistribution": "blocked",
-      "license": "Noncommercial with additional constituent guidance",
-      "distribution_notes": "README permits no-profit distribution but asks users to contact the ColEM author about constituent code. Keep out of automatic redistribution pending that review; C-BIOS alone does not license Coleco firmware.",
+      "redistribution": "noncommercial",
+      "license": "Noncommercial redistribution with retained author/component notices",
+      "distribution_notes": "README explicitly permits no-profit distribution of the emulator with notices and credits to wavemotion-dave, Alekmaul and Marat Fayzullin. Package the unchanged release only; preserve its ColEM contact request and FluBBa notices. No external proprietary BIOS is included.",
       "bios": "ColecoVision requires coleco.rom; Sord M5 requires sordm5.rom (JP) or sordm5p.rom (PAL). MSX1 has built-in C-BIOS for cartridges, without BASIC/cassette/disk support. Additional machine BIOS files are user-supplied.",
       "bios_evidence": "https://github.com/wavemotion-dave/ColecoDS/blob/29596955995526a10c8a9ca8c17d39b642f54dbf/README.md",
-      "license_evidence": "https://github.com/wavemotion-dave/ColecoDS/tree/29596955995526a10c8a9ca8c17d39b642f54dbf"
+      "license_evidence": "https://github.com/wavemotion-dave/ColecoDS/tree/29596955995526a10c8a9ca8c17d39b642f54dbf",
+      "package": {
+        "source": {
+          "asset": "colecods-source.tar.gz",
+          "url": "https://codeload.github.com/wavemotion-dave/ColecoDS/tar.gz/29596955995526a10c8a9ca8c17d39b642f54dbf",
+          "sha256": "1e7bb236ea2e0770cebdc589d8a76ce54b9787f4e192a01716e2283909280c2a"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "colecods-ColecoDS.nds",
+              "url": "https://github.com/wavemotion-dave/ColecoDS/releases/download/11.1/ColecoDS.nds",
+              "sha256": "bb93bfeef138ec7f1c79bc9d9856936200042dbf564aba9541a4c82651df3b31"
+            },
+            "format": "raw",
+            "destination": "_nds/dsi-frontend/plugins/apps/ColecoDS.nds",
+            "sha256": "bb93bfeef138ec7f1c79bc9d9856936200042dbf564aba9541a4c82651df3b31"
+          }
+        ],
+        "notices": [
+          {
+            "member": "ColecoDS-29596955995526a10c8a9ca8c17d39b642f54dbf/README.md",
+            "destination": "README.md"
+          },
+          {
+            "member": "ColecoDS-29596955995526a10c8a9ca8c17d39b642f54dbf/cbios.txt",
+            "destination": "cbios.txt"
+          }
+        ],
+        "extra_sources": []
+      }
     },
     {
       "id": "dracods",
@@ -296,12 +326,46 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/arm9/source/DS99.c",
-      "redistribution": "blocked",
-      "license": "Noncommercial with constituent permissions",
-      "distribution_notes": "README records permission for the port and asks about ColEM/TI9918A reuse. Additional voice/sample and constituent coverage needs review before automatic redistribution.",
+      "redistribution": "noncommercial",
+      "license": "Noncommercial redistribution with constituent permissions/notices",
+      "distribution_notes": "README permits no-profit redistribution of the remaining code and records permission for SN76496 and Classic99-derived code. Package the unchanged release with lowzip/yxml and ColEM notices. Its embedded speech samples have no separately established redistribution grant; inclusion follows the project policy for this listed release, without claiming clearance for those samples.",
       "bios": "Requires 994aROM.bin and 994aGROM.bin in /roms/bios or /roms/ti99; 994aDISK.bin is needed for disk support.",
       "bios_evidence": "https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/README.md",
-      "license_evidence": "https://github.com/wavemotion-dave/DS994a/tree/85098fcfcaa176a919fa4f2162706ac7814ea263"
+      "license_evidence": "https://github.com/wavemotion-dave/DS994a/tree/85098fcfcaa176a919fa4f2162706ac7814ea263",
+      "package": {
+        "source": {
+          "asset": "ds994a-source.tar.gz",
+          "url": "https://codeload.github.com/wavemotion-dave/DS994a/tar.gz/85098fcfcaa176a919fa4f2162706ac7814ea263",
+          "sha256": "af2b91ac02fef9f0e6ff2440b0f7da423bf241a496cdf07db23a9911845b34c2"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "ds994a-DS994a.nds",
+              "url": "https://github.com/wavemotion-dave/DS994a/releases/download/2.9/DS994a.nds",
+              "sha256": "a4e0412336702b0ee89a80db8d74022cc53c973c2aedc8bbc78df6c3bbc6a8b0"
+            },
+            "format": "raw",
+            "destination": "_nds/dsi-frontend/plugins/apps/DS994a.nds",
+            "sha256": "a4e0412336702b0ee89a80db8d74022cc53c973c2aedc8bbc78df6c3bbc6a8b0"
+          }
+        ],
+        "notices": [
+          {
+            "member": "DS994a-85098fcfcaa176a919fa4f2162706ac7814ea263/README.md",
+            "destination": "README.md"
+          },
+          {
+            "member": "DS994a-85098fcfcaa176a919fa4f2162706ac7814ea263/arm9/source/rpk/LICENSE-lowzip.txt",
+            "destination": "arm9/source/rpk/LICENSE-lowzip.txt"
+          },
+          {
+            "member": "DS994a-85098fcfcaa176a919fa4f2162706ac7814ea263/arm9/source/rpk/LICENSE-yxml.txt",
+            "destination": "arm9/source/rpk/LICENSE-yxml.txt"
+          }
+        ],
+        "extra_sources": []
+      }
     },
     {
       "id": "dslibris",
@@ -915,12 +979,85 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/arm9/source/romloader_frontend.c",
-      "redistribution": "blocked",
-      "license": "Legacy public-domain statement + newer components",
-      "distribution_notes": "README.TXT dedicates legacy nesDS to the public domain; the modern branch and new N2A03 submodule still need complete license coverage. Legacy dedication alone is not a review of the current binary.",
+      "redistribution": "assumed",
+      "license": "Legacy public-domain statement; newer component grants unconfirmed",
+      "distribution_notes": "Package the unchanged nesDS.nds release under the documented project assumption. Retain README.TXT, README_ORIGINAL.TXT, ARM7/Wi-Fi notices and the exact RP2A03 and nested ARM6502 source pins. Neither submodule pin has a project-wide license file; do not apply the legacy public-domain statement to those additions.",
       "bios": "NES cartridges need no external BIOS. FDS content requires disksys.rom; user-supplied.",
       "bios_evidence": "https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/README.TXT",
-      "license_evidence": "https://github.com/DS-Homebrew/NesDS/tree/928afd9ca3c846f06264dfb1be6a2edf44575b66"
+      "license_evidence": "https://github.com/DS-Homebrew/NesDS/tree/928afd9ca3c846f06264dfb1be6a2edf44575b66",
+      "package": {
+        "source": {
+          "asset": "nesds-source.tar.gz",
+          "url": "https://codeload.github.com/DS-Homebrew/NesDS/tar.gz/928afd9ca3c846f06264dfb1be6a2edf44575b66",
+          "sha256": "9e5f4ef451f7a08f973835c5b59d77e9feea76fc286136c036118cf7d55a626e"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "nesds-nesDS.nds",
+              "url": "https://github.com/DS-Homebrew/NesDS/releases/download/v2.1/nesDS.nds",
+              "sha256": "746bd85d0cd040e37e44438f06f9027a3221c57df0f8135abd46e6e2a6864da8"
+            },
+            "format": "raw",
+            "destination": "_nds/dsi-frontend/plugins/apps/nesDS.nds",
+            "sha256": "746bd85d0cd040e37e44438f06f9027a3221c57df0f8135abd46e6e2a6864da8"
+          }
+        ],
+        "notices": [
+          {
+            "member": "NesDS-928afd9ca3c846f06264dfb1be6a2edf44575b66/README.TXT",
+            "destination": "README.TXT"
+          },
+          {
+            "member": "NesDS-928afd9ca3c846f06264dfb1be6a2edf44575b66/README_ORIGINAL.TXT",
+            "destination": "README_ORIGINAL.TXT"
+          },
+          {
+            "member": "NesDS-928afd9ca3c846f06264dfb1be6a2edf44575b66/arm7/source/license.txt",
+            "destination": "arm7/source/license.txt"
+          },
+          {
+            "member": "NesDS-928afd9ca3c846f06264dfb1be6a2edf44575b66/common/dswifi/dswifi_license.txt",
+            "destination": "common/dswifi/dswifi_license.txt"
+          }
+        ],
+        "extra_sources": [
+          {
+            "download": {
+              "asset": "FluBBaOfWard-N2A03-d4b8d3dffaf9f0eced4cf707a2ce2208eb1bdaa0.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/N2A03/tar.gz/d4b8d3dffaf9f0eced4cf707a2ce2208eb1bdaa0",
+              "sha256": "9a557a7732b8d30b11c9150f700fb7cd131f4150b661cc470ba4c43a159d5cc9"
+            },
+            "path": "submodules/arm9/source/RP2A03.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/N2A03",
+            "commit": "d4b8d3dffaf9f0eced4cf707a2ce2208eb1bdaa0",
+            "notices": [
+              {
+                "member": "N2A03-d4b8d3dffaf9f0eced4cf707a2ce2208eb1bdaa0/README.md",
+                "destination": "README.md"
+              }
+            ]
+          },
+          {
+            "download": {
+              "asset": "FluBBaOfWard-ARM6502-8b8b6c82ce29bd26cd76709c75167372b3711484.tar.gz",
+              "url": "https://codeload.github.com/FluBBaOfWard/ARM6502/tar.gz/8b8b6c82ce29bd26cd76709c75167372b3711484",
+              "sha256": "6ecb1356bb9eb369a9f0bd1ee73f94c8b4bd7f776409fa65a60a79daa97afcc7"
+            },
+            "path": "submodules/arm9/source/RP2A03/ARM6502.tar.gz",
+            "repository": "https://github.com/FluBBaOfWard/ARM6502",
+            "commit": "8b8b6c82ce29bd26cd76709c75167372b3711484",
+            "notices": [
+              {
+                "member": "ARM6502-8b8b6c82ce29bd26cd76709c75167372b3711484/README.md",
+                "destination": "README.md"
+              }
+            ]
+          }
+        ]
+      },
+      "permission_confirmed": false,
+      "assumption_document": "docs/guides/UNCONFIRMED_DISTRIBUTION.md"
     },
     {
       "id": "ngpds",
@@ -1450,12 +1587,42 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/DS-Homebrew/PicoDriveTWL/blob/4fcdb1f0bef46a4704b1870d787b362afa7bfec0/arm9/source/main.cpp",
-      "redistribution": "blocked",
-      "license": "Noncommercial Pico core; mixed inherited terms",
-      "distribution_notes": "Pico headers allow noncommercial use; bundled MZ80 notice restricts modified redistribution. Verify compiled-core coverage and redistribution permission, rather than treating the whole tree as GPL.",
+      "redistribution": "noncommercial",
+      "license": "Noncommercial Pico/DrZ80 cores with inherited component notices",
+      "distribution_notes": "Package the unchanged upstream release for noncommercial distribution. Pinned config.h selects _USE_DRZ80, not _USE_MZ80; mz80.c is gated by ARM9_SOUND, which is not defined for that translation unit by the pinned build. Retain MZ80 terms in the unchanged source archive; this does not authorize distributing modified MZ80 or commercial use. Preserve the Pico, DrZ80 and other source notices.",
       "bios": "Genesis cartridges need no separate BIOS; Sega CD is not a configured route.",
       "bios_evidence": "https://github.com/DS-Homebrew/PicoDriveTWL/blob/4fcdb1f0bef46a4704b1870d787b362afa7bfec0/README.md",
-      "license_evidence": "https://github.com/DS-Homebrew/PicoDriveTWL/tree/4fcdb1f0bef46a4704b1870d787b362afa7bfec0"
+      "license_evidence": "https://github.com/DS-Homebrew/PicoDriveTWL/tree/4fcdb1f0bef46a4704b1870d787b362afa7bfec0",
+      "package": {
+        "source": {
+          "asset": "picodrivetwl-source.tar.gz",
+          "url": "https://codeload.github.com/DS-Homebrew/PicoDriveTWL/tar.gz/4fcdb1f0bef46a4704b1870d787b362afa7bfec0",
+          "sha256": "818a1ec3a652bfd5b69d988ed90f45506d6d87111b10ab31e1429bfede143c8a"
+        },
+        "files": [
+          {
+            "download": {
+              "asset": "picodrivetwl-PicoDriveTWL.nds",
+              "url": "https://github.com/DS-Homebrew/PicoDriveTWL/releases/download/v2.1.0/PicoDriveTWL.nds",
+              "sha256": "e03f6ec0bac4d755615cd7810475f14ea60386b28e691e910a848872cb2c0840"
+            },
+            "format": "raw",
+            "destination": "_nds/dsi-frontend/plugins/apps/PicoDriveTWL.nds",
+            "sha256": "e03f6ec0bac4d755615cd7810475f14ea60386b28e691e910a848872cb2c0840"
+          }
+        ],
+        "notices": [
+          {
+            "member": "PicoDriveTWL-4fcdb1f0bef46a4704b1870d787b362afa7bfec0/README.md",
+            "destination": "README.md"
+          },
+          {
+            "member": "PicoDriveTWL-4fcdb1f0bef46a4704b1870d787b362afa7bfec0/arm9/source/pico/sound/mz80.txt",
+            "destination": "arm9/source/pico/sound/mz80.txt"
+          }
+        ],
+        "extra_sources": []
+      }
     },
     {
       "id": "pokemini",
@@ -2142,10 +2309,11 @@
       "argv_evidence": "https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/arm9/source/main.c",
       "redistribution": "blocked",
       "license": "GPL-2.0-or-later ARM9 + Helix RPSL/RCSL ARM7",
-      "distribution_notes": "Retain full Xvid/GPL and Helix notices. The two-CPU codec licensing/source obligations require an explicit distribution review; root GPL alone is incomplete.",
+      "distribution_notes": "Upstream README explicitly describes GPL v2 ARM9 and GPL v2/RPSL ARM7 distribution. RPSL 2.1(e) requires an executable source-availability notice plus the Exhibit A object-code notice. The stock v1.2 executable/startup source does not contain that Helix notice. Keep packaging pending a reproducible notice-bearing build; accompanying license files alone do not establish that the executable condition is met. This is a notice/source obligation, not a blanket prohibition on redistribution.",
       "bios": "No BIOS required; AVI must contain Xvid/MPEG-4 video and MP3 audio in the player-specific format.",
       "bios_evidence": "https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/README.md",
-      "license_evidence": "https://github.com/chishm/tuna-vids/tree/f1f00243b2f969ebc9ded1a4942f610819f8c673"
+      "license_evidence": "https://github.com/chishm/tuna-vids/tree/f1f00243b2f969ebc9ded1a4942f610819f8c673",
+      "license_findings": "Retain root GPL text, README, Helix LICENSE.txt, RPSL.txt and RCSL.txt (the latter is an alternative requiring a valid agreement, not the default grant). Provide corresponding player/codec source and mark downstream changes. RPSL Exhibit B lists GPL with a compatibility footnote; no general GPL-compatible claim is made."
     },
     {
       "id": "wasabids",

@@ -8,6 +8,41 @@ a Genesis alternative.
 The recorded argv evidence is the actual content-loading path, not just an argc
 parameter in main().
 
+## Component review and distribution scope
+
+ColecoDS 11.1 and DS994a 2.9 have explicit no-profit distribution statements.
+Their unmodified binaries are available through `--noncommercial`, with original
+READMEs, component notices and matching published source. This preserves the
+ColEM contact wording rather than treating attribution alone as a prohibition.
+DS994a's embedded speech-sample permission remains unconfirmed under the
+[project assumption](UNCONFIRMED_DISTRIBUTION.md); no separate samples or games
+are added. ColecoDS's C-BIOS notice is included; external machine BIOS files are
+not supplied.
+
+PicoDriveTWL v2.1.0 is also a noncommercial option. Its pinned configuration uses
+DrZ80. MZ80 is not selected, and its translation unit is disabled by the pinned
+build's preprocessor conditions. Keep the inherited MZ80 notice with the
+unchanged source; this is not permission to modify and redistribute MZ80. The
+Pico and DrZ80 headers and all original source notices remain in `source.zip`.
+This is a source-configuration review, not an independent reproduction of the
+upstream binary.
+
+nesDS v2.1 is included under the documented assumption for unconfirmed newer
+component terms. Its legacy public-domain notice does not license later code.
+The source companion includes both the pinned RP2A03 submodule and its nested
+ARM6502 submodule, with their original READMEs and credits.
+
+**tuna-viDS v1.2 remains pending an executable-notice fix.** Its README supports
+GPL/RPSL distribution, but [Helix RPSL section 2.1(e)](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/arm7/source/helix/RPSL.txt)
+requires source-availability information in the executable and the Exhibit A
+Helix object-code notice where copyright notices appear. The stock binary and
+startup source lack that notice. A release-ready downstream build must add the
+notice and source location, record the change, retain GPL/Helix license texts
+and provide matching player/codec source. The RCSL text is an alternative for
+holders of a valid agreement, not an automatic replacement for the RPSL. This
+is a concrete packaging obligation, not a finding that all redistribution is
+forbidden. The current builder excludes it until such a build is prepared.
+
 ## GBARunner3 core and optional browser
 
 The [supplied hicode ZIP](https://files.deletecat.com/GBARunner3-hicode.zip)
@@ -53,14 +88,15 @@ python3 tools/build_addons.py --list
 
 The default includes eight projects with reviewed distribution terms: the
 requested nextcode4u DSXP fork, GameYob, A7800DS, A8DS, StellaDS, PokeMini,
-snemulds-shim and its matching SNEmulDS snapshot. It also includes eight
+snemulds-shim and its matching SNEmulDS snapshot. It also includes nine
 available releases under an explicitly documented, unconfirmed redistribution
 assumption: FastVideoDS, jEnesisDS Plus, S8DS, NitroGrafx, NitroSwan, NGPDS,
-LodjurDS and WasabiDS. GBARunner3 has the same assumption recorded but no
+LodjurDS, WasabiDS and nesDS. GBARunner3 has the same assumption recorded but no
 automatically packaged binary; the supplied third-party hicode build is recorded
 above. See [the assumption document](UNCONFIRMED_DISTRIBUTION.md).
 
-`--noncommercial` adds A5200DS, DracoDS, MicroDS and SpeccySE. Their no-profit
+`--noncommercial` adds A5200DS, DracoDS, MicroDS, SpeccySE, ColecoDS, DS994a
+and PicoDriveTWL. Their no-profit
 conditions remain separate from Gloam's GPL. Other held entries remain excluded.
 
 `dist/addons.zip` is an optional SD overlay. Merge it after `sd.zip`; it installs
@@ -96,9 +132,9 @@ requirement; this does not assert that their authors cannot distribute them.
 | [a5200ds 3.9](https://github.com/wavemotion-dave/A5200DS/releases/tag/3.9) | [direct](https://github.com/wavemotion-dave/A5200DS/blob/b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a/arm9/source/main.c) | Opt-in noncommercial; Custom noncommercial redistribution |
 | [a7800ds 5.2c](https://github.com/wavemotion-dave/A7800DS/releases/tag/5.2c) | [direct](https://github.com/wavemotion-dave/A7800DS/blob/32b7b1ed78f5edbcd29a797a1376e25a9bd9d265/arm9/source/main.c) | Included; GPL-2.0-or-later |
 | [a8ds 4.2](https://github.com/wavemotion-dave/A8DS/releases/tag/4.2) | [direct](https://github.com/wavemotion-dave/A8DS/blob/b5718df173e0b4037bcb8414640af26458c0bade/arm9/source/main.c) | Included; GPL-2.0-or-later + Altirra notices |
-| [colecods 11.1](https://github.com/wavemotion-dave/ColecoDS/releases/tag/11.1) | [direct](https://github.com/wavemotion-dave/ColecoDS/blob/29596955995526a10c8a9ca8c17d39b642f54dbf/arm9/source/colecoDS.c) | Manual / held; Noncommercial with additional constituent guidance |
+| [colecods 11.1](https://github.com/wavemotion-dave/ColecoDS/releases/tag/11.1) | [direct](https://github.com/wavemotion-dave/ColecoDS/blob/29596955995526a10c8a9ca8c17d39b642f54dbf/arm9/source/colecoDS.c) | Noncommercial opt-in; Noncommercial redistribution with retained author/component notices |
 | [dracods 1.9](https://github.com/wavemotion-dave/DracoDS/releases/tag/1.9) | [direct](https://github.com/wavemotion-dave/DracoDS/blob/03cddfbddf93056291c69fd512a8d8db0bbb2caa/arm9/source/DracoDS.c) | Opt-in noncommercial; MIT base + README noncommercial condition |
-| [ds994a 2.9](https://github.com/wavemotion-dave/DS994a/releases/tag/2.9) | [direct](https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/arm9/source/DS99.c) | Manual / held; Noncommercial with constituent permissions |
+| [ds994a 2.9](https://github.com/wavemotion-dave/DS994a/releases/tag/2.9) | [direct](https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/arm9/source/DS99.c) | Noncommercial opt-in; Noncommercial redistribution with constituent permissions/notices |
 | [dslibris v1.6.0 (prerelease)](https://github.com/rhaleblian/dslibris/releases/tag/v1.6.0) | [none](https://github.com/rhaleblian/dslibris/blob/309923e6e46f2f146229498d7d5c98d2e854aaca/source/main.cpp) | Manual / held; GPL-2.0-or-later code; mixed library/font package |
 | [dsxp v1.1.0-sd-argv.1](https://github.com/nextcode4u/DSXP/releases/tag/v1.1.0-sd-argv.1) | [direct](https://github.com/nextcode4u/DSXP/blob/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/source/main.c) | Included; GPL-2.0-or-later |
 | [fastvideods v0.0.1](https://github.com/Gericom/FastVideoDSPlayer/releases/tag/v0.0.1) | [direct](https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/arm9/source/main.cpp) | Included, permission unconfirmed; Project license not stated |
@@ -109,12 +145,12 @@ requirement; this does not assert that their authors cannot distribute them.
 | [jenesisdsplus v0.8.1](https://github.com/DS-Homebrew/jEnesisDSPlus/releases/tag/v0.8.1) | [direct](https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/newCode/source/main.s) | Included, permission unconfirmed; No explicit Plus redistribution license; closed-source base terms unconfirmed |
 | [lodjurds v0.1.5](https://github.com/FluBBaOfWard/LodjurDS/releases/tag/v0.1.5) | [direct](https://github.com/FluBBaOfWard/LodjurDS/blob/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
 | [microds 1.1](https://github.com/wavemotion-dave/MicroDS/releases/tag/1.1) | [direct](https://github.com/wavemotion-dave/MicroDS/blob/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09/arm9/source/MicroDS.c) | Opt-in noncommercial; MIT base + README noncommercial condition |
-| [nesds v2.1](https://github.com/DS-Homebrew/NesDS/releases/tag/v2.1) | [direct](https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/arm9/source/romloader_frontend.c) | Manual / held; Legacy public-domain statement + newer components |
+| [nesds v2.1](https://github.com/DS-Homebrew/NesDS/releases/tag/v2.1) | [direct](https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/arm9/source/romloader_frontend.c) | Included under project assumption; Legacy public-domain statement; newer component grants unconfirmed |
 | [ngpds v0.6.0](https://github.com/FluBBaOfWard/NGPDS/releases/tag/v0.6.0) | [direct](https://github.com/FluBBaOfWard/NGPDS/blob/4dbcc210cdb519414ff20d2886645a530e298206/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
 | [nintv-ds 6.4](https://github.com/wavemotion-dave/NINTV-DS/releases/tag/6.4) | [direct](https://github.com/wavemotion-dave/NINTV-DS/blob/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6/arm9/source/main.cpp) | Manual / held; Custom redistribution notice; restricted extras |
 | [nitrografx v0.9.1](https://github.com/FluBBaOfWard/NitroGrafx/releases/tag/v0.9.1) | [direct](https://github.com/FluBBaOfWard/NitroGrafx/blob/62920a05e9c7e31144d7e16b58797cdd8bc3789a/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
 | [nitroswan v0.7.7](https://github.com/FluBBaOfWard/NitroSwan/releases/tag/v0.7.7) | [direct](https://github.com/FluBBaOfWard/NitroSwan/blob/564e171fb93c2c11f98f38607493675727676c2c/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
-| [picodrivetwl v2.1.0](https://github.com/DS-Homebrew/PicoDriveTWL/releases/tag/v2.1.0) | [direct](https://github.com/DS-Homebrew/PicoDriveTWL/blob/4fcdb1f0bef46a4704b1870d787b362afa7bfec0/arm9/source/main.cpp) | Manual / held; Noncommercial Pico core; mixed inherited terms |
+| [picodrivetwl v2.1.0](https://github.com/DS-Homebrew/PicoDriveTWL/releases/tag/v2.1.0) | [direct](https://github.com/DS-Homebrew/PicoDriveTWL/blob/4fcdb1f0bef46a4704b1870d787b362afa7bfec0/arm9/source/main.cpp) | Noncommercial opt-in; Noncommercial Pico/DrZ80 cores with inherited component notices |
 | [pokemini 0.60-arg](https://github.com/DS-Homebrew/PokeMini/releases/tag/0.60-arg) | [direct](https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/platform/nds/PokeMini_NDS.c) | Included; GPL-3.0-or-later + zlib notices |
 | [rocketvideoplayer v2.3.1](https://github.com/RocketRobz/RocketVideoPlayer/releases/tag/v2.3.1) | [direct](https://github.com/RocketRobz/RocketVideoPlayer/blob/50803b9027ca43ab278c1486442fcfc70c90b309/nds/arm9/source/main.cpp) | Manual / held; MIT code; Nintendo assets separately credited |
 | [s8ds v1.1.8](https://github.com/FluBBaOfWard/S8DS/releases/tag/v1.1.8) | [direct](https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
@@ -124,7 +160,7 @@ requirement; this does not assert that their authors cannot distribute them.
 | [speccyse 2.2](https://github.com/wavemotion-dave/SpeccySE/releases/tag/2.2) | [direct](https://github.com/wavemotion-dave/SpeccySE/blob/85c85862470b69b75f6e49476a9c4ce992064bb3/arm9/source/SpeccySE.c) | Opt-in noncommercial; Custom noncommercial redistribution + core notices |
 | [stellads 8.4a](https://github.com/wavemotion-dave/StellaDS/releases/tag/8.4a) | [direct](https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/arm9/source/main.cpp) | Included; GPL-2.0-or-later + BSD notices |
 | [sugards 1.6](https://github.com/wavemotion-dave/SugarDS/releases/tag/1.6) | [direct](https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/arm9/source/SugarDS.c) | Manual / held; GPL-2.0-or-later code; separately copyrighted firmware |
-| [tuna-vids v1.2](https://github.com/chishm/tuna-vids/releases/tag/v1.2) | [direct](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/arm9/source/main.c) | Manual / held; GPL-2.0-or-later ARM9 + Helix RPSL/RCSL ARM7 |
+| [tuna-vids v1.2](https://github.com/chishm/tuna-vids/releases/tag/v1.2) | [direct](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/arm9/source/main.c) | Pending executable Helix/source notice; GPL + RPSL |
 | [wasabids v0.2.6](https://github.com/FluBBaOfWard/WasabiDS/releases/tag/v0.2.6) | [direct](https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/source/Main.c) | Included, permission unconfirmed; Project-wide redistribution grant not found |
 
 The companion license archive carries the assumption document and available
@@ -136,9 +172,9 @@ a missing grant or apply Gloam's GPL to those programs.
 - **[a5200ds](https://github.com/wavemotion-dave/A5200DS/tree/b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a):** Distribution without profit is explicitly permitted with complete notice and thanks to Alekmaul and wavemotion-dave.
 - **[a7800ds](https://github.com/wavemotion-dave/A7800DS/tree/32b7b1ed78f5edbcd29a797a1376e25a9bd9d265):** README explicitly adopts ProSystem GPLv2-or-later; supply full GPL text and matching source.
 - **[a8ds](https://github.com/wavemotion-dave/A8DS/tree/b5718df173e0b4037bcb8414640af26458c0bade):** Retain Atari800, Alekmaul, wavemotion-dave and Avery Lee notices.
-- **[colecods](https://github.com/wavemotion-dave/ColecoDS/tree/29596955995526a10c8a9ca8c17d39b642f54dbf):** README permits no-profit distribution but asks users to contact the ColEM author about constituent code. Keep out of automatic redistribution pending that review; C-BIOS alone does not license Coleco firmware.
+- **[colecods](https://github.com/wavemotion-dave/ColecoDS/tree/29596955995526a10c8a9ca8c17d39b642f54dbf):** README explicitly permits no-profit distribution of the emulator with notices and credits to wavemotion-dave, Alekmaul and Marat Fayzullin. Package the unchanged release only; preserve its ColEM contact request and FluBBa notices. No external proprietary BIOS is included.
 - **[dracods](https://github.com/wavemotion-dave/DracoDS/tree/03cddfbddf93056291c69fd512a8d8db0bbb2caa):** Root LICENSE covers the MIT base; README adds a noncommercial condition for the derivative. Preserve both; do not label the whole app MIT.
-- **[ds994a](https://github.com/wavemotion-dave/DS994a/tree/85098fcfcaa176a919fa4f2162706ac7814ea263):** README records permission for the port and asks about ColEM/TI9918A reuse. Additional voice/sample and constituent coverage needs review before automatic redistribution.
+- **[ds994a](https://github.com/wavemotion-dave/DS994a/tree/85098fcfcaa176a919fa4f2162706ac7814ea263):** README permits no-profit redistribution of the remaining code and records permission for SN76496 and Classic99-derived code. Package the unchanged release with lowzip/yxml and ColEM notices. Its embedded speech samples have no separately established redistribution grant; inclusion follows the project policy for this listed release, without claiming clearance for those samples.
 - **[dslibris](https://github.com/rhaleblian/dslibris/blob/v1.6.0/source/main.cpp):** main(void) does not consume a selected-book argument. Manual app; complete bundled font/library notices and runtime Book/Font layout need review before automatic redistribution.
 - **[dsxp](https://github.com/nextcode4u/DSXP/tree/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0):** Use nextcode4u/DSXP SD-argv prerelease; matching release source includes libmad.
 - **[fastvideods](https://github.com/Gericom/FastVideoDSPlayer/tree/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
@@ -149,12 +185,12 @@ a missing grant or apply Gloam's GPL to those programs.
 - **[jenesisdsplus](https://github.com/DS-Homebrew/jEnesisDSPlus/tree/ca3bb43d14f8d78ccb6546d753817defaac25937):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL. saveArgv validates the standard _arg record, copies argv[1] and loadRomFromArgv starts the ROM. Original jEnesisDS does not establish the Plus behavior. Native DSi SD handoff still needs testing; do not infer it from the BlocksDS toolchain used for the injected code.
 - **[lodjurds](https://github.com/FluBBaOfWard/LodjurDS/tree/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 - **[microds](https://github.com/wavemotion-dave/MicroDS/tree/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09):** Root LICENSE covers the MIT base; README adds a noncommercial condition for the derivative. Preserve both; do not label the whole app MIT.
-- **[nesds](https://github.com/DS-Homebrew/NesDS/tree/928afd9ca3c846f06264dfb1be6a2edf44575b66):** README.TXT dedicates legacy nesDS to the public domain; the modern branch and new N2A03 submodule still need complete license coverage. Legacy dedication alone is not a review of the current binary.
+- **[nesds](https://github.com/DS-Homebrew/NesDS/tree/928afd9ca3c846f06264dfb1be6a2edf44575b66):** Package the unchanged nesDS.nds release under the documented project assumption. Retain README.TXT, README_ORIGINAL.TXT, ARM7/Wi-Fi notices and the exact RP2A03 and nested ARM6502 source pins. Neither submodule pin has a project-wide license file; do not apply the legacy public-domain statement to those additions.
 - **[ngpds](https://github.com/FluBBaOfWard/NGPDS/tree/4dbcc210cdb519414ff20d2886645a530e298206):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 - **[nintv-ds](https://github.com/wavemotion-dave/NINTV-DS/tree/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6):** README permits emulator redistribution with attribution, but extras/overlays are explicitly personal-use-only. A source/runtime subset excluding those extras needs a separate completed audit.
 - **[nitrografx](https://github.com/FluBBaOfWard/NitroGrafx/tree/62920a05e9c7e31144d7e16b58797cdd8bc3789a):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 - **[nitroswan](https://github.com/FluBBaOfWard/NitroSwan/tree/564e171fb93c2c11f98f38607493675727676c2c):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
-- **[picodrivetwl](https://github.com/DS-Homebrew/PicoDriveTWL/tree/4fcdb1f0bef46a4704b1870d787b362afa7bfec0):** Pico headers allow noncommercial use; bundled MZ80 notice restricts modified redistribution. Verify compiled-core coverage and redistribution permission, rather than treating the whole tree as GPL.
+- **[picodrivetwl](https://github.com/DS-Homebrew/PicoDriveTWL/tree/4fcdb1f0bef46a4704b1870d787b362afa7bfec0):** Package the unchanged upstream release for noncommercial distribution. Pinned config.h selects _USE_DRZ80, not _USE_MZ80; mz80.c is gated by ARM9_SOUND, which is not defined for that translation unit by the pinned build. Retain MZ80 terms in the unchanged source archive; this does not authorize distributing modified MZ80 or commercial use. Preserve the Pico, DrZ80 and other source notices.
 - **[pokemini](https://github.com/DS-Homebrew/PokeMini/tree/f8eb158f7082d80739075baa3653afc14fdf3d70):** FreeBIOS is included; retain its source and upstream licensing notices. 0.60-arg directly copies argv[1], but tests argc >= 1 rather than > 1. Launch via a .min association; no-argument safety is not established.
 - **[rocketvideoplayer](https://github.com/RocketRobz/RocketVideoPlayer/tree/50803b9027ca43ab278c1486442fcfc70c90b309):** README credits Nintendo DSi fonts/graphical assets and borrowed FastVideoDS code. MIT on project code does not establish all asset/component redistribution rights.
 - **[s8ds](https://github.com/FluBBaOfWard/S8DS/tree/90f2c13368f0b2ceac7887802e77d516d6337436):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
@@ -164,7 +200,7 @@ a missing grant or apply Gloam's GPL to those programs.
 - **[speccyse](https://github.com/wavemotion-dave/SpeccySE/tree/85c85862470b69b75f6e49476a9c4ce992064bb3):** No-profit redistribution permitted with full author/core notices. Preserve the Z80, sound and lzav terms.
 - **[stellads](https://github.com/wavemotion-dave/StellaDS/tree/1ff41dc60c4debacd4493bae5bb045cdbbef7800):** Retain LICENSE and Copyright.txt, including the Aaron Giles notice.
 - **[sugards](https://github.com/wavemotion-dave/SugarDS/tree/ca4b95960d55e24d1d5bf815f5fffcacad8e4704):** Built-in Amstrad ROMs rely on the quoted conditional permission; ParaDOS is separately copyrighted. Record the firmware grants before redistributing the prebuilt package.
-- **[tuna-vids](https://github.com/chishm/tuna-vids/tree/f1f00243b2f969ebc9ded1a4942f610819f8c673):** Retain full Xvid/GPL and Helix notices. The two-CPU codec licensing/source obligations require an explicit distribution review; root GPL alone is incomplete.
+- **[tuna-vids](https://github.com/chishm/tuna-vids/tree/f1f00243b2f969ebc9ded1a4942f610819f8c673):** Upstream README explicitly describes GPL v2 ARM9 and GPL v2/RPSL ARM7 distribution. RPSL 2.1(e) requires an executable source-availability notice plus the Exhibit A object-code notice. The stock v1.2 executable/startup source does not contain that Helix notice. Keep packaging pending a reproducible notice-bearing build; accompanying license files alone do not establish that the executable condition is met. This is a notice/source obligation, not a blanket prohibition on redistribution.
 - **[wasabids](https://github.com/FluBBaOfWard/WasabiDS/tree/b074708a4c0b670e9f3e7d520a776f2bad2695c1):** Redistribution is assumed for packaging under the documented project policy; upstream permission remains unconfirmed. The pinned upstream binary is included without claiming a license grant or relicensing it under Gloam's GPL.
 
 ## SNEmulDS handoff
@@ -188,9 +224,9 @@ automatic selected-game launch. DSP/S-DD1 variants are not substituted.
 - **[a5200ds](https://github.com/wavemotion-dave/A5200DS/blob/b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a/readme.md):** Altirra 5200 replacement is already compiled in; some games need user-supplied original 5200.rom in /roms/bios or /data/bios.
 - **[a7800ds](https://github.com/wavemotion-dave/A7800DS/blob/32b7b1ed78f5edbcd29a797a1376e25a9bd9d265/README.md):** No BIOS required normally. Optional 7800.rom and highscore.rom go in /roms/bios, /data/bios or beside emulator.
 - **[a8ds](https://github.com/wavemotion-dave/A8DS/blob/b5718df173e0b4037bcb8414640af26458c0bade/readme.md):** Built-in Altirra OS 3.41 and BASIC 1.58. Optional originals: atarixl.rom, atariosb.rom, ataribas.rom, a5200.rom in /roms/bios or /data/bios.
-- **[colecods](https://github.com/wavemotion-dave/ColecoDS/blob/29596955995526a10c8a9ca8c17d39b642f54dbf/README.md):** ColecoVision requires coleco.rom; Sord M5 requires sordm5.rom (JP) or sordm5p.rom (PAL). MSX1 has built-in C-BIOS for cartridges, without BASIC/cassette/disk support. Additional machine BIOS files are user-supplied.
+- **[colecods](https://github.com/wavemotion-dave/ColecoDS/blob/29596955995526a10c8a9ca8c17d39b642f54dbf/README.md):** README explicitly permits no-profit distribution of the emulator with notices and credits to wavemotion-dave, Alekmaul and Marat Fayzullin. Package the unchanged release only; preserve its ColEM contact request and FluBBa notices. No external proprietary BIOS is included.
 - **[dracods](https://github.com/wavemotion-dave/DracoDS/blob/03cddfbddf93056291c69fd512a8d8db0bbb2caa/README.md):** User supplies dragon32.rom or bas12.rom/extbas11.rom; disk11.rom for CoCo disks. Look in /roms/bios or beside emulator.
-- **[ds994a](https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/README.md):** Requires 994aROM.bin and 994aGROM.bin in /roms/bios or /roms/ti99; 994aDISK.bin is needed for disk support.
+- **[ds994a](https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/README.md):** README permits no-profit redistribution of the remaining code and records permission for SN76496 and Classic99-derived code. Package the unchanged release with lowzip/yxml and ColEM notices. Its embedded speech samples have no separately established redistribution grant; inclusion follows the project policy for this listed release, without claiming clearance for those samples.
 - **[dslibris](https://github.com/rhaleblian/dslibris/blob/v1.6.0/INSTALL.txt):** No BIOS required. Select EPUB files inside the app and preserve its Book/Font configuration.
 - **[dsxp](https://github.com/nextcode4u/DSXP/blob/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/README.md):** No emulator BIOS required.
 - **[fastvideods](https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/readme.md):** No BIOS required; convert videos with the matching FastVideoDS encoder.
@@ -201,12 +237,12 @@ automatic selected-game launch. DSP/S-DD1 variants are not substituted.
 - **[jenesisdsplus](https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/README.md):** No external console BIOS needed for Genesis cartridge ROMs. Plus supports up to 7.5 MiB on DSi (4 MiB on DS debug hardware), with mapper support for ROMs above 4 MiB. Native console-SD compatibility is not yet validated in Gloam.
 - **[lodjurds](https://github.com/FluBBaOfWard/LodjurDS/blob/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/README.md):** Requires a user-supplied Atari Lynx BIOS, selected inside LodjurDS. Upstream explicitly says it is needed to run games; not included.
 - **[microds](https://github.com/wavemotion-dave/MicroDS/blob/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09/README.md):** Requires MC10.BIN or MC10.ROM; optional MCX.BIN/MCX.ROM. Put them in /roms/bios or beside emulator.
-- **[nesds](https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/README.TXT):** NES cartridges need no external BIOS. FDS content requires disksys.rom; user-supplied.
+- **[nesds](https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/README.TXT):** Package the unchanged nesDS.nds release under the documented project assumption. Retain README.TXT, README_ORIGINAL.TXT, ARM7/Wi-Fi notices and the exact RP2A03 and nested ARM6502 source pins. Neither submodule pin has a project-wide license file; do not apply the legacy public-domain statement to those additions.
 - **[ngpds](https://github.com/FluBBaOfWard/NGPDS/blob/4dbcc210cdb519414ff20d2886645a530e298206/README.md):** Upstream says a real NGP/NGPC BIOS is needed for in-game saving. Select it in emulator settings; not included.
 - **[nintv-ds](https://github.com/wavemotion-dave/NINTV-DS/blob/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6/README.md):** Requires exec.bin and grom.bin; optional ivoice.bin, ecs.bin and Tutorvision firmware. Configure BIOS location in emulator; /roms/bios is the recommended collection.
 - **[nitrografx](https://github.com/FluBBaOfWard/NitroGrafx/blob/62920a05e9c7e31144d7e16b58797cdd8bc3789a/README.md):** PCE cartridge route needs no BIOS. CD-ROM games require a user-supplied CD system BIOS; CD files are not default argv associations.
 - **[nitroswan](https://github.com/FluBBaOfWard/NitroSwan/blob/564e171fb93c2c11f98f38607493675727676c2c/README.md):** Built-in startup handling permits games without original firmware; optional WS/WSC/Crystal BIOS can be selected in the emulator.
-- **[picodrivetwl](https://github.com/DS-Homebrew/PicoDriveTWL/blob/4fcdb1f0bef46a4704b1870d787b362afa7bfec0/README.md):** Genesis cartridges need no separate BIOS; Sega CD is not a configured route.
+- **[picodrivetwl](https://github.com/DS-Homebrew/PicoDriveTWL/blob/4fcdb1f0bef46a4704b1870d787b362afa7bfec0/README.md):** Package the unchanged upstream release for noncommercial distribution. Pinned config.h selects _USE_DRZ80, not _USE_MZ80; mz80.c is gated by ARM9_SOUND, which is not defined for that translation unit by the pinned build. Retain MZ80 terms in the unchanged source archive; this does not authorize distributing modified MZ80 or commercial use. Preserve the Pico, DrZ80 and other source notices.
 - **[pokemini](https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/readme.txt):** Upstream replacement FreeBIOS is already compiled in; original Nintendo BIOS is not needed for basic operation.
 - **[rocketvideoplayer](https://github.com/RocketRobz/RocketVideoPlayer/blob/50803b9027ca43ab278c1486442fcfc70c90b309/README.md):** No BIOS required; use matching .rvid conversion.
 - **[s8ds](https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/README.md):** Configured SMS/GG/SG-1000 cartridge routes normally bypass BIOS. Other emulated machines can require their own BIOS selected inside S8DS.
@@ -216,7 +252,7 @@ automatic selected-game launch. DSP/S-DD1 variants are not substituted.
 - **[speccyse](https://github.com/wavemotion-dave/SpeccySE/blob/85c85862470b69b75f6e49476a9c4ce992064bb3/readme.md):** Requires 48.ROM and 128.ROM beside emulator or in /roms/bios. OpenSE BASIC is a candidate for 48K only, not a verified full replacement for this required pair.
 - **[stellads](https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/README.md):** No separate Atari 2600 BIOS required.
 - **[sugards](https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/readme.md):** Amstrad CPC firmware and ParaDOS are embedded in the stock binary, with separate terms; no extra download is needed, but embedding is not a free-BIOS license.
-- **[tuna-vids](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/README.md):** No BIOS required; AVI must contain Xvid/MPEG-4 video and MP3 audio in the player-specific format.
+- **[tuna-vids](https://github.com/chishm/tuna-vids/blob/f1f00243b2f969ebc9ded1a4942f610819f8c673/README.md):** Upstream README explicitly describes GPL v2 ARM9 and GPL v2/RPSL ARM7 distribution. RPSL 2.1(e) requires an executable source-availability notice plus the Exhibit A object-code notice. The stock v1.2 executable/startup source does not contain that Helix notice. Keep packaging pending a reproducible notice-bearing build; accompanying license files alone do not establish that the executable condition is met. This is a notice/source obligation, not a blanket prohibition on redistribution.
 - **[wasabids](https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/README.md):** No separate Supervision BIOS required.
 
 ## Free replacements

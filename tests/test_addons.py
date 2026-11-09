@@ -55,6 +55,26 @@ class AddonTests(unittest.TestCase):
     def write_lock(self):
         (self.root / "config/addon-dependencies.json").write_text(json.dumps(self.lock))
 
+    def test_constituent_review_keeps_noncommercial_gates_and_source_pins(self):
+        root = Path(__file__).resolve().parents[1]
+        lock = json.loads((root / "config/addon-dependencies.json").read_text())
+        normal = {app["id"] for app in selected_applications(lock)}
+        opted_in = {app["id"] for app in selected_applications(lock, noncommercial=True)}
+        conditional = {"colecods", "ds994a", "picodrivetwl"}
+        self.assertFalse(normal & conditional)
+        self.assertTrue(conditional <= opted_in)
+        self.assertIn("nesds", normal)
+        nesds = next(app for app in lock["applications"] if app["id"] == "nesds")
+        pins = {source["path"]: source["commit"]
+                for source in nesds["package"]["extra_sources"]}
+        self.assertEqual(pins, {
+            "submodules/arm9/source/RP2A03.tar.gz":
+                "d4b8d3dffaf9f0eced4cf707a2ce2208eb1bdaa0",
+            "submodules/arm9/source/RP2A03/ARM6502.tar.gz":
+                "8b8b6c82ce29bd26cd76709c75167372b3711484",
+        })
+        self.assertNotIn("tuna-vids", opted_in)
+
     def test_permission_filter_and_explicit_selection(self):
         conditional = {**self.app, "id": "conditional", "redistribution": "noncommercial"}
         held = {**self.app, "id": "held", "redistribution": "blocked"}

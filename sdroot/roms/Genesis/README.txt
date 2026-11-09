@@ -12,8 +12,8 @@ Argv in the audited upstream build: direct.
 Firmware: Genesis cartridges need no separate BIOS; Sega CD is not a
 configured route.
 
-Add-on package: manual / held; terms: Noncommercial Pico core; mixed inherited
-terms.
+Add-on package: available; terms: Noncommercial Pico/DrZ80 cores with
+inherited component notices.
 
 Upstream: https://github.com/DS-Homebrew/PicoDriveTWL
 Release: https://github.com/DS-Homebrew/PicoDriveTWL/releases/tag/v2.1.0

@@ -12,8 +12,8 @@ Argv in the audited upstream build: direct.
 Firmware: Requires 994aROM.bin and 994aGROM.bin in /roms/bios or /roms/ti99;
 994aDISK.bin is needed for disk support.
 
-Add-on package: manual / held; terms: Noncommercial with constituent
-permissions.
+Add-on package: available; terms: Noncommercial redistribution with
+constituent permissions/notices.
 
 Upstream: https://github.com/wavemotion-dave/DS994a
 Release: https://github.com/wavemotion-dave/DS994a/releases/tag/2.9

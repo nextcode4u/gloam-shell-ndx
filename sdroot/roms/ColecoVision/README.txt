@@ -13,8 +13,8 @@ Firmware: ColecoVision requires coleco.rom; Sord M5 requires sordm5.rom (JP)
 or sordm5p.rom (PAL). MSX1 has built-in C-BIOS for cartridges, without
 BASIC/cassette/disk support. Additional machine BIOS files are user-supplied.
 
-Add-on package: manual / held; terms: Noncommercial with additional
-constituent guidance.
+Add-on package: available; terms: Noncommercial redistribution with retained
+author/component notices.
 
 Upstream: https://github.com/wavemotion-dave/ColecoDS
 Release: https://github.com/wavemotion-dave/ColecoDS/releases/tag/11.1
