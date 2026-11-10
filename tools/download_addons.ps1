@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param(
     [string]$Target,
-    [string]$Manifest = (Join-Path $PSScriptRoot 'downloads.json'),
+    [string]$Manifest,
     [string]$Cache = (Join-Path ([Environment]::GetFolderPath('UserProfile')) '.gloam-addons-cache'),
     [string[]]$Only,
     [switch]$List,
@@ -15,6 +15,7 @@ param(
     [string]$Catalog,
     [switch]$Upstream
 )
+if (-not $Manifest) { $Manifest = Join-Path $PSScriptRoot 'downloads.json' }
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 Add-Type -AssemblyName System.IO.Compression
