@@ -39,4 +39,7 @@ and [the build guide](docs/development/BUILDING.md) before changing the project.
   never enter binary/source/notice companion collections. Publish only their
   pinned download instructions through the shared Python/PowerShell installer;
   it downloads directly from upstream onto the user's chosen SD root.
+- Retain only the current published Gloam preview release. Verify its full asset
+  set before deleting older `-preview.N` releases/assets; preserve tags/history,
+  stable releases and release candidates. Draft preparation keeps the current preview.
 - Do not push source or publish artifacts without user authorization.

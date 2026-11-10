@@ -43,6 +43,12 @@ README.txt files accompany the SD runtime as setup notes. Keep the source and li
 download options. Document required asset/backend changes when an update needs
 more than replacing `BOOT.NDS`; never silently overwrite personal settings.
 
+Keep only the current published Gloam preview release. After its complete asset
+set passes verification, remove older published `-preview.N` releases and their
+assets. Preserve Git tags/history, stable releases and release candidates. The
+prerelease workflow applies this policy when a preview is published; preparing
+a draft does not remove the current preview.
+
 Image-generation prompts, prompt logs and draft design concepts are local working
 artifacts. Keep them under ignored `build/` or outside the source tree; exclude
 them from commits and release/source packages. Commit production assets only.

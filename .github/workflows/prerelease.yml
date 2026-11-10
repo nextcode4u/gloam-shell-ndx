@@ -1,6 +1,8 @@
 name: Prepare prerelease
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       tag:
@@ -17,12 +19,13 @@ permissions:
 
 jobs:
   checks:
+    if: github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/ci.yml
     with:
       include_addons: ${{ inputs.addons }}
 
   prepare:
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     needs: checks
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -73,4 +76,52 @@ jobs:
           subprocess.run(['gh', 'release', 'create', tag, *files, '--target', source,
                           '--title', f'Gloam Shell NDX {tag}', '--notes-file', str(notes),
                           '--draft', '--prerelease'], check=True)
+          PY
+
+  retain-current-preview:
+    if: github.event_name == 'release' && github.event.release.prerelease && !github.event.release.draft
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Verify published preview before removing older previews
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python3 - <<'PY'
+          from datetime import datetime
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import subprocess
+          from tools.verify_release import verify
+
+          pattern = r'v[0-9]+\.[0-9]+\.[0-9]+-preview\.[0-9]+'
+          tag = os.environ['RELEASE_TAG']
+          if not re.fullmatch(pattern, tag):
+              raise SystemExit(0)
+          repo = os.environ['GITHUB_REPOSITORY']
+          subprocess.run(['gh', 'release', 'download', tag, '--repo', repo,
+                          '--dir', 'dist'], check=True)
+          verify('dist', addons=Path('dist/addons.zip').is_file())
+          pages = json.loads(subprocess.check_output(
+              ['gh', 'api', '--paginate', '--slurp', f'repos/{repo}/releases']))
+          releases = [release for page in pages for release in page]
+          current = next(release for release in releases if release['tag_name'] == tag)
+          if current['draft'] or not current['prerelease']:
+              raise SystemExit('Current preview is not a published prerelease')
+          published = datetime.fromisoformat(current['published_at'].replace('Z', '+00:00'))
+          for release in releases:
+              old_tag = release['tag_name']
+              if (old_tag == tag or release['draft'] or not release['prerelease']
+                      or not re.fullmatch(pattern, old_tag)):
+                  continue
+              old_date = datetime.fromisoformat(release['published_at'].replace('Z', '+00:00'))
+              if old_date < published:
+                  subprocess.run(['gh', 'release', 'delete', old_tag, '--repo', repo,
+                                  '--yes'], check=True)
           PY
