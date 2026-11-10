@@ -32,7 +32,7 @@ def runtime_path_allowed(name):
     application = name.startswith("_nds/dsi-frontend/plugins/apps/") and name.endswith((".nds", ".srl", ".ini"))
     config = re.fullmatch(r"_gba/configs/[A-Z0-9]{6}\.json", name)
     return bool(application or config or name in READER_FONTS or name in ADDON_PROFILES
-                or name == "roms/ScummVM/scummvm.nds")
+                or name in {"roms/ScummVM/scummvm.nds", "roms/bios/gbc_bios.bin"})
 
 
 def reviewed_apps(catalog):

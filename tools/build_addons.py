@@ -207,7 +207,7 @@ def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
             relative_path(extra["path"])
             blob = fetch(extra["download"])
             target = prefix + extra["path"]
-            if not extra["path"].startswith("submodules/") or target in sources:
+            if not extra["path"].startswith(("submodules/", "components/")) or target in sources:
                 raise ValueError("Overlapping or misplaced add-on source archive")
             sources[target] = blob
             extra_members = archive_members(blob, "tar.gz")
@@ -244,7 +244,8 @@ def addon_files(root: Path, offline: bool = False, noncommercial: bool = False,
             application = (target.startswith(lock["application_directory"] + "/")
                            and Path(target).suffix.lower() in {".nds", ".srl", ".ini"})
             reader_font = app["id"] == "dslibris" and target in READER_FONTS
-            if not (application or reader_font):
+            free_boot = app["id"] == "gameyob-dsi" and target == "roms/bios/gbc_bios.bin"
+            if not (application or reader_font or free_boot):
                 raise ValueError("Add-on executable outside configured application folder")
             if target.casefold() in {name.casefold() for name in runtime}:
                 raise ValueError("Add-ons install overlapping paths")

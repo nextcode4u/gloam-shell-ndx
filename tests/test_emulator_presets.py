@@ -72,6 +72,8 @@ class EmulatorPresetTests(unittest.TestCase):
                     continue
                 if item["destination"].endswith((".nds", ".srl", ".ini")):
                     self.assertEqual(str(Path(item["destination"]).parent), directory)
+                elif item["destination"] == "roms/bios/gbc_bios.bin":
+                    self.assertEqual(application["id"], "gameyob-dsi")
                 else:
                     self.assertEqual(application["id"], "dslibris")
                     self.assertTrue(item["destination"].startswith("data/dslibris/font/"))

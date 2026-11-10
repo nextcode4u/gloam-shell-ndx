@@ -67,7 +67,11 @@ Use --noncommercial / -Noncommercial to include applications with no-profit
 conditions. Existing files (including custom game configs) are kept by default.
 Use --overwrite / -Overwrite only when you intend to replace those files.
 The scripts do not remove previously installed apps or alter your settings,
-associations, ROMs, saves or BIOS. GBARunner3 uses your own /_gba/bios.bin.
+associations, ROMs or saves. GameYob also stages the optional free SameBoot GBC
+boot ROM at /roms/bios/gbc_bios.bin if missing. Existing BIOS files are preserved
+unless overwrite is requested. Set biosfile=/roms/bios/gbc_bios.bin under [general]
+in /_nds/gameyobds.ini and enable GBC Bios in GameYob to use it.
+GBARunner3 still uses your own original /_gba/bios.bin.
 
 Downloads and selected archive members are checked against SHA-256 pins.
 A changed or unavailable release stops installation instead of silently switching

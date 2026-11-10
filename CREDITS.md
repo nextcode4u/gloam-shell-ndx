@@ -44,6 +44,8 @@ release and its terms. Packaged executables remain separate programs:
 
 - DSXP: Farzin Abdi; nextcode4u's native-SD/argv fork.
 - GameYob: Drenn and contributors; maple “mavica” syrup's maintained fork.
+- Optional SameBoot GBC firmware: Lior Halphon and the SameBoy contributors;
+  gbdev hardware definitions are CC0. Exact source and notices accompany the add-on.
 - A7800DS, A8DS and StellaDS: wavemotion-dave and their credited upstream
   emulator teams; Avery Lee supplies the embedded Altirra replacement firmware.
 - PokeMini: JustBurn, Team Pokeme and contributors, including the replacement FreeBIOS.

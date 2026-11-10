@@ -23,8 +23,9 @@ under GPL-3.0-or-later unless an asset notice explicitly says otherwise.
 
 Build output, downloads, runtime images, private references and machine-specific
 configuration stay out of Git. Release ZIPs belong in GitHub Releases, together
-with the matching source archive and SHA256SUMS. Never include games, BIOS/NAND,
-keys, saves or private test data. This repository does not contain emulator
+with the matching source archive and SHA256SUMS. Never include games, proprietary BIOS/NAND,
+keys, saves or private test data. Free replacement firmware needs explicit
+license/source pins and emulator-specific compatibility review. This repository does not contain emulator
 forks or environment-specific debugging history.
 
 ## Commits and releases

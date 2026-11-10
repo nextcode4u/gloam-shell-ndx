@@ -31,8 +31,11 @@ dslibris: No BIOS required. Fonts: /data/dslibris/font/. Books: /media/books/.
 New settings: /data/dslibris/dslibris.xml; an existing legacy root settings
 file remains in use unless managed settings exist.
 
-gameyob-dsi: No BIOS required for normal GB/GBC play. Optional GBC boot ROM
-affects boot/palettes; not included.
+gameyob-dsi: No BIOS required for normal GB/GBC play. Optional SameBoot v1.0.5
+(MIT/Expat) is supplied at /roms/bios/gbc_bios.bin. Set
+biosfile=/roms/bios/gbc_bios.bin under [general] in /_nds/gameyobds.ini and
+enable GBC Bios in GameYob if wanted; existing BIOS/config files are
+preserved. Hardware compatibility remains unverified.
 
 gbarunner3: Requires original 16 KiB GBA BIOS at /_gba/bios.bin. Fixed-offset
 relocation/patches prevent assuming a replacement BIOS is compatible.

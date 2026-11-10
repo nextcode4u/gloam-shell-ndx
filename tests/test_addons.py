@@ -219,6 +219,27 @@ class AddonTests(unittest.TestCase):
         self.assertEqual(notices["addons/demo/submodules/lib/component/LICENSE"],
                          b"Synthetic component notice")
 
+    def test_free_boot_rom_is_owned_by_gameyob_and_carries_component_source(self):
+        self.app["id"] = "gameyob-dsi"
+        self.app["package"]["files"][0]["destination"] = "roms/bios/gbc_bios.bin"
+        blob = source_tar({"sameboot/LICENSE": b"Synthetic free boot notice"})
+        (self.cache / "sameboot.tar.gz").write_bytes(blob)
+        self.app["package"]["extra_sources"] = [{
+            "download": {"asset": "sameboot.tar.gz", "url": "https://example.invalid/source",
+                         "sha256": sha256(blob)},
+            "path": "components/sameboot-source.tar.gz",
+            "notices": [{"member": "sameboot/LICENSE", "destination": "LICENSE"}]}]
+        self.write_lock()
+        runtime, sources, notices, _ = addon_files(self.root, offline=True)
+        self.assertEqual(runtime["roms/bios/gbc_bios.bin"], self.binary)
+        self.assertEqual(sources["dependencies/addons/gameyob-dsi/components/sameboot-source.tar.gz"], blob)
+        self.assertEqual(notices["addons/gameyob-dsi/components/sameboot-source/LICENSE"],
+                         b"Synthetic free boot notice")
+        self.app["id"] = "demo"
+        self.write_lock()
+        with self.assertRaisesRegex(ValueError, "outside configured"):
+            addon_files(self.root, offline=True)
+
     def test_project_distribution_notice_is_bundled_without_overwriting_upstream(self):
         document = self.root / "docs/distribution.md"
         document.parent.mkdir()

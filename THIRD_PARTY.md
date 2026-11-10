@@ -21,11 +21,13 @@ Licenses apply per component, not simply according to Gloam's root LICENSE.
 | Cheat-format reference | [AKMenu Next, c884c092](https://github.com/coderkei/akmenu-next/tree/c884c092e1bf1b172f9a2464f74c13ce53124400) | GPL-3.0-or-later reference; retained attribution below. No third-party cheat database is bundled. |
 | Packed/built-in fonts | [DejaVu fonts](https://dejavu-fonts.github.io/) | Bitstream Vera font terms / public-domain DejaVu changes; full notice below and alongside theme fonts. |
 | Copper music | [Sentinel by pixelpion](https://pixabay.com/music/video-games-sentinel-455122/) | Pixabay Content License, integrated theme music; not GPL or CC0. Credits/terms/conversion hashes retained. |
+| Optional SameBoot GBC firmware | [SameBoy v1.0.5, ea667ad7](https://github.com/LIJI32/SameBoy/tree/ea667ad79aa28409f034b1fd6da7304e1844750d) | MIT/Expat; unmodified cgb_boot.bin staged as roms/bios/gbc_bios.bin by the optional GameYob package. Source and notices accompany it. |
 | Original theme art and synthesized cues | Authored tools/assets in this tree | Per-theme CC0 notices; external fonts and Copper music retain their own terms. |
 
 The optional Gloam DSi Menu tile is authored source under the project's license;
-its linked SDK/runtime dependencies retain the notices above. Optional emulators/players, games, BIOS files and vendor reference material are
-not part of the distributed frontend.
+its linked SDK/runtime dependencies retain the notices above. Optional emulators/players and their free replacement firmware are distributed
+separately in the add-on package. Games, proprietary external BIOS files and
+vendor reference material are not part of the distributed frontend.
 
 
 ## BlocksDS

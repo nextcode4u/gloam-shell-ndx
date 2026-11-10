@@ -65,6 +65,20 @@ class WindowsInstallerMenuTests(unittest.TestCase):
         self.assertNotIn('Operation stopped:', result.stdout)
         return result.stdout
 
+    def test_free_boot_support_path_and_preserving_existing_firmware(self):
+        bios_item = dict(self.app['files'][0], destination='roms/bios/gbc_bios.bin')
+        self.app['files'].append(bios_item)
+        self.write_manifest()
+        command = self.ps + ['-Target', windows_path(self.target), '-Cache', windows_path(self.cache), '-Offline']
+        result = subprocess.run(command, text=True, capture_output=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        bios = self.target / bios_item['destination']
+        self.assertEqual(bios.read_bytes(), self.payload)
+        bios.write_bytes(b'User firmware retained during update')
+        result = subprocess.run(command + ['-Update'], text=True, capture_output=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(bios.read_bytes(), b'User firmware retained during update')
+
     def test_no_argument_menus_and_double_click_launcher(self):
         self.run_menu(self.ps, '0\n')
         self.run_menu([sys.executable, str(self.installer / 'download-addons.py')], '0\n')

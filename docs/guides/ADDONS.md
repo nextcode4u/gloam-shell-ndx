@@ -327,11 +327,48 @@ payload and DSP/S-DD1 variants are not silently substituted.
 - **[tuna-vids](https://github.com/DS-Homebrew/tuna-vids/blob/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/README.md):** No BIOS required; AVI must contain Xvid/MPEG-4 video and MP3 audio in the player-specific format.
 - **[wasabids](https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/README.md):** No separate Supervision BIOS required.
 
-## Free replacements
+## Free replacements and remaining firmware
 
-A8DS/A5200DS carry their documented Altirra replacements, ColecoDS has C-BIOS
-for supported MSX1 cartridge use, and PokeMini has its replacement BIOS. Their
-source and notices accompany permitted bundled selections. Those replacements
-do not cover other machines' firmware. A free GBA BIOS is not assumed compatible
-with GBARunner3's original-BIOS offset patches. Never distribute proprietary
-external BIOS or games through the package or installer manifest.
+The add-on package includes SameBoy's **SameBoot 1.0.5** GBC replacement at
+`/roms/bios/gbc_bios.bin`. GameYob downloads/updates also install it if missing.
+Set `biosfile=/roms/bios/gbc_bios.bin` in the existing
+`/_nds/gameyobds.ini` `[general]` section, then set **GBC Bios** to **On** or
+**GB Only** in GameYob. The installer preserves that config and
+any existing BIOS, including during ordinary updates. Boot ROM use is optional;
+GameYob works without it. The replacement is distributed unmodified under
+[MIT/Expat](https://github.com/LIJI32/SameBoy/blob/ea667ad79aa28409f034b1fd6da7304e1844750d/LICENSE),
+with its notice in `licenses.zip` and exact source in `source.zip`.
+
+A8DS/A5200DS already carry their Altirra replacements, ColecoDS includes C-BIOS
+for MSX1 cartridge use, and PokeMini includes FreeBIOS. These need no separately
+staged firmware. C-BIOS does not provide MSX BASIC, tape or disk firmware.
+SugarDS and Hachibitto stock releases embed firmware with separate terms; their
+presence does not make that firmware open source.
+
+The following requirements remain outside the supplied free replacements:
+
+| Emulator / route | Still required from the user | Where / limits |
+| --- | --- | --- |
+| GBARunner3 | Original 16 KiB `bios.bin` | `/_gba/bios.bin`; fixed-offset relocation and VM patches target the original layout. Cult-of-GBA/Normmatt replacements are not interchangeable with this build. |
+| GimliDS | `kernal.rom`, `basic.rom`, `char.rom`, `1541.rom` | `/roms/bios/` or `/roms/c64/`; MEGA65 Open ROMs is not a verified complete set for this emulator, especially the drive ROM. |
+| ColecoDS: ColecoVision | `coleco.rom` | `/roms/bios/` or `/data/bios/`; its C-BIOS is for MSX, not ColecoVision. |
+| ColecoDS: other machines | Machine firmware such as `sordm5.rom` / `sordm5p.rom`, ADAM `eos.rom` and `writer.rom` | Use the machine-specific instructions in the upstream README. These do not affect BIOS-free routes such as SG-1000. |
+| DracoDS | `dragon32.rom`, or CoCo `bas12.rom` plus `extbas11.rom`; `disk11.rom` for CoCo disks | `/roms/bios/` or beside the emulator. |
+| DS994a | `994aROM.bin`, `994aGROM.bin`; `994aDISK.bin` for disks | `/roms/bios/` or `/roms/ti99/`. |
+| MicroDS | `MC10.BIN` or `MC10.ROM`; optional MCX firmware | `/roms/bios/` or beside the emulator. |
+| Nintellivision | `exec.bin`, `grom.bin` | Configure the BIOS folder; Intellivoice/ECS/Tutorvision add their own firmware requirements. |
+| LodjurDS | Lynx BIOS | Select inside the emulator. |
+| NGPDS | NGP/NGPC BIOS for in-game saving | Select inside the emulator; normal launch alone does not establish save support. |
+| SpeccySE | `48.rom` and `128.rom` | `/roms/bios/`; the pinned loader refuses to operate without both. OpenSE BASIC only replaces the 48K part, so it is not installed as a complete solution. |
+| nesDS: FDS | `disksys.rom` | Required for Famicom Disk System content; NES cartridges need none. |
+| NitroGrafx: CD | Compatible PC Engine CD system BIOS | Select using the emulator; HuCard cartridge games need none. |
+
+Optional original Atari firmware, GBC boot ROMs and WonderSwan boot ROMs are not
+required for ordinary operation of the configured BIOS-free routes. Some games
+or peripherals may still require the original machine firmware. Other S8DS and
+ColecoDS machine modes have their own requirements; see their pinned upstream
+BIOS notes above.
+
+A download being available online is not a redistribution grant. No proprietary
+external BIOS or games are downloaded or bundled. Unsupported replacements are
+not placed under filenames that would make an emulator silently use them.

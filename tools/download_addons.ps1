@@ -175,7 +175,7 @@ function Get-Destination([string]$Root, [string]$Name) {
     if ($Name -cnotmatch '^_nds/dsi-frontend/plugins/apps/.+\.(nds|srl|ini)$' -and
         $Name -cnotmatch '^_gba/configs/[A-Z0-9]{6}\.json$' -and
         $Name -cnotin $ReaderFonts -and $Name -cnotin $AddonProfiles -and
-        $Name -cne 'roms/ScummVM/scummvm.nds') { throw "Destination outside add-on folders: $Name" }
+        $Name -cne 'roms/ScummVM/scummvm.nds' -and $Name -cne 'roms/bios/gbc_bios.bin') { throw "Destination outside add-on folders: $Name" }
     $path = $Root
     foreach ($part in $Name.Split('/')) {
         $path = Join-Path $path $part

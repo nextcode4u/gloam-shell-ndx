@@ -743,7 +743,7 @@
       "redistribution": "approved",
       "license": "MIT",
       "distribution_notes": "Retain the Drenn/contributor notice and both DS/DSi variants.",
-      "bios": "No BIOS required for normal GB/GBC play. Optional GBC boot ROM affects boot/palettes; not included.",
+      "bios": "No BIOS required for normal GB/GBC play. Optional SameBoot v1.0.5 (MIT/Expat) is supplied at /roms/bios/gbc_bios.bin. Set biosfile=/roms/bios/gbc_bios.bin under [general] in /_nds/gameyobds.ini and enable GBC Bios in GameYob if wanted; existing BIOS/config files are preserved. Hardware compatibility remains unverified.",
       "package": {
         "source": {
           "asset": "gameyob-dsi-source.tar.gz",
@@ -770,6 +770,17 @@
             "format": "raw",
             "destination": "_nds/dsi-frontend/plugins/apps/gameyob.nds",
             "sha256": "172652cdde450e8dc50c28dff1bbd3f9bdd9a3784014116c2cdd2e438ebacebd"
+          },
+          {
+            "download": {
+              "asset": "sameboy_winsdl_v1.0.5.zip",
+              "url": "https://github.com/LIJI32/SameBoy/releases/download/v1.0.5/sameboy_winsdl_v1.0.5.zip",
+              "sha256": "5aa92fb376b53b57361b15c29a6ff5a4494f7ae6f4ba7cbdfa6ef8375765b655"
+            },
+            "format": "zip",
+            "member": "cgb_boot.bin",
+            "destination": "roms/bios/gbc_bios.bin",
+            "sha256": "f767b8e7e510a255f81328c89dba6e0c996b370e1bc86aebb8584a7da47a5bba"
           }
         ],
         "notices": [
@@ -780,6 +791,34 @@
           {
             "member": "GameYob-04f88d96ca653c60fd1b110ce7011db7e8e906a3/README.txt",
             "destination": "README.txt"
+          }
+        ],
+        "extra_sources": [
+          {
+            "path": "components/sameboot-source.tar.gz",
+            "download": {
+              "asset": "sameboy-v1.0.5-source.tar.gz",
+              "url": "https://codeload.github.com/LIJI32/SameBoy/tar.gz/ea667ad79aa28409f034b1fd6da7304e1844750d",
+              "sha256": "919125922211e630f244b979010ba394fee2b23b80147aa98c38c23c8496d365"
+            },
+            "notices": [
+              {
+                "member": "SameBoy-ea667ad79aa28409f034b1fd6da7304e1844750d/LICENSE",
+                "destination": "LICENSE"
+              }
+            ]
+          }
+        ],
+        "runtime_notices": [
+          {
+            "download": {
+              "asset": "sameboy_winsdl_v1.0.5.zip",
+              "url": "https://github.com/LIJI32/SameBoy/releases/download/v1.0.5/sameboy_winsdl_v1.0.5.zip",
+              "sha256": "5aa92fb376b53b57361b15c29a6ff5a4494f7ae6f4ba7cbdfa6ef8375765b655"
+            },
+            "format": "zip",
+            "member": "LICENSE",
+            "destination": "sameboot/LICENSE"
           }
         ]
       },

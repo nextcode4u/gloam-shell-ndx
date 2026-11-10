@@ -238,6 +238,19 @@ class DownloadAddonTests(unittest.TestCase):
         self.assertEqual(select_apps({"applications": [app]}, None, False), [])
         self.assertEqual(select_apps({"applications": [app]}, ["demo"], False), [app])
 
+    def test_free_boot_rom_is_staged_but_existing_firmware_is_preserved_on_update(self):
+        item = dict(self.app["files"][0], destination="roms/bios/gbc_bios.bin")
+        self.app["files"].append(item)
+        self.run_stage()
+        bios = self.sd / item["destination"]
+        self.assertEqual(bios.read_bytes(), self.binary)
+        bios.write_bytes(b"User's existing firmware")
+        self.run_stage(update=True)
+        self.assertEqual(bios.read_bytes(), b"User's existing firmware")
+        for name in ("roms/bios/bios.bin", "roms/bios/coleco.rom", "roms/bios/GBc_bios.bin"):
+            with self.assertRaises(ValueError):
+                destination(self.sd, name)
+
     def test_path_escape_firmware_and_symlink_destinations_are_rejected(self):
         for name in ["../outside.nds", "/outside.nds", "_gba/bios.bin", "C:/outside.nds",
                      "_nds/dsi-frontend/plugins/apps/../../settings.ini"]:

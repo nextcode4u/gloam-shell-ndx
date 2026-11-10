@@ -43,7 +43,10 @@ libraries and other applications' support files when upgrading.
 
 The package includes official nds-bootstrap and Slot-1 Launcher releases,
 themes, association profiles and an optional DSi Menu forwarder. Emulators,
-BIOS files, games and saves are supplied separately. A DSi homebrew boot method
+required proprietary BIOS files, games and saves are supplied separately.
+The optional add-on pack includes compatible free firmware replacements;
+[firmware requirements](docs/guides/ADDONS.md#free-replacements-and-remaining-firmware)
+list what is included and what each emulator still needs. A DSi homebrew boot method
 with SD access is required; Gloam does not install or configure Unlaunch.
 
 For frontend-only updates, replace `/BOOT.NDS` using the standalone `BOOT.NDS`
