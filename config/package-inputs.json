@@ -312,6 +312,7 @@
     "arm9/source/ui/drawing.c",
     "arm9/source/ui/drawing.h",
     "arm9/source/ui/font.h",
+    "arm9/source/ui/font_extended.h",
     "arm9/source/ui/font_latin.h",
     "arm9/source/ui/game_view.c",
     "arm9/source/ui/item_icons.c",

@@ -2,6 +2,7 @@
 #include "font_pack.h"
 #include "ui/font.h"
 #include "ui/font_latin.h"
+#include "ui/font_extended.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -21,6 +22,13 @@ uint16_t font_row(unsigned character, int row)
 {
     if (row < 0 || row >= FONT_HEIGHT)
         return 0;
+    unsigned extended = 528;
+    if (character >= 0x100 && character < 0x180)
+        extended = character - 0x100;
+    else if (character >= 0x370 && character < 0x500)
+        extended = 128 + character - 0x370;
+    if (extended < 528 && ui_font_extended_supported[extended])
+        return ui_font_extended[extended][row];
     if (character >= 160 && character <= 255) {
         unsigned glyph = FONT_ASCII_GLYPHS + character - 160;
         return current && current->glyph_count == FONT_GLYPHS ? current->rows[glyph][row]

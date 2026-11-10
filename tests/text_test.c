@@ -50,6 +50,22 @@ int main(void)
     assert(!strcmp(out, "Caf"));
     font_builtin(&font);
     font_use(&font);
+    const unsigned letters[] = {0x141, 0x15B, 0x391, 0x3AC, 0x416, 0x44F};
+    for (unsigned i = 0; i < sizeof letters / sizeof letters[0]; i++) {
+        bool visible = false, distinct = false;
+        for (int row = 0; row < FONT_HEIGHT; row++) {
+            uint16_t bits = font_row(letters[i], row);
+            assert(!(bits & 0xC000));
+            visible |= bits != 0;
+            distinct |= bits != font_row('?', row);
+        }
+        assert(visible && distinct);
+    }
+    for (int row = 0; row < FONT_HEIGHT; row++)
+        assert(font_row(0x378, row) == font_row('?', row));
+    assert(text_length("Łódź Αθήνα Москва") == 17);
+    font_builtin(&font);
+    font_use(&font);
     bool ink = false;
     for (int row = 0; row < 12; row++)
         ink |= font_row(0xE9, row) != 0;

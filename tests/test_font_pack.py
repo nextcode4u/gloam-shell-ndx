@@ -59,6 +59,14 @@ class FontPackTests(unittest.TestCase):
             self.assertIn("ui_font_latin[96][12]", header.read_text())
             self.assertTrue(all(row <= 0x3FFF for row in struct.unpack("<2292H", data[16:])))
 
+    def test_shared_extended_fallback_is_reproducible_without_theme_memory_growth(self):
+        from tools.make_font import extended_header
+        source = FONT.with_name('DejaVuSansMono.ttf')
+        generated = extended_header(source)
+        self.assertEqual(generated, (ROOT / 'arm9/source/ui/font_extended.h').read_text())
+        for codepoint in ('0141', '03AC', '0416', '044F'):
+            self.assertIn('U+' + codepoint, generated)
+
     def test_monochrome_bearings_keep_complete_glyphs(self):
         # FreeType's regular 11px w extends left; R extends right. Compare the
         # packed ink against an unclipped reference, not grayscale metrics.
