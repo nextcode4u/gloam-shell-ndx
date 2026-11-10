@@ -36,6 +36,9 @@ class GloamSetupTests(unittest.TestCase):
         self.installer = self.root / 'installer'
         self.installer.mkdir()
         for original, output in [('gloam_setup_core.ps1', 'gloam-setup-core.ps1'),
+                                 ('gloam_setup_settings.ps1', 'gloam-setup-settings.ps1'),
+                                 ('gloam_setup_settings_ui.ps1', 'gloam-setup-settings-ui.ps1'),
+                                 ('gloam_setup_configuration.ps1', 'gloam-setup-configuration.ps1'),
                                  ('gloam_setup_worker.ps1', 'gloam-setup-worker.ps1'),
                                  ('gloam_setup.ps1', 'gloam-setup.ps1'),
                                  ('gloam_setup.xaml', 'gloam-setup.xaml'),
@@ -46,6 +49,7 @@ class GloamSetupTests(unittest.TestCase):
         (self.installer / 'downloads.json').write_text(json.dumps(
             {'format': 1, 'applications': [app], 'updates': [app], 'manual': []}))
         self.preamble = '. ' + literal(win(self.installer / 'gloam-setup-core.ps1')) + '; $root = ' + literal(win(self.sd)) + '; '
+        self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-settings.ps1')) + '; . ' + literal(win(self.installer / 'gloam-setup-configuration.ps1')) + '; '
 
     def run_ps(self, code, success=True):
         import base64
@@ -207,7 +211,7 @@ class GloamSetupTests(unittest.TestCase):
 
     def test_gui_loads_every_page_and_runs_read_only_worker_without_blocking(self):
         gui = literal(win(self.installer / 'gloam-setup.ps1'))
-        for page in ['Setup', 'Addons', 'Library', 'Themes']:
+        for page in ['Setup', 'Addons', 'Library', 'Settings', 'Themes', 'Maintenance']:
             screenshot = self.root / (page + '.png')
             output = self.run_ps('& ' + gui + ' -Target $root -SmokeTest -ScreenshotPage ' + page
                                 + ' -ScreenshotPath ' + literal(win(screenshot)))
@@ -236,3 +240,148 @@ class GloamSetupTests(unittest.TestCase):
         self.assertIn('MISSING', log)
         self.assertIn('Demo BIOS', log)
         self.assertEqual(before, {p.relative_to(self.sd).as_posix(): p.read_bytes() for p in self.sd.rglob('*') if p.is_file()})
+
+    def test_settings_edit_preserves_repeated_records_and_unknown_fields(self):
+        state = self.sd / '_nds/dsi-frontend/state.ini'
+        state.parent.mkdir(parents=True)
+        state.write_text('version=1\nsettings_mode=advanced\nfavorite=sd:/roms/one.nds\n'
+                         'favorite=sd:/apps/two.nds\nlocation=1,2,3,sd:/roms\n'
+                         'tab_location=books,1,0,sd:/media/books\nfuture_option=keep\n'
+                         'simple_settings_lock=0\nmusic_volume=70\n')
+        self.run_ps("$state = Read-GloamState $root; Save-GloamSettings $root @{simple_settings_lock='1';music_volume='35'} $state.Hash")
+        data = state.read_text()
+        self.assertTrue(data.startswith('version=1\n'))
+        self.assertIn('settings_mode=simple', data)
+        self.assertIn('simple_settings_lock=1', data)
+        self.assertEqual(data.count('favorite='), 2)
+        self.assertIn('tab_location=books,1,0,sd:/media/books', data)
+        self.assertIn('future_option=keep', data)
+        self.assertIn('music_volume=35', data)
+        self.assertEqual(len(list((self.sd / '_nds/dsi-frontend/setup-backups').rglob('state.ini'))), 1)
+        self.run_ps("$state = Read-GloamState $root; Save-GloamSettings $root @{simple_settings_lock='0';settings_mode='advanced'} $state.Hash")
+        self.assertIn('settings_mode=advanced', state.read_text())
+        self.assertIn('simple_settings_lock=0', state.read_text())
+
+    def test_settings_defaults_validation_and_conflict_detection(self):
+        self.run_ps("$s=Read-GloamState $root; if ($s.Values.settings_mode -ne 'simple' -or $s.Values.simple_settings_lock -ne '0') {throw 'Wrong defaults'}; Save-GloamSettings $root (Get-GloamSetupPreset 'Quiet') $s.Hash")
+        state = self.sd / '_nds/dsi-frontend/state.ini'
+        before = state.read_bytes()
+        for values in ["@{music_volume='101'}", "@{settings_mode='unknown'}", "@{theme_id='../escape'}", "@{favorite='deleted'}"]:
+            self.run_ps('$s=Read-GloamState $root; Save-GloamSettings $root ' + values + ' $s.Hash', success=False)
+            self.assertEqual(state.read_bytes(), before)
+        self.run_ps("$s=Read-GloamState $root; [IO.File]::AppendAllText((Join-Path $root '_nds/dsi-frontend/state.ini'), 'external=keep'); Save-GloamSettings $root @{settings_mode='advanced'} $s.Hash", success=False)
+        self.assertTrue(state.read_text().endswith('external=keep'))
+
+    def test_native_configuration_interoperates_with_python_and_preserves_saves(self):
+        import sys
+        sys.path.insert(0, str(ROOT / 'tools'))
+        from native_configuration import decode_records, encode_records
+        private = self.sd / '_nds/dsi-frontend'
+        private.mkdir(parents=True)
+        (private / 'state.ini').write_bytes(b'version=1\nsettings_mode=simple\n')
+        (private / 'appearance-1.ini').write_bytes(b'')
+        save = self.sd / 'roms/saves/personal.sav'
+        save.parent.mkdir(parents=True)
+        save.write_bytes(b'Authored save fixture')
+        export = self.root / 'export.dsconfig'
+        self.run_ps('Export-GloamConfiguration $root ' + literal(win(export)))
+        decoded = decode_records(export.read_bytes())
+        self.assertEqual(decoded['state.ini'], (private / 'state.ini').read_bytes())
+        self.assertEqual(decoded['appearance-1.ini'], b'')
+        self.assertEqual(len(decoded), 2)
+        imported = self.root / 'import.dsconfig'
+        imported.write_bytes(encode_records({'state.ini': b'version=1\nsimple_settings_lock=1\n', 'tabs.ini': b'[tabs]\nversion=1\n'}))
+        self.run_ps('Import-GloamConfiguration $root ' + literal(win(imported)) + ' (Get-GloamHash ' + literal(win(imported)) + ')')
+        self.assertEqual((private / 'state.ini').read_bytes(), b'version=1\nsimple_settings_lock=1\n')
+        self.assertEqual(save.read_bytes(), b'Authored save fixture')
+        original = (private / 'state.ini').read_bytes()
+        corrupt = bytearray(imported.read_bytes())
+        corrupt[-1] ^= 1
+        imported.write_bytes(corrupt)
+        self.run_ps('Import-GloamConfiguration $root ' + literal(win(imported)) + ' (Get-GloamHash ' + literal(win(imported)) + ')', success=False)
+        self.assertEqual((private / 'state.ini').read_bytes(), original)
+        self.assertEqual(save.read_bytes(), b'Authored save fixture')
+
+    def test_theme_selection_and_music_match_launcher_constraints(self):
+        import wave
+        theme = self.sd / '_nds/dsi-frontend/themes/test/theme.ini'
+        theme.parent.mkdir(parents=True)
+        theme.write_text('[theme]\nversion=1\n[layout]\nview=grid\nicon_size=large\n')
+        self.run_ps("$s=Read-GloamState $root; Save-GloamSettings $root (Get-GloamThemeSettings $root test $true) $s.Hash")
+        state = self.sd / '_nds/dsi-frontend/state.ini'
+        self.assertIn('browser_style=3', state.read_text())
+        self.assertIn('icon_size=1', state.read_text())
+        wav = self.sd / 'media/music/fixture.wav'
+        wav.parent.mkdir(parents=True)
+        with wave.open(str(wav), 'wb') as output:
+            output.setnchannels(1); output.setsampwidth(2); output.setframerate(8000)
+            output.writeframes(b'\0\0' * 32)
+        self.run_ps("$s=Read-GloamState $root; Save-GloamSettings $root @{music_mode='2';music_path='sd:/media/music/fixture.wav'} $s.Hash")
+        before = state.read_bytes()
+        import struct
+        malformed = bytearray(wav.read_bytes() + b'JUNK' + struct.pack('<I', 1) + b'x')
+        struct.pack_into('<I', malformed, 4, len(malformed) - 8)
+        wav.write_bytes(malformed)
+        self.run_ps("$s=Read-GloamState $root; Save-GloamSettings $root @{music_mode='2'} $s.Hash", success=False)
+        self.assertEqual(state.read_bytes(), before)
+        wav.write_bytes(b'Not audio')
+        self.run_ps("$s=Read-GloamState $root; Save-GloamSettings $root @{music_mode='2'} $s.Hash", success=False)
+        self.assertEqual(state.read_bytes(), before)
+
+    def test_gui_stages_and_saves_the_simple_locked_preset(self):
+        state = self.sd / '_nds/dsi-frontend/state.ini'
+        state.parent.mkdir(parents=True)
+        state.write_text('version=1\nsettings_mode=advanced\nfavorite=sd:/roms/one.nds\nfavorite=sd:/roms/two.nds\n')
+        gui = literal(win(self.installer / 'gloam-setup.ps1'))
+        output = self.run_ps('& ' + gui + ' -Target $root -SmokeTest -SmokeAction SaveSettings')
+        self.assertIn('GUI settings save completed.', output)
+        self.assertIn('simple_settings_lock=1', state.read_text())
+        self.assertIn('settings_mode=simple', state.read_text())
+        self.assertEqual(state.read_text().count('favorite='), 2)
+
+    def test_pending_recovery_blocks_settings_edits_and_state_backup_is_validated(self):
+        state = self.sd / '_nds/dsi-frontend/state.ini'
+        state.parent.mkdir(parents=True)
+        state.write_bytes(b'version=1\nmusic_volume=70\n')
+        backup = state.with_suffix('.bak')
+        backup.write_bytes(b'version=1\nmusic_volume=25\n')
+        pending = state.parent / 'configuration/pending.dsconfig'
+        pending.parent.mkdir()
+        pending.write_bytes(b'Authored recovery marker')
+        self.run_ps("$s=Read-GloamState $root; Save-GloamSettings $root @{music_volume='40'} $s.Hash", success=False)
+        self.assertEqual(state.read_bytes(), b'version=1\nmusic_volume=70\n')
+        pending.unlink()
+        self.run_ps('Restore-GloamStateBackup $root')
+        self.assertEqual(state.read_bytes(), b'version=1\nmusic_volume=25\n')
+        backup.write_bytes(b'Invalid backup')
+        self.run_ps('Restore-GloamStateBackup $root', success=False)
+        self.assertEqual(state.read_bytes(), b'version=1\nmusic_volume=25\n')
+
+    def test_failed_import_rolls_back_and_terminated_import_keeps_native_journal(self):
+        import sys
+        sys.path.insert(0, str(ROOT / 'tools'))
+        from native_configuration import decode_records, encode_records
+        private = self.sd / '_nds/dsi-frontend'
+        private.mkdir(parents=True)
+        old = b'version=1\nmusic_volume=70\n'
+        new = b'version=1\nmusic_volume=20\n'
+        (private / 'state.ini').write_bytes(old)
+        archive = self.root / 'incoming.dsconfig'
+        archive.write_bytes(encode_records({'state.ini': new, 'tabs.ini': b'[tabs]\nversion=1\n'}))
+        wrapper = "$script:writer=${function:Write-GloamFile}; function Write-GloamFile {param($Root,$Relative,$Data,$Replace=$false); if ($Relative -eq '_nds/dsi-frontend/tabs.ini') { ACTION }; & $script:writer $Root $Relative $Data $Replace }; "
+        command = 'Import-GloamConfiguration $root ' + literal(win(archive)) + ' (Get-GloamHash ' + literal(win(archive)) + ')'
+        self.run_ps(wrapper.replace('ACTION', "throw 'Authored write failure'") + command, success=False)
+        self.assertEqual((private / 'state.ini').read_bytes(), old)
+        self.assertFalse((private / 'configuration/pending.dsconfig').exists())
+        self.run_ps(wrapper.replace('ACTION', 'exit 42') + command, success=False)
+        self.assertEqual((private / 'state.ini').read_bytes(), new)
+        self.assertEqual(decode_records((private / 'configuration/pending.dsconfig').read_bytes())['state.ini'], new)
+        self.assertEqual(decode_records((private / 'configuration/rollback.dsconfig').read_bytes())['state.ini'], old)
+        self.run_ps("$s=Read-GloamState $root; Save-GloamSettings $root @{music_volume='50'} $s.Hash", success=False)
+        self.assertEqual((private / 'state.ini').read_bytes(), new)
+
+    def test_read_only_setup_check_retains_unsaved_settings(self):
+        gui = literal(win(self.installer / 'gloam-setup.ps1'))
+        output = self.run_ps('& ' + gui + ' -Target $root -Offline -SmokeTest -SmokeAction CheckSetup -SmokeDirtySettings -JobDirectory ' + literal(win(self.root / 'jobs')))
+        self.assertIn('GUI worker exit: 0', output)
+        self.assertEqual(list(self.sd.iterdir()), [])

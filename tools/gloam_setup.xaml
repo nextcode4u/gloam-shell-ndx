@@ -27,6 +27,7 @@
       <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
     <Style TargetType="ComboBox">
+      <Setter Property="Background" Value="#E6E8EE"/>
       <Setter Property="Padding" Value="8"/>
       <Setter Property="Margin" Value="0,5,0,12"/>
       <Setter Property="MinHeight" Value="36"/>
@@ -85,7 +86,9 @@
         <Button x:Name="NavSetup" Content="Setup" HorizontalContentAlignment="Left"/>
         <Button x:Name="NavAddons" Content="Add-ons" HorizontalContentAlignment="Left"/>
         <Button x:Name="NavLibrary" Content="Library" HorizontalContentAlignment="Left"/>
+        <Button x:Name="NavSettings" Content="Settings" HorizontalContentAlignment="Left"/>
         <Button x:Name="NavThemes" Content="Themes" HorizontalContentAlignment="Left"/>
+        <Button x:Name="NavMaintenance" Content="Maintenance" HorizontalContentAlignment="Left"/>
       </StackPanel>
       <Grid x:Name="Workspace" Grid.Column="1">
         <ScrollViewer x:Name="PageSetup" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -127,7 +130,12 @@
             <CheckBox x:Name="AllowNc" Content="Allow noncommercial apps" ToolTip="Enable only for personal/no-profit use; each application's terms still apply."/>
           </WrapPanel>
           <DataGrid x:Name="AddonList" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" Background="#17202C" Foreground="#111820" RowBackground="#E6E8EE" AlternatingRowBackground="#D7DCE5" GridLinesVisibility="None" SelectionMode="Single" BorderThickness="0" MinHeight="120" Margin="0,0,0,12">
-            <DataGrid.RowStyle><Style TargetType="DataGridRow"><Setter Property="ToolTip" Value="{Binding Details}"/></Style></DataGrid.RowStyle>
+            <DataGrid.RowStyle>
+              <Style TargetType="DataGridRow">
+                <Setter Property="ToolTip" Value="{Binding Details}"/>
+              </Style>
+            </DataGrid.RowStyle>
+            <DataGrid.ColumnHeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#28313F"/><Setter Property="Foreground" Value="#E7E9F0"/><Setter Property="Padding" Value="8,5"/></Style></DataGrid.ColumnHeaderStyle>
             <DataGrid.Columns>
               <DataGridCheckBoxColumn Header="Get" Binding="{Binding Selected, UpdateSourceTrigger=PropertyChanged}" Width="45"/>
               <DataGridTextColumn Header="Application" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
@@ -198,7 +206,10 @@
                 </WrapPanel>
               </StackPanel>
             </Expander>
-            <WrapPanel><Button x:Name="SaveProfile" Content="Save file handler" Background="#6B548E"/><Button x:Name="CopyContent" Content="Copy ROMs / media into folder..."/></WrapPanel>
+            <WrapPanel>
+              <Button x:Name="SaveProfile" Content="Save file handler" Background="#6B548E"/>
+              <Button x:Name="CopyContent" Content="Copy ROMs / media into folder..."/>
+            </WrapPanel>
             <Separator Margin="0,15,0,18" Background="#354052"/>
             <TextBlock Text="Add or change a folder tab" FontSize="18" FontWeight="SemiBold"/>
             <ComboBox x:Name="Tabs" DisplayMemberPath="Label"/>
@@ -222,6 +233,143 @@
             <Button x:Name="SaveTab" Content="Save folder and tab" HorizontalAlignment="Left" Background="#6B548E"/>
           </StackPanel>
         </ScrollViewer>
+        <Grid x:Name="PageSettings" Visibility="Collapsed">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <StackPanel>
+            <TextBlock Text="Launcher settings" Style="{StaticResource Heading}"/>
+            <TextBlock Text="Prepare the console on your PC. Changes apply after you save and restart Gloam." Style="{StaticResource Muted}"/>
+          </StackPanel>
+          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel x:Name="SettingsForm" Margin="4,0,12,0">
+              <TextBlock Text="Quick presets" FontSize="18" FontWeight="SemiBold"/>
+              <WrapPanel>
+                <ComboBox x:Name="SetupPreset" Width="190"/>
+                <Button x:Name="StagePreset" Content="Review preset" Margin="12,5,0,12"/>
+              </WrapPanel>
+              <TextBlock Text="Presets stage a few settings for review. Save settings applies them." Style="{StaticResource Muted}"/>
+              <TextBlock Text="Simple / Advanced" FontSize="18" FontWeight="SemiBold"/>
+              <ComboBox x:Name="SettingMode"/>
+              <CheckBox x:Name="SimpleLock" Content="Lock the console to Simple settings"/>
+              <TextBlock Text="The console's mode switch is hidden while locked. You can unlock it here later. The lock is off by default." Style="{StaticResource Muted}"/>
+              <TextBlock Text="Appearance" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,10"/>
+              <TextBlock Text="Theme"/>
+              <ComboBox x:Name="SettingTheme" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition/>
+                  <ColumnDefinition Width="16"/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="Accent"/>
+                  <ComboBox x:Name="SettingAccent"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                  <TextBlock Text="Browser view"/>
+                  <ComboBox x:Name="SettingView"/>
+                </StackPanel>
+              </Grid>
+              <TextBlock Text="Icon size"/>
+              <ComboBox x:Name="SettingIcons"/>
+              <WrapPanel>
+                <CheckBox x:Name="SettingCovers" Content="Show covers"/>
+                <CheckBox x:Name="SettingMotion" Content="Reduced motion"/>
+                <CheckBox x:Name="SettingClock" Content="12-hour clock"/>
+              </WrapPanel>
+              <TextBlock Text="Browsing" FontSize="18" FontWeight="SemiBold" Margin="0,12,0,10"/>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition/>
+                  <ColumnDefinition Width="16"/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="Sort order"/>
+                  <ComboBox x:Name="SettingSort"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                  <TextBlock Text="Scroll speed"/>
+                  <ComboBox x:Name="SettingSpeed"/>
+                </StackPanel>
+              </Grid>
+              <WrapPanel>
+                <CheckBox x:Name="SettingHideSaves" Content="Hide save folders"/>
+                <CheckBox x:Name="SettingHideBios" Content="Hide BIOS folders"/>
+                <CheckBox x:Name="SettingExtensions" Content="Show file extensions"/>
+                <CheckBox x:Name="SettingKnown" Content="Recognized file types only"/>
+                <CheckBox x:Name="SettingHidden" Content="Show hidden files"/>
+                <CheckBox x:Name="SettingSystem" Content="Show system files"/>
+                <CheckBox x:Name="SettingTitles" Content="Use internal game titles"/>
+              </WrapPanel>
+              <TextBlock Text="Game-title language"/>
+              <ComboBox x:Name="SettingLanguage"/>
+              <TextBlock Text="Startup" FontSize="18" FontWeight="SemiBold" Margin="0,12,0,10"/>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition/>
+                  <ColumnDefinition Width="16"/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="Open on startup"/>
+                  <ComboBox x:Name="SettingStartup" DisplayMemberPath="Label" SelectedValuePath="Id"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                  <TextBlock Text="Auto-launch recent request"/>
+                  <ComboBox x:Name="SettingAutoLaunch"/>
+                </StackPanel>
+              </Grid>
+              <TextBlock Text="Audio" FontSize="18" FontWeight="SemiBold" Margin="0,12,0,10"/>
+              <TextBlock Text="Background music"/>
+              <ComboBox x:Name="SettingMusicMode"/>
+              <TextBlock Text="Custom music file on SD"/>
+              <DockPanel>
+                <Button x:Name="PickMusic" Content="Choose WAV..." DockPanel.Dock="Right" Margin="10,5,0,12"/>
+                <TextBox x:Name="SettingMusicPath"/>
+              </DockPanel>
+              <TextBlock Text="Mono PCM16 WAV, 8000-48000 Hz, up to 1 MiB of samples. A PC file can be copied into media/music." Style="{StaticResource Muted}"/>
+              <TextBlock Text="Music volume"/>
+              <Slider x:Name="SettingMusicVolume" Minimum="0" Maximum="100" TickFrequency="10" Margin="0,10,0,4"/>
+              <TextBlock Text="{Binding ElementName=SettingMusicVolume, Path=Value, StringFormat={}{0:0}%}" Foreground="#ADB8CA" Margin="0,0,0,12"/>
+              <CheckBox x:Name="SettingSounds" Content="Theme UI sounds"/>
+              <TextBlock Text="UI sound volume"/>
+              <Slider x:Name="SettingEffectsVolume" Minimum="0" Maximum="100" TickFrequency="10" Margin="0,10,0,4"/>
+              <TextBlock Text="{Binding ElementName=SettingEffectsVolume, Path=Value, StringFormat={}{0:0}%}" Foreground="#ADB8CA" Margin="0,0,0,16"/>
+            </StackPanel>
+          </ScrollViewer>
+          <StackPanel Grid.Row="2" Margin="0,12,0,0">
+            <WrapPanel>
+              <Button x:Name="SaveSettings" Content="Save settings" Background="#6B548E"/>
+              <Button x:Name="ReloadSettings" Content="Reload from SD"/>
+            </WrapPanel>
+            <TextBlock x:Name="SettingsInfo" Text="Choose an SD folder to load settings." Foreground="#ADB8CA"/>
+          </StackPanel>
+        </Grid>
+        <ScrollViewer x:Name="PageMaintenance" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="4,0,12,0">
+            <TextBlock Text="Backups and setup checks" Style="{StaticResource Heading}"/>
+            <TextBlock Text="Close Gloam or its emulator before editing SD files from the PC." Style="{StaticResource Muted}"/>
+            <TextBlock Text="Portable configuration" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10"/>
+            <TextBlock Text="Use the launcher's .dsconfig format to back up settings, favourites, tab definitions, appearance slots and per-title preferences." Style="{StaticResource Muted}"/>
+            <WrapPanel>
+              <Button x:Name="ExportConfiguration" Content="Export configuration..."/>
+              <Button x:Name="ImportConfiguration" Content="Import configuration..."/>
+            </WrapPanel>
+            <TextBlock Text="Applications, themes, base emulator profiles, BIOS and saves are separate. Imported records are validated first; existing configuration receives backups." Style="{StaticResource Muted}"/>
+            <TextBlock Text="Setup health" FontSize="18" FontWeight="SemiBold" Margin="0,10,0,10"/>
+            <TextBlock Text="Check required loaders, settings, selected theme and optional emulator paths. Use Add-ons for the installed-app BIOS check." Style="{StaticResource Muted}"/>
+            <WrapPanel>
+              <Button x:Name="CheckSetup" Content="Check setup"/>
+              <Button x:Name="RestoreConsoleSettings" Content="Restore last console settings"/>
+              <Button x:Name="OpenConfig" Content="Open configuration folder"/>
+              <Button x:Name="MaintenanceBackups" Content="Open setup backups"/>
+            </WrapPanel>
+          </StackPanel>
+        </ScrollViewer>
         <ScrollViewer x:Name="PageThemes" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
           <StackPanel Margin="4,0,12,0">
             <TextBlock Text="Themes" Style="{StaticResource Heading}"/>
@@ -229,8 +377,10 @@
             <ListBox x:Name="ThemeList" Height="185" Background="#1B2430" Foreground="#E7E9F0" BorderThickness="0" Padding="10" Margin="0,0,0,16"/>
             <WrapPanel>
               <Button x:Name="OpenThemes" Content="Open themes folder"/>
+              <Button x:Name="ApplyTheme" Content="Apply selected theme" Background="#6B548E"/>
               <Button x:Name="ImportTheme" Content="Import theme folder..."/>
             </WrapPanel>
+            <CheckBox x:Name="ThemeUseLayout" Content="Use the theme's browser view and icon size" IsChecked="True"/>
             <TextBlock Text="Import expects a folder containing theme.ini. Existing themes are kept; rename the imported folder to install a second version." Style="{StaticResource Muted}"/>
           </StackPanel>
         </ScrollViewer>

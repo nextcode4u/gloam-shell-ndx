@@ -7,14 +7,17 @@ param(
     [string]$ReleaseDirectory = (Join-Path $env:LOCALAPPDATA 'Gloam/Setup/releases/current'),
     [switch]$Offline,
     [switch]$SmokeTest,
-    [ValidateSet('Setup','Addons','Library','Themes')][string]$ScreenshotPage = 'Setup',
-    [ValidateSet('','CheckSupport')][string]$SmokeAction,
+    [switch]$SmokeDirtySettings,
+    [ValidateSet('Setup','Addons','Library','Settings','Themes','Maintenance')][string]$ScreenshotPage = 'Setup',
+    [ValidateSet('','CheckSupport','CheckSetup','SaveSettings')][string]$SmokeAction,
     [string]$ScreenshotPath
 )
 $ErrorActionPreference = 'Stop'
 if (-not $Manifest) { $Manifest = Join-Path $PSScriptRoot 'downloads.json' }
 if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Start with Windows PowerShell -STA, or use Start Gloam Setup.cmd.' }
 . (Join-Path $PSScriptRoot 'gloam-setup-core.ps1')
+. (Join-Path $PSScriptRoot 'gloam-setup-settings.ps1')
+. (Join-Path $PSScriptRoot 'gloam-setup-configuration.ps1')
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
 Add-Type -AssemblyName WindowsBase
@@ -22,6 +25,14 @@ Add-Type -AssemblyName System.Windows.Forms
 
 [xml]$markup = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'gloam-setup.xaml') -Raw
 $window = [Windows.Markup.XamlReader]::Load([Xml.XmlNodeReader]::new($markup))
+$workArea = [Windows.SystemParameters]::WorkArea
+if ($workArea.Width -ge 640 -and $workArea.Height -ge 600) {
+    $window.MinWidth = [Math]::Min($window.MinWidth, $workArea.Width - 24)
+    $window.MinHeight = [Math]::Min($window.MinHeight, $workArea.Height - 24)
+    $window.Width = [Math]::Min($window.Width, $workArea.Width - 24)
+    $window.Height = [Math]::Min($window.Height, $workArea.Height - 24)
+    if ($workArea.Height -lt 800) { $window.Content.RowDefinitions[3].Height = [Windows.GridLength]::new(110) }
+}
 $ui = @{}
 foreach ($node in $markup.SelectNodes('//*[@*[local-name()="Name"]]')) {
     $ui[$node.GetAttribute('Name','http://schemas.microsoft.com/winfx/2006/xaml')] = $window.FindName($node.GetAttribute('Name','http://schemas.microsoft.com/winfx/2006/xaml'))
@@ -40,7 +51,7 @@ function Get-SelectedRoot {
     return $root
 }
 function Show-Page([string]$Name) {
-    foreach ($page in @('Setup','Addons','Library','Themes')) {
+    foreach ($page in @('Setup','Addons','Library','Settings','Themes','Maintenance')) {
         $ui['Page' + $page].Visibility = if ($page -eq $Name) { 'Visible' } else { 'Collapsed' }
         $ui['Nav' + $page].Background = if ($page -eq $Name) { '#544568' } else { '#28313F' }
     }
@@ -48,7 +59,13 @@ function Show-Page([string]$Name) {
     $ui.Workspace.BeginAnimation([Windows.UIElement]::OpacityProperty, $animation)
 }
 function Load-Sd {
-    $script:Root = Get-GloamRoot $ui.TargetPath.Text; $ui.TargetPath.Text = $script:Root
+    $nextRoot = Get-GloamRoot $ui.TargetPath.Text
+    if ($script:SettingsDirty -and $nextRoot -ne $script:Root) {
+        $ui.TargetPath.Text = $script:Root
+        throw 'Save or reload the pending settings before choosing another SD folder.'
+    }
+    $preserveSettings = $script:SettingsDirty -and $nextRoot -eq $script:Root
+    $script:Root = $nextRoot; $ui.TargetPath.Text = $script:Root
     $profiles = @([pscustomobject]@{ Id = ''; Name = '+ New emulator / player'; Extensions = ''; Application = ''; DsApplication = ''; Folder = 'roms/New System'; Bootstrap = $false; Hbargv = $false }) + @(Get-GloamProfiles $script:Root)
     $ui.Profiles.ItemsSource = $profiles; $ui.Profiles.SelectedIndex = 0
     $data = Read-GloamIni (Get-GloamPath $script:Root '_nds/dsi-frontend/tabs.ini')
@@ -62,6 +79,7 @@ function Load-Sd {
     }
     $folder = Get-GloamPath $script:Root '_nds/dsi-frontend/themes'; $ui.ThemeList.Items.Clear()
     if (Test-Path -LiteralPath $folder) { foreach ($theme in Get-ChildItem -LiteralPath $folder -Directory) { $ui.ThemeList.Items.Add($theme.Name) | Out-Null } }
+    if (-not $preserveSettings) { Load-GloamSettingsUi }
     $ui.Workspace.IsEnabled = $true
     $ui.Status.Text = 'Ready: ' + $script:Root; Write-Activity ('Selected SD folder: ' + $script:Root)
 }
@@ -70,7 +88,7 @@ function Open-SdFolder([string]$Relative) {
     [IO.Directory]::CreateDirectory($folder) | Out-Null
     Start-Process explorer.exe -ArgumentList ('"' + $folder + '"') | Out-Null
 }
-function Start-SetupJob([string]$Action, [string[]]$Sources = @()) {
+function Start-SetupJob([string]$Action, [string[]]$Sources = @(), [hashtable]$Options = @{}) {
     if ($null -ne $script:Job) { throw 'Wait for the current operation to finish.' }
     $root = Get-SelectedRoot
     $ui.AddonList.CommitEdit() | Out-Null
@@ -84,7 +102,7 @@ function Start-SetupJob([string]$Action, [string[]]$Sources = @()) {
     $request = Join-Path $folder 'request.json'
     $record = @{ Action = $Action; Target = $root; Manifest = $Manifest; Cache = (Join-Path $env:USERPROFILE '.gloam-addons-cache');
         ReleaseDirectory = $ReleaseDirectory; Selected = $selected; Noncommercial = [bool]$ui.AllowNc.IsChecked;
-        IncludeAddons = [bool]$ui.IncludeAddons.IsChecked; Offline = [bool]$Offline; Sources = $Sources; ContentFolder = $ui.ContentFolder.Text }
+        IncludeAddons = [bool]$ui.IncludeAddons.IsChecked; Offline = [bool]$Offline; Sources = $Sources; ContentFolder = $ui.ContentFolder.Text; Options = $Options }
     [IO.File]::WriteAllText($request, ($record | ConvertTo-Json -Depth 10), [Text.UTF8Encoding]::new($false))
     $worker = Join-Path $PSScriptRoot 'gloam-setup-worker.ps1'
     $command = "[Console]::OutputEncoding = [Text.UTF8Encoding]::new(); & '" + $worker.Replace("'","''") + "' -Request '" + $request.Replace("'","''") + "'"
@@ -113,14 +131,17 @@ $timer.Add_Tick({
             $ui.Workspace.IsEnabled = $true; $ui.TargetBar.IsEnabled = $true; $ui.Progress.Visibility = 'Collapsed'
             if ($code -eq 0) { Load-Sd; $ui.Status.Text = 'Complete. You can safely remove the SD card after Windows finishes writing.' }
             else { $ui.Status.Text = 'Operation failed. See the activity log; existing backups were kept.' }
-            if ($SmokeTest -and $SmokeAction) { Write-Host ('GUI worker exit: ' + $code); $window.Close() }
+            if ($SmokeTest -and $SmokeAction) {
+                if ($SmokeDirtySettings -and (-not $script:SettingsDirty -or $ui.SettingMusicVolume.Value -ne 33)) { throw 'Pending settings were lost after a background check.' }
+                Write-Host ('GUI worker exit: ' + $code); $window.Close()
+            }
         }
     } catch { Write-Activity $_.Exception.Message }
 })
 $timer.Start()
 $window.Add_Closing({ param($sender,$eventArgs) if ($null -ne $script:Job) { $eventArgs.Cancel = $true; $ui.Status.Text = 'Wait for the SD operation to finish before closing.' } })
 $window.Add_Closed({ $timer.Stop() })
-foreach ($name in @('Setup','Addons','Library','Themes')) {
+foreach ($name in @('Setup','Addons','Library','Settings','Themes','Maintenance')) {
     $ui['Nav' + $name].Tag = $name
     $ui['Nav' + $name].Add_Click({ param($sender,$eventArgs) Show-Page ([string]$sender.Tag) })
 }
@@ -179,6 +200,7 @@ $ui.ImportTheme.Add_Click({ Invoke-UiAction {
     $root = Get-SelectedRoot; $dialog = [Windows.Forms.FolderBrowserDialog]::new(); $dialog.Description = 'Choose a theme folder containing theme.ini'
     if ($dialog.ShowDialog() -eq 'OK') { Import-GloamTheme $root $dialog.SelectedPath; Load-Sd; Write-Activity 'Theme imported. Select it in Gloam settings.' }; $dialog.Dispose()
 } })
+. (Join-Path $PSScriptRoot 'gloam-setup-settings-ui.ps1')
 if (-not (Test-Path -LiteralPath $Manifest)) { throw 'Keep Gloam Setup beside downloads.json and the shared installer scripts.' }
 $catalog = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json
 $apps = if ($catalog.PSObject.Properties.Name -contains 'updates') { $catalog.updates } else { $catalog.applications }
@@ -219,11 +241,18 @@ if ($SmokeTest) {
             $stream = [IO.File]::Create($ScreenshotPath); try { $encoder.Save($stream) } finally { $stream.Dispose() }
         }
         Write-Host ('GUI loaded: ' + $ui.Count + ' controls; ' + @($ui.AddonList.ItemsSource).Count + ' add-ons.')
-        if ($SmokeAction) { $ui[$SmokeAction].RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent)) }
+        if ($SmokeDirtySettings) { $ui.SettingMusicVolume.Value = 33 }
+        if ($SmokeAction -eq 'SaveSettings') {
+            $ui.SetupPreset.SelectedIndex = 1
+            $ui.StagePreset.RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent))
+            $ui.SaveSettings.RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent))
+            Write-Host 'GUI settings save completed.'
+            $window.Close()
+        } elseif ($SmokeAction) { $ui[$SmokeAction].RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent)) }
         else { $window.Close() }
     })
     $window.Add_ContentRendered({
-        foreach ($page in @('Addons','Library','Themes','Setup')) { $ui['Nav' + $page].RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent)) }
+        foreach ($page in @('Addons','Library','Settings','Themes','Maintenance','Setup')) { $ui['Nav' + $page].RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent)) }
         Show-Page $ScreenshotPage
         $script:SmokeTimer.Start()
     })

@@ -663,6 +663,7 @@
     "tools/gloam_setup_configuration.ps1",
     "tools/gloam_setup_core.ps1",
     "tools/gloam_setup_settings.ps1",
+    "tools/gloam_setup_settings_ui.ps1",
     "tools/gloam_setup_worker.ps1",
     "tools/host-check.sh",
     "tools/make_artwork_test_fixtures.py",

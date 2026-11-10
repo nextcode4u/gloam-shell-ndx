@@ -5,6 +5,8 @@ param([Parameter(Mandatory=$true)][string]$Request)
 $ErrorActionPreference = 'Stop'
 try {
     . (Join-Path $PSScriptRoot 'gloam-setup-core.ps1')
+    . (Join-Path $PSScriptRoot 'gloam-setup-settings.ps1')
+    . (Join-Path $PSScriptRoot 'gloam-setup-configuration.ps1')
     $job = Get-Content -LiteralPath $Request -Raw | ConvertFrom-Json
     $root = Get-GloamRoot $job.Target
     $directory = [string]$job.ReleaseDirectory
@@ -17,6 +19,9 @@ try {
         Write-Host "Release: $($release.tag_name)"
     }
     switch ($job.Action) {
+        'CheckSetup' { Test-GloamSetup $root }
+        'ExportConfiguration' { Export-GloamConfiguration $root $job.Options.Path }
+        'ImportConfiguration' { Import-GloamConfiguration $root $job.Options.Path $job.Options.Hash }
         'CopyContent' { Copy-GloamContent $root ([string[]]$job.Sources) $job.ContentFolder }
         'Install' {
             Get-GloamPackage $directory 'licenses.zip' | Out-Null
