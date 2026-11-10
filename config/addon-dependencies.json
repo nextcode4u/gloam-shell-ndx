@@ -1976,12 +1976,27 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/wavemotion-dave/NINTV-DS/blob/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6/arm9/source/main.cpp",
-      "redistribution": "blocked",
+      "redistribution": "download-only",
       "license": "Custom redistribution notice; restricted extras",
-      "distribution_notes": "README permits emulator redistribution with attribution, but extras/overlays are explicitly personal-use-only. A source/runtime subset excluding those extras needs a separate completed audit.",
+      "distribution_notes": "The installer downloads the named NDS executable directly from the author's release. It is excluded from Gloam binary/source/notice archives; redistribution permission or complete component coverage remains unconfirmed. README permits emulator redistribution with attribution, but extras/overlays are explicitly personal-use-only. A source/runtime subset excluding those extras needs a separate completed audit.",
       "bios": "Requires exec.bin and grom.bin; optional ivoice.bin, ecs.bin and Tutorvision firmware. Configure BIOS location in emulator; /roms/bios is the recommended collection.",
       "bios_evidence": "https://github.com/wavemotion-dave/NINTV-DS/blob/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6/README.md",
-      "license_evidence": "https://github.com/wavemotion-dave/NINTV-DS/tree/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6"
+      "license_evidence": "https://github.com/wavemotion-dave/NINTV-DS/tree/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6",
+      "permission_confirmed": false,
+      "package": {
+        "files": [
+          {
+            "download": {
+              "asset": "nintv-ds-6.4-NINTV-DS.nds",
+              "url": "https://github.com/wavemotion-dave/NINTV-DS/releases/download/6.4/NINTV-DS.nds",
+              "sha256": "da1bb1640211fe892d0c92147c7ff6e15ae5134b9f41be5796d5f4d27e028865"
+            },
+            "format": "raw",
+            "destination": "_nds/dsi-frontend/plugins/apps/NINTV-DS.nds",
+            "sha256": "da1bb1640211fe892d0c92147c7ff6e15ae5134b9f41be5796d5f4d27e028865"
+          }
+        ]
+      }
     },
     {
       "id": "nitrografx",
@@ -2436,12 +2451,27 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/RocketRobz/RocketVideoPlayer/blob/50803b9027ca43ab278c1486442fcfc70c90b309/nds/arm9/source/main.cpp",
-      "redistribution": "blocked",
+      "redistribution": "download-only",
       "license": "MIT code; Nintendo assets separately credited",
-      "distribution_notes": "README credits Nintendo DSi fonts/graphical assets and borrowed FastVideoDS code. MIT on project code does not establish all asset/component redistribution rights.",
+      "distribution_notes": "The installer downloads the named NDS executable directly from the author's release. It is excluded from Gloam binary/source/notice archives; redistribution permission or complete component coverage remains unconfirmed. README credits Nintendo DSi fonts/graphical assets and borrowed FastVideoDS code. MIT on project code does not establish all asset/component redistribution rights.",
       "bios": "No BIOS required; use matching .rvid conversion.",
       "bios_evidence": "https://github.com/RocketRobz/RocketVideoPlayer/blob/50803b9027ca43ab278c1486442fcfc70c90b309/README.md",
-      "license_evidence": "https://github.com/RocketRobz/RocketVideoPlayer/tree/50803b9027ca43ab278c1486442fcfc70c90b309"
+      "license_evidence": "https://github.com/RocketRobz/RocketVideoPlayer/tree/50803b9027ca43ab278c1486442fcfc70c90b309",
+      "permission_confirmed": false,
+      "package": {
+        "files": [
+          {
+            "download": {
+              "asset": "rocketvideoplayer-v2.3.1-RocketVideoPlayer.nds",
+              "url": "https://github.com/RocketRobz/RocketVideoPlayer/releases/download/v2.3.1/RocketVideoPlayer.nds",
+              "sha256": "600de0a8c3528d06cfd250fac723e067daaa4bd60c7b35c56ee78f1ddf1d7b71"
+            },
+            "format": "raw",
+            "destination": "_nds/dsi-frontend/plugins/apps/RocketVideoPlayer.nds",
+            "sha256": "600de0a8c3528d06cfd250fac723e067daaa4bd60c7b35c56ee78f1ddf1d7b71"
+          }
+        ]
+      }
     },
     {
       "id": "s8ds",
@@ -3053,12 +3083,27 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/arm9/source/SugarDS.c",
-      "redistribution": "blocked",
+      "redistribution": "download-only",
       "license": "GPL-2.0-or-later code; separately copyrighted firmware",
-      "distribution_notes": "Built-in Amstrad ROMs rely on the quoted conditional permission; ParaDOS is separately copyrighted. Record the firmware grants before redistributing the prebuilt package.",
+      "distribution_notes": "The installer downloads the named NDS executable directly from the author's release. It is excluded from Gloam binary/source/notice archives; redistribution permission or complete component coverage remains unconfirmed. Built-in Amstrad ROMs rely on the quoted conditional permission; ParaDOS is separately copyrighted. Record the firmware grants before redistributing the prebuilt package.",
       "bios": "Amstrad CPC firmware and ParaDOS are embedded in the stock binary, with separate terms; no extra download is needed, but embedding is not a free-BIOS license.",
       "bios_evidence": "https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/readme.md",
-      "license_evidence": "https://github.com/wavemotion-dave/SugarDS/tree/ca4b95960d55e24d1d5bf815f5fffcacad8e4704"
+      "license_evidence": "https://github.com/wavemotion-dave/SugarDS/tree/ca4b95960d55e24d1d5bf815f5fffcacad8e4704",
+      "permission_confirmed": false,
+      "package": {
+        "files": [
+          {
+            "download": {
+              "asset": "sugards-1.6-SugarDS.nds",
+              "url": "https://github.com/wavemotion-dave/SugarDS/releases/download/1.6/SugarDS.nds",
+              "sha256": "0864248310aa25d294c88e24e91eff0b73d036ba43e0699237def20bed537f92"
+            },
+            "format": "raw",
+            "destination": "_nds/dsi-frontend/plugins/apps/SugarDS.nds",
+            "sha256": "0864248310aa25d294c88e24e91eff0b73d036ba43e0699237def20bed537f92"
+          }
+        ]
+      }
     },
     {
       "id": "tuna-vids",

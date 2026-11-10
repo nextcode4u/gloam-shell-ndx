@@ -13,8 +13,13 @@ Firmware: Amstrad CPC firmware and ParaDOS are embedded in the stock binary,
 with separate terms; no extra download is needed, but embedding is not a free-
 BIOS license.
 
-Add-on package: manual / held; terms: GPL-2.0-or-later code; separately
-copyrighted firmware.
+Add-on package: direct upstream download with shared installer; terms:
+GPL-2.0-or-later code; separately copyrighted firmware.
+
+This application is not bundled because redistribution permission or component
+coverage remains unconfirmed. Use the Python or PowerShell downloader in
+addons.zip/addon-installer, or install directly from upstream. Existing files
+are preserved by default.
 
 Upstream: https://github.com/wavemotion-dave/SugarDS
 Release: https://github.com/wavemotion-dave/SugarDS/releases/tag/1.6

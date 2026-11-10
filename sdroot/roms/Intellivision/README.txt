@@ -13,8 +13,13 @@ Firmware: Requires exec.bin and grom.bin; optional ivoice.bin, ecs.bin and
 Tutorvision firmware. Configure BIOS location in emulator; /roms/bios is the
 recommended collection.
 
-Add-on package: manual / held; terms: Custom redistribution notice; restricted
-extras.
+Add-on package: direct upstream download with shared installer; terms: Custom
+redistribution notice; restricted extras.
+
+This application is not bundled because redistribution permission or component
+coverage remains unconfirmed. Use the Python or PowerShell downloader in
+addons.zip/addon-installer, or install directly from upstream. Existing files
+are preserved by default.
 
 Upstream: https://github.com/wavemotion-dave/NINTV-DS
 Release: https://github.com/wavemotion-dave/NINTV-DS/releases/tag/6.4

@@ -19,9 +19,11 @@ be selected explicitly. Every install/update shows the target and selection
 before confirmation. Cancelling returns to the menu without installing files.
 Command-line arguments remain available for automation; --interactive /
 -Interactive opens the menu with options such as a custom cache or offline mode.
-They download the remaining reviewed applications directly from upstream and
-stage their pinned runtime files onto an existing SD root or staging folder.
-No applications with unconfirmed permission are embedded in these scripts.
+The menu covers every application in the catalog, including those already
+bundled in addons.zip. Other applications are downloaded directly from upstream
+and staged onto your chosen SD root or staging folder. Download-only describes
+how an app is delivered; it does not mean the app is unavailable. Applications
+with unconfirmed redistribution permission stay out of the ZIP.
 
 Command-line examples (Python 3.11+):
   python download-addons.py --list
@@ -78,8 +80,8 @@ Cache: ~/.gloam-addons-cache on the computer, not the SD card.
 Change with --cache / -Cache. Use --offline / -Offline with a populated cache.
 Install dry runs make no downloads or writes. Update dry runs can read the
 online catalog, but never download runtime files or write SD/cache files.
---list / -List shows available
-pins and manual-only apps. Keep downloads.json beside the selected script.
+--list / -List shows available pins. Every current catalog entry has an
+installer recipe. Keep downloads.json beside the selected script.
 
 If Windows blocks a downloaded script, inspect it first. A per-process command
 can run it without changing the machine's execution policy:

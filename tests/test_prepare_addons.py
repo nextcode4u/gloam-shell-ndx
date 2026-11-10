@@ -58,6 +58,11 @@ class PrepareAddonTests(unittest.TestCase):
                 patch('tools.prepare_addons_release.get_blob', side_effect=[self.new, self.binary]):
             return updated_recipe(self.app, self.release, self.cache, self.root / 'report')
 
+    def test_runtime_only_download_recipe_requires_review_before_refresh(self):
+        self.app["package"].pop("source")
+        with self.assertRaisesRegex(ReviewRequired, "Specialized source"):
+            self.update()
+
     def test_specialized_source_zip_requires_review_before_refresh(self):
         self.app["package"]["source_role"] = "reference-only"
         self.app["package"]["source"]["url"] = "https://example.invalid/source.zip"

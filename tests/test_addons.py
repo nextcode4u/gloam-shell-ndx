@@ -179,15 +179,23 @@ class AddonTests(unittest.TestCase):
         catalog = download_manifest(lock, bundled)
         ready = {a["id"] for a in catalog["applications"]}
         self.assertEqual(len(bundled), 15)
-        self.assertEqual(len(ready), 15)
+        self.assertEqual(len(ready), 18)
         self.assertFalse(ready & bundled)
+        all_ids = {app["id"] for app in lock["applications"]}
+        self.assertEqual(ready | bundled, all_ids)
+        self.assertEqual({app["id"] for app in catalog["updates"]}, all_ids)
+        self.assertEqual(catalog["manual"], [])
+        for name in ("nintv-ds", "rocketvideoplayer", "sugards"):
+            self.assertIn(name, ready)
+            with self.assertRaisesRegex(ValueError, "not eligible"):
+                selected_applications(lock, noncommercial=True, only=[name])
         scummvm = next(a for a in catalog["applications"] if a["id"] == "scummvm")
         self.assertTrue(scummvm["experimental"])
         self.assertIn("stall", scummvm["notes"])
         self.assertNotIn("scummvm", bundled)
         with self.assertRaisesRegex(ValueError, "not eligible"):
             selected_applications(lock, only=["scummvm"])
-        self.assertEqual(len(catalog["updates"]), 30)
+        self.assertEqual(len(catalog["updates"]), 33)
         payload = next(a for a in catalog["updates"] if a["id"] == "snemulds")
         self.assertEqual(payload["requires"], ["snemulds", "snemulds-shim"])
         self.assertTrue({"gbarunner3", "nesds", "tuna-vids", "ds994a"} <= ready)

@@ -100,6 +100,7 @@ def updated_recipe(app, release, cache, report_dir):
     """Refresh unchanged layouts; never infer new redistribution permission."""
     package = app["package"]
     if (app["id"] in {"snemulds", "snemulds-shim"}
+            or not package.get("source")
             or package.get("source_role") == "reference-only"
             or package.get("nested_notices") or package.get("runtime_notices")
             or package.get("project_notices")
