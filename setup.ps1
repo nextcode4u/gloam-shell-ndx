@@ -7,7 +7,7 @@ Set-StrictMode -Version Latest
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 if (-not $ReleaseDirectory) {
-    $releases = Invoke-RestMethod 'https://api.github.com/repos/nextcode4u/gloam-shell-ndx/releases?per_page=100' -UserAgent 'Gloam-Setup' -TimeoutSec 30
+    $releases = Invoke-RestMethod ('https://api.github.com/repos/nextcode4u/gloam-shell-ndx/releases?per_page=100&setup_refresh=' + [DateTime]::UtcNow.Ticks) -UserAgent 'Gloam-Setup' -TimeoutSec 30
     $matchesRelease = @($releases | Where-Object {
         -not $_.draft -and @($_.assets | Where-Object name -eq 'addons.zip').Count -eq 1
     } | Sort-Object published_at -Descending)
