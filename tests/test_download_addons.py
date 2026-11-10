@@ -122,6 +122,32 @@ class DownloadAddonTests(unittest.TestCase):
             self.run_stage(only=["missing"])
         self.assertEqual(self.run_stage(noncommercial=True), (2, 0))
 
+    def test_experimental_downloads_require_explicit_selection_and_keep_user_config(self):
+        self.app.update(experimental=True, notes="Known restore issue")
+        self.app.pop("game_configs")
+        self.app["files"][0]["destination"] = "roms/ScummVM/scummvm.nds"
+        self.assertEqual(self.run_stage(), (0, 0))
+        self.assertEqual(list(self.sd.iterdir()), [])
+        self.assertEqual(self.run_stage(only=["demo"]), (1, 0))
+        settings = self.sd / "roms/ScummVM/scummvm.ini"
+        settings.write_text("User's existing settings")
+        self.assertEqual(self.run_stage(only=["demo"], update=True), (0, 1))
+        self.assertEqual(settings.read_text(), "User's existing settings")
+        for name in ["roms/ScummVM/other.nds", "roms/ScummVM/scummvm.ini", "roms/Other/scummvm.nds"]:
+            with self.assertRaises(ValueError):
+                destination(self.sd, name)
+
+    def test_reviewed_catalog_retains_experimental_selection_and_warning(self):
+        catalog = {"format": 1, "applications": [{"id": "demo", "version": "v1",
+            "repository": "https://example.invalid/demo", "license": "Authored fixture",
+            "redistribution": "download-only", "experimental": True,
+            "compatibility_notes": "Known restore issue", "package": {"files": self.app["files"]}}]}
+        app = reviewed_apps(catalog)[0]
+        self.assertTrue(app["experimental"])
+        self.assertEqual(app["notes"], "Known restore issue")
+        self.assertEqual(select_apps({"applications": [app]}, None, False), [])
+        self.assertEqual(select_apps({"applications": [app]}, ["demo"], False), [app])
+
     def test_path_escape_firmware_and_symlink_destinations_are_rejected(self):
         for name in ["../outside.nds", "/outside.nds", "_gba/bios.bin", "C:/outside.nds",
                      "_nds/dsi-frontend/plugins/apps/../../settings.ini"]:

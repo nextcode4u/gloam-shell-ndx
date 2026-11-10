@@ -49,6 +49,10 @@ function Convert-ReviewedCatalog($Data) {
             })
         }
         $item = [ordered]@{ id = $app.id; version = $app.version; repository = $app.repository; terms = $app.license; noncommercial = $nc; files = @($files) + @($defaults) }
+        if ($app.PSObject.Properties.Name -contains 'experimental' -and $app.experimental) {
+            $item.experimental = $true
+            $item.notes = if ($app.PSObject.Properties.Name -contains 'compatibility_notes') { $app.compatibility_notes } else { 'Experimental build' }
+        }
         if ($app.package.PSObject.Properties.Name -contains 'game_configs') { $item.game_configs = $app.package.game_configs }
         if ($app.id -in @('snemulds', 'snemulds-shim')) { $item.requires = @('snemulds', 'snemulds-shim') }
         if ($app.release -and $app.release.Contains('/releases/tag/')) { $item.release_tag = ($app.release -split '/releases/tag/', 2)[1] }
@@ -95,6 +99,7 @@ function Get-SelectedApps($Applications, [string[]]$Names) {
         $name = $wanted[$index]
         if (-not $apps.ContainsKey($name)) { throw "No pinned download for: $name; use -List for manual entries" }
         $app = $apps[$name]
+        if ($app.PSObject.Properties.Name -contains 'experimental' -and $app.experimental -and -not $Names) { continue }
         if ($app.noncommercial -and -not $Noncommercial) {
             if ($Names) { throw "$name requires -Noncommercial" }
             continue
@@ -166,7 +171,8 @@ function Get-Destination([string]$Root, [string]$Name) {
     }
     if ($Name -cnotmatch '^_nds/dsi-frontend/plugins/apps/.+\.(nds|srl|ini)$' -and
         $Name -cnotmatch '^_gba/configs/[A-Z0-9]{6}\.json$' -and
-        $Name -cnotin $ReaderFonts -and $Name -cnotin $AddonProfiles) { throw "Destination outside add-on folders: $Name" }
+        $Name -cnotin $ReaderFonts -and $Name -cnotin $AddonProfiles -and
+        $Name -cne 'roms/ScummVM/scummvm.nds') { throw "Destination outside add-on folders: $Name" }
     $path = $Root
     foreach ($part in $Name.Split('/')) {
         $path = Join-Path $path $part
@@ -224,6 +230,7 @@ try {
     if ($List) {
         foreach ($app in $document.applications) {
             $suffix = if ($app.noncommercial) { '; needs -Noncommercial' } else { '' }
+            if ($app.PSObject.Properties.Name -contains 'experimental' -and $app.experimental) { $suffix += "; experimental, select with -Only $($app.id)" }
             Write-Output "$($app.id): $($app.version)$suffix; $($app.terms)"
         }
         foreach ($app in $document.manual) { Write-Output "$($app.id): manual setup; $($app.reason); $($app.url)" }
@@ -277,6 +284,7 @@ try {
     $planned = [Collections.Generic.List[object]]::new()
     $seen = @{}
     foreach ($app in $selected) {
+        if ($app.PSObject.Properties.Name -contains 'experimental' -and $app.experimental) { Write-Host "Experimental $($app.id): $($app.notes)" }
         $name = $app.id
         $files = @($app.files)
         if ($app.PSObject.Properties.Name -contains 'game_configs') {

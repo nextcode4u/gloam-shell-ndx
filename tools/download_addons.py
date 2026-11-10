@@ -29,7 +29,8 @@ ADDON_PROFILES = frozenset("_nds/dsi-frontend/plugins/" + name for name in (
 def runtime_path_allowed(name):
     application = name.startswith("_nds/dsi-frontend/plugins/apps/") and name.endswith((".nds", ".srl", ".ini"))
     config = re.fullmatch(r"_gba/configs/[A-Z0-9]{6}\.json", name)
-    return bool(application or config or name in READER_FONTS or name in ADDON_PROFILES)
+    return bool(application or config or name in READER_FONTS or name in ADDON_PROFILES
+                or name == "roms/ScummVM/scummvm.nds")
 
 
 def reviewed_apps(catalog):
@@ -49,6 +50,8 @@ def reviewed_apps(catalog):
         item = {"id": app["id"], "version": app["version"], "repository": app["repository"],
                 "terms": app["license"], "noncommercial": app["redistribution"] == "noncommercial"
                 or app.get("download_noncommercial", False), "files": [*files, *defaults]}
+        if app.get("experimental"):
+            item.update(experimental=True, notes=app.get("compatibility_notes", "Experimental build"))
         if "game_configs" in package:
             item["game_configs"] = package["game_configs"]
         if app["id"] in {"snemulds", "snemulds-shim"}:
@@ -99,6 +102,8 @@ def select_apps(manifest, only, noncommercial):
         if name not in apps:
             raise ValueError(f"No pinned download for: {name}; use --list for manual entries")
         app = apps[name]
+        if app.get("experimental") and not only:
+            continue
         if app.get("noncommercial") and not noncommercial:
             if only:
                 raise ValueError(f"{name} requires --noncommercial")
@@ -220,6 +225,8 @@ def stage(manifest, target, cache, only=None, noncommercial=False, overwrite=Fal
         selected = select_apps(manifest, list(installed), noncommercial) if installed else []
     planned, seen = [], set()
     for app in selected:
+        if app.get("experimental"):
+            print(f"Experimental {app['id']}: {app.get('notes', 'Experimental build')}")
         for item in application_files(app):
             path = destination(target, item["destination"])
             key = item["destination"].casefold()
@@ -324,6 +331,8 @@ def main():
         if args.list:
             for app in manifest["applications"]:
                 suffix = "; needs --noncommercial" if app.get("noncommercial") else ""
+                if app.get("experimental"):
+                    suffix += f"; experimental, select with --only {app['id']}"
                 print(f"{app['id']}: {app['version']}{suffix}; {app['terms']}")
             for app in manifest.get("manual", []):
                 print(f"{app['id']}: manual setup; {app['reason']}; {app['url']}")
