@@ -82,14 +82,17 @@
         <ColumnDefinition Width="155"/>
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
-      <StackPanel x:Name="Navigation" Margin="0,0,20,0">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel x:Name="Navigation" Margin="0,0,20,0">
         <Button x:Name="NavSetup" Content="Setup" HorizontalContentAlignment="Left"/>
         <Button x:Name="NavAddons" Content="Add-ons" HorizontalContentAlignment="Left"/>
         <Button x:Name="NavLibrary" Content="Library" HorizontalContentAlignment="Left"/>
+        <Button x:Name="NavOrganizer" Content="ROM organizer" HorizontalContentAlignment="Left" Padding="9,9"/>
         <Button x:Name="NavSettings" Content="Settings" HorizontalContentAlignment="Left"/>
         <Button x:Name="NavThemes" Content="Themes" HorizontalContentAlignment="Left"/>
         <Button x:Name="NavMaintenance" Content="Maintenance" HorizontalContentAlignment="Left"/>
-      </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
       <Grid x:Name="Workspace" Grid.Column="1">
         <ScrollViewer x:Name="PageSetup" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
           <StackPanel Margin="4,0,12,0">
@@ -136,6 +139,13 @@
               </Style>
             </DataGrid.RowStyle>
             <DataGrid.ColumnHeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#28313F"/><Setter Property="Foreground" Value="#E7E9F0"/><Setter Property="Padding" Value="8,5"/></Style></DataGrid.ColumnHeaderStyle>
+            <DataGrid.ColumnHeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="Background" Value="#28313F"/>
+                <Setter Property="Foreground" Value="#E7E9F0"/>
+                <Setter Property="Padding" Value="8,6"/>
+              </Style>
+            </DataGrid.ColumnHeaderStyle>
             <DataGrid.Columns>
               <DataGridCheckBoxColumn Header="Get" Binding="{Binding Selected, UpdateSourceTrigger=PropertyChanged}" Width="45"/>
               <DataGridTextColumn Header="Application" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
@@ -233,6 +243,47 @@
             <Button x:Name="SaveTab" Content="Save folder and tab" HorizontalAlignment="Left" Background="#6B548E"/>
           </StackPanel>
         </ScrollViewer>
+
+        <Grid x:Name="PageOrganizer" Visibility="Collapsed">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <StackPanel>
+            <TextBlock Text="Organize a ROM folder" Style="{StaticResource Heading}"/>
+            <TextBlock Text="Group loose ROMs into A-Z / # folders, or bring them back. Saves and sidecar art travel with their title; multi-file game folders stay intact." Style="{StaticResource Muted}"/>
+            <DockPanel>
+              <Button x:Name="PickOrganizerFolder" Content="Choose folder..." DockPanel.Dock="Right" Margin="10,5,0,12"/>
+              <TextBox x:Name="OrganizerFolder" ToolTip="Choose one system folder inside the SD Games library."/>
+            </DockPanel>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="190"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <ComboBox x:Name="OrganizerMode"/>
+              <TextBox x:Name="OrganizerExtensions" Grid.Column="1" Margin="10,5,10,12" ToolTip="Standalone ROM file extensions, separated by commas."/>
+              <Button x:Name="PreviewOrganization" Grid.Column="2" Content="Preview moves" Margin="0,5,0,12"/>
+            </Grid>
+          </StackPanel>
+          <DataGrid x:Name="OrganizerPreview" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" Background="#17202C" Foreground="#111820" RowBackground="#E6E8EE" AlternatingRowBackground="#D7DCE5" GridLinesVisibility="None" BorderThickness="0" MinHeight="80">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="75"/>
+              <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="*"/>
+              <DataGridTextColumn Header="Destination / reason" Binding="{Binding Destination}" Width="*"/>
+            </DataGrid.Columns>
+          </DataGrid>
+          <StackPanel Grid.Row="2" Margin="0,10,0,0">
+            <TextBlock x:Name="OrganizerSummary" Text="Preview first. No files are changed until you apply." Foreground="#ADB8CA" Margin="0,0,0,8"/>
+            <WrapPanel>
+              <Button x:Name="ApplyOrganization" Content="Apply reviewed moves" Background="#6B548E" IsEnabled="False"/>
+              <ComboBox x:Name="OrganizerJournals" DisplayMemberPath="Label" SelectedValuePath="Id" Width="290"/>
+              <Button x:Name="UndoOrganization" Content="Undo selected" Margin="8,5,0,12"/>
+            </WrapPanel>
+          </StackPanel>
+        </Grid>
         <Grid x:Name="PageSettings" Visibility="Collapsed">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

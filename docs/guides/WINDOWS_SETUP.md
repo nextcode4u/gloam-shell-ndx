@@ -137,6 +137,39 @@ The folder-tab editor creates or changes a named tab and its directory. Stable
 IDs preserve existing tab identities. After changing folders, tabs or handlers,
 restart Gloam on the console so it reloads the configuration.
 
+## ROM organizer
+
+Choose **ROM organizer**, then one system folder such as `roms/Nintendo DS`.
+Choose **A-Z / # folders** or **Back to system folder**, adjust the ROM extensions
+if needed, and select **Preview moves**. Review the moves, reference updates and
+skipped titles before selecting **Apply reviewed moves**. Close Gloam and any
+emulator using this library before applying.
+
+The organizer retains filenames and moves recognized adjacent saves, numbered
+save slots, DSiWare public/private saves, patches and sidecar artwork with their
+ROM. A title's matching files in a `saves/` subfolder retain that layout. It also
+updates Gloam favourites, recent entries, selected-file paths, explicit artwork
+and application references, and hashed per-title settings/cheat records.
+
+Existing destinations are never overwritten or renamed around. A collision or
+shared companion skips the whole title group. Multi-file game folders, BIOS,
+support folders and system README files stay in place. Flatten reads only the
+immediate `A`-`Z`/`#` buckets; it does not recursively unpack game folders. Empty
+folders are retained. The SD root and Games library root cannot be organized.
+
+**Undo selected** uses the recovery journal in
+`/_nds/dsi-frontend/organizer/`. Undo requires the moved files' sizes/timestamps
+and affected configuration to remain unchanged. After playing a game, use a
+fresh flatten preview instead, so updated saves are retained. A stale preview
+must be regenerated. Failed operations attempt rollback; keep the journal if
+recovery is interrupted. Journals retain the original affected configuration.
+
+Only recognized companions and Gloam references are updated. Arbitrary emulator
+configurations, external shortcuts and `.argv` contents are not rewritten. Check
+those separately when relocating an existing collection. The workflow is modeled
+on [PowerShell File Organizer Scripts](https://github.com/nextcode4u/PowerShell-File-Organizer-Scripts),
+with a separate ROM-aware implementation for the setup tool.
+
 ## Themes
 
 Open the themes folder or import a folder containing `theme.ini`. Import keeps

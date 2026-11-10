@@ -36,6 +36,8 @@ class GloamSetupTests(unittest.TestCase):
         self.installer = self.root / 'installer'
         self.installer.mkdir()
         for original, output in [('gloam_setup_core.ps1', 'gloam-setup-core.ps1'),
+                                 ('gloam_setup_organizer.ps1', 'gloam-setup-organizer.ps1'),
+                                 ('gloam_setup_organizer_ui.ps1', 'gloam-setup-organizer-ui.ps1'),
                                  ('gloam_setup_settings.ps1', 'gloam-setup-settings.ps1'),
                                  ('gloam_setup_settings_ui.ps1', 'gloam-setup-settings-ui.ps1'),
                                  ('gloam_setup_configuration.ps1', 'gloam-setup-configuration.ps1'),
@@ -50,6 +52,8 @@ class GloamSetupTests(unittest.TestCase):
             {'format': 1, 'applications': [app], 'updates': [app], 'manual': []}))
         self.preamble = '. ' + literal(win(self.installer / 'gloam-setup-core.ps1')) + '; $root = ' + literal(win(self.sd)) + '; '
         self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-settings.ps1')) + '; . ' + literal(win(self.installer / 'gloam-setup-configuration.ps1')) + '; '
+
+        self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-organizer.ps1')) + '; '
 
     def run_ps(self, code, success=True):
         import base64
@@ -72,6 +76,159 @@ class GloamSetupTests(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(b'Authored non-runnable executable fixture'.ljust(512, b'\0'))
         return 'sd:/_nds/dsi-frontend/plugins/apps/' + name
+
+    def organizer_file(self, relative, data=b'Authored fixture'):
+        path = self.sd / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        return path
+
+    def organize(self, mode='Alphabetize', folder='roms/Nintendo DS'):
+        plan = self.root / 'plan.json'
+        self.run_ps('$plan = New-GloamOrganizerPlan $root ' + literal(folder) + ' ' + mode
+                    + '; Write-GloamOrganizerJson ' + literal(win(plan)) + ' $plan; '
+                    + 'Invoke-GloamOrganization $root ' + literal(win(plan))
+                    + ' (Get-GloamHash ' + literal(win(plan)) + ')')
+        return json.loads(plan.read_text())
+
+    def test_organizer_preserves_companions_and_undo_restores_exact_configuration(self):
+        old = 'sd:/roms/Nintendo DS/Moon.nds'
+        new = 'sd:/roms/Nintendo DS/M/Moon.nds'
+        def identity_hash(text):
+            value = 14695981039346656037
+            for byte in text.encode():
+                value = ((value ^ byte) * 1099511628211) & ((1 << 64) - 1)
+            return f'{value:016x}'
+        snapshots = {}
+        for name in ['Moon.nds', 'Moon.sav', 'Moon.nds.png', 'Moon.pub', 'saves/Moon.sav2', 'saves/Moon.prv3']:
+            path = self.organizer_file('roms/Nintendo DS/' + name, name.encode())
+            snapshots[path.relative_to(self.sd).as_posix()] = path.read_bytes()
+        for name, content in {
+            'state.ini': 'version=1\nfavorite=' + old + '\nfavorite=sd:/roms/Other.nds\nselected_path=' + old + '\n',
+            'recent.ini': 'request=123,' + old + '\n',
+            'items/' + identity_hash(old) + '.ini': 'content=' + old + '\ncover=' + old + '.png\n',
+            'games/' + identity_hash(old) + '.ini': 'content=' + old + '\ncpu_boost=1\n',
+            'games/' + identity_hash(old) + '.cheats.bak': 'content=' + old + '\nselected=123\n',
+        }.items():
+            path = self.organizer_file('_nds/dsi-frontend/' + name, content.encode())
+            snapshots[path.relative_to(self.sd).as_posix()] = path.read_bytes()
+        plan = self.organize()
+        self.assertEqual(len(plan['Moves']), 6)
+        self.assertEqual(len(plan['Edits']), 5)
+        self.assertIn(new, (self.sd / '_nds/dsi-frontend/state.ini').read_text())
+        self.assertTrue((self.sd / ('_nds/dsi-frontend/games/' + identity_hash(new) + '.ini')).is_file())
+        for move in plan['Moves']:
+            self.assertFalse((self.sd / move['Source']).exists())
+            self.assertEqual((self.sd / move['Destination']).read_bytes(), snapshots[move['Source']])
+        journal = next((self.sd / '_nds/dsi-frontend/organizer').iterdir()).name
+        self.run_ps('Undo-GloamOrganization $root ' + literal(journal))
+        for name, data in snapshots.items():
+            self.assertEqual((self.sd / name).read_bytes(), data)
+        self.assertFalse((self.sd / ('_nds/dsi-frontend/games/' + identity_hash(new) + '.ini')).exists())
+
+    def test_organizer_skips_collisions_shared_saves_and_multifile_folders(self):
+        for name in ['Moon.nds', 'Moon.sav', 'M/Moon.nds', 'Dual.nds', 'Dual.dsi', 'Dual.sav',
+                     'Game Folder/data.nds', 'README.md', 'BIOS.nds', '.hidden.nds', '2 Games.nds']:
+            self.organizer_file('roms/Nintendo DS/' + name)
+        plan = self.organize()
+        self.assertEqual([m['Source'] for m in plan['Moves']], ['roms/Nintendo DS/2 Games.nds'])
+        self.assertEqual(len(plan['Skipped']), 3)
+        for name in ['Moon.nds', 'Moon.sav', 'Dual.nds', 'Dual.dsi', 'Dual.sav', 'Game Folder/data.nds', 'README.md']:
+            self.assertTrue((self.sd / 'roms/Nintendo DS' / name).exists())
+        self.assertTrue((self.sd / 'roms/Nintendo DS/#/2 Games.nds').is_file())
+
+    def test_organizer_flatten_preserves_bucket_save_folder(self):
+        self.organizer_file('roms/Nintendo DS/m/Moon.nds')
+        self.organizer_file('roms/Nintendo DS/m/saves/Moon.sav')
+        self.organizer_file('roms/Nintendo DS/m/multifile/extra.nds')
+        plan = self.organize('Flatten')
+        self.assertEqual(len(plan['Moves']), 2)
+        self.assertTrue((self.sd / 'roms/Nintendo DS/Moon.nds').is_file())
+        self.assertTrue((self.sd / 'roms/Nintendo DS/saves/Moon.sav').is_file())
+        self.assertTrue((self.sd / 'roms/Nintendo DS/m/multifile/extra.nds').is_file())
+
+    def test_organizer_stale_preview_refuses_before_moving(self):
+        rom = self.organizer_file('roms/Nintendo DS/Moon.nds')
+        plan = self.root / 'plan.json'
+        command = 'Write-GloamOrganizerJson ' + literal(win(plan)) + " (New-GloamOrganizerPlan $root 'roms/Nintendo DS' Alphabetize)"
+        self.run_ps(command)
+        rom.write_bytes(b'Changed file after preview')
+        self.run_ps('Invoke-GloamOrganization $root ' + literal(win(plan))
+                    + ' (Get-GloamHash ' + literal(win(plan)) + ')', success=False)
+        self.assertTrue(rom.exists())
+        self.assertFalse((self.sd / 'roms/Nintendo DS/M').exists())
+        self.assertFalse((self.sd / '_nds').exists())
+
+    def test_organizer_undo_preserves_new_save_changes(self):
+        self.organizer_file('roms/Nintendo DS/Moon.nds')
+        self.organizer_file('roms/Nintendo DS/Moon.sav')
+        self.organize()
+        save = self.sd / 'roms/Nintendo DS/M/Moon.sav'
+        save.write_bytes(b'New save progress')
+        journal = next((self.sd / '_nds/dsi-frontend/organizer').iterdir()).name
+        self.run_ps('Undo-GloamOrganization $root ' + literal(journal), success=False)
+        self.assertEqual(save.read_bytes(), b'New save progress')
+        self.assertTrue((save.parent / 'Moon.nds').is_file())
+
+    def test_organizer_unicode_names_and_interrupted_metadata_recovery(self):
+        self.organizer_file('roms/Nintendo DS/Étoile.nds')
+        state = self.organizer_file('_nds/dsi-frontend/state.ini',
+                                    'version=1\nfavorite=sd:/roms/Nintendo DS/Étoile.nds\n'.encode())
+        original = state.read_bytes()
+        plan = self.root / 'plan.json'
+        self.run_ps("$plan = New-GloamOrganizerPlan $root 'roms/Nintendo DS' Alphabetize; "
+                    + 'Write-GloamOrganizerJson ' + literal(win(plan)) + ' $plan; '
+                    + '$script:originalWriter = ${function:Write-GloamOrganizerJson}; '
+                    + '$script:injected = $false; '
+                    + 'function Write-GloamOrganizerJson($Path,$Value) { '
+                    + "if ($Path.EndsWith('status.json') -and $Value.State -eq 'complete' -and -not $script:injected) { "
+                    + "$script:injected = $true; throw 'Injected completion failure' }; "
+                    + '& $script:originalWriter $Path $Value }; '
+                    + 'Invoke-GloamOrganization $root ' + literal(win(plan))
+                    + ' (Get-GloamHash ' + literal(win(plan)) + ')', success=False)
+        self.assertEqual(state.read_bytes(), original)
+        self.assertTrue((self.sd / 'roms/Nintendo DS/Étoile.nds').is_file())
+        journal = next((self.sd / '_nds/dsi-frontend/organizer').iterdir())
+        self.assertEqual(json.loads((journal / 'status.json').read_text())['State'], 'undone')
+        self.organize()
+        self.assertTrue((self.sd / 'roms/Nintendo DS/#/Étoile.nds').is_file())
+        self.assertIn('sd:/roms/Nintendo DS/#/Étoile.nds', state.read_text())
+
+    def test_gui_organizer_preview_uses_worker_and_leaves_sd_unchanged(self):
+        rom = self.organizer_file('roms/Nintendo DS/Moon.nds')
+        jobs = self.root / 'jobs'
+        gui = literal(win(self.installer / 'gloam-setup.ps1'))
+        output = self.run_ps('& ' + gui + ' -Target $root -Offline -SmokeTest -SmokeAction PreviewOrganization '
+                             + "-ScreenshotPage Organizer -SmokeOrganizerFolder 'roms/Nintendo DS' -JobDirectory " + literal(win(jobs)))
+        self.assertIn('GUI worker exit: 0', output)
+        plan = json.loads(next(jobs.rglob('organizer-plan.json')).read_text())
+        self.assertEqual(len(plan['Moves']), 1)
+        self.assertTrue(rom.is_file())
+        self.assertFalse((self.sd / '_nds').exists())
+
+    def test_organizer_recovers_a_partially_moved_journal(self):
+        self.organizer_file('roms/Nintendo DS/Moon.nds')
+        self.organizer_file('roms/Nintendo DS/Moon.sav')
+        # Model process termination after the first rename, before completion.
+        journal = '0123456789abcdef0123456789abcdef'
+        self.run_ps("$plan = New-GloamOrganizerPlan $root 'roms/Nintendo DS' Alphabetize; "
+                    + "$folder = Get-GloamPath $root '_nds/dsi-frontend/organizer/" + journal + "'; "
+                    + '[IO.Directory]::CreateDirectory($folder) | Out-Null; '
+                    + "Write-GloamOrganizerJson (Join-Path $folder 'plan.json') $plan; "
+                    + '$move = $plan.Moves[0]; $target = Get-GloamPath $root $move.Destination; '
+                    + '[IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target)) | Out-Null; '
+                    + '[IO.File]::Move((Get-GloamPath $root $move.Source),$target); '
+                    + 'Undo-GloamOrganization $root ' + literal(journal))
+        self.assertTrue((self.sd / 'roms/Nintendo DS/Moon.nds').is_file())
+        self.assertTrue((self.sd / 'roms/Nintendo DS/Moon.sav').is_file())
+
+    def test_organizer_rejects_library_roots_and_support_folders(self):
+        for folder in ['roms', 'apps', 'roms/ScummVM', 'roms/SNES/bios', 'roms/NDS/saves', '../escape']:
+            self.run_ps('Get-GloamOrganizerFolder $root ' + literal(folder), success=False)
+        self.organizer_file('_nds/dsi-frontend/tabs.ini', b'[roots]\ngames=sd:/roms/My Games\n')
+        self.organizer_file('roms/My Games/NDS/Example.nds')
+        self.run_ps("Get-GloamOrganizerFolder $root 'roms/My Games'", success=False)
+        self.run_ps("Get-GloamOrganizerFolder $root 'roms/My Games/NDS'")
 
     def test_safe_install_preserves_user_files_and_backs_up_boot(self):
         state = self.sd / '_nds/dsi-frontend/state.ini'
@@ -211,7 +368,7 @@ class GloamSetupTests(unittest.TestCase):
 
     def test_gui_loads_every_page_and_runs_read_only_worker_without_blocking(self):
         gui = literal(win(self.installer / 'gloam-setup.ps1'))
-        for page in ['Setup', 'Addons', 'Library', 'Settings', 'Themes', 'Maintenance']:
+        for page in ['Setup', 'Addons', 'Library', 'Organizer', 'Settings', 'Themes', 'Maintenance']:
             screenshot = self.root / (page + '.png')
             output = self.run_ps('& ' + gui + ' -Target $root -SmokeTest -ScreenshotPage ' + page
                                 + ' -ScreenshotPath ' + literal(win(screenshot)))

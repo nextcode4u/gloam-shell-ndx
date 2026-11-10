@@ -47,7 +47,8 @@ Choose the SD folder, install/update Gloam and add-ons, and configure ROM folder
 file handlers, tabs and themes. Edit launcher settings, prepare a Simple-mode
 lock, apply setup presets, and back up/restore configuration from the same GUI.
 You can also extract `addons.zip` and double-click
-`addon-installer/Start Gloam Setup.cmd`. See the [Windows setup guide](docs/guides/WINDOWS_SETUP.md).
+`addon-installer/Start Gloam Setup.cmd`. The tool also previews ROM-folder organization while preserving recognized saves
+and Gloam title references. See the [Windows setup guide](docs/guides/WINDOWS_SETUP.md).
 
 Build the SD package below, then merge the contents of `dist/sd.zip` onto a
 backed-up SD card. The entry point is `/BOOT.NDS`. Preserve your existing settings,

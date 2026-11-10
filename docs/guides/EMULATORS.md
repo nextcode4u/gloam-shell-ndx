@@ -68,16 +68,15 @@ These are default collection folders and configured formats, not every format ea
 
 ## Organizing large ROM sets
 
-The optional [PowerShell File Organizer Scripts](https://github.com/nextcode4u/PowerShell-File-Organizer-Scripts)
-can group loose ROM files into `#` and `A–Z` subfolders. Run the alphabetical
-organizer on your computer inside the chosen system folder, for example
-`/roms/Nintendo DS/`; Gloam can browse the resulting folders. The scripts support
-Windows PowerShell 5.1 and newer, including PowerShell 7.
+Use [Gloam Setup's ROM organizer](WINDOWS_SETUP.md#rom-organizer) to preview
+A-Z/`#` grouping or flattening inside one system folder. It keeps recognized saves
+and artwork with each ROM and updates Gloam references and per-title settings.
+Multi-file game folders stay intact; existing destinations are skipped.
 
-Keep multi-file games, emulator support files and ScummVM game-data folders in
-the layouts required by their applications. The organizer moves loose files;
-its separate flattening script moves files out of subfolders, so use that only
-for collections you intend to flatten. See the linked repository for usage.
+The standalone [PowerShell File Organizer Scripts](https://github.com/nextcode4u/PowerShell-File-Organizer-Scripts)
+remain available for general file organization. They do not perform Gloam's
+reference migration or title/companion grouping; use the integrated organizer
+for an existing configured ROM library.
 
 ## Exact preconfigured associations
 

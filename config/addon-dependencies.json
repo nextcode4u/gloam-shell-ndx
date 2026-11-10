@@ -3695,6 +3695,8 @@
     "Start Gloam Setup.cmd": "tools/start_gloam_setup.cmd",
     "gloam-setup-settings.ps1": "tools/gloam_setup_settings.ps1",
     "gloam-setup-settings-ui.ps1": "tools/gloam_setup_settings_ui.ps1",
-    "gloam-setup-configuration.ps1": "tools/gloam_setup_configuration.ps1"
+    "gloam-setup-configuration.ps1": "tools/gloam_setup_configuration.ps1",
+    "gloam-setup-organizer.ps1": "tools/gloam_setup_organizer.ps1",
+    "gloam-setup-organizer-ui.ps1": "tools/gloam_setup_organizer_ui.ps1"
   }
 }

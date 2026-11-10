@@ -13,6 +13,9 @@ Nintendo DS homebrew community.
   launcher design. [HBMenu](https://github.com/devkitPro/nds-hb-menu) provides
   longstanding homebrew launch conventions.
 - Firmux: an earlier deprecated project by me.
+- [PowerShell File Organizer Scripts](https://github.com/nextcode4u/PowerShell-File-Organizer-Scripts/tree/93e08429d31d76bffe7db2c684296f333473ebd9):
+  nextcode4u's A-Z/`#` grouping and flattening workflow. The setup tool uses an
+  original ROM-aware implementation; the standalone scripts are not bundled.
 
 These are design influences, not claims of shared authorship or endorsement.
 Actual source reuse is identified separately below and in THIRD_PARTY.md.

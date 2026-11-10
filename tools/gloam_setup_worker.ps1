@@ -7,7 +7,8 @@ try {
     . (Join-Path $PSScriptRoot 'gloam-setup-core.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-settings.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-configuration.ps1')
-    $job = Get-Content -LiteralPath $Request -Raw | ConvertFrom-Json
+    . (Join-Path $PSScriptRoot 'gloam-setup-organizer.ps1')
+    $job = Get-Content -LiteralPath $Request -Raw -Encoding UTF8 | ConvertFrom-Json
     $root = Get-GloamRoot $job.Target
     $directory = [string]$job.ReleaseDirectory
     if (-not $job.Offline -and $job.Action -in @('Install','UpdateRuntime','UpdateFrontend','InstallBundled')) {
@@ -19,6 +20,13 @@ try {
         Write-Host "Release: $($release.tag_name)"
     }
     switch ($job.Action) {
+        'PreviewOrganization' {
+            $plan = New-GloamOrganizerPlan $root $job.Options.Folder $job.Options.Mode $job.Options.Extensions
+            Write-GloamOrganizerJson (Join-Path ([IO.Path]::GetDirectoryName($Request)) 'organizer-plan.json') $plan
+            Write-Host "Preview: $(@($plan.Moves).Count) file moves; $(@($plan.Skipped).Count) titles skipped. No SD files changed."
+        }
+        'ApplyOrganization' { Invoke-GloamOrganization $root $job.Options.Plan $job.Options.Hash }
+        'UndoOrganization' { Undo-GloamOrganization $root $job.Options.Journal }
         'CheckSetup' { Test-GloamSetup $root }
         'ExportConfiguration' { Export-GloamConfiguration $root $job.Options.Path }
         'ImportConfiguration' { Import-GloamConfiguration $root $job.Options.Path $job.Options.Hash }

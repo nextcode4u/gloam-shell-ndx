@@ -84,3 +84,9 @@ checks the loaded revision before saving, and leaves the lock off by default.
 `tools/gloam_setup_configuration.ps1` uses the same DSCFG001 codec, whitelist
 and pending/rollback archives as the native importer. Its CRC32 helper is
 authored C# compiled in memory, with no additional installed dependency.
+
+ROM organization lives in `tools/gloam_setup_organizer.ps1` (preview planner,
+companion grouping, Gloam identity migration and journaled apply/undo), with WPF
+bindings in `tools/gloam_setup_organizer_ui.ps1`. Previews stay on the PC; apply
+revalidates the full plan before writing an SD recovery journal and moving files.
+Filename collisions skip whole title groups, without renaming or overwriting.

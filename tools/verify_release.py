@@ -93,6 +93,10 @@ def verify(directory, addons=False):
                             'addon-installer/gloam-setup-configuration.ps1'}
                 if settings & set(archive.namelist()) and not settings <= set(archive.namelist()):
                     raise ValueError('Graphical settings/backup modules are incomplete')
+                organizer = {'addon-installer/gloam-setup-organizer.ps1',
+                             'addon-installer/gloam-setup-organizer-ui.ps1'}
+                if organizer & set(archive.namelist()) and not organizer <= set(archive.namelist()):
+                    raise ValueError('Graphical ROM organizer modules are incomplete')
     print('Verified complete release set: ' + ', '.join(sorted(expected)))
 
 
