@@ -3,6 +3,8 @@
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][string]$Request)
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new()
 try {
     . (Join-Path $PSScriptRoot 'gloam-setup-core.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-settings.ps1')
@@ -53,6 +55,17 @@ try {
             if ($job.Noncommercial) { $arguments.Noncommercial = $true }
             if ($job.Offline) { $arguments.Offline = $true }
             switch ($job.Action) {
+                'InstallAddons' {
+                    # The GUI lists the full catalog, including apps bundled in addons.zip.
+                    # Freeze those packaged pins just as the standalone install menu does.
+                    $catalog = Get-Content -LiteralPath $job.Manifest -Raw -Encoding UTF8 | ConvertFrom-Json
+                    if ($catalog.format -ne 1) { throw 'Unsupported download manifest' }
+                    $apps = if ($catalog.PSObject.Properties.Name -contains 'updates') { @($catalog.updates) } else { @($catalog.applications) }
+                    $snapshot = @{ format=1; applications=$apps; updates=$apps; manual=@() }
+                    $path = Join-Path ([IO.Path]::GetDirectoryName($Request)) 'install-catalog.json'
+                    [IO.File]::WriteAllText($path, ($snapshot | ConvertTo-Json -Depth 30), [Text.UTF8Encoding]::new($true))
+                    $arguments.Manifest = $path
+                }
                 'UpdateAddons' { $arguments.Update = $true }
                 'CheckAddons' { $arguments.CheckUpdates = $true }
                 'CheckSupport' { $arguments.CheckSupport = $true }
@@ -65,6 +78,6 @@ try {
     Write-Host 'Done.'
     exit 0
 } catch {
-    Write-Error $_ -ErrorAction Continue
+    [Console]::Error.WriteLine('Operation failed: ' + $_.Exception.Message)
     exit 1
 }

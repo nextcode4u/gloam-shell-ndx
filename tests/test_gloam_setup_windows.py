@@ -352,6 +352,59 @@ class GloamSetupTests(unittest.TestCase):
         self.run_ps('& ' + worker + ' -Request ' + literal(win(request)), success=False)
         self.assertEqual((self.sd / 'BOOT.NDS').read_bytes(), b'Original authored boot fixture')
 
+    def test_worker_installs_bundled_catalog_app_and_preserves_existing_files(self):
+        payload = b'Authored A7800DS installer fixture'
+        digest = hashlib.sha256(payload).hexdigest()
+        cache = self.root / 'cache'
+        cache.mkdir()
+        (cache / 'a7800-fixture.nds').write_bytes(payload)
+        app = dict(id='a7800ds', version='fixture', terms='Authored', noncommercial=False,
+                   repository='https://example.invalid', files=[{
+                       'format': 'raw', 'destination': '_nds/dsi-frontend/plugins/apps/A7800DS.nds',
+                       'sha256': digest, 'download': {'asset': 'a7800-fixture.nds',
+                       'url': 'https://example.invalid/a7800-fixture.nds', 'sha256': digest}}])
+        manifest = self.installer / 'downloads.json'
+        manifest.write_text(json.dumps({'format': 1, 'applications': [], 'updates': [app], 'manual': []}))
+        before = manifest.read_bytes()
+        job = dict(Action='InstallAddons', Target=win(self.sd), ReleaseDirectory=win(self.root),
+                   Manifest=win(manifest), Cache=win(cache), Selected=['a7800ds'],
+                   Noncommercial=False, Offline=True)
+        request = self.root / 'job.json'
+        request.write_text(json.dumps(job))
+        command = '& ' + literal(win(self.installer / 'gloam-setup-worker.ps1')) + ' -Request ' + literal(win(request))
+        self.run_ps(command)
+        installed = self.sd / app['files'][0]['destination']
+        self.assertEqual(installed.read_bytes(), payload)
+        installed.write_bytes(b'Keep the existing custom executable')
+        self.run_ps(command)
+        self.assertEqual(installed.read_bytes(), b'Keep the existing custom executable')
+        self.assertEqual(manifest.read_bytes(), before)
+        app['noncommercial'] = True
+        manifest.write_text(json.dumps({'format': 1, 'applications': [], 'updates': [app], 'manual': []}))
+        installed.unlink()
+        self.run_ps(command, success=False)
+        self.assertFalse(installed.exists())
+
+    def test_gui_install_failure_log_is_plain_text(self):
+        # This recommended app is present only in the complete GUI catalog.
+        # A deliberately bad inline hash must reach staging, then fail legibly.
+        app = dict(id='gameyob-dsi', version='fixture', terms='Authored', noncommercial=False,
+                   repository='https://example.invalid', files=[{
+                       'format': 'inline', 'content': 'Authored fixture', 'sha256': '0' * 64,
+                       'destination': '_nds/dsi-frontend/plugins/dslibris-books.ini'}])
+        (self.installer / 'downloads.json').write_text(json.dumps(
+            {'format': 1, 'applications': [], 'updates': [app], 'manual': []}))
+        jobs = self.root / 'jobs'
+        gui = literal(win(self.installer / 'gloam-setup.ps1'))
+        output = self.run_ps('& ' + gui + ' -Target $root -Offline -SmokeTest -SmokeAction InstallAddons -JobDirectory ' + literal(win(jobs)))
+        self.assertIn('GUI worker exit: 1', output)
+        log = ''.join(path.read_text(encoding='utf-8') for path in jobs.rglob('*.log'))
+        self.assertIn('hash', log.lower())
+        self.assertNotIn('No pinned download', log)
+        self.assertNotIn('CLIXML', log)
+        self.assertNotIn('<Objs', log)
+        self.assertFalse((self.sd / '_nds').exists())
+
     def test_bootstrap_extracts_only_verified_setup_files(self):
         names = ['gloam-setup.ps1','gloam-setup.xaml','gloam-setup-core.ps1','gloam-setup-worker.ps1','download-addons.ps1','downloads.json']
         members = {'addon-installer/' + name: b'Authored inert setup fixture' for name in names}

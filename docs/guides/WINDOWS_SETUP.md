@@ -39,7 +39,8 @@ A DSi homebrew boot method with SD access is still required; see
   assets, backend versions, settings and content stay in place. Check release
   notes for updates that also require new runtime assets.
 - **Add-ons** lists the complete reviewed application catalog. Choose individual
-  apps, use Recommended, or select all regular apps. Install fills missing files;
+  apps, use Recommended, or select all regular apps. Install selected can fetch
+  any app in this list, including apps also bundled in `addons.zip`. It fills missing files;
   Update selected replaces changed application binaries while preserving personal
   configurations and saves. Check updates reports differences first.
 - **Check installed BIOS / support** checks every installed app, independently

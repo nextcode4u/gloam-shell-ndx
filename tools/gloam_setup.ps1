@@ -9,7 +9,7 @@ param(
     [switch]$SmokeTest,
     [switch]$SmokeDirtySettings,
     [ValidateSet('Setup','Addons','Library','Organizer','Settings','Themes','Maintenance')][string]$ScreenshotPage = 'Setup',
-    [ValidateSet('','CheckSupport','CheckSetup','SaveSettings','PreviewOrganization')][string]$SmokeAction,
+    [ValidateSet('','CheckSupport','CheckSetup','SaveSettings','PreviewOrganization','InstallAddons')][string]$SmokeAction,
     [string]$ScreenshotPath,
     [string]$SmokeOrganizerFolder
 )
@@ -109,9 +109,10 @@ function Start-SetupJob([string]$Action, [string[]]$Sources = @(), [hashtable]$O
         IncludeAddons = [bool]$ui.IncludeAddons.IsChecked; Offline = [bool]$Offline; Sources = $Sources; ContentFolder = $ui.ContentFolder.Text; Options = $Options }
     [IO.File]::WriteAllText($request, ($record | ConvertTo-Json -Depth 10), [Text.UTF8Encoding]::new($false))
     $worker = Join-Path $PSScriptRoot 'gloam-setup-worker.ps1'
-    $command = "[Console]::OutputEncoding = [Text.UTF8Encoding]::new(); & '" + $worker.Replace("'","''") + "' -Request '" + $request.Replace("'","''") + "'"
-    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
-    $process = Start-Process (Join-Path $PSHOME 'powershell.exe') -ArgumentList @('-NoLogo','-NoProfile','-ExecutionPolicy','Bypass','-EncodedCommand',$encoded) -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $folder 'output.log') -RedirectStandardError (Join-Path $folder 'error.log')
+    # -File keeps PowerShell's diagnostic streams as text instead of CLIXML.
+    $arguments = @('-NoLogo','-NoProfile','-ExecutionPolicy','Bypass','-File',
+        ('"' + $worker + '"'),'-Request',('"' + $request + '"'))
+    $process = Start-Process (Join-Path $PSHOME 'powershell.exe') -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $folder 'output.log') -RedirectStandardError (Join-Path $folder 'error.log')
     $null = $process.Handle # Keep a process handle so ExitCode remains available after exit.
     $script:Job = @{ Process = $process; Folder = $folder; Action = $Action }; $script:LastLog = ''
     $ui.Workspace.IsEnabled = $false; $ui.TargetBar.IsEnabled = $false; $ui.Progress.Visibility = 'Visible'; $ui.Progress.IsIndeterminate = $true

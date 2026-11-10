@@ -73,7 +73,9 @@ Windows SD setup lives in `setup.ps1` (checked-release bootstrap),
 `tools/gloam_setup.ps1` / `.xaml` (WPF interface),
 `tools/gloam_setup_core.ps1` (SD operations and configuration), and
 `tools/gloam_setup_worker.ps1` (background process). The worker delegates add-on
-downloads/updates to the existing PowerShell installer; packaging gives these
+downloads/updates to the existing PowerShell installer. Selected installs use a
+snapshot of the full GUI catalog (`updates`), including bundled apps; the default
+console `applications` list contains only the separate downloads. Packaging gives these
 files hyphenated names under `addon-installer/`. Native Windows fixture tests
 cover installation, preservation, path validation, GUI navigation and workers.
 
