@@ -309,7 +309,7 @@ payload and DSP/S-DD1 variants are not silently substituted.
 - **[jenesisdsplus](https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/README.md):** No external console BIOS needed for Genesis cartridge ROMs. Plus supports up to 7.5 MiB on DSi (4 MiB on DS debug hardware), with mapper support for ROMs above 4 MiB. Native console-SD compatibility is not yet validated in Gloam.
 - **[lodjurds](https://github.com/FluBBaOfWard/LodjurDS/blob/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/README.md):** Requires a user-supplied Atari Lynx BIOS, selected inside LodjurDS. Upstream explicitly says it is needed to run games; not included.
 - **[microds](https://github.com/wavemotion-dave/MicroDS/blob/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09/README.md):** Requires MC10.BIN or MC10.ROM; optional MCX.BIN/MCX.ROM. Put them in /roms/bios or beside emulator.
-- **[nesds](https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/README.TXT):** NES cartridges need no external BIOS. FDS content requires disksys.rom; user-supplied.
+- **[nesds](https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/README.TXT):** NES cartridges need no external BIOS. FDS content uses user-supplied /disksys.rom by default; the emulator INI can override DisksysBios.
 - **[ngpds](https://github.com/FluBBaOfWard/NGPDS/blob/4dbcc210cdb519414ff20d2886645a530e298206/README.md):** Upstream says a real NGP/NGPC BIOS is needed for in-game saving. Select it in emulator settings; not included.
 - **[nintv-ds](https://github.com/wavemotion-dave/NINTV-DS/blob/c03e2ab9f052013d0328d1ccd3144ed07a8b9ae6/README.md):** Requires exec.bin and grom.bin; optional ivoice.bin, ecs.bin and Tutorvision firmware. Configure BIOS location in emulator; /roms/bios is the recommended collection.
 - **[nitrografx](https://github.com/FluBBaOfWard/NitroGrafx/blob/62920a05e9c7e31144d7e16b58797cdd8bc3789a/README.md):** PCE cartridge route needs no BIOS. CD-ROM games require a user-supplied CD system BIOS; CD files are not default argv associations.
@@ -369,7 +369,7 @@ The following requirements remain outside the supplied free replacements:
 | LodjurDS | Lynx BIOS | Select inside the emulator. |
 | NGPDS | NGP/NGPC BIOS for in-game saving | Select inside the emulator; normal launch alone does not establish save support. |
 | SpeccySE | `48.rom` and `128.rom` | `/roms/bios/`; the pinned loader refuses to operate without both. OpenSE BASIC only replaces the 48K part, so it is not installed as a complete solution. |
-| nesDS: FDS | `disksys.rom` | Required for Famicom Disk System content; NES cartridges need none. |
+| nesDS: FDS | `disksys.rom` | `/disksys.rom` by default; the INI can override `DisksysBios`. NES cartridges need none. |
 | NitroGrafx: CD | Compatible PC Engine CD system BIOS | Select using the emulator; HuCard cartridge games need none. |
 
 Optional original Atari firmware, GBC boot ROMs and WonderSwan boot ROMs are not

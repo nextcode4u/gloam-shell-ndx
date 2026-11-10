@@ -31,7 +31,7 @@ layout; they are intentional compatibility paths.
 │   ├── Nintendo DS/
 │   ├── DSiWare/
 │   ├── ScummVM/
-│   │   ├── scummvm.nds           manually installed native launcher
+│   │   ├── scummvm.nds           optional native launcher from add-on installer
 │   │   └── titles/              one complete game-data folder per title
 │   └── ...                       system collections
 ├── media/
