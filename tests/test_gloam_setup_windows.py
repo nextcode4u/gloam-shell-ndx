@@ -385,3 +385,9 @@ class GloamSetupTests(unittest.TestCase):
         output = self.run_ps('& ' + gui + ' -Target $root -Offline -SmokeTest -SmokeAction CheckSetup -SmokeDirtySettings -JobDirectory ' + literal(win(self.root / 'jobs')))
         self.assertIn('GUI worker exit: 0', output)
         self.assertEqual(list(self.sd.iterdir()), [])
+
+
+    def test_gui_release_lookup_requests_a_fresh_listing(self):
+        directory = self.root / 'release-lookup'
+        code = "function Invoke-RestMethod { param($Uri,$UserAgent,$TimeoutSec); if ($Uri -notmatch 'setup_refresh=[0-9]+') { throw 'Cached release listing used' }; return @([pscustomobject]@{draft=$false; tag_name='v0.1.0-preview.8'; published_at='2026-11-10T00:00:00Z'; assets=@([pscustomobject]@{name='addons.zip'})}) }; "
+        self.run_ps(code + '$release=Get-GloamRelease ' + literal(win(directory)) + "; if ($release.tag_name -ne 'v0.1.0-preview.8') { throw 'Wrong release' }")
