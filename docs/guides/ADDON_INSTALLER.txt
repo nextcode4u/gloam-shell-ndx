@@ -101,3 +101,18 @@ Hachibitto argv release (download-only; noncommercial opt-in):
   .\download-addons.ps1 -Target E:\ -Only hachibitto -Noncommercial
 Its embedded firmware/asset permissions remain unconfirmed. It is not included
 in Gloam binary, source or notice archives; the scripts fetch its fork release.
+
+Experimental ScummVM discovery build
+-----------------------------------
+Use the scripts from the current add-on ZIP for experimental support.
+Experimental entries are skipped by default, including during updates.
+Select this build explicitly:
+  python download-addons.py --target E:/ --only scummvm
+  .\download-addons.ps1 -Target E:\ -Only scummvm
+Use the same explicit selection with --update / -Update for reviewed updates.
+The executable installs at /roms/ScummVM/scummvm.nds. Keep complete games under
+/roms/ScummVM/titles/. Existing scummvm.ini and saves are not overwritten.
+Restoring directly from the game list can stall during plugin unloading.
+Full Quit/return and physical-console behavior remain unverified.
+Matching source and licenses are available alongside the standalone release:
+https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.0-ds-discovery.1

@@ -8,16 +8,21 @@ game-data files
 
 Application: ScummVM
 
-Argv in the audited upstream build: disabled in stock DS build; requires a
-command-line-enabled build.
+Argv in the audited upstream build: collection discovery.
 
 Firmware: No general console BIOS. Supply the required data files for each
 supported game; do not bundle commercial game data.
 
-Add-on package: manual / held; terms: GPL-3.0-or-later + constituent notices.
+Add-on package: direct upstream download with shared installer; terms:
+GPL-3.0-or-later + constituent notices.
 
-Upstream: https://github.com/scummvm/scummvm
-Release: https://www.scummvm.org/downloads/
+Experimental download; select this application explicitly using --only /
+-Only. restoring from the game list can stall during detection-plugin
+unloading. Full dynamic Quit/return and physical DS/DSi behavior remain
+unverified.
+
+Upstream: https://github.com/nextcode4u/scummvm
+Release: https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.0-ds-discovery.1
 
 Keep each complete game in its own subfolder. New supported titles are
 detected the next time scummvm.nds is opened through Gloam. Folder names alone

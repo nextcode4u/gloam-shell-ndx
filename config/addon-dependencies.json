@@ -2689,24 +2689,74 @@
     },
     {
       "id": "scummvm",
-      "repository": "https://github.com/scummvm/scummvm",
-      "version": "v2.9.1 (published DSi build)",
-      "commit": "9d9b9e93108a276c551aeffa390169ccc5148e15",
-      "release": "https://www.scummvm.org/downloads/",
+      "repository": "https://github.com/nextcode4u/scummvm",
+      "version": "v2026.4.0-ds-discovery.1",
+      "commit": "da194284ae6fed76040c0213a17ce72f271ff9fd",
+      "release": "https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.0-ds-discovery.1",
       "release_assets": [
         {
-          "name": "scummvm-2.9.1-ds.zip",
-          "url": "https://downloads.scummvm.org/frs/scummvm/2.9.1/scummvm-2.9.1-ds.zip"
+          "name": "build-info.json",
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/build-info.json"
+        },
+        {
+          "name": "licenses.zip",
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/licenses.zip"
+        },
+        {
+          "name": "scummvm-ds.zip",
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/scummvm-ds.zip"
+        },
+        {
+          "name": "scummvm.nds",
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/scummvm.nds"
+        },
+        {
+          "name": "SHA256SUMS",
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/SHA256SUMS"
+        },
+        {
+          "name": "source.zip",
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/source.zip"
         }
       ],
-      "argv": "disabled in stock DS build; requires a command-line-enabled build",
-      "argv_evidence": "https://github.com/scummvm/scummvm/blob/9d9b9e93108a276c551aeffa390169ccc5148e15/backends/platform/ds/portdefs.h",
-      "redistribution": "approved",
+      "argv": "collection discovery",
+      "argv_evidence": "https://github.com/nextcode4u/scummvm/blob/da194284ae6fed76040c0213a17ce72f271ff9fd/dists/ds/DISCOVERY.md",
+      "redistribution": "download-only",
       "license": "GPL-3.0-or-later + constituent notices",
-      "distribution_notes": "The stock DS port explicitly defines DISABLE_COMMAND_LINE in portdefs.h. Forwarding argc/argv from main does not enable its parser. Gloam can prepare collection-discovery options for a compatible CLI-enabled build, but the official 2.9.1 DS binary does not implement that contract. Use its normal Add Game interface with the stock build. Manual installation until a complete platform/resource/source recipe is reviewed; no custom ScummVM binary is bundled.",
+      "distribution_notes": "GPL redistribution is permitted with matching source and notices. This experimental build is available by explicit downloader selection only and is excluded from combined binary/source/notice archives. Experimental: restoring from the game list can stall during detection-plugin unloading. Full dynamic Quit/return and physical DS/DSi behavior remain unverified.",
       "bios": "No general console BIOS. Supply the required data files for each supported game; do not bundle commercial game data.",
       "bios_evidence": "https://docs.scummvm.org/en/latest/other_platforms/nintendo_ds.html",
-      "license_evidence": "https://github.com/scummvm/scummvm/blob/v2.9.1/COPYING"
+      "license_evidence": "https://github.com/nextcode4u/scummvm/blob/da194284ae6fed76040c0213a17ce72f271ff9fd/COPYING",
+      "permission_confirmed": true,
+      "prerelease": true,
+      "experimental": true,
+      "compatibility_notes": "restoring from the game list can stall during detection-plugin unloading. Full dynamic Quit/return and physical DS/DSi behavior remain unverified.",
+      "license_companion": {
+        "asset": "scummvm-v2026.4.0-ds-discovery.1-licenses.zip",
+        "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/licenses.zip",
+        "sha256": "5930df36b06c67f558c7e881831514473c45165029b0fbe235f782cf481a1d79"
+      },
+      "package": {
+        "source": {
+          "asset": "scummvm-v2026.4.0-ds-discovery.1-source.zip",
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/source.zip",
+          "sha256": "f466493146c8ec5d79683b3bd905adb9db83592243b6dd9bdc0d0cf30ef0989d",
+          "format": "zip"
+        },
+        "source_role": "reference-only",
+        "files": [
+          {
+            "download": {
+              "asset": "scummvm-v2026.4.0-ds-discovery.1-scummvm.nds",
+              "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/scummvm.nds",
+              "sha256": "ab4120c3bc85a5f62447fb6c82c804943d7987f53269fd0f5bb319d32c6066ce"
+            },
+            "format": "raw",
+            "destination": "roms/ScummVM/scummvm.nds",
+            "sha256": "ab4120c3bc85a5f62447fb6c82c804943d7987f53269fd0f5bb319d32c6066ce"
+          }
+        ]
+      }
     },
     {
       "id": "snemulds",

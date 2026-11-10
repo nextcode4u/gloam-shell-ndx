@@ -206,9 +206,11 @@ roms/ScummVM/
     Game Two/       required files for another game
 ```
 
-Copy the official DSi executable from its release archive. Gloam's template contains
-setup notes and directories; the ScummVM binary is still a manual install. Keep any
-required companion files from the matching release and its existing support paths.
+The experimental [discovery prerelease](https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.0-ds-discovery.1)
+is available through the shared downloader using `--only scummvm` / `-Only scummvm`.
+It installs the executable at the path above. Default downloads and bundled
+add-ons exclude this experimental build. Its matching source and license packages
+remain available beside the upstream binary; retain them when redistributing.
 SD/FAT paths are case-insensitive; this template retains the established `ScummVM`
 folder spelling.
 
@@ -220,10 +222,15 @@ normal game list. New folders are picked up on the next launch, with no scanning
 cost during Gloam startup or ordinary folder browsing. Large collections can make
 ScummVM's startup scan slow.
 
-This uses the [stock 2.9.1 discovery implementation](https://github.com/scummvm/scummvm/blob/v2.9.1/base/commandLine.cpp)
-and [DS argument forwarding](https://github.com/scummvm/scummvm/blob/v2.9.1/backends/platform/ds/dsmain.cpp),
-with no ScummVM source fork. It requires a build retaining those command-line
-options. Folder names alone are not games: unsupported/incomplete data is skipped.
+The fork enables command-line parsing in the upstream DS port and uses its normal
+collection-discovery implementation. Folder names alone are not games:
+unsupported or incomplete data is skipped. Emulator checks discovered Lure of the
+Temptress and Beneath a Steel Sky and preserved existing target settings.
+
+**Known issue:** restoring directly from the full dynamic build's game list can
+stall while detection plugins unload. Full Quit/return and physical DS/DSi
+behavior remain unverified. Select this prerelease for testing; it does not
+establish general game, save or return compatibility.
 
 ScummVM owns its game configuration, game options and saves. Gloam does not replace
 its native `scummvm.ini`. Existing default target IDs are normally skipped rather
@@ -238,10 +245,9 @@ launching the same executable from another menu does not apply Gloam's profile.
 The [stock DS port disables command-line parsing](https://github.com/scummvm/scummvm/blob/v2.9.1/backends/platform/ds/portdefs.h).
 Its launcher can open in available development controls, but its default build
 ignores the discovery options above. Use its normal Add Game interface and set
-`auto_add=0` when using that binary. Automatic discovery requires a compatible
-CLI-enabled DS build and remains a prepared integration pending native validation.
-Frontend tests cover argument preparation and preservation of explicit choices;
-passing options alone does not establish game detection, play or save support.
+`auto_add=0` when using that binary. Automatic discovery requires the
+command-line-enabled fork or another compatible DS build. Frontend argument preparation and the emulator checks above do not
+establish compatibility for all engines or titles.
 
 ## Updating an older installation
 

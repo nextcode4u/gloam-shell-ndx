@@ -58,7 +58,10 @@ def collection_readme(folder: str, catalog: dict, addons: dict) -> str:
                       if app["redistribution"] == "download-only" and "package" in app
                       else "available" if "package" in app else "manual / held")
                       + "; terms: " + app["license"] + ".")
-            if app["redistribution"] == "download-only":
+            if app.get("experimental"):
+                paragraph("Experimental download; select this application explicitly using --only / -Only. "
+                          + app["compatibility_notes"])
+            elif app["redistribution"] == "download-only":
                 paragraph("This application is not bundled because redistribution permission "
                           "or component coverage remains unconfirmed. Use the Python or "
                           "PowerShell downloader in addons.zip/addon-installer, or install "

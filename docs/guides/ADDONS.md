@@ -99,6 +99,11 @@ python download-addons.py --target E:/ --only gbarunner3 tuna-vids
 .\download-addons.ps1 -Target E:\ -Only gbarunner3,tuna-vids
 ```
 
+Experimental entries are skipped by default, including during updates. Use
+`--only scummvm` / `-Only scummvm` to select the experimental ScummVM build;
+its known issues are displayed before staging. It installs at
+`roms/ScummVM/scummvm.nds` and preserves existing configuration and saves.
+
 The two scripts share the same manifest and install destinations. They check
 SHA-256 for every download and installed member, read only allowlisted runtime
 files from ZIPs and preserve existing files by default. `--overwrite` /
@@ -217,7 +222,7 @@ it does not mean that just declaring argc/argv was counted as support.
 | [pokemini 0.60-arg](https://github.com/DS-Homebrew/PokeMini/releases/tag/0.60-arg) | [direct](https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/platform/nds/PokeMini_NDS.c) | Bundled when pinned; GPL-3.0-or-later + zlib notices |
 | [rocketvideoplayer v2.3.1](https://github.com/RocketRobz/RocketVideoPlayer/releases/tag/v2.3.1) | [direct](https://github.com/RocketRobz/RocketVideoPlayer/blob/50803b9027ca43ab278c1486442fcfc70c90b309/nds/arm9/source/main.cpp) | Manual setup; no reviewed runtime pin; MIT code; Nintendo assets separately credited |
 | [s8ds v1.1.8](https://github.com/FluBBaOfWard/S8DS/releases/tag/v1.1.8) | [direct](https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/source/Main.c) | Direct upstream download; Project-wide redistribution grant not found |
-| [scummvm v2.9.1 (published DSi build)](https://www.scummvm.org/downloads/) | [disabled in stock DS build; requires a command-line-enabled build](https://github.com/scummvm/scummvm/blob/9d9b9e93108a276c551aeffa390169ccc5148e15/backends/platform/ds/portdefs.h) | Manual setup; no reviewed runtime pin; GPL-3.0-or-later + constituent notices |
+| [scummvm v2026.4.0-ds-discovery.1](https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.0-ds-discovery.1) | [collection discovery](https://github.com/nextcode4u/scummvm/blob/da194284ae6fed76040c0213a17ce72f271ff9fd/dists/ds/DISCOVERY.md) | Direct upstream download; GPL-3.0-or-later + constituent notices |
 | [snemulds TGDS1.65 (shim-compatible snapshot)](https://github.com/cotodevel/SnemulDS/tree/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd) | [TGDS-only](https://github.com/cotodevel/SnemulDS/blob/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/arm9/source/main.c) | Bundled when pinned; GPL-2.0-or-later |
 | [snemulds-shim v0.15](https://github.com/Sanrax/snemulds-shim/releases/tag/v0.15) | [shim](https://github.com/Sanrax/snemulds-shim/blob/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/source/arguments.c) | Bundled when pinned; GPL-3.0-or-later + vendored notices |
 | [speccyse 2.2](https://github.com/wavemotion-dave/SpeccySE/releases/tag/2.2) | [direct](https://github.com/wavemotion-dave/SpeccySE/blob/85c85862470b69b75f6e49476a9c4ce992064bb3/arm9/source/SpeccySE.c) | Noncommercial opt-in; Custom noncommercial redistribution + core notices |
@@ -259,7 +264,7 @@ custom profiles remain preserved by both installers.
 - **[pokemini](https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/source/PokeMini.c):** FreeBIOS is included; retain its source and upstream licensing notices.
 - **[rocketvideoplayer](https://github.com/RocketRobz/RocketVideoPlayer/tree/50803b9027ca43ab278c1486442fcfc70c90b309):** README credits Nintendo DSi fonts/graphical assets and borrowed FastVideoDS code. MIT on project code does not establish all asset/component redistribution rights.
 - **[s8ds](https://github.com/FluBBaOfWard/S8DS/tree/90f2c13368f0b2ceac7887802e77d516d6337436):** Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.
-- **[scummvm](https://github.com/scummvm/scummvm/blob/v2.9.1/COPYING):** The stock DS port explicitly defines DISABLE_COMMAND_LINE in portdefs.h. Forwarding argc/argv from main does not enable its parser. Gloam can prepare collection-discovery options for a compatible CLI-enabled build, but the official 2.9.1 DS binary does not implement that contract. Use its normal Add Game interface with the stock build. Manual installation until a complete platform/resource/source recipe is reviewed; no custom ScummVM binary is bundled.
+- **[scummvm](https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.0-ds-discovery.1):** Experimental discovery build with command-line parsing enabled. Select it explicitly with `--only scummvm` / `-Only scummvm`; default downloads and bundled overlays exclude it. GPL permission is confirmed; its separate source and license companions accompany the upstream release. Restoring from the game list can stall, and full Quit/return and physical hardware remain unverified.
 - **[snemulds](https://github.com/cotodevel/SnemulDS/tree/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd):** Pinned older TGDS1.65 commit matches both hashes documented by shim v0.15; do not track the moving branch.
 - **[snemulds-shim](https://github.com/Sanrax/snemulds-shim/tree/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b):** Retain third_party/NOTICE.md and all vendored license texts.
 - **[speccyse](https://github.com/wavemotion-dave/SpeccySE/tree/85c85862470b69b75f6e49476a9c4ce992064bb3):** No-profit redistribution permitted with full author/core notices. Preserve the Z80, sound and lzav terms.

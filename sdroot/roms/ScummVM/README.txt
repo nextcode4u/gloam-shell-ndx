@@ -7,22 +7,27 @@ Content: scummvm.nds launcher; one game-data folder per title under titles/
 
 Application: ScummVM
 
-Argv in the audited upstream build: disabled in stock DS build; requires a
-command-line-enabled build.
+Argv in the audited upstream build: collection discovery.
 
 Firmware: No general console BIOS. Supply the required data files for each
 supported game; do not bundle commercial game data.
 
-Add-on package: manual / held; terms: GPL-3.0-or-later + constituent notices.
+Add-on package: direct upstream download with shared installer; terms:
+GPL-3.0-or-later + constituent notices.
 
-Upstream: https://github.com/scummvm/scummvm
-Release: https://www.scummvm.org/downloads/
+Experimental download; select this application explicitly using --only /
+-Only. restoring from the game list can stall during detection-plugin
+unloading. Full dynamic Quit/return and physical DS/DSi behavior remain
+unverified.
 
-Keep scummvm.nds here and supported game data in titles/<game>/. The stock
-2.9.1 DS build disables command-line parsing; use its Add Game interface.
-Gloam can request automatic discovery through plugins/startup/scummvm.ini only
-with a compatible CLI-enabled build. ScummVM owns its entries and saves; moved
-or removed entries need manual review.
+Upstream: https://github.com/nextcode4u/scummvm
+Release: https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.0-ds-discovery.1
+
+Install the experimental ScummVM discovery build by explicitly selecting
+scummvm in the shared downloader. Its command-line options support automatic
+collection scanning. Restoring directly from its game list can stall; full
+Quit/return and hardware behavior remain unverified. Existing configuration
+and saves are preserved.
 
 Keep required companion files and saves together. Other emulator-supported
 formats may need its own browser or a per-file application choice. Changing an

@@ -266,7 +266,7 @@
       "application": "ScummVM",
       "formats": "scummvm.nds launcher; one game-data folder per title under titles/",
       "addon": "scummvm",
-      "notes": "Keep scummvm.nds here and supported game data in titles/<game>/. The stock 2.9.1 DS build disables command-line parsing; use its Add Game interface. Gloam can request automatic discovery through plugins/startup/scummvm.ini only with a compatible CLI-enabled build. ScummVM owns its entries and saves; moved or removed entries need manual review."
+      "notes": "Install the experimental ScummVM discovery build by explicitly selecting scummvm in the shared downloader. Its command-line options support automatic collection scanning. Restoring directly from its game list can stall; full Quit/return and hardware behavior remain unverified. Existing configuration and saves are preserved."
     },
     {
       "folder": "roms/ScummVM/titles",

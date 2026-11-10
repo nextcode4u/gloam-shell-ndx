@@ -53,7 +53,7 @@ class EmulatorPresetTests(unittest.TestCase):
         self.assertIn("tcr", seen)
         self.assertNotIn("bin", seen)
 
-    def test_default_profiles_and_addons_share_frontend_application_directory(self):
+    def test_plugin_apps_share_directory_and_scummvm_keeps_collection_root(self):
         presets = json.loads(CATALOG.read_text())
         addons = json.loads((PROJECT_ROOT / "config/addon-dependencies.json").read_text())
         directory = "_nds/dsi-frontend/plugins/apps"
@@ -65,6 +65,11 @@ class EmulatorPresetTests(unittest.TestCase):
                     self.assertEqual(str(Path(profile["settings"][key]).parent), directory)
         for application in addons["applications"]:
             for item in application.get("package", {}).get("files", []):
+                if application["id"] == "scummvm":
+                    self.assertEqual(item["destination"], "roms/ScummVM/scummvm.nds")
+                    startup = PROJECT_ROOT / "sdroot/_nds/dsi-frontend/plugins/startup/scummvm.ini"
+                    self.assertIn("application=/" + item["destination"], startup.read_text())
+                    continue
                 if item["destination"].endswith((".nds", ".srl", ".ini")):
                     self.assertEqual(str(Path(item["destination"]).parent), directory)
                 else:
