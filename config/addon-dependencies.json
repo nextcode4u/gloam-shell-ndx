@@ -3687,6 +3687,11 @@
     "download-addons.py": "tools/download_addons.py",
     "download-addons.ps1": "tools/download_addons.ps1",
     "README.txt": "docs/guides/ADDON_INSTALLER.txt",
-    "Start Add-on Installer.cmd": "tools/start_addon_installer.cmd"
+    "Start Add-on Installer.cmd": "tools/start_addon_installer.cmd",
+    "gloam-setup.ps1": "tools/gloam_setup.ps1",
+    "gloam-setup.xaml": "tools/gloam_setup.xaml",
+    "gloam-setup-core.ps1": "tools/gloam_setup_core.ps1",
+    "gloam-setup-worker.ps1": "tools/gloam_setup_worker.ps1",
+    "Start Gloam Setup.cmd": "tools/start_gloam_setup.cmd"
   }
 }

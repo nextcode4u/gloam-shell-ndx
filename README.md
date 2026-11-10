@@ -37,6 +37,16 @@ backend does not resolve the remaining retail compatibility work; see
 
 ## Install
 
+On Windows, open the graphical SD setup tool:
+
+```powershell
+irm https://raw.githubusercontent.com/nextcode4u/gloam-shell-ndx/main/setup.ps1 | iex
+```
+
+Choose the SD folder, install/update Gloam and add-ons, and configure ROM folders,
+file handlers, tabs and themes. You can also extract `addons.zip` and double-click
+`addon-installer/Start Gloam Setup.cmd`. See the [Windows setup guide](docs/guides/WINDOWS_SETUP.md).
+
 Build the SD package below, then merge the contents of `dist/sd.zip` onto a
 backed-up SD card. The entry point is `/BOOT.NDS`. Preserve your existing settings,
 libraries and other applications' support files when upgrading.

@@ -68,3 +68,11 @@ assets and game saves are outside the reset scope.
 Use [building](development/BUILDING.md), [SDK integration](development/TOOLCHAIN.md)
 and [contribution conventions](../CONTRIBUTING.md) when developing. Contracts and
 source details are indexed in [the documentation index](README.md).
+
+Windows SD setup lives in `setup.ps1` (checked-release bootstrap),
+`tools/gloam_setup.ps1` / `.xaml` (WPF interface),
+`tools/gloam_setup_core.ps1` (SD operations and configuration), and
+`tools/gloam_setup_worker.ps1` (background process). The worker delegates add-on
+downloads/updates to the existing PowerShell installer; packaging gives these
+files hyphenated names under `addon-installer/`. Native Windows fixture tests
+cover installation, preservation, path validation, GUI navigation and workers.

@@ -83,6 +83,11 @@ def verify(directory, addons=False):
                         'addon-installer/downloads.json'}
             if not required <= set(archive.namelist()):
                 raise ValueError('Add-on installer is incomplete')
+            if 'addon-installer/gloam-setup.ps1' in archive.namelist():
+                gui = {'addon-installer/gloam-setup.xaml', 'addon-installer/gloam-setup-core.ps1',
+                       'addon-installer/gloam-setup-worker.ps1', 'addon-installer/Start Gloam Setup.cmd'}
+                if not gui <= set(archive.namelist()):
+                    raise ValueError('Graphical setup tool is incomplete')
     print('Verified complete release set: ' + ', '.join(sorted(expected)))
 
 

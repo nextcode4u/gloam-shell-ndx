@@ -39,6 +39,16 @@ class ReleaseVerificationTests(unittest.TestCase):
         (self.root / 'SHA256SUMS').write_text(''.join(
             hashlib.sha256(p.read_bytes()).hexdigest() + '  ' + p.name + '\n' for p in files))
 
+    def test_incomplete_graphical_setup_cannot_be_distributed(self):
+        self.archive('addons.zip', {'addon-installer/Start Add-on Installer.cmd': b'Fixture launcher',
+                                   'addon-installer/download-addons.py': b'Fixture script',
+                                   'addon-installer/download-addons.ps1': b'Fixture script',
+                                   'addon-installer/downloads.json': b'{}',
+                                   'addon-installer/gloam-setup.ps1': b'Fixture GUI'})
+        self.sums()
+        with self.assertRaisesRegex(ValueError, 'Graphical setup tool is incomplete'):
+            verify(self.root, addons=True)
+
     def test_complete_set_and_optional_addons(self):
         verify(self.root)
         self.archive('addons.zip', {'addon-installer/Start Add-on Installer.cmd': b'Fixture launcher',

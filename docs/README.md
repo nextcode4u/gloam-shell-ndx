@@ -4,6 +4,7 @@ Start with [setup and controls](GETTING_STARTED.md) and [current support](CURREN
 
 ## User guides
 
+- [Windows graphical SD setup and updates](guides/WINDOWS_SETUP.md).
 - [Optional add-ons, release/argv/license audit and BIOS requirements](guides/ADDONS.md).
 - [Download-only add-ons](guides/DOWNLOAD_ONLY_ADDONS.md).
 - [SD layout](guides/SD_LAYOUT.md) and [emulators / file associations](guides/EMULATORS.md).

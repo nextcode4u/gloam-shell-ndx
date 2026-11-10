@@ -1,5 +1,9 @@
 # Optional emulator and media add-ons
 
+For graphical installation, updates, BIOS checks and folder/handler setup, use
+[Windows Gloam Setup](WINDOWS_SETUP.md). It is included in `addons.zip` beside
+the existing command-line installers.
+
 `addons.zip` contains only applications with established redistribution terms,
 plus one shared Python downloader and one equivalent standalone PowerShell
 script. Applications with unconfirmed permission are downloaded directly from

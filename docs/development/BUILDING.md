@@ -67,6 +67,11 @@ for review. Reports and validation logs are under ignored `build/addon-updates/`
 Use the project virtualenv or install `requirements-dev.txt` for the checks.
 GitHub CLI is optional but avoids unauthenticated API limits when authenticated.
 
+The add-on ZIP also carries the Windows graphical setup tool, its XAML and
+background worker. `setup.ps1` retrieves those scripts from the checked release
+archive; it does not require a separate release artifact. The GUI uses the same
+reviewed downloader and catalog as the console installer.
+
 The optional [add-on builder](../guides/ADDONS.md) uses
 `config/addon-dependencies.json`. `python3 tools/build_addons.py --list` lists
 all audited entries without downloading. The default bundles ten applications
