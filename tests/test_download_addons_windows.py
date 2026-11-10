@@ -72,6 +72,8 @@ class WindowsInstallerMenuTests(unittest.TestCase):
         self.assertEqual(list(self.target.iterdir()), [])
 
     def test_install_and_read_only_update_check_return_to_menu(self):
+        self.manifest['applications'] = []  # Bundled apps appear only in the update catalog.
+        self.write_manifest()
         output = self.run_menu(self.ps + self.options, '1\n1\ny\n\n0\n')
         self.assertGreaterEqual(output.count('Gloam Add-on Installer'), 2)
         self.assertEqual(self.binary.read_bytes(), self.payload)

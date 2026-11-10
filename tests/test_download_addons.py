@@ -82,6 +82,8 @@ class DownloadAddonTests(unittest.TestCase):
 
     def test_menu_install_uses_checked_staging_and_returns_to_menu(self):
         args = self.menu_args()
+        self.manifest['updates'] = [self.app]
+        self.manifest['applications'] = []
         with patch('builtins.input', side_effect=['1', '1', 'y', '', '0']), redirect_stdout(io.StringIO()):
             interactive_menu(self.manifest, args)
         self.assertEqual((self.sd / self.name).read_bytes(), self.binary)

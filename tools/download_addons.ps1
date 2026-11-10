@@ -374,14 +374,21 @@ function Invoke-InstallerMenu($Document) {
                         }
                     } else { $allowed = $true }
                     # Named invocation reuses the unchanged CLI checks and staging behavior.
-                    $operation = @{ Manifest = $Manifest; Target = $folder; Cache = $Cache; Only = [string[]]$names;
-                        Offline = [bool]$Offline; Noncommercial = $allowed; DryRun = [bool]$DryRun; Overwrite = [bool]$Overwrite }
-                    if ($Catalog) { $operation.Catalog = $Catalog }
-                    if ($action -eq '2') { $operation.CheckUpdates = $true; $operation.Upstream = [bool]$Upstream }
-                    if ($action -eq '3') { $operation.Update = $true }
-                    $global:LASTEXITCODE = 0
-                    & $scriptPath @operation
-                    if ($LASTEXITCODE -ne 0) { Write-Host 'Operation stopped. Review the message above.' }
+                    $snapshotPath = [IO.Path]::GetTempFileName()
+                    try {
+                        # Freeze the catalog shown above, including apps already bundled in the ZIP.
+                        # Updates must not refresh to a different version after confirmation.
+                        $snapshot = @{ format = 1; applications = @($allApps); updates = @($allApps); manual = @() }
+                        [IO.File]::WriteAllText($snapshotPath, ($snapshot | ConvertTo-Json -Depth 20), [Text.UTF8Encoding]::new($true))
+                        $operation = @{ Manifest = $snapshotPath; Catalog = $snapshotPath; Target = $folder;
+                            Cache = $Cache; Only = [string[]]$names; Offline = [bool]$Offline;
+                            Noncommercial = $allowed; DryRun = [bool]$DryRun; Overwrite = [bool]$Overwrite }
+                        if ($action -eq '2') { $operation.CheckUpdates = $true; $operation.Upstream = [bool]$Upstream }
+                        if ($action -eq '3') { $operation.Update = $true }
+                        $global:LASTEXITCODE = 0
+                        & $scriptPath @operation
+                        if ($LASTEXITCODE -ne 0) { Write-Host 'Operation stopped. Review the message above.' }
+                    } finally { Remove-Item -LiteralPath $snapshotPath -Force -ErrorAction SilentlyContinue }
                 }
             }
         } catch [OperationCanceledException] { return }
