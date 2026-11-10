@@ -81,6 +81,14 @@ def collection_readme(folder: str, catalog: dict, addons: dict) -> str:
                   "README.txt with configured formats and application/firmware notes.")
         lines.extend("- " + child for child in children)
         lines.append("")
+    if folder == "roms":
+        paragraph("For large sets of loose ROM files, the optional PowerShell File Organizer "
+                  "Scripts group files into # and A-Z subfolders. Run the alphabetical "
+                  "organizer on your computer inside a single system folder, such as "
+                  "/roms/Nintendo DS/. Gloam can browse the resulting folders. Keep "
+                  "multi-file games and emulator support files in their required layouts.")
+        lines.extend(["Organizer and usage:",
+                      "https://github.com/nextcode4u/PowerShell-File-Organizer-Scripts", ""])
     lines.extend(["Full setup and compatibility audit:",
                   "https://github.com/nextcode4u/gloam-shell-ndx/blob/main/docs/guides/ADDONS.md", ""])
     return "\n".join(lines)

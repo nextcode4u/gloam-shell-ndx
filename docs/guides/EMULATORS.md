@@ -66,6 +66,19 @@ These are default collection folders and configured formats, not every format ea
 
 `roms/bios/` is a support location, not a game system. The Atari folder has separate 2600, 5200, 7800, 8-bit and Lynx collections. No old `gb`, `gba`, `nds`, `Music`, `Videos` or mixed `DS(i) Homebrew` aliases are added by this template.
 
+## Organizing large ROM sets
+
+The optional [PowerShell File Organizer Scripts](https://github.com/nextcode4u/PowerShell-File-Organizer-Scripts)
+can group loose ROM files into `#` and `A–Z` subfolders. Run the alphabetical
+organizer on your computer inside the chosen system folder, for example
+`/roms/Nintendo DS/`; Gloam can browse the resulting folders. The scripts support
+Windows PowerShell 5.1 and newer, including PowerShell 7.
+
+Keep multi-file games, emulator support files and ScummVM game-data folders in
+the layouts required by their applications. The organizer moves loose files;
+its separate flattening script moves files out of subfolders, so use that only
+for collections you intend to flatten. See the linked repository for usage.
+
 ## Exact preconfigured associations
 
 Paths in the next table are relative to `_nds/dsi-frontend/plugins/apps/`. Full paths and flags are in the named profile files. Multiple extensions sharing the same settings are grouped; no original extension is dropped.

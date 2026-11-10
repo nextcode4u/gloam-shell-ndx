@@ -59,7 +59,9 @@ Simple and Advanced settings support a config-only Simple-mode lock for prepared
 consoles; the lock is off by default.
 
 See [setup and controls](docs/GETTING_STARTED.md), [SD layout](docs/guides/SD_LAYOUT.md)
-and [emulator associations](docs/guides/EMULATORS.md).
+and [emulator associations](docs/guides/EMULATORS.md). For large ROM sets, the
+[PowerShell File Organizer Scripts](https://github.com/nextcode4u/PowerShell-File-Organizer-Scripts)
+can group each system's loose ROM files into alphabetical subfolders.
 
 ## Build
 
