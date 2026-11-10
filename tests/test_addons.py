@@ -191,7 +191,7 @@ class AddonTests(unittest.TestCase):
                 selected_applications(lock, noncommercial=True, only=[name])
         scummvm = next(a for a in catalog["applications"] if a["id"] == "scummvm")
         self.assertTrue(scummvm["experimental"])
-        self.assertIn("stall", scummvm["notes"])
+        self.assertIn("physical DS/DSi", scummvm["notes"])
         self.assertNotIn("scummvm", bundled)
         with self.assertRaisesRegex(ValueError, "not eligible"):
             selected_applications(lock, only=["scummvm"])

@@ -3046,70 +3046,70 @@
     {
       "id": "scummvm",
       "repository": "https://github.com/nextcode4u/scummvm",
-      "version": "v2026.4.0-ds-discovery.1",
-      "commit": "da194284ae6fed76040c0213a17ce72f271ff9fd",
-      "release": "https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.0-ds-discovery.1",
+      "version": "v2026.4.1git-ds-discovery.2",
+      "commit": "a886202ee506289cdafa3f5117d6b3c41fc6e50c",
+      "release": "https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.1git-ds-discovery.2",
       "release_assets": [
         {
           "name": "build-info.json",
-          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/build-info.json"
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.1git-ds-discovery.2/build-info.json"
         },
         {
           "name": "licenses.zip",
-          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/licenses.zip"
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.1git-ds-discovery.2/licenses.zip"
         },
         {
           "name": "scummvm-ds.zip",
-          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/scummvm-ds.zip"
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.1git-ds-discovery.2/scummvm-ds.zip"
         },
         {
           "name": "scummvm.nds",
-          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/scummvm.nds"
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.1git-ds-discovery.2/scummvm.nds"
         },
         {
           "name": "SHA256SUMS",
-          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/SHA256SUMS"
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.1git-ds-discovery.2/SHA256SUMS"
         },
         {
           "name": "source.zip",
-          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/source.zip"
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.1git-ds-discovery.2/source.zip"
         }
       ],
       "argv": "collection discovery",
-      "argv_evidence": "https://github.com/nextcode4u/scummvm/blob/da194284ae6fed76040c0213a17ce72f271ff9fd/dists/ds/DISCOVERY.md",
+      "argv_evidence": "https://github.com/nextcode4u/scummvm/blob/a886202ee506289cdafa3f5117d6b3c41fc6e50c/dists/ds/DISCOVERY.md",
       "redistribution": "download-only",
       "license": "GPL-3.0-or-later + constituent notices",
-      "distribution_notes": "GPL redistribution is permitted with matching source and notices. This experimental build is available by explicit downloader selection only and is excluded from combined binary/source/notice archives. Experimental: restoring from the game list can stall during detection-plugin unloading. Full dynamic Quit/return and physical DS/DSi behavior remain unverified.",
+      "distribution_notes": "GPL redistribution is permitted with matching source and notices. This experimental build is available by explicit downloader selection only and is excluded from combined binary/source/notice archives. Full dynamic Lure launch, save, cold restore and Quit/return pass in a development emulator setup after the DSO exit-registry fix. Broader engine, flashcard and physical DS/DSi behavior remain unverified.",
       "bios": "No general console BIOS. Supply the required data files for each supported game; do not bundle commercial game data.",
       "bios_evidence": "https://docs.scummvm.org/en/latest/other_platforms/nintendo_ds.html",
-      "license_evidence": "https://github.com/nextcode4u/scummvm/blob/da194284ae6fed76040c0213a17ce72f271ff9fd/COPYING",
+      "license_evidence": "https://github.com/nextcode4u/scummvm/blob/a886202ee506289cdafa3f5117d6b3c41fc6e50c/COPYING",
       "permission_confirmed": true,
       "prerelease": true,
       "experimental": true,
-      "compatibility_notes": "restoring from the game list can stall during detection-plugin unloading. Full dynamic Quit/return and physical DS/DSi behavior remain unverified.",
+      "compatibility_notes": "Full dynamic Lure launch, save, cold restore and Quit/return pass in a development emulator setup after the DSO exit-registry fix. Broader engine, flashcard and physical DS/DSi behavior remain unverified.",
       "license_companion": {
-        "asset": "scummvm-v2026.4.0-ds-discovery.1-licenses.zip",
-        "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/licenses.zip",
-        "sha256": "5930df36b06c67f558c7e881831514473c45165029b0fbe235f782cf481a1d79"
+        "asset": "scummvm-v2026.4.1git-ds-discovery.2-licenses.zip",
+        "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.1git-ds-discovery.2/licenses.zip",
+        "sha256": "3fda15883d60ec95fef62c4866d13abd3b46c60659ddaf0b4512cc0a99e13f3f"
       },
       "package": {
         "source": {
-          "asset": "scummvm-v2026.4.0-ds-discovery.1-source.zip",
-          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/source.zip",
-          "sha256": "f466493146c8ec5d79683b3bd905adb9db83592243b6dd9bdc0d0cf30ef0989d",
+          "asset": "scummvm-v2026.4.1git-ds-discovery.2-source.zip",
+          "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.1git-ds-discovery.2/source.zip",
+          "sha256": "e6eeb4d8c17cf1528edfe259170579aa9bceee40b559104c3a465726751e5533",
           "format": "zip"
         },
         "source_role": "reference-only",
         "files": [
           {
             "download": {
-              "asset": "scummvm-v2026.4.0-ds-discovery.1-scummvm.nds",
-              "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.0-ds-discovery.1/scummvm.nds",
-              "sha256": "ab4120c3bc85a5f62447fb6c82c804943d7987f53269fd0f5bb319d32c6066ce"
+              "asset": "scummvm-v2026.4.1git-ds-discovery.2-scummvm.nds",
+              "url": "https://github.com/nextcode4u/scummvm/releases/download/v2026.4.1git-ds-discovery.2/scummvm.nds",
+              "sha256": "4369ac5015cc53a9e3e95c6a8189c4ecf97f1010983d86e06c6a997e44aeaf21"
             },
             "format": "raw",
             "destination": "roms/ScummVM/scummvm.nds",
-            "sha256": "ab4120c3bc85a5f62447fb6c82c804943d7987f53269fd0f5bb319d32c6066ce"
+            "sha256": "4369ac5015cc53a9e3e95c6a8189c4ecf97f1010983d86e06c6a997e44aeaf21"
           }
         ]
       }

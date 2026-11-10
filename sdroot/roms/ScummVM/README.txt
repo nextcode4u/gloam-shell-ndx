@@ -16,18 +16,18 @@ Add-on package: direct upstream download with shared installer; terms:
 GPL-3.0-or-later + constituent notices.
 
 Experimental download; select this application explicitly using --only /
--Only. restoring from the game list can stall during detection-plugin
-unloading. Full dynamic Quit/return and physical DS/DSi behavior remain
-unverified.
+-Only. Full dynamic Lure launch, save, cold restore and Quit/return pass in a
+development emulator setup after the DSO exit-registry fix. Broader engine,
+flashcard and physical DS/DSi behavior remain unverified.
 
 Upstream: https://github.com/nextcode4u/scummvm
-Release: https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.0-ds-discovery.1
+Release: https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.1git-ds-discovery.2
 
 Install the experimental ScummVM discovery build by explicitly selecting
 scummvm in the shared downloader. Its command-line options support automatic
-collection scanning. Restoring directly from its game list can stall; full
-Quit/return and hardware behavior remain unverified. Existing configuration
-and saves are preserved.
+collection scanning. Dynamic save, cold restore and Quit/return pass for Lure
+in a development emulator setup; broader engines and physical hardware remain
+unverified. Existing configuration and saves are preserved.
 
 Keep required companion files and saves together. Other emulator-supported
 formats may need its own browser or a per-file application choice. Changing an
