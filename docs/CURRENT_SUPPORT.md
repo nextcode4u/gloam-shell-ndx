@@ -14,6 +14,7 @@ a guarantee for every title, boot method or application build.
 | Installed DSiWare | Read-only NAND discovery, localized banners and native title requests; needs an appropriate boot environment. No installation or NAND save manipulation. |
 | System apps | Native Settings, Camera, Sound, PictoChat and Download Play requests, plus system-menu return. Available titles, warm launches and wireless behavior depend on the environment. |
 | Slot-1 | Cartridge banner/title discovery and external helper launch. Boot-chain SCFG/key availability can limit icons; physical cards remain unverified. |
+| Add-ons | Shared Python/PowerShell installers, reviewed update pins, and read-only BIOS/support-file checks. Experimental ScummVM remains an explicit selection; its dynamic Lure save, cold restore and Quit/return route passes development-emulator checks, with broader engines and physical devices unverified. |
 | Save/return | No universal return hook. Backends and applications own their save/exit contracts; configuration alone does not establish successful persistence. |
 | Configuration | On-console editors, checked imports/exports, scoped reset, early recovery and diagnostics. |
 

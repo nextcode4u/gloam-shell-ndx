@@ -240,10 +240,10 @@ collection-discovery implementation. Folder names alone are not games:
 unsupported or incomplete data is skipped. Emulator checks discovered Lure of the
 Temptress and Beneath a Steel Sky and preserved existing target settings.
 
-**Known issue:** restoring directly from the full dynamic build's game list can
-stall while detection plugins unload. Full Quit/return and physical DS/DSi
-behavior remain unverified. Select this prerelease for testing; it does not
-establish general game, save or return compatibility.
+The dynamic build now passes Lure save, cold restore and Quit/return checks in a
+development emulator setup after the DSO cleanup fix. Broader engine, flashcard
+and physical DS/DSi behavior remain unverified. This prerelease does not establish
+general game, save or return compatibility.
 
 ScummVM owns its game configuration, game options and saves. Gloam does not replace
 its native `scummvm.ini`. Existing default target IDs are normally skipped rather
