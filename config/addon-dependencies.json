@@ -3283,6 +3283,7 @@
   "download_installer": {
     "download-addons.py": "tools/download_addons.py",
     "download-addons.ps1": "tools/download_addons.ps1",
-    "README.txt": "docs/guides/ADDON_INSTALLER.txt"
+    "README.txt": "docs/guides/ADDON_INSTALLER.txt",
+    "Start Add-on Installer.cmd": "tools/start_addon_installer.cmd"
   }
 }

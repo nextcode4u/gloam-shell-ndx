@@ -74,8 +74,9 @@ with established distribution terms. `--noncommercial` adds five with no-profit
 terms. Apps with unconfirmed permission are excluded from every bundled
 binary/source/notice collection, including explicit `--only` selections.
 
-Every add-on ZIP also contains `addon-installer/`, with one Python script, one
-standalone PowerShell script, a generated download manifest and usage notes.
+Every add-on ZIP also contains `addon-installer/`, with Python and standalone PowerShell
+scripts, a Windows double-click menu launcher, a generated download manifest and
+usage notes.
 The scripts download the remaining pinned applications directly from upstream
 to an explicitly selected SD root. They support selection, dry runs, caching,
 offline use, reviewed-catalog updates and preserving existing configs. Update

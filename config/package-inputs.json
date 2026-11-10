@@ -574,6 +574,7 @@
     "tests/test_addons.py",
     "tests/test_configuration.py",
     "tests/test_download_addons.py",
+    "tests/test_download_addons_windows.py",
     "tests/test_emulator_presets.py",
     "tests/test_font_pack.py",
     "tests/test_forwarder.py",
@@ -669,6 +670,7 @@
     "tools/prepare_addons_release.py",
     "tools/preview.c",
     "tools/stage_sd.py",
+    "tools/start_addon_installer.cmd",
     "tools/verify_release.py",
     "tools/write_build_info.py"
   ],

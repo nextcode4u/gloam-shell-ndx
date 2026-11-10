@@ -77,13 +77,22 @@ notices are collected only for applications actually bundled in this selection.
 
 Extract `addons.zip` on the computer. Its `addon-installer/` folder contains:
 
+- `Start Add-on Installer.cmd`: double-click on Windows to open the menu; no Python needed.
 - `download-addons.py`: Python 3.11+ version.
 - `download-addons.ps1`: PowerShell 5.1+ / PowerShell 7 version; no Python needed.
 - `downloads.json`: generated URLs, download/member hashes and destination pins.
 - `README.txt`: portable command reference.
 
-Run either script from that folder, replacing `E:` with the SD card or using a
-staging directory you created:
+Double-click **Start Add-on Installer.cmd** on Windows. Its menu selects the SD
+card or staging folder, applications and install/update action. Opening either
+script through its interpreter without arguments also starts the menu. Keep all
+installer files together; the Windows launcher uses PowerShell for that process
+without changing the machine's execution policy.
+
+The menu shows the destination and app terms before installing. Noncommercial
+apps require confirmation; experimental apps require explicit selection.
+For automation, run either script with arguments, replacing `E:` with the SD card
+or using a staging directory you created:
 
 ```sh
 python download-addons.py --list

@@ -6,13 +6,16 @@ import io
 import json
 from pathlib import Path
 import tempfile
+import subprocess
+import sys
+from types import SimpleNamespace
 import tarfile
 import unittest
 from unittest.mock import patch
 import zipfile
 
 from tools.download_addons import (check_updates, destination, digest, fetch, reviewed_apps,
-                                   select_apps, stage, update_manifest)
+                                   select_apps, stage, update_manifest, interactive_menu, parse_selection, choose_target)
 
 
 class DownloadAddonTests(unittest.TestCase):
@@ -45,6 +48,91 @@ class DownloadAddonTests(unittest.TestCase):
 
     def run_stage(self, **options):
         return stage(self.manifest, self.sd, self.cache, offline=True, **options)
+
+    def menu_args(self):
+        self.app.update(version="v1", terms="Synthetic fixture terms", repository="https://example.invalid/demo")
+        return SimpleNamespace(target=self.sd, cache=self.cache, offline=True, catalog=None,
+                               noncommercial=False, overwrite=False, dry_run=False)
+
+    def test_menu_selection_is_bounded_and_all_excludes_opt_in_apps(self):
+        apps = [{"id": "demo"}, {"id": "noncommercial", "noncommercial": True},
+                {"id": "experimental", "experimental": True}]
+        self.assertEqual(parse_selection("all", apps), ["demo"])
+        self.assertEqual(parse_selection("2, demo 3 2", apps), ["noncommercial", "demo", "experimental"])
+        for text in ("0", "4", "unknown"):
+            with self.assertRaises(ValueError):
+                parse_selection(text, apps)
+
+    def test_menu_target_retry_and_cancel_are_read_only(self):
+        with patch('tools.download_addons.removable_drives', return_value=[(self.sd, "fixture drive")]), \
+                patch('builtins.input', side_effect=[str(self.root / 'missing'), '1']), redirect_stdout(io.StringIO()):
+            self.assertEqual(choose_target(), self.sd)
+        with patch('tools.download_addons.removable_drives', return_value=[]), \
+                patch('builtins.input', return_value=''), redirect_stdout(io.StringIO()):
+            self.assertIsNone(choose_target())
+        self.assertEqual(list(self.sd.iterdir()), [])
+
+    def test_menu_cancel_does_not_stage_or_fetch(self):
+        args = self.menu_args()
+        with patch('builtins.input', side_effect=['1', '1', 'n', '', '0']), \
+                patch('tools.download_addons.fetch') as network, redirect_stdout(io.StringIO()):
+            interactive_menu(self.manifest, args)
+        network.assert_not_called()
+        self.assertEqual(list(self.sd.iterdir()), [])
+
+    def test_menu_install_uses_checked_staging_and_returns_to_menu(self):
+        args = self.menu_args()
+        with patch('builtins.input', side_effect=['1', '1', 'y', '', '0']), redirect_stdout(io.StringIO()):
+            interactive_menu(self.manifest, args)
+        self.assertEqual((self.sd / self.name).read_bytes(), self.binary)
+        self.assertFalse((self.sd / '_gba/bios.bin').exists())
+
+    def test_menu_noncommercial_confirmation_is_required(self):
+        args = self.menu_args()
+        self.app['noncommercial'] = True
+        with patch('builtins.input', side_effect=['1', '1', 'n', '', '0']), redirect_stdout(io.StringIO()):
+            interactive_menu(self.manifest, args)
+        self.assertEqual(list(self.sd.iterdir()), [])
+        with patch('builtins.input', side_effect=['1', '1', 'y', 'y', '', '0']), redirect_stdout(io.StringIO()):
+            interactive_menu(self.manifest, args)
+        self.assertEqual((self.sd / self.name).read_bytes(), self.binary)
+
+    def test_menu_updates_backup_executables_and_preserve_user_config(self):
+        args = self.menu_args()
+        self.run_stage()
+        old = b'Previous executable fixture'
+        (self.sd / self.name).write_bytes(old)
+        config = self.sd / '_gba/configs/ABCE01.json'
+        config.write_bytes(b'{"user":true}')
+        with patch('builtins.input', side_effect=['3', '1', 'y', '', '0']), redirect_stdout(io.StringIO()):
+            interactive_menu(self.manifest, args)
+        self.assertEqual((self.sd / self.name).read_bytes(), self.binary)
+        self.assertEqual(config.read_bytes(), b'{"user":true}')
+        self.assertEqual((self.cache / 'previous-files' / digest(old) / 'demo.nds').read_bytes(), old)
+
+    def test_menu_update_check_is_read_only_and_reports_reviewed_versions(self):
+        args = self.menu_args()
+        self.run_stage()
+        before = {p: p.read_bytes() for p in self.sd.rglob('*') if p.is_file()}
+        output = io.StringIO()
+        with patch('builtins.input', side_effect=['2', '', '0']), redirect_stdout(output):
+            interactive_menu(self.manifest, args)
+        self.assertIn('reviewed v1', output.getvalue())
+        self.assertEqual(before, {p: p.read_bytes() for p in self.sd.rglob('*') if p.is_file()})
+
+    def test_standalone_no_argument_menu_and_closed_input_exit_without_writes(self):
+        self.menu_args()
+        source = Path(__file__).resolve().parents[1] / 'tools/download_addons.py'
+        script = self.root / 'download-addons.py'
+        script.write_bytes(source.read_bytes())
+        (self.root / 'downloads.json').write_text(json.dumps(self.manifest))
+        for entry in ('0\n', ''):
+            result = subprocess.run([sys.executable, str(script)], input=entry, text=True,
+                                    capture_output=True, timeout=15)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('Gloam Add-on Installer', result.stdout)
+            self.assertNotIn('Choose a menu number.', result.stdout)
+        self.assertEqual(list(self.sd.iterdir()), [])
 
     def test_only_pinned_members_are_installed_and_existing_files_are_preserved(self):
         self.assertEqual(self.run_stage(), (2, 0))

@@ -41,7 +41,8 @@ class ReleaseVerificationTests(unittest.TestCase):
 
     def test_complete_set_and_optional_addons(self):
         verify(self.root)
-        self.archive('addons.zip', {'addon-installer/download-addons.py': b'Fixture script',
+        self.archive('addons.zip', {'addon-installer/Start Add-on Installer.cmd': b'Fixture launcher',
+                                   'addon-installer/download-addons.py': b'Fixture script',
                                    'addon-installer/download-addons.ps1': b'Fixture script',
                                    'addon-installer/downloads.json': b'{}'})
         self.sums()

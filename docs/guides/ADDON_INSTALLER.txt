@@ -1,13 +1,29 @@
 Gloam optional application downloader
 =====================================
 
-Run ONE of these scripts on your computer after extracting addons.zip.
-They are equivalent; PowerShell does not need Python.
+After extracting addons.zip, open its addon-installer folder.
+On Windows, double-click Start Add-on Installer.cmd to open the PowerShell menu;
+Python is not required. Keep the launcher, scripts and downloads.json together.
+The launcher sets PowerShell's execution policy for that process only.
+
+Opening either script without arguments also starts its menu when launched by
+its interpreter. Windows may open .ps1 files in an editor; use the .cmd launcher
+for double-click operation. Python requires Python 3.11+ and a configured file
+association, or run python download-addons.py with no arguments.
+
+The menu lets you choose a detected removable drive or type an existing SD root
+or staging folder, select applications, check installed versions and apply updates.
+Numbers or application IDs select apps; "all" selects standard applications.
+Noncommercial apps need confirmation of their terms, and experimental apps must
+be selected explicitly. Every install/update shows the target and selection
+before confirmation. Cancelling returns to the menu without installing files.
+Command-line arguments remain available for automation; --interactive /
+-Interactive opens the menu with options such as a custom cache or offline mode.
 They download the remaining reviewed applications directly from upstream and
 stage their pinned runtime files onto an existing SD root or staging folder.
 No applications with unconfirmed permission are embedded in these scripts.
 
-Python 3.11+:
+Command-line examples (Python 3.11+):
   python download-addons.py --list
   python download-addons.py --target E:/ --dry-run
   python download-addons.py --target E:/

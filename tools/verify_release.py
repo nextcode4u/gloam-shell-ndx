@@ -78,7 +78,8 @@ def verify(directory, addons=False):
             raise ValueError('Missing release license/attribution')
     if addons:
         with checked_archive(directory / 'addons.zip') as archive:
-            required = {'addon-installer/download-addons.py', 'addon-installer/download-addons.ps1',
+            required = {'addon-installer/Start Add-on Installer.cmd',
+                        'addon-installer/download-addons.py', 'addon-installer/download-addons.ps1',
                         'addon-installer/downloads.json'}
             if not required <= set(archive.namelist()):
                 raise ValueError('Add-on installer is incomplete')

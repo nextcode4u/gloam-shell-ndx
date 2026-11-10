@@ -1,0 +1,122 @@
+"""Exercise standalone menus in Windows PowerShell 5.1 and the CMD launcher."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+POWERSHELL = shutil.which('powershell.exe') or '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe'
+CMD = shutil.which('cmd.exe') or '/mnt/c/Windows/System32/cmd.exe'
+AVAILABLE = Path(POWERSHELL).is_file() and Path(CMD).is_file()
+
+
+def windows_path(path):
+    if os.name == 'nt':
+        return str(path)
+    return subprocess.check_output(['wslpath', '-w', str(path)], text=True).strip()
+
+
+@unittest.skipUnless(AVAILABLE, 'Requires native Windows PowerShell and CMD (Windows or WSL interop)')
+class WindowsInstallerMenuTests(unittest.TestCase):
+    def setUp(self):
+        (ROOT / 'build').mkdir(exist_ok=True)
+        self.temp = tempfile.TemporaryDirectory(prefix='installer menu ', dir=ROOT / 'build')
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.installer = self.root / 'installer'
+        self.installer.mkdir()
+        for output, source in [('download-addons.py', 'tools/download_addons.py'),
+                               ('download-addons.ps1', 'tools/download_addons.ps1'),
+                               ('Start Add-on Installer.cmd', 'tools/start_addon_installer.cmd')]:
+            shutil.copyfile(ROOT / source, self.installer / output)
+        self.cache = self.root / 'cache'
+        self.cache.mkdir()
+        self.payload = b'Original menu fixture, not a game or executable ROM.'
+        self.digest = hashlib.sha256(self.payload).hexdigest()
+        (self.cache / 'fixture.nds').write_bytes(self.payload)
+        self.app = {'id': 'demo', 'version': 'v1', 'repository': 'https://example.invalid/demo',
+                    'terms': 'Authored fixture terms', 'noncommercial': False, 'files': [{
+                        'download': {'asset': 'fixture.nds', 'url': 'https://example.invalid/fixture.nds',
+                                     'sha256': self.digest}, 'format': 'raw',
+                        'destination': '_nds/dsi-frontend/plugins/apps/demo.nds', 'sha256': self.digest}]}
+        self.manifest = {'format': 1, 'reviewed': '2026-11-09', 'applications': [self.app],
+                         'updates': [self.app], 'manual': []}
+        self.write_manifest()
+        self.target = self.root / 'sd'
+        self.target.mkdir()
+        self.binary = self.target / self.app['files'][0]['destination']
+        self.ps = [POWERSHELL, '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+                   windows_path(self.installer / 'download-addons.ps1')]
+        self.options = ['-Interactive', '-Offline', '-Target', windows_path(self.target),
+                        '-Cache', windows_path(self.cache)]
+
+    def write_manifest(self):
+        (self.installer / 'downloads.json').write_text(json.dumps(self.manifest))
+
+    def run_menu(self, command, entries):
+        result = subprocess.run(command, input=entries, text=True, capture_output=True, timeout=45)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('Gloam Add-on Installer', result.stdout, result.stderr)
+        self.assertNotIn('Operation stopped:', result.stdout)
+        return result.stdout
+
+    def test_no_argument_menus_and_double_click_launcher(self):
+        self.run_menu(self.ps, '0\n')
+        self.run_menu([sys.executable, str(self.installer / 'download-addons.py')], '0\n')
+        self.run_menu([CMD, '/d', '/c', windows_path(self.installer / 'Start Add-on Installer.cmd')], '0\n')
+        self.assertEqual(list(self.target.iterdir()), [])
+
+    def test_install_and_read_only_update_check_return_to_menu(self):
+        output = self.run_menu(self.ps + self.options, '1\n1\ny\n\n0\n')
+        self.assertGreaterEqual(output.count('Gloam Add-on Installer'), 2)
+        self.assertEqual(self.binary.read_bytes(), self.payload)
+        before = self.binary.stat().st_mtime_ns
+        output = self.run_menu(self.ps + self.options, '2\n\n0\n')
+        self.assertGreaterEqual(output.count('Gloam Add-on Installer'), 2)
+        self.assertIn('up to date', output)
+        self.assertEqual(self.binary.stat().st_mtime_ns, before)
+
+    def test_update_keeps_user_config_and_backs_up_old_binary(self):
+        self.binary.parent.mkdir(parents=True)
+        old = b'Previous executable fixture'
+        self.binary.write_bytes(old)
+        settings = self.target / 'user.ini'
+        settings.write_bytes(b'Preserved user settings')
+        output = self.run_menu(self.ps + self.options, '3\n1\ny\n\n0\n')
+        self.assertGreaterEqual(output.count('Gloam Add-on Installer'), 2)
+        self.assertEqual(self.binary.read_bytes(), self.payload)
+        self.assertEqual(settings.read_bytes(), b'Preserved user settings')
+        backup = self.cache / 'previous-files' / hashlib.sha256(old).hexdigest() / 'demo.nds'
+        self.assertEqual(backup.read_bytes(), old)
+
+    def test_noncommercial_confirmation_can_be_declined_or_accepted(self):
+        self.app['noncommercial'] = True
+        self.write_manifest()
+        self.run_menu(self.ps + self.options, '1\n1\nn\n\n0\n')
+        self.assertFalse(self.binary.exists())
+        self.run_menu(self.ps + self.options, '1\n1\ny\ny\n\n0\n')
+        self.assertEqual(self.binary.read_bytes(), self.payload)
+
+    def test_python_menu_selects_target_and_installs_without_command_line_target(self):
+        command = [sys.executable, str(self.installer / 'download-addons.py'),
+                   '--interactive', '--offline', '--cache', str(self.cache)]
+        entries = '4\n' + str(self.target) + '\n1\n1\ny\n\n0\n'
+        output = self.run_menu(command, entries)
+        self.assertGreaterEqual(output.count('Gloam Add-on Installer'), 3)
+        self.assertEqual(self.binary.read_bytes(), self.payload)
+
+    def test_target_retry_and_empty_selection_do_not_write(self):
+        options = ['-Interactive', '-Offline', '-Cache', windows_path(self.cache)]
+        entries = '4\n' + windows_path(self.root / 'missing') + '\n' + windows_path(self.target) + '\n1\n0\n\n0\n'
+        output = self.run_menu(self.ps + options, entries)
+        self.assertIn('That folder is unavailable', output)
+        self.assertEqual(list(self.target.iterdir()), [])
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -8,6 +8,8 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import re
+import shutil
+import sys
 import tarfile
 import tempfile
 import urllib.request
@@ -198,6 +200,7 @@ def fetch(item, cache, offline):
     elif offline:
         raise ValueError(f"Offline cache missing: {name}")
     else:
+        print(f"Downloading {item['asset']}...")
         request = urllib.request.Request(item["url"], headers={"User-Agent": "Gloam-addon-installer"})
         with urllib.request.urlopen(request, timeout=60) as response:
             data = response.read(MAX_DOWNLOAD + 1)
@@ -310,8 +313,168 @@ def stage(manifest, target, cache, only=None, noncommercial=False, overwrite=Fal
     return installed, skipped
 
 
+def removable_drives():
+    """Suggest ready removable Windows drives; other targets can be entered."""
+    if os.name != "nt":
+        return []
+    import ctypes
+    drive_type = ctypes.windll.kernel32.GetDriveTypeW
+    drive_type.argtypes = [ctypes.c_wchar_p]
+    drive_type.restype = ctypes.c_uint
+    drives = []
+    for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+        path = Path(letter + ":/")
+        if drive_type(path.anchor) == 2 and path.is_dir():
+            try:
+                label = f"{shutil.disk_usage(path).free / 1024**3:.1f} GB free"
+            except OSError:
+                label = "removable drive"
+            drives.append((path, label))
+    return drives
+
+
+def choose_target():
+    drives = removable_drives()
+    print("\nChoose the SD card root or an existing staging folder.")
+    for number, (path, label) in enumerate(drives, 1):
+        print(f"  {number}. {path} ({label})")
+    while True:
+        answer = input("Drive number or folder path (blank to go back): ").strip().strip('"')
+        if not answer:
+            return None
+        if answer.isdigit():
+            if not 1 <= int(answer) <= len(drives):
+                print("Choose a listed drive number or enter a folder path.")
+                continue
+            path = drives[int(answer) - 1][0]
+        else:
+            if os.name == "nt" and re.fullmatch(r"[A-Za-z]:", answer):
+                answer += "/"
+            path = Path(answer).expanduser()
+        try:
+            path = path.resolve(strict=True)
+            if path.is_dir():
+                return path
+        except OSError:
+            pass
+        print("That folder is unavailable. Choose an existing SD root or staging folder.")
+
+
+def installed_apps(apps, target):
+    return [app for app in apps if any(
+        destination(target, item["destination"]).is_file() for item in app["files"]
+        if item["destination"].endswith((".nds", ".srl")))]
+
+
+def show_applications(apps, target=None):
+    installed = {a["id"] for a in installed_apps(apps, target)} if target else set()
+    for number, app in enumerate(apps, 1):
+        labels = []
+        if app["id"] in installed:
+            labels.append("installed")
+        if app.get("noncommercial"):
+            labels.append("noncommercial")
+        if app.get("experimental"):
+            labels.append("experimental")
+        suffix = " [" + ", ".join(labels) + "]" if labels else ""
+        print(f"  {number:2}. {app['id']}  {app['version']}{suffix}")
+
+
+def parse_selection(answer, apps):
+    if answer.lower() == "all":
+        return [a["id"] for a in apps if not a.get("noncommercial") and not a.get("experimental")]
+    names = {a["id"] for a in apps}
+    selected = []
+    for token in re.split(r"[,\s]+", answer.strip()):
+        if token.isdigit() and 1 <= int(token) <= len(apps):
+            token = apps[int(token) - 1]["id"]
+        if token not in names:
+            raise ValueError("Choose listed numbers or application IDs, separated by spaces or commas.")
+        if token not in selected:
+            selected.append(token)
+    return selected
+
+
+def choose_applications(apps, target):
+    show_applications(apps, target)
+    print("Enter numbers or IDs. 'all' selects standard apps, excluding noncommercial/experimental entries.")
+    while True:
+        answer = input("Applications (blank or 0 to go back): ").strip()
+        if answer in {"", "0"}:
+            return None
+        try:
+            return parse_selection(answer, apps)
+        except ValueError as error:
+            print(error)
+
+
+def interactive_menu(manifest, args):
+    """Collect choices, then use the same checked install/update paths as the CLI."""
+    if manifest["format"] != 1:
+        raise ValueError("Unsupported download manifest")
+    target = args.target.expanduser().resolve(strict=True) if args.target else None
+    while True:
+        print("\nGloam Add-on Installer\n======================")
+        print(f"Target: {target or 'not selected'}")
+        print("1. Install applications\n2. Check installed apps for updates\n3. Update installed apps")
+        print("4. Choose SD card or staging folder\n5. Show applications\n0. Exit")
+        action = input("Choose: ").strip()
+        if action == "0":
+            return
+        if action == "4":
+            target = choose_target() or target
+            continue
+        if action == "5":
+            show_applications(sorted(manifest.get("updates", manifest["applications"]), key=lambda a: a["id"]), target)
+            input("Press Enter to return to the menu...")
+            continue
+        if action not in {"1", "2", "3"}:
+            print("Choose a menu number.")
+            continue
+        if target is None:
+            target = choose_target()
+            if target is None:
+                continue
+        try:
+            print("Reading reviewed application versions...")
+            current = update_manifest(manifest, args.catalog, args.offline)
+            apps = sorted(current["applications"], key=lambda a: a["id"])
+            if action in {"2", "3"}:
+                apps = installed_apps(apps, target)
+            if not apps:
+                print("No matching applications are installed." if action != "1" else "No downloads are available.")
+            elif action == "2":
+                check_updates(current, target, [a["id"] for a in apps], noncommercial=True)
+            else:
+                names = choose_applications(apps, target)
+                if names:
+                    selected = select_apps(current, names, noncommercial=True)
+                    print(f"\nTarget: {target}")
+                    for app in selected:
+                        print(f"  {app['id']} {app['version']}: {app['terms']}")
+                        if app.get("experimental"):
+                            print("  Experimental: " + app.get("notes", "Experimental build"))
+                    allowed = args.noncommercial
+                    if any(a.get("noncommercial") for a in selected) and not allowed:
+                        allowed = input("Use selected noncommercial apps within their stated terms? [y/N]: ").strip().lower() in {"y", "yes"}
+                        if not allowed:
+                            print("Cancelled.")
+                            input("Press Enter to return to the menu...")
+                            continue
+                    operation = "Update" if action == "3" else "Install"
+                    if input(f"{operation} these applications? [y/N]: ").strip().lower() in {"y", "yes"}:
+                        stage(current, target, args.cache, [a["id"] for a in selected], allowed,
+                              args.overwrite, args.offline, args.dry_run, action == "3")
+                    else:
+                        print("Cancelled.")
+        except (OSError, ValueError, KeyError, zipfile.BadZipFile, tarfile.TarError) as error:
+            print(f"Operation stopped: {error}")
+        input("Press Enter to return to the menu...")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--interactive", action="store_true", help="Open the interactive installer menu")
     parser.add_argument("--target", type=Path, help="Existing SD root or staging directory")
     parser.add_argument("--manifest", type=Path, default=Path(__file__).with_name("downloads.json"))
     parser.add_argument("--cache", type=Path, default=Path.home() / ".gloam-addons-cache")
@@ -326,8 +489,12 @@ def main():
     parser.add_argument("--catalog", type=Path, help="Use a local reviewed catalog instead of refreshing online")
     parser.add_argument("--upstream", action="store_true", help="Also report other upstream release tags; never auto-install them")
     args = parser.parse_args()
+    menu_mode = args.interactive or len(sys.argv) == 1
     try:
         manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+        if menu_mode:
+            interactive_menu(manifest, args)
+            return
         if args.list:
             for app in manifest["applications"]:
                 suffix = "; needs --noncommercial" if app.get("noncommercial") else ""
@@ -350,7 +517,16 @@ def main():
             return
         stage(manifest, args.target, args.cache, args.only, args.noncommercial,
               args.overwrite, args.offline, args.dry_run, args.update)
+    except (EOFError, KeyboardInterrupt):
+        print("\nInstaller closed.")
     except (OSError, ValueError, KeyError, zipfile.BadZipFile, tarfile.TarError) as error:
+        if menu_mode:
+            print(f"Installation stopped: {error}")
+            try:
+                input("Press Enter to close...")
+            except (EOFError, KeyboardInterrupt):
+                pass
+            raise SystemExit(1)
         parser.exit(1, f"Installation stopped: {error}\n")
 
 

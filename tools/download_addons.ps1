@@ -1,6 +1,7 @@
 # Downloads optional Gloam applications directly from upstream. No Python required.
 [CmdletBinding()]
 param(
+    [switch]$Interactive,
     [string]$Target,
     [string]$Manifest,
     [string]$Cache = (Join-Path ([Environment]::GetFolderPath('UserProfile')) '.gloam-addons-cache'),
@@ -15,6 +16,7 @@ param(
     [string]$Catalog,
     [switch]$Upstream
 )
+$MenuMode = $Interactive -or $PSBoundParameters.Count -eq 0
 if (-not $Manifest) { $Manifest = Join-Path $PSScriptRoot 'downloads.json' }
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -87,7 +89,7 @@ function Get-UpdateApps($Document) {
     return $Document.applications
 }
 
-function Get-SelectedApps($Applications, [string[]]$Names) {
+function Get-SelectedApps($Applications, [string[]]$Names, [bool]$AllowNoncommercial = [bool]$Noncommercial) {
     $apps = @{}
     foreach ($app in $Applications) {
         if ($apps.ContainsKey($app.id)) { throw 'Duplicate application ID' }
@@ -101,7 +103,7 @@ function Get-SelectedApps($Applications, [string[]]$Names) {
         if (-not $apps.ContainsKey($name)) { throw "No pinned download for: $name; use -List for manual entries" }
         $app = $apps[$name]
         if ($app.PSObject.Properties.Name -contains 'experimental' -and $app.experimental -and -not $Names) { continue }
-        if ($app.noncommercial -and -not $Noncommercial) {
+        if ($app.noncommercial -and -not $AllowNoncommercial) {
             if ($Names) { throw "$name requires -Noncommercial" }
             continue
         }
@@ -225,9 +227,174 @@ function Get-Download($Item) {
     return ,$bytes
 }
 
+function Read-MenuInput([string]$Prompt) {
+    if ([Console]::IsInputRedirected) {
+        Write-Host -NoNewline ($Prompt + ': ')
+        $answer = [Console]::ReadLine()
+    } else { $answer = Read-Host $Prompt }
+    if ($null -eq $answer) { throw [OperationCanceledException]::new('Input closed') }
+    return $answer.Trim()
+}
+
+function Read-MenuTarget {
+    Write-Host "`nChoose the SD card root or an existing staging folder."
+    $drives = @()
+    try {
+        $drives = @([IO.DriveInfo]::GetDrives() | Where-Object {
+            $_.IsReady -and $_.DriveType -eq [IO.DriveType]::Removable
+        } | Sort-Object Name)
+    } catch { Write-Host 'Enter a folder path to select the target.' }
+    for ($i = 0; $i -lt $drives.Count; $i++) {
+        Write-Host ('  {0}. {1} ({2:N1} GB free)' -f ($i + 1), $drives[$i].Name, ($drives[$i].AvailableFreeSpace / 1GB))
+    }
+    while ($true) {
+        $answer = (Read-MenuInput 'Drive number or folder path (blank to go back)').Trim('"')
+        if (-not $answer) { return $null }
+        $number = 0
+        if ([int]::TryParse($answer, [ref]$number)) {
+            if ($number -lt 1 -or $number -gt $drives.Count) {
+                Write-Host 'Choose a listed drive number or enter a folder path.'
+                continue
+            }
+            $answer = $drives[$number - 1].Name
+        }
+        if ($answer -match '^[A-Za-z]:$') { $answer += '\' }
+        if (Test-Path -LiteralPath $answer -PathType Container) {
+            return (Resolve-Path -LiteralPath $answer).ProviderPath
+        }
+        Write-Host 'That folder is unavailable. Choose an existing SD root or staging folder.'
+    }
+}
+
+function Get-MenuInstalledApps($Applications, [string]$Folder) {
+    foreach ($app in $Applications) {
+        $present = @($app.files | Where-Object {
+            $_.destination -match '\.(nds|srl)$' -and
+            (Test-Path -LiteralPath (Get-Destination $Folder $_.destination) -PathType Leaf)
+        }).Count -gt 0
+        if ($present) { $app }
+    }
+}
+
+function Show-MenuApps($Applications, [string]$Folder) {
+    $installed = @()
+    if ($Folder) { $installed = @(Get-MenuInstalledApps $Applications $Folder | ForEach-Object { $_.id }) }
+    for ($i = 0; $i -lt $Applications.Count; $i++) {
+        $app = $Applications[$i]
+        $labels = @()
+        if ($app.id -in $installed) { $labels += 'installed' }
+        if ($app.noncommercial) { $labels += 'noncommercial' }
+        if ($app.PSObject.Properties.Name -contains 'experimental' -and $app.experimental) { $labels += 'experimental' }
+        $suffix = if ($labels.Count) { ' [' + ($labels -join ', ') + ']' } else { '' }
+        Write-Host ('  {0,2}. {1}  {2}{3}' -f ($i + 1), $app.id, $app.version, $suffix)
+    }
+}
+
+function Read-MenuApps($Applications, [string]$Folder) {
+    Show-MenuApps $Applications $Folder
+    Write-Host "Enter numbers or IDs. 'all' selects standard apps, excluding noncommercial/experimental entries."
+    while ($true) {
+        $answer = Read-MenuInput 'Applications (blank or 0 to go back)'
+        if (-not $answer -or $answer -eq '0') { return }
+        if ($answer -eq 'all') {
+            $Applications | Where-Object {
+                -not $_.noncommercial -and
+                -not ($_.PSObject.Properties.Name -contains 'experimental' -and $_.experimental)
+            } | ForEach-Object { $_.id }
+            return
+        }
+        $names = @()
+        $valid = $true
+        foreach ($token in ($answer -split '[,\s]+')) {
+            $number = 0
+            $id = $token
+            if ([int]::TryParse($token, [ref]$number) -and $number -ge 1 -and $number -le $Applications.Count) {
+                $id = $Applications[$number - 1].id
+            }
+            if ($id -cnotin @($Applications | ForEach-Object { $_.id })) { $valid = $false; break }
+            if ($id -notin $names) { $names += $id }
+        }
+        if ($valid) { return $names }
+        Write-Host 'Choose listed numbers or application IDs, separated by spaces or commas.'
+    }
+}
+
+function Invoke-InstallerMenu($Document) {
+    $folder = $Target
+    if ($folder) { $folder = (Resolve-Path -LiteralPath $folder).ProviderPath }
+    $scriptPath = $PSCommandPath
+    while ($true) {
+        Write-Host "`nGloam Add-on Installer`n======================"
+        Write-Host ('Target: ' + $(if ($folder) { $folder } else { 'not selected' }))
+        Write-Host "1. Install applications`n2. Check installed apps for updates`n3. Update installed apps"
+        Write-Host "4. Choose SD card or staging folder`n5. Show applications`n0. Exit"
+        $action = Read-MenuInput 'Choose'
+        if ($action -eq '0') { return }
+        if ($action -eq '4') {
+            $chosen = Read-MenuTarget
+            if ($chosen) { $folder = $chosen }
+            continue
+        }
+        if ($action -eq '5') {
+            $apps = if ($Document.PSObject.Properties.Name -contains 'updates') { @($Document.updates) } else { @($Document.applications) }
+            Show-MenuApps @($apps | Sort-Object id) $folder
+            $null = Read-MenuInput 'Press Enter to return to the menu...'
+            continue
+        }
+        if ($action -notin @('1', '2', '3')) { Write-Host 'Choose a menu number.'; continue }
+        if (-not $folder) {
+            $folder = Read-MenuTarget
+            if (-not $folder) { continue }
+        }
+        try {
+            Write-Host 'Reading reviewed application versions...'
+            $allApps = @(Get-UpdateApps $Document | Sort-Object id)
+            $apps = @($allApps)
+            if ($action -in @('2', '3')) { $apps = @(Get-MenuInstalledApps $apps $folder) }
+            if (-not $apps.Count) { Write-Host 'No matching applications are available.' }
+            else {
+                $names = @(if ($action -eq '2') { $apps | ForEach-Object { $_.id } } else { Read-MenuApps $apps $folder })
+                if ($names.Count) {
+                    $allowed = [bool]$Noncommercial
+                    if ($action -ne '2') {
+                        $selected = @(Get-SelectedApps $allApps $names $true)
+                        $names = @($selected | ForEach-Object { $_.id })
+                        Write-Host "`nTarget: $folder"
+                        foreach ($app in $selected) {
+                            Write-Host "  $($app.id) $($app.version): $($app.terms)"
+                            if ($app.PSObject.Properties.Name -contains 'experimental' -and $app.experimental) { Write-Host "  Experimental: $($app.notes)" }
+                        }
+                        if (@($selected | Where-Object { $_.noncommercial }).Count -and -not $allowed) {
+                            $allowed = (Read-MenuInput 'Use selected noncommercial apps within their stated terms? [y/N]') -in @('y', 'yes')
+                            if (-not $allowed) { Write-Host 'Cancelled.'; $null = Read-MenuInput 'Press Enter to return to the menu...'; continue }
+                        }
+                        $verb = if ($action -eq '3') { 'Update' } else { 'Install' }
+                        if ((Read-MenuInput "$verb these applications? [y/N]") -notin @('y', 'yes')) {
+                            Write-Host 'Cancelled.'; $null = Read-MenuInput 'Press Enter to return to the menu...'; continue
+                        }
+                    } else { $allowed = $true }
+                    # Named invocation reuses the unchanged CLI checks and staging behavior.
+                    $operation = @{ Manifest = $Manifest; Target = $folder; Cache = $Cache; Only = [string[]]$names;
+                        Offline = [bool]$Offline; Noncommercial = $allowed; DryRun = [bool]$DryRun; Overwrite = [bool]$Overwrite }
+                    if ($Catalog) { $operation.Catalog = $Catalog }
+                    if ($action -eq '2') { $operation.CheckUpdates = $true; $operation.Upstream = [bool]$Upstream }
+                    if ($action -eq '3') { $operation.Update = $true }
+                    $global:LASTEXITCODE = 0
+                    & $scriptPath @operation
+                    if ($LASTEXITCODE -ne 0) { Write-Host 'Operation stopped. Review the message above.' }
+                }
+            }
+        } catch [OperationCanceledException] { return }
+        catch { Write-Host "Operation stopped: $($_.Exception.Message)" }
+        $null = Read-MenuInput 'Press Enter to return to the menu...'
+    }
+}
+
+
 try {
     $document = Get-Content -Raw -LiteralPath $Manifest | ConvertFrom-Json
     if ($document.format -ne 1) { throw 'Unsupported download manifest' }
+    if ($MenuMode) { Invoke-InstallerMenu $document; exit 0 }
     if ($List) {
         foreach ($app in $document.applications) {
             $suffix = if ($app.noncommercial) { '; needs -Noncommercial' } else { '' }
@@ -363,7 +530,9 @@ try {
         } finally { if (Test-Path -LiteralPath $temporary) { [IO.File]::Delete($temporary) } }
     }
     Write-Output "Installed $installed files; preserved $skipped existing files."
-} catch {
+} catch [OperationCanceledException] { exit 0 }
+catch {
     [Console]::Error.WriteLine("Installation stopped: $($_.Exception.Message)")
+    if ($MenuMode -and -not $Interactive) { try { $null = Read-MenuInput 'Press Enter to close...' } catch {} }
     exit 1
 }
