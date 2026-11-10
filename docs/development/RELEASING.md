@@ -5,6 +5,9 @@ and public-tree checks on pull requests and main pushes. A separate native job
 builds with the checksum-pinned official BlocksDS 1.25.0 slim image and packages
 `BOOT.NDS`, `sd.zip`, `source.zip`, `licenses.zip` and `SHA256SUMS` together.
 The image uses Wonderful GCC 16.2.0. See [BlocksDS Docker setup](https://blocksds.skylyrac.net/docs/setup/options/docker/).
+A native Windows job exercises the standalone Python/PowerShell menus and CMD
+launcher with original fixtures, including confirmation, settings preservation
+and update backups. It does not use an SD card, game data or emulator.
 Actions are pinned to reviewed release commits. Update those pins deliberately.
 
 The native image has no Python interpreter by default; the workflow installs
@@ -13,7 +16,7 @@ Python. Neither job uses private firmware, NAND, commercial titles or emulator
 runtime data. Downloaded dependencies and build output remain ignored.
 
 Run **Prepare prerelease** manually from the main branch to prepare a new
-`vX.Y.Z-preview.N` or `vX.Y.Z-rc.N` tag. It first runs both check jobs, optionally
+`vX.Y.Z-preview.N` or `vX.Y.Z-rc.N` tag. It first runs all check jobs, optionally
 checks and packages reviewed add-ons, downloads the resulting artifact and
 verifies it again before creating a **draft prerelease**. Review the draft's
 notes, source commit, compatibility limits and complete artifact set before
