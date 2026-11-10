@@ -63,7 +63,12 @@ function Write-GloamFile([string]$Root, [string]$Relative, [byte[]]$Data, [bool]
     return $true
 }
 
-function Get-GloamHash([string]$Path) { return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant() }
+function Get-GloamHash([string]$Path) {
+    $stream = [IO.File]::OpenRead($Path)
+    $hash = [Security.Cryptography.SHA256]::Create()
+    try { return ([BitConverter]::ToString($hash.ComputeHash($stream))).Replace('-', '').ToLowerInvariant() }
+    finally { $hash.Dispose(); $stream.Dispose() }
+}
 
 function Get-GloamRelease([string]$Directory) {
     [IO.Directory]::CreateDirectory($Directory) | Out-Null

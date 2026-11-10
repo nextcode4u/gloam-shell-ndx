@@ -205,10 +205,14 @@ $ui.AddonList.ItemsSource = @($apps | ForEach-Object {
 if ($Target) { $ui.TargetPath.Text = $Target; Load-Sd }
 Show-Page 'Setup'
 if ($SmokeTest) {
-    $window.Add_ContentRendered({
-        foreach ($page in @('Addons','Library','Themes','Setup')) { $ui['Nav' + $page].RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent)) }
-        Show-Page $ScreenshotPage
+    $script:SmokeTimer = [Windows.Threading.DispatcherTimer]::new()
+    $script:SmokeTimer.Interval = [TimeSpan]::FromMilliseconds(250)
+    $script:SmokeTimer.Add_Tick({
+        $script:SmokeTimer.Stop()
         $window.UpdateLayout()
+        if ($ScreenshotPage -eq 'Addons' -and $ui.AddonList.Columns[0].ActualWidth -lt 40) {
+            throw 'The app-list columns did not receive their readable layout widths.'
+        }
         if ($ScreenshotPath) {
             $bitmap = [Windows.Media.Imaging.RenderTargetBitmap]::new([int]$window.ActualWidth,[int]$window.ActualHeight,96,96,[Windows.Media.PixelFormats]::Pbgra32)
             $bitmap.Render($window); $encoder = [Windows.Media.Imaging.PngBitmapEncoder]::new(); $encoder.Frames.Add([Windows.Media.Imaging.BitmapFrame]::Create($bitmap))
@@ -217,6 +221,11 @@ if ($SmokeTest) {
         Write-Host ('GUI loaded: ' + $ui.Count + ' controls; ' + @($ui.AddonList.ItemsSource).Count + ' add-ons.')
         if ($SmokeAction) { $ui[$SmokeAction].RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent)) }
         else { $window.Close() }
+    })
+    $window.Add_ContentRendered({
+        foreach ($page in @('Addons','Library','Themes','Setup')) { $ui['Nav' + $page].RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent)) }
+        Show-Page $ScreenshotPage
+        $script:SmokeTimer.Start()
     })
 }
 $window.ShowDialog() | Out-Null

@@ -32,9 +32,15 @@ if (-not $ReleaseDirectory) {
         } finally { if (Test-Path -LiteralPath $temporary) { Remove-Item -LiteralPath $temporary } }
     }
 }
+function Get-GloamBootstrapHash([string]$Path) {
+    $stream = [IO.File]::OpenRead($Path)
+    $hash = [Security.Cryptography.SHA256]::Create()
+    try { return ([BitConverter]::ToString($hash.ComputeHash($stream))).Replace('-', '').ToLowerInvariant() }
+    finally { $hash.Dispose(); $stream.Dispose() }
+}
 $package = Join-Path $ReleaseDirectory 'addons.zip'
 $lines = @([IO.File]::ReadAllLines((Join-Path $ReleaseDirectory 'SHA256SUMS')) | Where-Object { $_ -match '^[a-f0-9]{64}  addons\.zip$' })
-if ($lines.Count -ne 1 -or (Get-FileHash -LiteralPath $package -Algorithm SHA256).Hash.ToLowerInvariant() -ne $lines[0].Substring(0,64)) { throw 'Add-on package checksum mismatch. Remove the cached addons.zip and try again.' }
+if ($lines.Count -ne 1 -or (Get-GloamBootstrapHash $package) -ne $lines[0].Substring(0,64)) { throw 'Add-on package checksum mismatch. Remove the cached addons.zip and try again.' }
 $allowed = @('gloam-setup.ps1','gloam-setup.xaml','gloam-setup-core.ps1','gloam-setup-worker.ps1','Start Gloam Setup.cmd',
     'download-addons.ps1','download-addons.py','downloads.json','Start Add-on Installer.cmd','README.txt')
 $required = @('gloam-setup.ps1','gloam-setup.xaml','gloam-setup-core.ps1','gloam-setup-worker.ps1','download-addons.ps1','downloads.json')
