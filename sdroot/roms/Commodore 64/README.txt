@@ -17,7 +17,7 @@ GimliDS.
 Add-on package: available; terms: GPL-2.0-or-later.
 
 Upstream: https://github.com/nextcode4u/GimliDS
-Release: https://github.com/nextcode4u/GimliDS/releases/tag/v1.7a-argv.1
+Release: https://github.com/nextcode4u/GimliDS/releases/tag/v1.7a-argv.2
 
 The configured .d64/.crt/.prg associations target the nextcode4u/GimliDS argv
 release, included in addons.zip and available through the shared downloader.

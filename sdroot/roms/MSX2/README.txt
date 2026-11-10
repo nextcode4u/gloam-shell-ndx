@@ -23,7 +23,7 @@ addons.zip/addon-installer, or install directly from upstream. Existing files
 are preserved by default.
 
 Upstream: https://github.com/nextcode4u/Hachibitto
-Release: https://github.com/nextcode4u/Hachibitto/releases/tag/v1.9-argv.1
+Release: https://github.com/nextcode4u/Hachibitto/releases/tag/v1.9-argv.2
 
 The configured .mx2/.mxd associations target nextcode4u/Hachibitto
 v1.9-argv.1. Use the shared downloader with noncommercial opt-in to install

@@ -142,7 +142,8 @@ class AddonTests(unittest.TestCase):
         manifest = download_manifest(lock, bundled)
         app = next(a for a in manifest["applications"] if a["id"] == "hachibitto")
         self.assertTrue(app["noncommercial"])
-        self.assertEqual(app["version"], "v1.9-argv.1")
+        recipe = next(a for a in lock["applications"] if a["id"] == "hachibitto")
+        self.assertEqual(app["version"], recipe["version"])
         self.assertNotIn("source", app)
         self.assertNotIn("notices", app)
         self.assertEqual(app["files"][0]["destination"],

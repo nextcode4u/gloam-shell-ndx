@@ -372,64 +372,64 @@
     {
       "id": "dslibris",
       "repository": "https://github.com/nextcode4u/dslibris",
-      "version": "v1.6.0-blocksds-argv.1",
-      "commit": "0fcd8dc8b18a9a0698a28241a430fd6c003f9bb9",
-      "release": "https://github.com/nextcode4u/dslibris/releases/tag/v1.6.0-blocksds-argv.1",
+      "version": "v1.6.0-blocksds-argv.2",
+      "commit": "0df16f99a5ce4da385bc2685e3b1e7c40d012d8d",
+      "release": "https://github.com/nextcode4u/dslibris/releases/tag/v1.6.0-blocksds-argv.2",
       "release_assets": [
         {
-          "name": "DSLibris-v1.6.0-blocksds-argv.1.zip",
-          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip"
+          "name": "DSLibris-v1.6.0-blocksds-argv.2.zip",
+          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.2/DSLibris-v1.6.0-blocksds-argv.2.zip"
         },
         {
-          "name": "DSLibris-v1.6.0-blocksds-argv.1-source.tar.gz",
-          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1-source.tar.gz"
+          "name": "DSLibris-v1.6.0-blocksds-argv.2-source.tar.gz",
+          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.2/DSLibris-v1.6.0-blocksds-argv.2-source.tar.gz"
         },
         {
           "name": "dslibris-blocksds.nds",
-          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/dslibris-blocksds.nds"
+          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.2/dslibris-blocksds.nds"
         },
         {
           "name": "BUILD-INFO.json",
-          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/BUILD-INFO.json"
+          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.2/BUILD-INFO.json"
         },
         {
           "name": "SHA256SUMS",
-          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/SHA256SUMS"
+          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.2/SHA256SUMS"
         }
       ],
       "argv": "direct",
-      "argv_evidence": "https://github.com/nextcode4u/dslibris/blob/0fcd8dc8b18a9a0698a28241a430fd6c003f9bb9/ARGUMENT_LAUNCH.md",
+      "argv_evidence": "https://github.com/nextcode4u/dslibris/blob/0df16f99a5ce4da385bc2685e3b1e7c40d012d8d/ARGUMENT_LAUNCH.md",
       "redistribution": "approved",
       "license": "GPL-3.0-or-later combined reader; SIL OFL-1.1 Liberation Fonts; dependency notices retained",
       "distribution_notes": "BlocksDS argv fork by nextcode4u, based on rhaleblian/dslibris. Runtime includes five unmodified Liberation Fonts 2.1.5; matching source includes pinned parser/font/SDK sources and notices. No user books, BIOS or settings are bundled.",
       "bios": "No BIOS required. Fonts: /data/dslibris/font/. Books: /media/books/. New settings: /data/dslibris/dslibris.xml; an existing legacy root settings file remains in use unless managed settings exist.",
-      "bios_evidence": "https://github.com/nextcode4u/dslibris/blob/0fcd8dc8b18a9a0698a28241a430fd6c003f9bb9/README.md",
-      "license_evidence": "https://github.com/nextcode4u/dslibris/blob/0fcd8dc8b18a9a0698a28241a430fd6c003f9bb9/ports/README.md",
+      "bios_evidence": "https://github.com/nextcode4u/dslibris/blob/0df16f99a5ce4da385bc2685e3b1e7c40d012d8d/README.md",
+      "license_evidence": "https://github.com/nextcode4u/dslibris/blob/0df16f99a5ce4da385bc2685e3b1e7c40d012d8d/ports/README.md",
       "permission_confirmed": true,
       "prerelease": true,
       "package": {
         "source": {
-          "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1-source.tar.gz",
-          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1-source.tar.gz",
-          "sha256": "e9c796d13f1e1c534fc29388c1d6eeda4fd067bae6801f123a79ea54ab4f6ceb"
+          "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.2-source.tar.gz",
+          "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.2/DSLibris-v1.6.0-blocksds-argv.2-source.tar.gz",
+          "sha256": "442ff7d938471225afdeb61b4e4dd7f5a1c447da5857a49d3e4267c8f45aea8d"
         },
         "files": [
           {
             "download": {
-              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1.zip",
-              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip",
-              "sha256": "7a8e8b53d6d937270f126116811c7e7352f9b698d630a232ca7e83526ed69534"
+              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.2.zip",
+              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.2/DSLibris-v1.6.0-blocksds-argv.2.zip",
+              "sha256": "0ec4fe183b639fe15ec2214fe1fedb9bcfe04c1e75661200920d52888a438b54"
             },
             "format": "zip",
-            "member": "_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds",
+            "member": "dslibris-blocksds.nds",
             "destination": "_nds/dsi-frontend/plugins/apps/dslibris-blocksds.nds",
             "sha256": "b661074fef79ed2d21d47d40a36698b0e8f1701c2bebb9101c3722db64121d0e"
           },
           {
             "download": {
-              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1.zip",
-              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip",
-              "sha256": "7a8e8b53d6d937270f126116811c7e7352f9b698d630a232ca7e83526ed69534"
+              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.2.zip",
+              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.2/DSLibris-v1.6.0-blocksds-argv.2.zip",
+              "sha256": "0ec4fe183b639fe15ec2214fe1fedb9bcfe04c1e75661200920d52888a438b54"
             },
             "format": "zip",
             "member": "data/dslibris/font/LiberationSans-Regular.ttf",
@@ -438,9 +438,9 @@
           },
           {
             "download": {
-              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1.zip",
-              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip",
-              "sha256": "7a8e8b53d6d937270f126116811c7e7352f9b698d630a232ca7e83526ed69534"
+              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.2.zip",
+              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.2/DSLibris-v1.6.0-blocksds-argv.2.zip",
+              "sha256": "0ec4fe183b639fe15ec2214fe1fedb9bcfe04c1e75661200920d52888a438b54"
             },
             "format": "zip",
             "member": "data/dslibris/font/LiberationSerif-Bold.ttf",
@@ -449,9 +449,9 @@
           },
           {
             "download": {
-              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1.zip",
-              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip",
-              "sha256": "7a8e8b53d6d937270f126116811c7e7352f9b698d630a232ca7e83526ed69534"
+              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.2.zip",
+              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.2/DSLibris-v1.6.0-blocksds-argv.2.zip",
+              "sha256": "0ec4fe183b639fe15ec2214fe1fedb9bcfe04c1e75661200920d52888a438b54"
             },
             "format": "zip",
             "member": "data/dslibris/font/LiberationSerif-BoldItalic.ttf",
@@ -460,9 +460,9 @@
           },
           {
             "download": {
-              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1.zip",
-              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip",
-              "sha256": "7a8e8b53d6d937270f126116811c7e7352f9b698d630a232ca7e83526ed69534"
+              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.2.zip",
+              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.2/DSLibris-v1.6.0-blocksds-argv.2.zip",
+              "sha256": "0ec4fe183b639fe15ec2214fe1fedb9bcfe04c1e75661200920d52888a438b54"
             },
             "format": "zip",
             "member": "data/dslibris/font/LiberationSerif-Italic.ttf",
@@ -471,9 +471,9 @@
           },
           {
             "download": {
-              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.1.zip",
-              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.1/DSLibris-v1.6.0-blocksds-argv.1.zip",
-              "sha256": "7a8e8b53d6d937270f126116811c7e7352f9b698d630a232ca7e83526ed69534"
+              "asset": "dslibris-DSLibris-v1.6.0-blocksds-argv.2.zip",
+              "url": "https://github.com/nextcode4u/dslibris/releases/download/v1.6.0-blocksds-argv.2/DSLibris-v1.6.0-blocksds-argv.2.zip",
+              "sha256": "0ec4fe183b639fe15ec2214fe1fedb9bcfe04c1e75661200920d52888a438b54"
             },
             "format": "zip",
             "member": "data/dslibris/font/LiberationSerif-Regular.ttf",
@@ -1231,33 +1231,33 @@
     {
       "id": "gimlids",
       "repository": "https://github.com/nextcode4u/GimliDS",
-      "version": "v1.7a-argv.1",
-      "commit": "40c406980b5e53914cc0ade6881300c1833f52d0",
-      "release": "https://github.com/nextcode4u/GimliDS/releases/tag/v1.7a-argv.1",
+      "version": "v1.7a-argv.2",
+      "commit": "46dc6270da424d6ae638ff9aee2ec3bc0d17873e",
+      "release": "https://github.com/nextcode4u/GimliDS/releases/tag/v1.7a-argv.2",
       "release_assets": [
         {
           "name": "BUILD-INFO.json",
-          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/BUILD-INFO.json"
+          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.2/BUILD-INFO.json"
         },
         {
-          "name": "GimliDS-v1.7a-argv.1-source.tar.gz",
-          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/GimliDS-v1.7a-argv.1-source.tar.gz"
+          "name": "GimliDS-v1.7a-argv.2-source.tar.gz",
+          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.2/GimliDS-v1.7a-argv.2-source.tar.gz"
         },
         {
-          "name": "GimliDS-v1.7a-argv.1.zip",
-          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/GimliDS-v1.7a-argv.1.zip"
+          "name": "GimliDS-v1.7a-argv.2.zip",
+          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.2/GimliDS-v1.7a-argv.2.zip"
         },
         {
           "name": "GimliDS.nds",
-          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/GimliDS.nds"
+          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.2/GimliDS.nds"
         },
         {
           "name": "SHA256SUMS",
-          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/SHA256SUMS"
+          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.2/SHA256SUMS"
         }
       ],
       "argv": "direct",
-      "argv_evidence": "https://github.com/nextcode4u/GimliDS/blob/40c406980b5e53914cc0ade6881300c1833f52d0/ARGUMENT_LAUNCH.md",
+      "argv_evidence": "https://github.com/nextcode4u/GimliDS/blob/46dc6270da424d6ae638ff9aee2ec3bc0d17873e/ARGUMENT_LAUNCH.md",
       "redistribution": "approved",
       "license": "GPL-2.0-or-later",
       "distribution_notes": "Based on GimliDS by Dave Bernazzani and Frodo by Christian Bauer. Versioned BlocksDS argv build includes runtime notices and matching application/SDK/libnds/Maxmod source. External Commodore firmware remains user-supplied.",
@@ -1269,15 +1269,15 @@
       "permission_confirmed": true,
       "package": {
         "source": {
-          "asset": "gimlids-GimliDS-v1.7a-argv.1-source.tar.gz",
-          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/GimliDS-v1.7a-argv.1-source.tar.gz",
-          "sha256": "679648506355e0dae634d263bfdc3c4480e202ddb523152d47ba2e63759a9b2f"
+          "asset": "gimlids-GimliDS-v1.7a-argv.2-source.tar.gz",
+          "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.2/GimliDS-v1.7a-argv.2-source.tar.gz",
+          "sha256": "17132896dc842243eac03e5bdc0cc911c71c9af66b478a9682ec599382770c3e"
         },
         "files": [
           {
             "download": {
               "asset": "gimlids-GimliDS.nds",
-              "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.1/GimliDS.nds",
+              "url": "https://github.com/nextcode4u/GimliDS/releases/download/v1.7a-argv.2/GimliDS.nds",
               "sha256": "035f223848987a76245e65dd33a78b1f7d7cb3e426b98543b47abf2c3396c19b"
             },
             "format": "raw",
@@ -1340,33 +1340,33 @@
     {
       "id": "hachibitto",
       "repository": "https://github.com/nextcode4u/Hachibitto",
-      "version": "v1.9-argv.1",
-      "commit": "f0198347abf0c5e0317c3bd32af171e37bc74ec6",
-      "release": "https://github.com/nextcode4u/Hachibitto/releases/tag/v1.9-argv.1",
+      "version": "v1.9-argv.2",
+      "commit": "2c213b579276472c31193cc881e2fd1a79541001",
+      "release": "https://github.com/nextcode4u/Hachibitto/releases/tag/v1.9-argv.2",
       "release_assets": [
         {
           "name": "BUILD-INFO.json",
-          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/BUILD-INFO.json"
+          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.2/BUILD-INFO.json"
         },
         {
-          "name": "Hachibitto-v1.9-argv.1-source.tar.gz",
-          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/Hachibitto-v1.9-argv.1-source.tar.gz"
+          "name": "Hachibitto-v1.9-argv.2-source.tar.gz",
+          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.2/Hachibitto-v1.9-argv.2-source.tar.gz"
         },
         {
-          "name": "Hachibitto-v1.9-argv.1.zip",
-          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/Hachibitto-v1.9-argv.1.zip"
+          "name": "Hachibitto-v1.9-argv.2.zip",
+          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.2/Hachibitto-v1.9-argv.2.zip"
         },
         {
           "name": "Hachibitto.nds",
-          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/Hachibitto.nds"
+          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.2/Hachibitto.nds"
         },
         {
           "name": "SHA256SUMS",
-          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/SHA256SUMS"
+          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.2/SHA256SUMS"
         }
       ],
       "argv": "direct",
-      "argv_evidence": "https://github.com/nextcode4u/Hachibitto/blob/f0198347abf0c5e0317c3bd32af171e37bc74ec6/ARGUMENT_LAUNCH.md",
+      "argv_evidence": "https://github.com/nextcode4u/Hachibitto/blob/2c213b579276472c31193cc881e2fd1a79541001/ARGUMENT_LAUNCH.md",
       "redistribution": "download-only",
       "license": "Noncommercial core; firmware/asset rights unresolved",
       "distribution_notes": "Download-only argv fork release. The shared installer retrieves the executable directly from nextcode4u/Hachibitto with noncommercial opt-in. Its binary, source and notices remain excluded from Gloam addon and companion archives; inherited firmware/asset redistribution permissions remain unconfirmed.",
@@ -1379,15 +1379,15 @@
       "download_noncommercial": true,
       "package": {
         "source": {
-          "asset": "hachibitto-Hachibitto-v1.9-argv.1-source.tar.gz",
-          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/Hachibitto-v1.9-argv.1-source.tar.gz",
-          "sha256": "41a888cac809a049282b473ef10917ea34e4ec78742137ecf6ab2f25aa002d43"
+          "asset": "hachibitto-Hachibitto-v1.9-argv.2-source.tar.gz",
+          "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.2/Hachibitto-v1.9-argv.2-source.tar.gz",
+          "sha256": "8bb6c3028d3a15623185689ca7a24c0338404f6e5e066e4204b2b079275ac747"
         },
         "files": [
           {
             "download": {
               "asset": "hachibitto-Hachibitto.nds",
-              "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.1/Hachibitto.nds",
+              "url": "https://github.com/nextcode4u/Hachibitto/releases/download/v1.9-argv.2/Hachibitto.nds",
               "sha256": "b94af614e5e70583e699d847adef9cdce5e6bae60df3a916a36c62c620b46cac"
             },
             "format": "raw",
