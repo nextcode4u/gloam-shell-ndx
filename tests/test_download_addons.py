@@ -14,7 +14,7 @@ import unittest
 from unittest.mock import patch
 import zipfile
 
-from tools.download_addons import (check_updates, destination, digest, fetch, reviewed_apps,
+from tools.download_addons import (check_updates, check_support, destination, digest, fetch, reviewed_apps,
                                    select_apps, stage, update_manifest, interactive_menu, parse_selection, choose_target)
 
 
@@ -250,6 +250,34 @@ class DownloadAddonTests(unittest.TestCase):
         for name in ("roms/bios/bios.bin", "roms/bios/coleco.rom", "roms/bios/GBc_bios.bin"):
             with self.assertRaises(ValueError):
                 destination(self.sd, name)
+
+    def test_support_check_is_read_only_and_checks_complete_alternatives_and_sizes(self):
+        self.run_stage()
+        self.app['bios'] = 'Fixture BIOS needed.'
+        self.app['support_requirements'] = [{'label': 'BASIC', 'scope': 'required',
+            'any_of': [['roms/bios/basic.bin', 'roms/bios/ext.bin'], ['roms/bios/combined.bin']],
+            'sizes': {'combined.bin': 8}}]
+        bios = self.sd / 'roms/bios'
+        bios.mkdir(parents=True)
+        (bios / 'basic.bin').write_bytes(b'BASIC fixture')
+        (bios / 'combined.bin').write_bytes(b'bad')
+        before = {str(p.relative_to(self.sd)): p.read_bytes() for p in self.sd.rglob('*') if p.is_file()}
+        output = io.StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(check_support(self.manifest, self.sd), 1)
+        self.assertIn('MISSING (required) BASIC', output.getvalue())
+        self.assertEqual(before, {str(p.relative_to(self.sd)): p.read_bytes() for p in self.sd.rglob('*') if p.is_file()})
+        (bios / 'combined.bin').unlink()
+        (bios / 'COMBINED.BIN').write_bytes(b'fixture!')
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(check_support(self.manifest, self.sd), 0)
+        self.app['support_requirements'][0]['any_of'] = [['../outside.bin']]
+        with self.assertRaises(ValueError):
+            check_support(self.manifest, self.sd)
+        (bios / 'link.bin').symlink_to(self.root / 'outside.bin')
+        self.app['support_requirements'][0]['any_of'] = [['roms/bios/link.bin']]
+        with self.assertRaisesRegex(ValueError, 'symlink'):
+            check_support(self.manifest, self.sd)
 
     def test_path_escape_firmware_and_symlink_destinations_are_rejected(self):
         for name in ["../outside.nds", "/outside.nds", "_gba/bios.bin", "C:/outside.nds",

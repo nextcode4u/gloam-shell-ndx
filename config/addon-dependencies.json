@@ -248,7 +248,51 @@
           }
         ],
         "extra_sources": []
-      }
+      },
+      "support_requirements": [
+        {
+          "label": "ColecoVision BIOS",
+          "scope": "ColecoVision games",
+          "any_of": [
+            [
+              "roms/bios/coleco.rom"
+            ],
+            [
+              "data/bios/coleco.rom"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/coleco.rom"
+            ]
+          ],
+          "sizes": {
+            "coleco.rom": 8192
+          }
+        },
+        {
+          "label": "Sord M5 BIOS",
+          "scope": "Sord M5 games",
+          "any_of": [
+            [
+              "roms/bios/sordm5.rom"
+            ],
+            [
+              "data/bios/sordm5.rom"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/sordm5.rom"
+            ],
+            [
+              "roms/bios/sordm5p.rom"
+            ],
+            [
+              "data/bios/sordm5p.rom"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/sordm5p.rom"
+            ]
+          ]
+        }
+      ]
     },
     {
       "id": "dracods",
@@ -306,7 +350,51 @@
         ]
       },
       "bios_evidence": "https://github.com/wavemotion-dave/DracoDS/blob/03cddfbddf93056291c69fd512a8d8db0bbb2caa/README.md",
-      "license_evidence": "https://github.com/wavemotion-dave/DracoDS/tree/03cddfbddf93056291c69fd512a8d8db0bbb2caa"
+      "license_evidence": "https://github.com/wavemotion-dave/DracoDS/tree/03cddfbddf93056291c69fd512a8d8db0bbb2caa",
+      "support_requirements": [
+        {
+          "label": "Dragon or CoCo BASIC",
+          "scope": "choose the machine used by your games",
+          "any_of": [
+            [
+              "roms/bios/dragon32.rom"
+            ],
+            [
+              "data/bios/dragon32.rom"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/dragon32.rom"
+            ],
+            [
+              "roms/bios/bas12.rom",
+              "roms/bios/extbas11.rom"
+            ],
+            [
+              "data/bios/bas12.rom",
+              "data/bios/extbas11.rom"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/bas12.rom",
+              "_nds/dsi-frontend/plugins/apps/extbas11.rom"
+            ]
+          ]
+        },
+        {
+          "label": "CoCo disk ROM",
+          "scope": "CoCo disk games",
+          "any_of": [
+            [
+              "roms/bios/disk11.rom"
+            ],
+            [
+              "data/bios/disk11.rom"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/disk11.rom"
+            ]
+          ]
+        }
+      ]
     },
     {
       "id": "ds994a",
@@ -367,7 +455,54 @@
         "extra_sources": []
       },
       "permission_confirmed": false,
-      "download_noncommercial": true
+      "download_noncommercial": true,
+      "support_requirements": [
+        {
+          "label": "TI console ROM",
+          "scope": "required",
+          "any_of": [
+            [
+              "roms/bios/994aROM.bin"
+            ],
+            [
+              "roms/ti99/994aROM.bin"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/994aROM.bin"
+            ]
+          ]
+        },
+        {
+          "label": "TI console GROM",
+          "scope": "required",
+          "any_of": [
+            [
+              "roms/bios/994aGROM.bin"
+            ],
+            [
+              "roms/ti99/994aGROM.bin"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/994aGROM.bin"
+            ]
+          ]
+        },
+        {
+          "label": "TI disk controller",
+          "scope": "disk games",
+          "any_of": [
+            [
+              "roms/bios/994aDISK.bin"
+            ],
+            [
+              "roms/ti99/994aDISK.bin"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/994aDISK.bin"
+            ]
+          ]
+        }
+      ]
     },
     {
       "id": "dslibris",
@@ -1266,7 +1401,21 @@
           "file_open_call": "0xa040"
         },
         "finding": "The startup forwards argc/argv through the VRAM entry. The runner saves them, selects argv[1] when argc > 1 and passes the selected path to its file-open routine. These are offsets in the ARM9 image, not relocated execution addresses."
-      }
+      },
+      "support_requirements": [
+        {
+          "label": "GBA BIOS",
+          "scope": "required",
+          "any_of": [
+            [
+              "_gba/bios.bin"
+            ]
+          ],
+          "sizes": {
+            "bios.bin": 16384
+          }
+        }
+      ]
     },
     {
       "id": "gimlids",
@@ -1375,7 +1524,81 @@
             "destination": "picolibc-COPYING"
           }
         ]
-      }
+      },
+      "support_requirements": [
+        {
+          "label": "C64 KERNAL",
+          "scope": "required",
+          "any_of": [
+            [
+              "roms/bios/kernal.rom"
+            ],
+            [
+              "roms/c64/kernal.rom"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/kernal.rom"
+            ]
+          ],
+          "sizes": {
+            "kernal.rom": 8192
+          }
+        },
+        {
+          "label": "C64 BASIC",
+          "scope": "required",
+          "any_of": [
+            [
+              "roms/bios/basic.rom"
+            ],
+            [
+              "roms/c64/basic.rom"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/basic.rom"
+            ]
+          ],
+          "sizes": {
+            "basic.rom": 8192
+          }
+        },
+        {
+          "label": "C64 character ROM",
+          "scope": "required",
+          "any_of": [
+            [
+              "roms/bios/char.rom"
+            ],
+            [
+              "roms/c64/char.rom"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/char.rom"
+            ]
+          ],
+          "sizes": {
+            "char.rom": 4096
+          }
+        },
+        {
+          "label": "C64 1541 drive ROM",
+          "scope": "required",
+          "any_of": [
+            [
+              "roms/bios/1541.rom"
+            ],
+            [
+              "roms/c64/1541.rom"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/1541.rom"
+            ]
+          ],
+          "sizes": {
+            "1541.rom": 16384
+          }
+        }
+      ]
     },
     {
       "id": "hachibitto",
@@ -1715,7 +1938,33 @@
         ]
       },
       "bios_evidence": "https://github.com/wavemotion-dave/MicroDS/blob/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09/README.md",
-      "license_evidence": "https://github.com/wavemotion-dave/MicroDS/tree/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09"
+      "license_evidence": "https://github.com/wavemotion-dave/MicroDS/tree/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09",
+      "support_requirements": [
+        {
+          "label": "MC-10 BASIC",
+          "scope": "required",
+          "any_of": [
+            [
+              "roms/bios/MC10.BIN"
+            ],
+            [
+              "data/bios/MC10.BIN"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/MC10.BIN"
+            ],
+            [
+              "roms/bios/MC10.ROM"
+            ],
+            [
+              "data/bios/MC10.ROM"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/MC10.ROM"
+            ]
+          ]
+        }
+      ]
     },
     {
       "id": "nesds",
@@ -1742,7 +1991,7 @@
       "redistribution": "download-only",
       "license": "Legacy public-domain statement; newer component grants unconfirmed",
       "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.",
-      "bios": "NES cartridges need no external BIOS. FDS content requires disksys.rom; user-supplied.",
+      "bios": "NES cartridges need no external BIOS. FDS content requires user-supplied /disksys.rom by default; [nesDSrev2] DisksysBios in the emulator INI can select another location.",
       "bios_evidence": "https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/README.TXT",
       "license_evidence": "https://github.com/DS-Homebrew/NesDS/tree/928afd9ca3c846f06264dfb1be6a2edf44575b66",
       "package": {
@@ -1816,7 +2065,18 @@
           }
         ]
       },
-      "permission_confirmed": false
+      "permission_confirmed": false,
+      "support_requirements": [
+        {
+          "label": "Famicom Disk System BIOS",
+          "scope": "FDS games",
+          "any_of": [
+            [
+              "disksys.rom"
+            ]
+          ]
+        }
+      ]
     },
     {
       "id": "ngpds",
@@ -2036,7 +2296,33 @@
             "sha256": "da1bb1640211fe892d0c92147c7ff6e15ae5134b9f41be5796d5f4d27e028865"
           }
         ]
-      }
+      },
+      "support_requirements": [
+        {
+          "label": "Intellivision exec.bin",
+          "scope": "required",
+          "any_of": [
+            [
+              "roms/bios/exec.bin"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/exec.bin"
+            ]
+          ]
+        },
+        {
+          "label": "Intellivision grom.bin",
+          "scope": "required",
+          "any_of": [
+            [
+              "roms/bios/grom.bin"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/grom.bin"
+            ]
+          ]
+        }
+      ]
     },
     {
       "id": "nitrografx",
@@ -3037,7 +3323,39 @@
         ]
       },
       "bios_evidence": "https://github.com/wavemotion-dave/SpeccySE/blob/85c85862470b69b75f6e49476a9c4ce992064bb3/readme.md",
-      "license_evidence": "https://github.com/wavemotion-dave/SpeccySE/tree/85c85862470b69b75f6e49476a9c4ce992064bb3"
+      "license_evidence": "https://github.com/wavemotion-dave/SpeccySE/tree/85c85862470b69b75f6e49476a9c4ce992064bb3",
+      "support_requirements": [
+        {
+          "label": "Spectrum 48.rom",
+          "scope": "required",
+          "any_of": [
+            [
+              "roms/bios/48.rom"
+            ],
+            [
+              "data/bios/48.rom"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/48.rom"
+            ]
+          ]
+        },
+        {
+          "label": "Spectrum 128.rom",
+          "scope": "required",
+          "any_of": [
+            [
+              "roms/bios/128.rom"
+            ],
+            [
+              "data/bios/128.rom"
+            ],
+            [
+              "_nds/dsi-frontend/plugins/apps/128.rom"
+            ]
+          ]
+        }
+      ]
     },
     {
       "id": "stellads",

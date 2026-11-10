@@ -52,6 +52,8 @@ def reviewed_apps(catalog):
         item = {"id": app["id"], "version": app["version"], "repository": app["repository"],
                 "terms": app["license"], "noncommercial": app["redistribution"] == "noncommercial"
                 or app.get("download_noncommercial", False), "files": [*files, *defaults]}
+        item["bios"] = app.get("bios", "")
+        item["support_requirements"] = app.get("support_requirements", [])
         if app.get("experimental"):
             item.update(experimental=True, notes=app.get("compatibility_notes", "Experimental build"))
         if "game_configs" in package:
@@ -151,19 +153,78 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def destination(root, name):
+def sd_path(root, name, ignore_case=False):
+    """Resolve an SD-relative path without following a host filesystem link."""
     parts = PurePosixPath(name).parts
     if (not name or name.startswith("/") or "\\" in name or ":" in name
             or any(p in {"", ".", ".."} for p in name.split("/"))):
         raise ValueError(f"Unsafe destination: {name}")
-    if not runtime_path_allowed(name):
-        raise ValueError(f"Destination outside add-on folders: {name}")
     path = root
     for part in parts:
-        path /= part
+        candidate = path / part
+        if ignore_case and not candidate.exists() and path.is_dir():
+            matches = [entry for entry in path.iterdir() if entry.name.casefold() == part.casefold()]
+            if len(matches) > 1:
+                raise ValueError(f"Ambiguous SD filename: {name}")
+            if matches:
+                candidate = matches[0]
+        path = candidate
         if path.is_symlink():
             raise ValueError(f"Destination contains a symlink: {path}")
     return path
+
+
+def destination(root, name):
+    if not runtime_path_allowed(name):
+        raise ValueError(f"Destination outside add-on folders: {name}")
+    return sd_path(root, name)
+
+
+def check_support(manifest, target, only=None):
+    """Inspect installed apps without reading firmware contents or changing files."""
+    root = Path(target).resolve(strict=True)
+    if not root.is_dir():
+        raise ValueError("Target must be an existing SD root or staging directory")
+    names = only if only else [a["id"] for a in installed_apps(manifest["applications"], root)]
+    if not names:
+        print("No matching applications are installed.")
+        return 0
+    missing = 0
+    for app in select_apps(manifest, names, noncommercial=True):
+        print(f"{app['id']}: {app.get('bios') or 'No firmware metadata in this catalog.'}")
+        for item in app["files"]:
+            if not item["destination"].endswith((".nds", ".srl")):
+                path = destination(root, item["destination"])
+                if not path.is_file() or not path.stat().st_size:
+                    print("  MISSING support file: " + item["destination"])
+                    missing += 1
+        for requirement in app.get("support_requirements", []):
+            alternatives = requirement["any_of"]
+            if not alternatives or any(not paths for paths in alternatives):
+                raise ValueError("Empty firmware requirement")
+            found = None
+            for paths in alternatives:
+                valid = True
+                for name in paths:
+                    path = sd_path(root, name, ignore_case=True)
+                    size = requirement.get("sizes", {}).get(PurePosixPath(name).name)
+                    if not path.is_file() or not path.stat().st_size or (size and path.stat().st_size != size):
+                        valid = False
+                if valid:
+                    found = paths
+                    break
+            if found:
+                print(f"  FOUND {requirement['label']}: " + ", ".join(found))
+            else:
+                scope = requirement.get("scope", "required")
+                print(f"  MISSING ({scope}) {requirement['label']}: "
+                      + " or ".join(" + ".join(paths) for paths in alternatives))
+                if requirement.get("sizes"):
+                    print("    Expected sizes: " + ", ".join(
+                        f"{name}={size} bytes" for name, size in requirement["sizes"].items()))
+                missing += 1
+        print("  Presence/size checks do not establish firmware authenticity or game compatibility.")
+    return missing
 
 
 def application_files(app):
@@ -417,7 +478,7 @@ def interactive_menu(manifest, args):
         print("\nGloam Add-on Installer\n======================")
         print(f"Target: {target or 'not selected'}")
         print("1. Install applications\n2. Check installed apps for updates\n3. Update installed apps")
-        print("4. Choose SD card or staging folder\n5. Show applications\n0. Exit")
+        print("4. Choose SD card or staging folder\n5. Show applications\n6. Check BIOS and support requirements\n0. Exit")
         action = input("Choose: ").strip()
         if action == "0":
             return
@@ -428,7 +489,7 @@ def interactive_menu(manifest, args):
             show_applications(sorted(manifest.get("updates", manifest["applications"]), key=lambda a: a["id"]), target)
             input("Press Enter to return to the menu...")
             continue
-        if action not in {"1", "2", "3"}:
+        if action not in {"1", "2", "3", "6"}:
             print("Choose a menu number.")
             continue
         if target is None:
@@ -439,10 +500,12 @@ def interactive_menu(manifest, args):
             print("Reading reviewed application versions...")
             current = update_manifest(manifest, args.catalog, args.offline)
             apps = sorted(current["applications"], key=lambda a: a["id"])
-            if action in {"2", "3"}:
+            if action in {"2", "3", "6"}:
                 apps = installed_apps(apps, target)
             if not apps:
                 print("No matching applications are installed." if action != "1" else "No downloads are available.")
+            elif action == "6":
+                check_support(current, target, [a["id"] for a in apps])
             elif action == "2":
                 check_updates(current, target, [a["id"] for a in apps], noncommercial=True)
             else:
@@ -485,6 +548,7 @@ def main():
     parser.add_argument("--offline", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--check-updates", action="store_true", help="Compare installed apps with current reviewed pins")
+    parser.add_argument("--check-support", action="store_true", help="Report missing BIOS and application support files")
     parser.add_argument("--update", action="store_true", help="Stage reviewed updates, backing up replaced files")
     parser.add_argument("--catalog", type=Path, help="Use a local reviewed catalog instead of refreshing online")
     parser.add_argument("--upstream", action="store_true", help="Also report other upstream release tags; never auto-install them")
@@ -506,12 +570,15 @@ def main():
             return
         if args.target is None:
             parser.error("--target is required unless using --list")
-        if args.check_updates and args.update:
-            parser.error("choose --check-updates or --update, not both")
+        if sum((args.check_updates, args.check_support, args.update)) > 1:
+            parser.error("choose one of --check-updates, --check-support or --update")
         if args.upstream and (not args.check_updates or args.offline):
             parser.error("--upstream requires --check-updates and online access")
-        if args.check_updates or args.update:
+        if args.check_updates or args.check_support or args.update:
             manifest = update_manifest(manifest, args.catalog, args.offline)
+        if args.check_support:
+            check_support(manifest, args.target, args.only)
+            return
         if args.check_updates:
             check_updates(manifest, args.target, args.only, args.noncommercial, args.upstream)
             return

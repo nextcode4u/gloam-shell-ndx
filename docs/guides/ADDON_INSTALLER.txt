@@ -45,6 +45,17 @@ Check and stage reviewed add-on updates (including bundled applications):
   .\download-addons.ps1 -Target E:\ -Update -DryRun
   .\download-addons.ps1 -Target E:\ -Update
 
+Check BIOS and support requirements from menu option 6, or:
+  python download-addons.py --target E:/ --check-support
+  .\download-addons.ps1 -Target E:\ -CheckSupport
+Add --only / -Only to inspect a named app even if it is not installed yet.
+This is read-only: it reports missing support files and common firmware paths,
+checks nonempty files and documented sizes, and never downloads proprietary BIOS.
+Alternative filenames and multi-file sets are checked together. Requirements for
+FDS, disk systems or other machine modes are labelled separately from basic use.
+Emulator-selected custom BIOS locations still need checking in that emulator.
+A presence/size match does not verify authenticity or compatibility.
+
 Update checks compare installed executable hashes with the current reviewed
 catalog from Gloam's GitHub repository. If unavailable or older, the packaged
 pins remain in use. New reviewed pins become available remotely after that

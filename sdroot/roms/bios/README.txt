@@ -54,8 +54,9 @@ Upstream explicitly says it is needed to run games; not included.
 microds: Requires MC10.BIN or MC10.ROM; optional MCX.BIN/MCX.ROM. Put them in
 /roms/bios or beside emulator.
 
-nesds: NES cartridges need no external BIOS. FDS content requires disksys.rom;
-user-supplied.
+nesds: NES cartridges need no external BIOS. FDS content requires user-
+supplied /disksys.rom by default; [nesDSrev2] DisksysBios in the emulator INI
+can select another location.
 
 ngpds: Upstream says a real NGP/NGPC BIOS is needed for in-game saving. Select
 it in emulator settings; not included.

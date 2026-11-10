@@ -65,6 +65,32 @@ class WindowsInstallerMenuTests(unittest.TestCase):
         self.assertNotIn('Operation stopped:', result.stdout)
         return result.stdout
 
+    def test_support_checks_report_alternatives_without_changing_sd_files(self):
+        self.app['bios'] = 'Fixture BIOS required.'
+        self.app['support_requirements'] = [{'label': 'Fixture BIOS', 'scope': 'required',
+            'any_of': [['roms/bios/first.bin', 'roms/bios/second.bin'], ['roms/bios/combined.bin']],
+            'sizes': {'combined.bin': 8}}]
+        self.write_manifest()
+        self.binary.parent.mkdir(parents=True)
+        self.binary.write_bytes(self.payload)
+        commands = [self.ps + ['-Target', windows_path(self.target), '-Offline', '-CheckSupport'],
+                    [sys.executable, str(self.installer / 'download-addons.py'), '--target', str(self.target), '--offline', '--check-support']]
+        for command in commands:
+            result = subprocess.run(command, capture_output=True, text=True, timeout=30)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn('MISSING (required) Fixture BIOS', result.stdout)
+        bios = self.target / 'roms/bios/combined.bin'
+        bios.parent.mkdir(parents=True)
+        bios.write_bytes(b'fixture!')
+        before = {str(p.relative_to(self.target)): p.read_bytes() for p in self.target.rglob('*') if p.is_file()}
+        for command in commands:
+            result = subprocess.run(command, capture_output=True, text=True, timeout=30)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn('FOUND Fixture BIOS', result.stdout)
+        self.assertEqual(before, {str(p.relative_to(self.target)): p.read_bytes() for p in self.target.rglob('*') if p.is_file()})
+        output = self.run_menu(self.ps + self.options, '6\n\n0\n')
+        self.assertIn('FOUND Fixture BIOS', output)
+
     def test_free_boot_support_path_and_preserving_existing_firmware(self):
         bios_item = dict(self.app['files'][0], destination='roms/bios/gbc_bios.bin')
         self.app['files'].append(bios_item)

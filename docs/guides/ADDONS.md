@@ -329,6 +329,15 @@ payload and DSP/S-DD1 variants are not silently substituted.
 
 ## Free replacements and remaining firmware
 
+Use **Check BIOS and support requirements** in the add-on installer menu, or
+`--check-support` / `-CheckSupport`, to inspect the chosen SD root. It checks
+installed apps by default; `--only` / `-Only` can inspect a named app before
+installation. The check is read-only and reports alternative file sets, expected
+sizes where documented, and missing packaged support files. It checks common
+lookup paths rather than parsing every emulator's personal configuration. Files
+selected from custom locations must still be checked inside the emulator.
+Presence/size matches establish neither firmware authenticity nor game support.
+
 The add-on package includes SameBoy's **SameBoot 1.0.5** GBC replacement at
 `/roms/bios/gbc_bios.bin`. GameYob downloads/updates also install it if missing.
 Set `biosfile=/roms/bios/gbc_bios.bin` in the existing

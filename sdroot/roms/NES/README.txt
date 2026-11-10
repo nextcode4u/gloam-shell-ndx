@@ -9,8 +9,9 @@ Application: nesDS
 
 Argv in the audited upstream build: direct.
 
-Firmware: NES cartridges need no external BIOS. FDS content requires
-disksys.rom; user-supplied.
+Firmware: NES cartridges need no external BIOS. FDS content requires user-
+supplied /disksys.rom by default; [nesDSrev2] DisksysBios in the emulator INI
+can select another location.
 
 Add-on package: direct upstream download with shared installer; terms: Legacy
 public-domain statement; newer component grants unconfirmed.

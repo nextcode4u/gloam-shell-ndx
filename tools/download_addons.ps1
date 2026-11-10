@@ -12,6 +12,7 @@ param(
     [switch]$Offline,
     [switch]$DryRun,
     [switch]$CheckUpdates,
+    [switch]$CheckSupport,
     [switch]$Update,
     [string]$Catalog,
     [switch]$Upstream
@@ -52,6 +53,8 @@ function Convert-ReviewedCatalog($Data) {
             })
         }
         $item = [ordered]@{ id = $app.id; version = $app.version; repository = $app.repository; terms = $app.license; noncommercial = $nc; files = @($files) + @($defaults) }
+        $item.bios = if ($app.PSObject.Properties.Name -contains 'bios') { $app.bios } else { '' }
+        $item.support_requirements = if ($app.PSObject.Properties.Name -contains 'support_requirements') { @($app.support_requirements) } else { @() }
         if ($app.PSObject.Properties.Name -contains 'experimental' -and $app.experimental) {
             $item.experimental = $true
             $item.notes = if ($app.PSObject.Properties.Name -contains 'compatibility_notes') { $app.compatibility_notes } else { 'Experimental build' }
@@ -168,17 +171,19 @@ function Read-TarMember([byte[]]$Data, [string]$Member) {
     } finally { $gzip.Dispose(); $input.Dispose() }
 }
 
-function Get-Destination([string]$Root, [string]$Name) {
+function Get-SdPath([string]$Root, [string]$Name, [switch]$IgnoreCase) {
     if ($Name -match '(^/|\\|:)' -or @($Name.Split('/') | Where-Object { $_ -in @('', '.', '..') }).Count) {
         throw "Unsafe destination: $Name"
     }
-    if ($Name -cnotmatch '^_nds/dsi-frontend/plugins/apps/.+\.(nds|srl|ini)$' -and
-        $Name -cnotmatch '^_gba/configs/[A-Z0-9]{6}\.json$' -and
-        $Name -cnotin $ReaderFonts -and $Name -cnotin $AddonProfiles -and
-        $Name -cne 'roms/ScummVM/scummvm.nds' -and $Name -cne 'roms/bios/gbc_bios.bin') { throw "Destination outside add-on folders: $Name" }
     $path = $Root
     foreach ($part in $Name.Split('/')) {
-        $path = Join-Path $path $part
+        $candidate = Join-Path $path $part
+        if ($IgnoreCase -and -not (Test-Path -LiteralPath $candidate) -and (Test-Path -LiteralPath $path -PathType Container)) {
+            $nameMatches = @(Get-ChildItem -LiteralPath $path -Force | Where-Object { $_.Name -ieq $part })
+            if ($nameMatches.Count -gt 1) { throw "Ambiguous SD filename: $Name" }
+            if ($nameMatches.Count) { $candidate = $nameMatches[0].FullName }
+        }
+        $path = $candidate
         if (Test-Path -LiteralPath $path) {
             if ((Get-Item -Force -LiteralPath $path).Attributes -band [IO.FileAttributes]::ReparsePoint) {
                 throw "Destination contains a link: $path"
@@ -186,6 +191,64 @@ function Get-Destination([string]$Root, [string]$Name) {
         }
     }
     return $path
+}
+
+function Get-Destination([string]$Root, [string]$Name) {
+    if ($Name -cnotmatch '^_nds/dsi-frontend/plugins/apps/.+\.(nds|srl|ini)$' -and
+        $Name -cnotmatch '^_gba/configs/[A-Z0-9]{6}\.json$' -and
+        $Name -cnotin $ReaderFonts -and $Name -cnotin $AddonProfiles -and
+        $Name -cne 'roms/ScummVM/scummvm.nds' -and $Name -cne 'roms/bios/gbc_bios.bin') { throw "Destination outside add-on folders: $Name" }
+    return Get-SdPath $Root $Name
+}
+
+function Test-Support($Apps, [string]$Folder, [string[]]$Names) {
+    if (-not $Names) { $Names = @(Get-MenuInstalledApps $Apps $Folder | ForEach-Object { $_.id }) }
+    if (-not $Names.Count) { Write-Output 'No matching applications are installed.'; return }
+    foreach ($app in @(Get-SelectedApps $Apps $Names $true)) {
+        $note = if ($app.PSObject.Properties.Name -contains 'bios' -and $app.bios) { $app.bios } else { 'No firmware metadata in this catalog.' }
+        Write-Output "$($app.id): $note"
+        foreach ($item in @($app.files | Where-Object { $_.destination -notmatch '\.(nds|srl)$' })) {
+            $path = Get-Destination $Folder $item.destination
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Item -LiteralPath $path).Length -eq 0) {
+                Write-Output "  MISSING support file: $($item.destination)"
+            }
+        }
+        $requirements = if ($app.PSObject.Properties.Name -contains 'support_requirements') { @($app.support_requirements) } else { @() }
+        foreach ($requirement in $requirements) {
+            if (-not @($requirement.any_of).Count) { throw 'Empty firmware requirement' }
+            $found = $null
+            foreach ($alternative in $requirement.any_of) {
+                $paths = @($alternative)
+                if (-not $paths.Count) { throw 'Empty firmware requirement' }
+                $valid = $true
+                foreach ($name in $paths) {
+                    $path = Get-SdPath $Folder $name -IgnoreCase
+                    $size = $null
+                    if ($requirement.PSObject.Properties.Name -contains 'sizes') {
+                        $property = $requirement.sizes.PSObject.Properties[[IO.Path]::GetFileName($name)]
+                        if ($property) { $size = $property.Value }
+                    }
+                    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { $valid = $false }
+                    else {
+                        $length = (Get-Item -LiteralPath $path).Length
+                        if (-not $length -or ($size -and $length -ne $size)) { $valid = $false }
+                    }
+                }
+                if ($valid) { $found = $paths; break }
+            }
+            if ($found) { Write-Output "  FOUND $($requirement.label): $($found -join ', ')" }
+            else {
+                $scope = if ($requirement.PSObject.Properties.Name -contains 'scope') { $requirement.scope } else { 'required' }
+                $locations = @($requirement.any_of | ForEach-Object { @($_) -join ' + ' }) -join ' or '
+                Write-Output "  MISSING ($scope) $($requirement.label): $locations"
+                if ($requirement.PSObject.Properties.Name -contains 'sizes') {
+                    $sizes = @($requirement.sizes.PSObject.Properties | ForEach-Object { "$($_.Name)=$($_.Value) bytes" }) -join ', '
+                    Write-Output "    Expected sizes: $sizes"
+                }
+            }
+        }
+        Write-Output '  Presence/size checks do not establish firmware authenticity or game compatibility.'
+    }
 }
 
 function Get-Download($Item) {
@@ -327,7 +390,7 @@ function Invoke-InstallerMenu($Document) {
         Write-Host "`nGloam Add-on Installer`n======================"
         Write-Host ('Target: ' + $(if ($folder) { $folder } else { 'not selected' }))
         Write-Host "1. Install applications`n2. Check installed apps for updates`n3. Update installed apps"
-        Write-Host "4. Choose SD card or staging folder`n5. Show applications`n0. Exit"
+        Write-Host "4. Choose SD card or staging folder`n5. Show applications`n6. Check BIOS and support requirements`n0. Exit"
         $action = Read-MenuInput 'Choose'
         if ($action -eq '0') { return }
         if ($action -eq '4') {
@@ -341,7 +404,7 @@ function Invoke-InstallerMenu($Document) {
             $null = Read-MenuInput 'Press Enter to return to the menu...'
             continue
         }
-        if ($action -notin @('1', '2', '3')) { Write-Host 'Choose a menu number.'; continue }
+        if ($action -notin @('1', '2', '3', '6')) { Write-Host 'Choose a menu number.'; continue }
         if (-not $folder) {
             $folder = Read-MenuTarget
             if (-not $folder) { continue }
@@ -350,8 +413,9 @@ function Invoke-InstallerMenu($Document) {
             Write-Host 'Reading reviewed application versions...'
             $allApps = @(Get-UpdateApps $Document | Sort-Object id)
             $apps = @($allApps)
-            if ($action -in @('2', '3')) { $apps = @(Get-MenuInstalledApps $apps $folder) }
-            if (-not $apps.Count) { Write-Host 'No matching applications are available.' }
+            if ($action -in @('2', '3', '6')) { $apps = @(Get-MenuInstalledApps $apps $folder) }
+            if ($action -eq '6') { Test-Support $allApps $folder @() | Out-Host }
+            elseif (-not $apps.Count) { Write-Host 'No matching applications are available.' }
             else {
                 $names = @(if ($action -eq '2') { $apps | ForEach-Object { $_.id } } else { Read-MenuApps $apps $folder })
                 if ($names.Count) {
@@ -413,10 +477,11 @@ try {
     }
     if (-not $Target -or -not (Test-Path -LiteralPath $Target -PathType Container)) { throw '-Target must name an existing SD root or staging directory' }
     $root = (Resolve-Path -LiteralPath $Target).ProviderPath
-    if ($CheckUpdates -and $Update) { throw 'Choose -CheckUpdates or -Update, not both' }
+    if (([int][bool]$CheckUpdates + [int][bool]$CheckSupport + [int][bool]$Update) -gt 1) { throw 'Choose one of -CheckUpdates, -CheckSupport or -Update' }
     if ($Upstream -and (-not $CheckUpdates -or $Offline)) { throw '-Upstream requires -CheckUpdates and online access' }
     $applications = @($document.applications)
-    if ($CheckUpdates -or $Update) { $applications = @(Get-UpdateApps $document) }
+    if ($CheckUpdates -or $CheckSupport -or $Update) { $applications = @(Get-UpdateApps $document) }
+    if ($CheckSupport) { Test-Support $applications $root $Only; exit 0 }
     $selected = @(Get-SelectedApps $applications $Only)
     if ($CheckUpdates) {
         foreach ($app in $selected) {
