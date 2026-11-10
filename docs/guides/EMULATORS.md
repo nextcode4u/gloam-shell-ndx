@@ -219,7 +219,7 @@ roms/ScummVM/
     Game Two/       required files for another game
 ```
 
-The experimental [discovery prerelease](https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.0-ds-discovery.1)
+The experimental [discovery prerelease](https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.1git-ds-discovery.2)
 is available through the shared downloader using `--only scummvm` / `-Only scummvm`.
 It installs the executable at the path above. Default downloads and bundled
 add-ons exclude this experimental build. Its matching source and license packages

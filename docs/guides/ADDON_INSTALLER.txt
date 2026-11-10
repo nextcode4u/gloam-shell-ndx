@@ -145,7 +145,8 @@ Select this build explicitly:
 Use the same explicit selection with --update / -Update for reviewed updates.
 The executable installs at /roms/ScummVM/scummvm.nds. Keep complete games under
 /roms/ScummVM/titles/. Existing scummvm.ini and saves are not overwritten.
-Restoring directly from the game list can stall during plugin unloading.
-Full Quit/return and physical-console behavior remain unverified.
+The dynamic-plugin cleanup fix passes Lure save, cold restore and Quit/return
+checks in a development emulator setup. Broader engine, flashcard and
+physical-console behavior remain unverified.
 Matching source and licenses are available alongside the standalone release:
-https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.0-ds-discovery.1
+https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.1git-ds-discovery.2
