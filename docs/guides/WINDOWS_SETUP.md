@@ -62,6 +62,56 @@ Matching release licenses remain in the computer's release cache; source and
 license downloads are linked from **Releases and licenses**. Keep the matching
 companions when redistributing binaries.
 
+## Launcher settings
+
+The Settings page edits Simple/Advanced mode, the Simple settings lock, browser
+view/icon size, sorting and scrolling, hidden/system/save/BIOS filters, covers,
+internal game-title language, startup tab/recent countdown, theme/accent, reduced
+motion, clock format, background music and music/UI sound volumes.
+
+**Lock the console to Simple settings** hides the console's mode switch and
+forces Simple mode. It is off by default. Clear the checkbox here and choose
+Simple or Advanced to unlock it. This setting controls the console settings
+pages; the PC can still manage the configuration.
+
+Quick setup presets stage changes for review:
+
+- **Everyday:** Simple, unlocked, Classic/small icons, normal scrolling and
+  hidden support folders. Other personal choices are retained.
+- **Simple locked:** locks Simple, starts at Home, filters recognized content,
+  hides support/system files and disables recent auto-launch.
+- **Quiet:** music/UI sounds off, reduced motion on and recent auto-launch off.
+- **Large icons:** Classic view, large icons and slower scrolling.
+
+Press **Save settings** to apply; **Reload from SD** discards pending edits.
+Favourites, folder positions and unknown state records are retained. If the
+state file changes outside the tool after loading, saving stops so you can
+reload first. Background checks retain pending edits. Close Gloam/emulation
+before PC edits and restart it afterwards.
+
+Custom music can be selected from the SD or copied from the PC into
+`media/music/`. It must match the launcher's format: mono PCM16 WAV, 8000-48000
+Hz and at most 1 MiB of samples. Existing same-named files are kept.
+
+## Backups and maintenance
+
+Maintenance exports/imports the same `.dsconfig` format used by Gloam and the
+Python configuration tool. The complete archive, checksums and destinations are
+validated before import. Settings, favourites, tabs, appearance slots, per-title
+preferences and personal extension overrides are portable; emulator/player profile definitions in `plugins/*.ini`,
+applications, themes, music, BIOS and saves are separate. Save pending settings
+before exporting or importing.
+
+Imports use the launcher's `configuration/pending.dsconfig` and
+`configuration/rollback.dsconfig` recovery pair. A terminated PC import can be
+rolled back on the next launcher startup. Later external edits are preserved
+rather than overwritten by automatic recovery. See [configuration recovery](CONFIGURATION_BACKUPS.md).
+
+**Restore last console settings** validates `state.bak` and restores it after
+confirmation; the replaced file receives its own setup backup. **Check setup**
+is read-only and reports missing loaders, invalid settings, pending recovery,
+missing themes and optional emulator paths. Firmware checks remain on Add-ons.
+
 ## Library and file handlers
 
 The Library page can edit Games, Apps and Media roots; defaults are `roms`,
@@ -91,7 +141,10 @@ restart Gloam on the console so it reloads the configuration.
 
 Open the themes folder or import a folder containing `theme.ini`. Import keeps
 existing themes; rename the source folder to install a separate version. Choose
-the active theme on the console. Theme compatibility is enforced by Gloam when
+the active theme on the console, or select an installed theme and press **Apply
+selected theme**. The optional layout checkbox also applies its suggested
+browser view and icon size. Save/reload pending settings first; the console
+validates the full package when it next loads. Theme compatibility is enforced by Gloam when
 loading it; copying a folder does not establish compatibility.
 
 For local/offline preparation, the GUI accepts `-Offline -ReleaseDirectory <folder>`

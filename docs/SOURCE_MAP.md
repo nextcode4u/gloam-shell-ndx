@@ -76,3 +76,11 @@ Windows SD setup lives in `setup.ps1` (checked-release bootstrap),
 downloads/updates to the existing PowerShell installer; packaging gives these
 files hyphenated names under `addon-installer/`. Native Windows fixture tests
 cover installation, preservation, path validation, GUI navigation and workers.
+
+The desktop settings backend is `tools/gloam_setup_settings.ps1`; its WPF
+bindings are in `tools/gloam_setup_settings_ui.ps1`. It edits selected flat
+state records while retaining repeated favourites/navigation and unknown keys,
+checks the loaded revision before saving, and leaves the lock off by default.
+`tools/gloam_setup_configuration.ps1` uses the same DSCFG001 codec, whitelist
+and pending/rollback archives as the native importer. Its CRC32 helper is
+authored C# compiled in memory, with no additional installed dependency.

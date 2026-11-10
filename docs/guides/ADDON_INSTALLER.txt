@@ -2,7 +2,10 @@ Windows graphical setup
 -----------------------
 Double-click Start Gloam Setup.cmd after extracting the complete addons.zip.
 Choose the SD root to install/update Gloam and add-ons, check BIOS requirements,
-and edit folders, tabs, argv handlers and themes. No Python or admin needed.
+and edit folders, tabs, argv handlers and themes. Settings includes Simple mode
+lock, setup presets and audio/browser controls. Maintenance provides portable
+configuration backups, state recovery and a setup health check.
+No Python or admin needed.
 Keep all setup scripts, gloam-setup.xaml and downloads.json together.
 Full guide: https://github.com/nextcode4u/gloam-shell-ndx/blob/main/docs/guides/WINDOWS_SETUP.md
 

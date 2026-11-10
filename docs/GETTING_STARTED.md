@@ -65,7 +65,8 @@ the end of Appearance. Switching views preserves existing settings, including
 technical choices hidden by Simple mode. New installations start in Simple mode;
 existing state files without a mode entry keep the previous Advanced view.
 
-For a console you are setting up for someone else, close Gloam and edit
+For a console you are setting up for someone else, the [Windows setup tool](guides/WINDOWS_SETUP.md#launcher-settings)
+provides a Simple-mode lock checkbox and a Simple locked preset. You can also close Gloam and edit
 `/_nds/dsi-frontend/state.ini` on the SD card, keeping its other entries:
 
 ```ini

@@ -41,7 +41,7 @@ function Get-GloamBootstrapHash([string]$Path) {
 $package = Join-Path $ReleaseDirectory 'addons.zip'
 $lines = @([IO.File]::ReadAllLines((Join-Path $ReleaseDirectory 'SHA256SUMS')) | Where-Object { $_ -match '^[a-f0-9]{64}  addons\.zip$' })
 if ($lines.Count -ne 1 -or (Get-GloamBootstrapHash $package) -ne $lines[0].Substring(0,64)) { throw 'Add-on package checksum mismatch. Remove the cached addons.zip and try again.' }
-$allowed = @('gloam-setup.ps1','gloam-setup.xaml','gloam-setup-core.ps1','gloam-setup-worker.ps1','Start Gloam Setup.cmd',
+$allowed = @('gloam-setup-settings.ps1','gloam-setup-settings-ui.ps1','gloam-setup-configuration.ps1','gloam-setup.ps1','gloam-setup.xaml','gloam-setup-core.ps1','gloam-setup-worker.ps1','Start Gloam Setup.cmd',
     'download-addons.ps1','download-addons.py','downloads.json','Start Add-on Installer.cmd','README.txt')
 $required = @('gloam-setup.ps1','gloam-setup.xaml','gloam-setup-core.ps1','gloam-setup-worker.ps1','download-addons.ps1','downloads.json')
 $archive = [IO.Compression.ZipFile]::OpenRead($package)

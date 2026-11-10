@@ -3692,6 +3692,9 @@
     "gloam-setup.xaml": "tools/gloam_setup.xaml",
     "gloam-setup-core.ps1": "tools/gloam_setup_core.ps1",
     "gloam-setup-worker.ps1": "tools/gloam_setup_worker.ps1",
-    "Start Gloam Setup.cmd": "tools/start_gloam_setup.cmd"
+    "Start Gloam Setup.cmd": "tools/start_gloam_setup.cmd",
+    "gloam-setup-settings.ps1": "tools/gloam_setup_settings.ps1",
+    "gloam-setup-settings-ui.ps1": "tools/gloam_setup_settings_ui.ps1",
+    "gloam-setup-configuration.ps1": "tools/gloam_setup_configuration.ps1"
   }
 }

@@ -88,6 +88,11 @@ def verify(directory, addons=False):
                        'addon-installer/gloam-setup-worker.ps1', 'addon-installer/Start Gloam Setup.cmd'}
                 if not gui <= set(archive.namelist()):
                     raise ValueError('Graphical setup tool is incomplete')
+                settings = {'addon-installer/gloam-setup-settings.ps1',
+                            'addon-installer/gloam-setup-settings-ui.ps1',
+                            'addon-installer/gloam-setup-configuration.ps1'}
+                if settings & set(archive.namelist()) and not settings <= set(archive.namelist()):
+                    raise ValueError('Graphical settings/backup modules are incomplete')
     print('Verified complete release set: ' + ', '.join(sorted(expected)))
 
 

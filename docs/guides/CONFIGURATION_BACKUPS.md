@@ -32,7 +32,7 @@ and personal extension overrides. Theme packages, music, artwork, applications,
 databases, Nintendo files, BIOS files, backend configurations and saves are
 excluded. Copy referenced assets/applications separately at the same SD paths.
 
-Both importers validate the whole archive before replacing records. Unknown
+Importers validate the whole archive before replacing records. Unknown
 paths, traversal, duplicate names, non-text/oversized records, unsupported flags
 and failed checksums stop the operation. Limits are 1,024 records, 64 KiB per
 record and 4 MiB total record data. Imports merge listed records; extra existing
@@ -40,6 +40,10 @@ records are retained. Individual settings modules still apply their ordinary
 value/path/version checks when reloading these files.
 
 ## Native rollback and recovery
+
+The Windows setup GUI also exports/imports native `.dsconfig` archives from
+Maintenance and uses this same native recovery pair. Its replaced files receive
+additional unique copies under `setup-backups/`.
 
 Before native replacement, `configuration/rollback.dsconfig` captures the
 current portable records. A checked independent copy of the incoming archive
@@ -64,7 +68,7 @@ atomicity across FAT/device-level power loss.
 
 ## Computer-side rollback
 
-Computer imports retain originals plus a SHA-256 transaction journal under
+Python computer imports retain originals plus a SHA-256 transaction journal under
 `configuration-backups/<timestamp>-<unique suffix>/`. Detected failures roll
 back; `recover` handles incomplete computer journals while preserving external
 edits. Completed backups remain available without automatic pruning. The
