@@ -127,9 +127,10 @@
             <CheckBox x:Name="AllowNc" Content="Allow noncommercial apps" ToolTip="Enable only for personal/no-profit use; each application's terms still apply."/>
           </WrapPanel>
           <DataGrid x:Name="AddonList" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" Background="#17202C" Foreground="#111820" RowBackground="#E6E8EE" AlternatingRowBackground="#D7DCE5" GridLinesVisibility="None" SelectionMode="Single" BorderThickness="0" MinHeight="120" Margin="0,0,0,12">
+            <DataGrid.RowStyle><Style TargetType="DataGridRow"><Setter Property="ToolTip" Value="{Binding Details}"/></Style></DataGrid.RowStyle>
             <DataGrid.Columns>
               <DataGridCheckBoxColumn Header="Get" Binding="{Binding Selected, UpdateSourceTrigger=PropertyChanged}" Width="45"/>
-              <DataGridTextColumn Header="Application" Binding="{Binding Id}" Width="*" IsReadOnly="True"/>
+              <DataGridTextColumn Header="Application" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
               <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="180" IsReadOnly="True"/>
               <DataGridTextColumn Header="Terms / status" Binding="{Binding Terms}" Width="180" IsReadOnly="True"/>
             </DataGrid.Columns>
@@ -138,7 +139,7 @@
             <Button x:Name="InstallAddons" Content="Install selected" Background="#6B548E"/>
             <Button x:Name="CheckAddons" Content="Check updates"/>
             <Button x:Name="UpdateAddons" Content="Update selected"/>
-            <Button x:Name="CheckSupport" Content="Check BIOS / support"/>
+            <Button x:Name="CheckSupport" Content="Check installed BIOS / support"/>
           </WrapPanel>
           <TextBlock Grid.Row="4" Text="Updates preserve settings and saves. Experimental apps need explicit selection; check the activity log for compatibility notes." Foreground="#ADB8CA" Margin="0,0,0,12"/>
         </Grid>

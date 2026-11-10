@@ -42,7 +42,9 @@ A DSi homebrew boot method with SD access is still required; see
   apps, use Recommended, or select all regular apps. Install fills missing files;
   Update selected replaces changed application binaries while preserving personal
   configurations and saves. Check updates reports differences first.
-- **Check BIOS / support** uses the same read-only checks as the console installer.
+- **Check installed BIOS / support** checks every installed app, independently
+  of the selection checkboxes, using the console installer's read-only checks.
+  Hover an add-on row for its version, terms and firmware requirements.
   Missing proprietary firmware is reported with lookup paths and documented
   sizes; see [firmware requirements](ADDONS.md#free-replacements-and-remaining-firmware).
 

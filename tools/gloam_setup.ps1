@@ -3,6 +3,7 @@
 param(
     [string]$Target,
     [string]$Manifest,
+    [string]$JobDirectory = (Join-Path $env:LOCALAPPDATA 'Gloam/Setup/jobs'),
     [string]$ReleaseDirectory = (Join-Path $env:LOCALAPPDATA 'Gloam/Setup/releases/current'),
     [switch]$Offline,
     [switch]$SmokeTest,
@@ -74,10 +75,11 @@ function Start-SetupJob([string]$Action, [string[]]$Sources = @()) {
     $root = Get-SelectedRoot
     $ui.AddonList.CommitEdit() | Out-Null
     $selected = @($ui.AddonList.ItemsSource | Where-Object Selected | ForEach-Object Id)
+    if ($Action -eq 'CheckSupport') { $selected = @() } # Always inspect every installed app.
     if ($Action -in @('InstallAddons','UpdateAddons','CheckAddons') -and -not $selected.Count) { throw 'Select at least one app.' }
     $chosen = @($ui.AddonList.ItemsSource | Where-Object Selected)
     if ($Action -in @('InstallAddons','UpdateAddons') -and @($chosen | Where-Object Noncommercial).Count -and -not $ui.AllowNc.IsChecked) { throw 'Enable Allow noncommercial apps for the selected no-profit applications.' }
-    $folder = Join-Path $env:LOCALAPPDATA ('Gloam/Setup/jobs/' + [Guid]::NewGuid().ToString('N'))
+    $folder = Join-Path $JobDirectory ([Guid]::NewGuid().ToString('N'))
     [IO.Directory]::CreateDirectory($folder) | Out-Null
     $request = Join-Path $folder 'request.json'
     $record = @{ Action = $Action; Target = $root; Manifest = $Manifest; Cache = (Join-Path $env:USERPROFILE '.gloam-addons-cache');
@@ -180,9 +182,24 @@ $ui.ImportTheme.Add_Click({ Invoke-UiAction {
 if (-not (Test-Path -LiteralPath $Manifest)) { throw 'Keep Gloam Setup beside downloads.json and the shared installer scripts.' }
 $catalog = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json
 $apps = if ($catalog.PSObject.Properties.Name -contains 'updates') { $catalog.updates } else { $catalog.applications }
+$displayNames = @{
+    'gameyob-dsi'='GameYob (DSi)'; 'gbarunner3'='GBARunner3'; 'nesds'='nesDS'; 'dslibris'='DSLibris';
+    'dsxp'='DSXP'; 'scummvm'='ScummVM'; 'gimlids'='GimliDS'; 'hachibitto'='Hachibitto';
+    'picodrivetwl'='PicoDriveTWL'; 'snemulds'='SNEmulDS'; 'snemulds-shim'='SNEmulDS Shim';
+    's8ds'='S8DS'; 'nitrografx'='NitroGrafx'; 'nitroswan'='NitroSwan'; 'ngpds'='NGPDS';
+    'fastvideods'='FastVideoDS'; 'tuna-vids'='tuna-viDS'; 'rocketvideoplayer'='Rocket Video Player';
+    'nintv-ds'='Nintellivision'; 'jenesisdsplus'='jEnesisDS Plus'; 'a5200ds'='A5200DS';
+    'a7800ds'='A7800DS'; 'a8ds'='A8DS'; 'stellads'='StellaDS'; 'colecods'='ColecoDS';
+    'dracods'='DracoDS'; 'ds994a'='DS994a'; 'lodjurds'='LodjurDS'; 'microds'='MicroDS';
+    'pokemini'='PokeMini'; 'speccyse'='SpeccySE'; 'sugards'='SugarDS'; 'wasabids'='WasabiDS'
+}
 $ui.AddonList.ItemsSource = @($apps | ForEach-Object {
     $experimental = $_.PSObject.Properties.Name -contains 'experimental' -and $_.experimental
-    [pscustomobject]@{ Selected = $_.id -in $recommended; Id = $_.id; Version = $_.version; Noncommercial = $_.noncommercial; Experimental = $experimental;
+    $name = if ($displayNames.ContainsKey($_.id)) { $displayNames[$_.id] } else { $_.id }
+    $details = $name + ' ' + $_.version + "`n" + $_.terms
+    if ($_.PSObject.Properties.Name -contains 'bios') { $details += "`nBIOS / support: " + $_.bios }
+    if ($_.PSObject.Properties.Name -contains 'notes') { $details += "`n" + $_.notes }
+    [pscustomobject]@{ Selected = $_.id -in $recommended; Id = $_.id; Name = $name; Details = $details; Version = $_.version; Noncommercial = $_.noncommercial; Experimental = $experimental;
         Terms = $(if ($experimental) { 'Experimental' } elseif ($_.noncommercial) { 'Noncommercial' } else { $_.terms }) }
 })
 if ($Target) { $ui.TargetPath.Text = $Target; Load-Sd }

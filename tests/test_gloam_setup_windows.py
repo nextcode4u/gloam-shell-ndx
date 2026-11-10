@@ -213,6 +213,26 @@ class GloamSetupTests(unittest.TestCase):
                                 + ' -ScreenshotPath ' + literal(win(screenshot)))
             self.assertIn('GUI loaded:', output)
             self.assertGreater(screenshot.stat().st_size, 5000)
-        output = self.run_ps('& ' + gui + ' -Target $root -Offline -SmokeTest -SmokeAction CheckSupport')
+        # GameYob is selected by Recommended; the installed demo is not. BIOS
+        # checks must still inspect the demo, independently of those checkboxes.
+        manifest = self.installer / 'downloads.json'
+        data = json.loads(manifest.read_text())
+        demo = data['updates'][0]
+        installed = self.app('demo.nds')
+        demo['files'] = [{'destination': installed[4:]}]
+        demo['bios'] = 'Authored BIOS requirement'
+        demo['support_requirements'] = [{'label': 'Demo BIOS', 'scope': 'required',
+            'any_of': [['roms/bios/fixture.bin']]}]
+        data['updates'].append(dict(id='gameyob-dsi', version='fixture', terms='Authored',
+            noncommercial=False, files=[], repository='https://example.invalid'))
+        manifest.write_text(json.dumps(data))
+        before = {p.relative_to(self.sd).as_posix(): p.read_bytes() for p in self.sd.rglob('*') if p.is_file()}
+        jobs = self.root / 'jobs'
+        output = self.run_ps('& ' + gui + ' -Target $root -Offline -SmokeTest -SmokeAction CheckSupport -JobDirectory ' + literal(win(jobs)))
         self.assertIn('GUI worker exit: 0', output)
-        self.assertEqual(list(self.sd.iterdir()), [])
+        request = json.loads(next(jobs.rglob('request.json')).read_text())
+        self.assertEqual(request['Selected'], [])
+        log = next(jobs.rglob('output.log')).read_text()
+        self.assertIn('MISSING', log)
+        self.assertIn('Demo BIOS', log)
+        self.assertEqual(before, {p.relative_to(self.sd).as_posix(): p.read_bytes() for p in self.sd.rglob('*') if p.is_file()})
