@@ -79,6 +79,26 @@ int main(int argc, char **argv)
     file = fopen(plan.save, "rb");
     assert(file && !fseek(file, 4096, SEEK_SET) && fgetc(file) == 0x42 && !fclose(file));
     assert(!dsiware_create_save(plan.save, 32768, error));
+    /* Repeated launches must preserve both title-owned save volumes. */
+    file = fopen(plan.private_save, "r+b");
+    assert(file && !fseek(file, 4096, SEEK_SET) && fputc(0xA7, file) == 0xA7 && !fclose(file));
+    assert(bootstrap_commit(root, &plan, error));
+    const char *save_paths[] = {plan.save, plan.private_save};
+    const int markers[] = {0x42, 0xA7};
+    for (unsigned i = 0; i < 2; i++) {
+        file = fopen(save_paths[i], "rb");
+        assert(file && !fseek(file, 4096, SEEK_SET) && fgetc(file) == markers[i] && !fclose(file));
+    }
+    /* A private-size conflict blocks handoff without rewriting either save. */
+    plan.private_bytes *= 2;
+    assert(!bootstrap_commit(root, &plan, error));
+    struct stat private_status;
+    assert(!stat(plan.private_save, &private_status) && private_status.st_size == 8192);
+    for (unsigned i = 0; i < 2; i++) {
+        file = fopen(save_paths[i], "rb");
+        assert(file && !fseek(file, 4096, SEEK_SET) && fgetc(file) == markers[i] && !fclose(file));
+    }
+    plan.private_bytes /= 2;
     plan.options.values[GAME_SLOT] = 2;
     assert(dsiware_prepare(&app, target, binary, &plan, error));
     assert(strstr(plan.save, ".pub2") && strstr(plan.private_save, ".prv2"));
