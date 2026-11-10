@@ -142,6 +142,25 @@ class PrepareAddonTests(unittest.TestCase):
         self.assertEqual(report[0]['status'], 'review-required')
         self.assertIn('bytes changed', report[0]['detail'])
 
+    def test_component_asset_is_verified_against_its_own_explicit_release(self):
+        original = self.app['package']['files'][0]
+        current = {**self.release, 'tag_name': 'v1', 'assets': [{
+            'browser_download_url': original['download']['url'], 'digest': 'sha256:' + '0' * 64}]}
+        item = copy.deepcopy(original)
+        item['release'] = 'https://github.com/example/firmware/releases/tag/fw1'
+        item['download']['url'] = 'https://github.com/example/firmware/releases/download/fw1/boot.zip'
+        self.app['package']['files'].append(item)
+        component = {'tag_name': 'fw1', 'draft': False, 'assets': [{
+            'browser_download_url': item['download']['url'], 'digest': 'sha256:' + '0' * 64}]}
+        with patch('tools.prepare_addons_release.github', side_effect=[[current], component]):
+            _, report = inspect_catalog(self.root, {'format': 1, 'applications': [self.app]})
+        self.assertEqual(report[0]['status'], 'current')
+        component['assets'][0]['digest'] = 'sha256:' + '1' * 64
+        with patch('tools.prepare_addons_release.github', side_effect=[[current], component]):
+            _, report = inspect_catalog(self.root, {'format': 1, 'applications': [self.app]})
+        self.assertEqual(report[0]['status'], 'review-required')
+        self.assertIn('replaced', report[0]['detail'])
+
     def test_pipeline_checks_before_build_and_does_not_apply_blocked_updates(self):
         (self.root / 'config').mkdir()
         self.app['redistribution'] = 'approved'

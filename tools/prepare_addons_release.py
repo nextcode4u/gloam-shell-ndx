@@ -219,10 +219,25 @@ def inspect_catalog(root, lock):
                     current = next(r for r in releases if r["tag_name"] == tag)
                     digests = {a["browser_download_url"]: a.get("digest") for a in current["assets"]}
                     checked = {}
+                    component_assets = {}
                     for item in app["package"]["files"]:
-                        if item["download"]["url"] not in digests:
+                        assets = digests
+                        component_release = item.get("release", release_url)
+                        if component_release != release_url:
+                            match = re.fullmatch(r"https://github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)/releases/tag/([^?#]+)", component_release)
+                            if not match:
+                                raise ReviewRequired("Invalid component release URL")
+                            if component_release not in component_assets:
+                                route = f"repos/{match[1]}/releases/tags/{urllib.parse.quote(match[2], safe='')}"
+                                component = github(route)
+                                if component.get("draft") or component["tag_name"] != match[2]:
+                                    raise ReviewRequired("Component release does not match its explicit pin")
+                                component_assets[component_release] = {
+                                    a["browser_download_url"]: a.get("digest") for a in component["assets"]}
+                            assets = component_assets[component_release]
+                        if item["download"]["url"] not in assets:
                             raise ReviewRequired("Pinned release asset was removed or renamed upstream")
-                        expected = digests.get(item["download"]["url"])
+                        expected = assets.get(item["download"]["url"])
                         if expected and expected != "sha256:" + item["download"]["sha256"]:
                             raise ReviewRequired("Pinned release asset was replaced upstream")
                         if not expected:

@@ -780,7 +780,8 @@
             "format": "zip",
             "member": "cgb_boot.bin",
             "destination": "roms/bios/gbc_bios.bin",
-            "sha256": "f767b8e7e510a255f81328c89dba6e0c996b370e1bc86aebb8584a7da47a5bba"
+            "sha256": "f767b8e7e510a255f81328c89dba6e0c996b370e1bc86aebb8584a7da47a5bba",
+            "release": "https://github.com/LIJI32/SameBoy/releases/tag/v1.0.5"
           }
         ],
         "notices": [
