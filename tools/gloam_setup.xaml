@@ -139,13 +139,6 @@
               </Style>
             </DataGrid.RowStyle>
             <DataGrid.ColumnHeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#28313F"/><Setter Property="Foreground" Value="#E7E9F0"/><Setter Property="Padding" Value="8,5"/></Style></DataGrid.ColumnHeaderStyle>
-            <DataGrid.ColumnHeaderStyle>
-              <Style TargetType="DataGridColumnHeader">
-                <Setter Property="Background" Value="#28313F"/>
-                <Setter Property="Foreground" Value="#E7E9F0"/>
-                <Setter Property="Padding" Value="8,6"/>
-              </Style>
-            </DataGrid.ColumnHeaderStyle>
             <DataGrid.Columns>
               <DataGridCheckBoxColumn Header="Get" Binding="{Binding Selected, UpdateSourceTrigger=PropertyChanged}" Width="45"/>
               <DataGridTextColumn Header="Application" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
@@ -269,6 +262,13 @@
             </Grid>
           </StackPanel>
           <DataGrid x:Name="OrganizerPreview" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" Background="#17202C" Foreground="#111820" RowBackground="#E6E8EE" AlternatingRowBackground="#D7DCE5" GridLinesVisibility="None" BorderThickness="0" MinHeight="80">
+            <DataGrid.ColumnHeaderStyle>
+              <Style TargetType="DataGridColumnHeader">
+                <Setter Property="Background" Value="#28313F"/>
+                <Setter Property="Foreground" Value="#E7E9F0"/>
+                <Setter Property="Padding" Value="8,6"/>
+              </Style>
+            </DataGrid.ColumnHeaderStyle>
             <DataGrid.Columns>
               <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="75"/>
               <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="*"/>

@@ -89,7 +89,7 @@ class GloamSetupTests(unittest.TestCase):
                     + '; Write-GloamOrganizerJson ' + literal(win(plan)) + ' $plan; '
                     + 'Invoke-GloamOrganization $root ' + literal(win(plan))
                     + ' (Get-GloamHash ' + literal(win(plan)) + ')')
-        return json.loads(plan.read_text())
+        return json.loads(plan.read_text(encoding='utf-8'))
 
     def test_organizer_preserves_companions_and_undo_restores_exact_configuration(self):
         old = 'sd:/roms/Nintendo DS/Moon.nds'
@@ -189,17 +189,17 @@ class GloamSetupTests(unittest.TestCase):
         self.assertEqual(state.read_bytes(), original)
         self.assertTrue((self.sd / 'roms/Nintendo DS/Étoile.nds').is_file())
         journal = next((self.sd / '_nds/dsi-frontend/organizer').iterdir())
-        self.assertEqual(json.loads((journal / 'status.json').read_text())['State'], 'undone')
+        self.assertEqual(json.loads((journal / 'status.json').read_text(encoding='utf-8'))['State'], 'undone')
         self.organize()
         self.assertTrue((self.sd / 'roms/Nintendo DS/#/Étoile.nds').is_file())
-        self.assertIn('sd:/roms/Nintendo DS/#/Étoile.nds', state.read_text())
+        self.assertIn('sd:/roms/Nintendo DS/#/Étoile.nds', state.read_text(encoding='utf-8'))
 
     def test_gui_organizer_preview_uses_worker_and_leaves_sd_unchanged(self):
-        rom = self.organizer_file('roms/Nintendo DS/Moon.nds')
+        rom = self.organizer_file('roms/Nintendo DS/Éditions/Moon.nds')
         jobs = self.root / 'jobs'
         gui = literal(win(self.installer / 'gloam-setup.ps1'))
         output = self.run_ps('& ' + gui + ' -Target $root -Offline -SmokeTest -SmokeAction PreviewOrganization '
-                             + "-ScreenshotPage Organizer -SmokeOrganizerFolder 'roms/Nintendo DS' -JobDirectory " + literal(win(jobs)))
+                             + "-ScreenshotPage Organizer -SmokeOrganizerFolder 'roms/Nintendo DS/Éditions' -JobDirectory " + literal(win(jobs)))
         self.assertIn('GUI worker exit: 0', output)
         plan = json.loads(next(jobs.rglob('organizer-plan.json')).read_text())
         self.assertEqual(len(plan['Moves']), 1)
@@ -416,8 +416,8 @@ class GloamSetupTests(unittest.TestCase):
         self.assertIn('music_volume=35', data)
         self.assertEqual(len(list((self.sd / '_nds/dsi-frontend/setup-backups').rglob('state.ini'))), 1)
         self.run_ps("$state = Read-GloamState $root; Save-GloamSettings $root @{simple_settings_lock='0';settings_mode='advanced'} $state.Hash")
-        self.assertIn('settings_mode=advanced', state.read_text())
-        self.assertIn('simple_settings_lock=0', state.read_text())
+        self.assertIn('settings_mode=advanced', state.read_text(encoding='utf-8'))
+        self.assertIn('simple_settings_lock=0', state.read_text(encoding='utf-8'))
 
     def test_settings_defaults_validation_and_conflict_detection(self):
         self.run_ps("$s=Read-GloamState $root; if ($s.Values.settings_mode -ne 'simple' -or $s.Values.simple_settings_lock -ne '0') {throw 'Wrong defaults'}; Save-GloamSettings $root (Get-GloamSetupPreset 'Quiet') $s.Hash")
@@ -466,8 +466,8 @@ class GloamSetupTests(unittest.TestCase):
         theme.write_text('[theme]\nversion=1\n[layout]\nview=grid\nicon_size=large\n')
         self.run_ps("$s=Read-GloamState $root; Save-GloamSettings $root (Get-GloamThemeSettings $root test $true) $s.Hash")
         state = self.sd / '_nds/dsi-frontend/state.ini'
-        self.assertIn('browser_style=3', state.read_text())
-        self.assertIn('icon_size=1', state.read_text())
+        self.assertIn('browser_style=3', state.read_text(encoding='utf-8'))
+        self.assertIn('icon_size=1', state.read_text(encoding='utf-8'))
         wav = self.sd / 'media/music/fixture.wav'
         wav.parent.mkdir(parents=True)
         with wave.open(str(wav), 'wb') as output:
@@ -492,8 +492,8 @@ class GloamSetupTests(unittest.TestCase):
         gui = literal(win(self.installer / 'gloam-setup.ps1'))
         output = self.run_ps('& ' + gui + ' -Target $root -SmokeTest -SmokeAction SaveSettings')
         self.assertIn('GUI settings save completed.', output)
-        self.assertIn('simple_settings_lock=1', state.read_text())
-        self.assertIn('settings_mode=simple', state.read_text())
+        self.assertIn('simple_settings_lock=1', state.read_text(encoding='utf-8'))
+        self.assertIn('settings_mode=simple', state.read_text(encoding='utf-8'))
         self.assertEqual(state.read_text().count('favorite='), 2)
 
     def test_pending_recovery_blocks_settings_edits_and_state_backup_is_validated(self):
