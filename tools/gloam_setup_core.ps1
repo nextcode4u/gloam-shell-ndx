@@ -351,3 +351,12 @@ function Copy-GloamContent([string]$Root, [string[]]$Sources, [string]$Folder) {
         Write-Host "Copied: $($item.Name)"
     }
 }
+
+# Match the launcher's own pending import/reset markers before desktop edits.
+function Assert-GloamConfigurationReady([string]$Root) {
+    foreach ($name in @('configuration/pending.dsconfig','configuration/reset-pending')) {
+        if (Test-Path -LiteralPath (Get-GloamPath $Root ('_nds/dsi-frontend/' + $name))) {
+            throw 'A launcher configuration recovery is pending. Start Gloam to finish recovery before editing settings on the PC.'
+        }
+    }
+}
