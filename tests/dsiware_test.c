@@ -56,6 +56,11 @@ int main(int argc, char **argv)
     assert(bootstrap_prepare(&app, target, &plan, error));
     assert(plan.route == LAUNCH_DSIWARE && plan.save_bytes == 16384 && plan.private_bytes == 8192);
     assert(strstr(plan.save, "saves/WARE.pub") && strstr(plan.private_save, "saves/WARE.prv"));
+    /* A previous launcher must not redirect this title's Quit Game target. */
+    assert(path_join(path, root, "_nds/nds-bootstrap.ini"));
+    file = fopen(path, "w");
+    assert(file && fputs("[NDS-BOOTSTRAP]\nQUIT_PATH=sd:/old-loader.nds\n", file) >= 0 &&
+           !fclose(file));
     assert(bootstrap_commit(root, &plan, error));
     assert(dsiware_alias(root, plan.save, alias) && !strcmp(alias, "sd:/ROMS/SAVES/WARE.PUB"));
     assert(!dsiware_alias(root, "/outside/WARE.pub", alias));
@@ -68,6 +73,8 @@ int main(int argc, char **argv)
     char config[4096] = "";
     file = fopen(path, "r");
     assert(file && fread(config, 1, sizeof config - 1, file) > 0 && !fclose(file));
+    const char *quit = strstr(config, "QUIT_PATH=sd:/BOOT.NDS\n");
+    assert(quit && !strstr(quit + 1, "QUIT_PATH=") && !strstr(config, "old-loader.nds"));
     assert(strstr(config, "APP_PATH=sd:/ROMS/WARE.DSI"));
     assert(strstr(config, "SAV_PATH=sd:/ROMS/SAVES/WARE.PUB"));
     assert(strstr(config, "PRV_PATH=sd:/ROMS/SAVES/WARE.PRV"));

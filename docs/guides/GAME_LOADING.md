@@ -22,8 +22,15 @@ Options are mode, CPU/VRAM boosts, DMA/asynchronous reads, language, save slot,
 save size and the nds-bootstrap in-game menu hotkey. These options apply to the
 backend route, not arbitrary applications launched directly. Auto mode uses
 the backend's default DSi-enabled policy; pure DS titles still need backend
-compatibility. `QUIT_PATH` points to `sd:/BOOT.NDS`; actual in-game return is
-not certified by generating this setting.
+compatibility. For retail and SD DSiWare, nds-bootstrap's in-game menu →
+**Quit Game** requests return to Gloam using `QUIT_PATH=sd:/BOOT.NDS`. Each
+launch replaces any previous loader's quit target. Keep Gloam's `BOOT.NDS` at
+the SD root; the game's own Quit command may only return to its title screen.
+
+A correct quit target does not guarantee a successful backend handoff. If
+confirming Quit Game resumes the game or leaves black screens, record the
+backend version and title, and distinguish that failure from a missing
+`BOOT.NDS`.
 
 ## Saves
 
