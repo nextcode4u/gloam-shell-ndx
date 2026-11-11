@@ -392,18 +392,25 @@ class GloamSetupTests(unittest.TestCase):
                    repository='https://example.invalid', files=[{
                        'format': 'inline', 'content': 'Authored fixture', 'sha256': '0' * 64,
                        'destination': '_nds/dsi-frontend/plugins/dslibris-books.ini'}])
+        good = dict(id='nesds', version='fixture', terms='Authored', noncommercial=False,
+                    repository='https://example.invalid', files=[{
+                        'format': 'inline', 'content': '# Authored valid fixture',
+                        'sha256': hashlib.sha256(b'# Authored valid fixture').hexdigest(),
+                        'destination': '_nds/dsi-frontend/plugins/picodrivetwl.ini'}])
         (self.installer / 'downloads.json').write_text(json.dumps(
-            {'format': 1, 'applications': [], 'updates': [app], 'manual': []}))
+            {'format': 1, 'applications': [], 'updates': [app, good], 'manual': []}))
         jobs = self.root / 'jobs'
         gui = literal(win(self.installer / 'gloam-setup.ps1'))
         output = self.run_ps('& ' + gui + ' -Target $root -Offline -SmokeTest -SmokeAction InstallAddons -JobDirectory ' + literal(win(jobs)))
-        self.assertIn('GUI worker exit: 1', output)
+        self.assertIn('GUI worker exit: 2', output)
         log = ''.join(path.read_text(encoding='utf-8') for path in jobs.rglob('*.log'))
         self.assertIn('hash', log.lower())
         self.assertNotIn('No pinned download', log)
         self.assertNotIn('CLIXML', log)
         self.assertNotIn('<Objs', log)
-        self.assertFalse((self.sd / '_nds').exists())
+        self.assertIn('nesds: installed/updated', log)
+        self.assertFalse((self.sd / '_nds/dsi-frontend/plugins/dslibris-books.ini').exists())
+        self.assertEqual((self.sd / '_nds/dsi-frontend/plugins/picodrivetwl.ini').read_bytes(), b'# Authored valid fixture')
 
     def test_bootstrap_extracts_only_verified_setup_files(self):
         names = ['gloam-setup.ps1','gloam-setup.xaml','gloam-setup-core.ps1','gloam-setup-worker.ps1','download-addons.ps1','downloads.json']

@@ -136,6 +136,30 @@ class DownloadAddonTests(unittest.TestCase):
             self.assertNotIn('Choose a menu number.', result.stdout)
         self.assertEqual(list(self.sd.iterdir()), [])
 
+    def test_failed_download_continues_and_marks_required_apps_incomplete(self):
+        before = copy.deepcopy(self.app)
+        before['id'] = 'before'
+        before.pop('game_configs')
+        before['files'][0]['destination'] = '_nds/dsi-frontend/plugins/apps/before.nds'
+        broken = copy.deepcopy(before)
+        broken['id'] = 'broken'
+        broken['files'][0]['destination'] = '_nds/dsi-frontend/plugins/apps/broken.nds'
+        broken['files'][0]['download']['asset'] = 'missing.zip'
+        after = copy.deepcopy(before)
+        after['id'] = 'after'
+        after['files'][0]['destination'] = '_nds/dsi-frontend/plugins/apps/after.nds'
+        after['requires'] = ['broken']
+        self.manifest['applications'] = [before, broken, after]
+        output = io.StringIO()
+        with redirect_stdout(output), self.assertRaisesRegex(ValueError, 'Required app failed'):
+            self.run_stage()
+        self.assertEqual((self.sd / before['files'][0]['destination']).read_bytes(), self.binary)
+        self.assertEqual((self.sd / after['files'][0]['destination']).read_bytes(), self.binary)
+        self.assertFalse((self.sd / broken['files'][0]['destination']).exists())
+        self.assertIn('before: installed/updated', output.getvalue())
+        self.assertIn('broken: FAILED', output.getvalue())
+        self.assertIn('after: FAILED: Required app failed', output.getvalue())
+
     def test_only_pinned_members_are_installed_and_existing_files_are_preserved(self):
         self.assertEqual(self.run_stage(), (2, 0))
         self.assertEqual((self.sd / self.name).read_bytes(), self.binary)

@@ -1,4 +1,5 @@
 """Exercise standalone menus in Windows PowerShell 5.1 and the CMD launcher."""
+import copy
 import hashlib
 import json
 import os
@@ -64,6 +65,57 @@ class WindowsInstallerMenuTests(unittest.TestCase):
         self.assertIn('Gloam Add-on Installer', result.stdout, result.stderr)
         self.assertNotIn('Operation stopped:', result.stdout)
         return result.stdout
+
+    def test_batch_continues_after_download_or_hash_failure_in_both_installers(self):
+        apps = []
+        for name in ('before', 'broken', 'after', 'dependent'):
+            app = copy.deepcopy(self.app)
+            app['id'] = name
+            app['files'][0]['destination'] = f'_nds/dsi-frontend/plugins/apps/{name}.nds'
+            apps.append(app)
+        apps[3]['requires'] = ['broken']
+        support = copy.deepcopy(apps[0]['files'][0])
+        support['destination'] = '_nds/dsi-frontend/plugins/apps/broken-support.nds'
+        apps[1]['files'].append(support)
+        self.manifest['applications'] = apps
+        self.manifest['updates'] = apps
+        for update in (False, True):
+            for powershell in (False, True):
+                with self.subTest(update=update, powershell=powershell):
+                    shutil.rmtree(self.target)
+                    self.target.mkdir()
+                    broken = apps[1]['files'][0]
+                    broken['download']['asset'] = 'fixture.nds' if update else 'missing.nds'
+                    broken['sha256'] = '0' * 64 if update else self.digest
+                    self.write_manifest()
+                    paths = [self.target / app['files'][0]['destination'] for app in apps]
+                    for path in paths if update else paths[:1]:
+                        path.parent.mkdir(parents=True, exist_ok=True)
+                        path.write_bytes(b'Existing user executable')
+                    if powershell:
+                        command = self.ps + ['-Target', windows_path(self.target), '-Cache', windows_path(self.cache), '-Offline']
+                        if update:
+                            command.append('-Update')
+                    else:
+                        command = [sys.executable, str(self.installer / 'download-addons.py'),
+                                   '--target', str(self.target), '--cache', str(self.cache), '--offline']
+                        if update:
+                            command.append('--update')
+                    result = subprocess.run(command, capture_output=True, text=True, timeout=45)
+                    log = result.stdout + result.stderr
+                    self.assertEqual(result.returncode, 2, log)
+                    self.assertIn('Completed with failures', log)
+                    self.assertIn('broken: FAILED', log)
+                    self.assertIn('after: installed/updated', log)
+                    self.assertIn('dependent: FAILED: Required app failed: broken', log)
+                    self.assertFalse((self.target / support['destination']).exists())
+                    self.assertEqual(paths[3].read_bytes(), self.payload)
+                    self.assertEqual(paths[0].read_bytes(), self.payload if update else b'Existing user executable')
+                    self.assertEqual(paths[2].read_bytes(), self.payload)
+                    if update:
+                        self.assertEqual(paths[1].read_bytes(), b'Existing user executable')
+                    else:
+                        self.assertFalse(paths[1].exists())
 
     def test_support_checks_report_alternatives_without_changing_sd_files(self):
         self.app['bios'] = 'Fixture BIOS required.'

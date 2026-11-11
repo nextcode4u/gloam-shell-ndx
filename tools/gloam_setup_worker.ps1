@@ -70,8 +70,11 @@ try {
                 'CheckAddons' { $arguments.CheckUpdates = $true }
                 'CheckSupport' { $arguments.CheckSupport = $true }
             }
+            $global:LASTEXITCODE = 0
             & (Join-Path $PSScriptRoot 'download-addons.ps1') @arguments
-            if (-not $?) { throw 'The add-on operation failed.' }
+            $succeeded = $?
+            if ($LASTEXITCODE -eq 2) { exit 2 }
+            if (-not $succeeded) { throw 'The add-on operation failed.' }
         }
         default { throw 'Unsupported setup action.' }
     }

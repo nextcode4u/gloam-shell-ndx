@@ -126,9 +126,15 @@ DS994a, PicoDriveTWL and any noncommercial apps omitted by the chosen bundled se
 
 `--cache` / `-Cache` changes the computer-side cache, whose default is
 `~/.gloam-addons-cache`. `--offline` / `-Offline` uses a populated cache only.
-Normal install `--dry-run` / `-DryRun` performs no downloads or writes. A failed download or
-hash mismatch stops the run; files already completed stay installed. Re-run to
-continue. The scripts do not remove older installations, rewrite associations
+Normal install `--dry-run` / `-DryRun` performs no downloads or writes.
+A failed download, hash mismatch or file write marks that app incomplete and
+skips its remaining files; the other selected apps are still attempted. The final
+report lists installed/updated, preserved/current and failed apps. Re-run the failed
+selection to finish; completed files stay installed. A required partner failure also
+marks its dependent app incomplete. Exit code 2 means the batch finished with app
+failures; invalid selections, license gates or unsafe destinations still stop before
+staging with exit code 1. The scripts do not remove older installations, rewrite
+associations
 or settings, or supply firmware. `--list` / `-List` identifies apps requiring
 manual setup if a reviewed runtime download is not yet pinned. All current
 catalog entries have a pinned installer recipe; download-only applications remain
@@ -141,7 +147,7 @@ Windows per-process execution-policy command when needed.
 ## Check and stage updates
 
 The same scripts update bundled applications as well as download-only ones.
-The generated manifest carries all 27 reviewed runtime recipes, including the
+The generated manifest carries the complete reviewed runtime catalog, including the
 matching SNEmulDS shim/payload pair. Check an SD card without changing it:
 
 ```sh

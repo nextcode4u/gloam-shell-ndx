@@ -3,6 +3,7 @@
 
 import argparse
 import hashlib
+from http.client import HTTPException
 import io
 import json
 import os
@@ -14,6 +15,7 @@ import tarfile
 import tempfile
 import urllib.request
 import zipfile
+import zlib
 
 MAX_DOWNLOAD = 64 * 1024 * 1024
 CATALOG_URL = "https://raw.githubusercontent.com/nextcode4u/gloam-shell-ndx/main/config/addon-dependencies.json"
@@ -274,6 +276,14 @@ def fetch(item, cache, offline):
     return data
 
 
+class PartialInstallError(ValueError):
+    """Some apps failed after the installer attempted the rest of the selection."""
+
+    def __init__(self, failed):
+        self.failed = failed
+        super().__init__("; ".join(f"{name}: {reason}" for name, reason in failed.items()))
+
+
 def stage(manifest, target, cache, only=None, noncommercial=False, overwrite=False,
           offline=False, dry_run=False, update=False):
     if manifest["format"] != 1:
@@ -299,78 +309,102 @@ def stage(manifest, target, cache, only=None, noncommercial=False, overwrite=Fal
             seen.add(key)
             planned.append((app["id"], item, path))
     fetched, installed, skipped = {}, 0, 0
+    failed, changed = {}, set()
     for name, item, path in planned:
-        replace = overwrite or (update and path.suffix.lower() in {".nds", ".srl"})
-        if path.is_file() and update and digest(path.read_bytes()) == item["sha256"]:
-            skipped += 1
+        if name in failed:
             continue
-        if path.exists() and not replace:
-            print(f"Keep existing: {item['destination']}")
-            skipped += 1
-            continue
-        if dry_run:
-            print(f"Would install {name}: {item['destination']}")
-            continue
-        inline = item["format"] == "inline"
-        if inline:
-            if item["destination"] not in ADDON_PROFILES or len(item["content"].encode("utf-8")) > 4096:
-                raise ValueError("Unsupported inline add-on default")
-            data = item["content"].encode("utf-8")
-        else:
-            download = item["download"]
-        identity = ("inline", item["sha256"]) if inline else (download["asset"], download["sha256"])
-        if not inline:
-            if identity not in fetched:
-                fetched[identity] = fetch(download, Path(cache), offline)
-            data = fetched[identity]
-        if item["format"] == "zip":
-            with zipfile.ZipFile(io.BytesIO(data)) as archive:
-                entries = [m for m in archive.infolist() if m.filename == item["member"]]
-                if len(entries) != 1 or entries[0].file_size > MAX_DOWNLOAD:
-                    raise ValueError("Missing, duplicate or oversized archive member")
-                data = archive.read(entries[0])
-        elif item["format"] == "tar.gz":
-            found, total = [], 0
-            with tarfile.open(fileobj=io.BytesIO(data), mode="r|gz") as archive:
-                for member in archive:
-                    total += member.size
-                    if total > 256 * 1024 * 1024:
-                        raise ValueError("Oversized tar archive")
-                    if member.name == item["member"]:
-                        if not member.isfile() or member.size > MAX_DOWNLOAD:
-                            raise ValueError("Non-regular or oversized archive member")
-                        found.append(archive.extractfile(member).read())
-            if len(found) != 1:
-                raise ValueError("Missing or duplicate archive member")
-            data = found[0]
-        elif item["format"] not in {"raw", "inline"}:
-            raise ValueError("Unsupported download format")
-        if digest(data) != item["sha256"]:
-            raise ValueError(f"Member hash mismatch: {item['destination']}")
-        if item["destination"].endswith(".json") and not isinstance(json.loads(data), dict):
-            raise ValueError("Game config must be a JSON object")
-        destination(target, item["destination"])
-        if update and path.is_file():
-            previous = path.read_bytes()
-            backup = Path(cache) / "previous-files" / digest(previous) / path.name
-            backup.parent.mkdir(parents=True, exist_ok=True)
-            if not backup.exists():
-                backup.write_bytes(previous)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        temporary = None
         try:
-            with tempfile.NamedTemporaryFile(dir=path.parent, delete=False) as output:
-                temporary = Path(output.name)
-                output.write(data)
-            if path.exists() and not replace:
+            replace = overwrite or (update and path.suffix.lower() in {".nds", ".srl"})
+            if path.is_file() and update and digest(path.read_bytes()) == item["sha256"]:
                 skipped += 1
                 continue
-            os.replace(temporary, path)
-            installed += 1
-        finally:
-            if temporary is not None:
-                temporary.unlink(missing_ok=True)
+            if path.exists() and not replace:
+                print(f"Keep existing: {item['destination']}")
+                skipped += 1
+                continue
+            if dry_run:
+                print(f"Would install {name}: {item['destination']}")
+                continue
+            inline = item["format"] == "inline"
+            if inline:
+                if item["destination"] not in ADDON_PROFILES or len(item["content"].encode("utf-8")) > 4096:
+                    raise ValueError("Unsupported inline add-on default")
+                data = item["content"].encode("utf-8")
+            else:
+                download = item["download"]
+            identity = ("inline", item["sha256"]) if inline else (download["asset"], download["sha256"])
+            if not inline:
+                if identity not in fetched:
+                    fetched[identity] = fetch(download, Path(cache), offline)
+                data = fetched[identity]
+            if item["format"] == "zip":
+                with zipfile.ZipFile(io.BytesIO(data)) as archive:
+                    entries = [m for m in archive.infolist() if m.filename == item["member"]]
+                    if len(entries) != 1 or entries[0].file_size > MAX_DOWNLOAD:
+                        raise ValueError("Missing, duplicate or oversized archive member")
+                    data = archive.read(entries[0])
+            elif item["format"] == "tar.gz":
+                found, total = [], 0
+                with tarfile.open(fileobj=io.BytesIO(data), mode="r|gz") as archive:
+                    for member in archive:
+                        total += member.size
+                        if total > 256 * 1024 * 1024:
+                            raise ValueError("Oversized tar archive")
+                        if member.name == item["member"]:
+                            if not member.isfile() or member.size > MAX_DOWNLOAD:
+                                raise ValueError("Non-regular or oversized archive member")
+                            found.append(archive.extractfile(member).read())
+                if len(found) != 1:
+                    raise ValueError("Missing or duplicate archive member")
+                data = found[0]
+            elif item["format"] not in {"raw", "inline"}:
+                raise ValueError("Unsupported download format")
+            if digest(data) != item["sha256"]:
+                raise ValueError(f"Member hash mismatch: {item['destination']}")
+            if item["destination"].endswith(".json") and not isinstance(json.loads(data), dict):
+                raise ValueError("Game config must be a JSON object")
+            destination(target, item["destination"])
+            if update and path.is_file():
+                previous = path.read_bytes()
+                backup = Path(cache) / "previous-files" / digest(previous) / path.name
+                backup.parent.mkdir(parents=True, exist_ok=True)
+                if not backup.exists():
+                    backup.write_bytes(previous)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            temporary = None
+            try:
+                with tempfile.NamedTemporaryFile(dir=path.parent, delete=False) as output:
+                    temporary = Path(output.name)
+                    output.write(data)
+                if path.exists() and not replace:
+                    skipped += 1
+                    continue
+                os.replace(temporary, path)
+                installed += 1
+                changed.add(name)
+            finally:
+                if temporary is not None:
+                    temporary.unlink(missing_ok=True)
+        except (OSError, ValueError, KeyError, EOFError, HTTPException, zipfile.BadZipFile, tarfile.TarError, zlib.error) as error:
+            failed[name] = f"{item['destination']}: {error}"
+            print(f"FAILED {name}: {failed[name]}; continuing with other apps.")
+    # A paired launcher/core is incomplete if either member failed, even when
+    # this app's own files were written successfully. Keep those files for retry.
+    while True:
+        dependent = {app["id"]: "Required app failed: " + required
+                     for app in selected if app["id"] not in failed
+                     for required in app.get("requires", []) if required in failed}
+        if not dependent:
+            break
+        failed.update(dependent)
+    for app in selected:
+        name = app["id"]
+        status = ("FAILED: " + failed[name] if name in failed else
+                  "previewed" if dry_run else "installed/updated" if name in changed else "preserved/current")
+        print(f"{name}: {status}")
     print(f"Installed {installed} files; preserved {skipped} existing files.")
+    if failed:
+        raise PartialInstallError(failed)
     return installed, skipped
 
 
@@ -530,6 +564,8 @@ def interactive_menu(manifest, args):
                               args.overwrite, args.offline, args.dry_run, action == "3")
                     else:
                         print("Cancelled.")
+        except PartialInstallError as error:
+            print(f"Completed with failures; retry these apps: {error}")
         except (OSError, ValueError, KeyError, zipfile.BadZipFile, tarfile.TarError) as error:
             print(f"Operation stopped: {error}")
         input("Press Enter to return to the menu...")
@@ -584,6 +620,8 @@ def main():
             return
         stage(manifest, args.target, args.cache, args.only, args.noncommercial,
               args.overwrite, args.offline, args.dry_run, args.update)
+    except PartialInstallError as error:
+        parser.exit(2, f"Completed with failures; retry these apps: {error}\n")
     except (EOFError, KeyboardInterrupt):
         print("\nInstaller closed.")
     except (OSError, ValueError, KeyError, zipfile.BadZipFile, tarfile.TarError) as error:

@@ -54,7 +54,11 @@ apps are included by Select all and can also be selected individually; their
 compatibility notes appear in the activity log. Download-only applications come directly from their upstream releases.
 The GUI uses the existing downloader and reviewed catalog rather than a second
 set of install rules. Downloads and setup operations run in a separate process;
-the activity log shows progress and errors.
+the activity log shows progress and errors. If one app fails to download, verify
+or stage, the remaining selected apps are still attempted. The final report names
+installed/updated, preserved/current and failed apps; retry the failed selection.
+The window reports **Completed with failures** instead of discarding the rest of
+the batch. Files already staged for an incomplete app remain available for retry.
 
 Changed frontend/configuration files receive unique backups under
 `/_nds/dsi-frontend/setup-backups/`. Add-on binary updates use the downloader's

@@ -96,10 +96,14 @@ in /_nds/gameyobds.ini and enable GBC Bios in GameYob to use it.
 GBARunner3 still uses your own original /_gba/bios.bin.
 
 Downloads and selected archive members are checked against SHA-256 pins.
-A changed or unavailable release stops installation instead of silently switching
-versions. Only the named application/config files are staged; no whole-archive
-extraction. Completed files remain installed if a later download fails. Re-run
-the same command to continue; existing files are preserved.
+A changed or unavailable download fails that app without switching to an
+unreviewed build. The installer skips the failed app's remaining files and
+attempts the other selected apps. Downloads and extracted members retain their
+hash checks. The final report lists installed, preserved and failed apps; retry
+the failed selection to finish. Completed files remain installed, including any
+files already staged for an incomplete app. Required launcher/core partners are
+reported incomplete together. Exit code 2 means completed with app failures;
+exit code 1 indicates a setup/preflight error, and 0 indicates success.
 
 Cache entries include their content hash to support reused release filenames.
 Cache: ~/.gloam-addons-cache on the computer, not the SD card.

@@ -451,7 +451,8 @@ function Invoke-InstallerMenu($Document) {
                         if ($action -eq '3') { $operation.Update = $true }
                         $global:LASTEXITCODE = 0
                         & $scriptPath @operation
-                        if ($LASTEXITCODE -ne 0) { Write-Host 'Operation stopped. Review the message above.' }
+                        if ($LASTEXITCODE -eq 2) { Write-Host 'Completed with failures. See the retry list above.' }
+                        elseif ($LASTEXITCODE -ne 0) { Write-Host 'Operation stopped. Review the message above.' }
                     } finally { Remove-Item -LiteralPath $snapshotPath -Force -ErrorAction SilentlyContinue }
                 }
             }
@@ -542,66 +543,94 @@ try {
     $fetched = @{}
     $installed = 0
     $skipped = 0
+    $failed = @{}; $changed = @{}
     foreach ($plan in $planned) {
-        $item = $plan.Item
-        $replace = $Overwrite -or ($Update -and $item.destination -match '\.(nds|srl)$')
-        if ($Update -and (Test-Path -LiteralPath $plan.Path -PathType Leaf) -and
-            (Get-Digest ([IO.File]::ReadAllBytes($plan.Path))) -eq $item.sha256) { $skipped++; continue }
-        if ((Test-Path -LiteralPath $plan.Path) -and -not $replace) {
-            Write-Output "Keep existing: $($item.destination)"
-            $skipped++
-            continue
-        }
-        if ($DryRun) { Write-Output "Would install $($plan.Id): $($item.destination)"; continue }
-        if ($item.format -eq 'inline') {
-            [byte[]]$data = [Text.Encoding]::UTF8.GetBytes([string]$item.content)
-            if ($item.destination -cnotin $AddonProfiles -or $data.Length -gt 4096) {
-                throw 'Unsupported inline add-on default'
-            }
-        } else {
-            $key = "$($item.download.asset):$($item.download.sha256)"
-            if (-not $fetched.ContainsKey($key)) { $fetched[$key] = Get-Download $item.download }
-            [byte[]]$data = $fetched[$key]
-        }
-        if ($item.format -eq 'zip') {
-            $memory = [IO.MemoryStream]::new($data, $false)
-            $archive = [IO.Compression.ZipArchive]::new($memory, [IO.Compression.ZipArchiveMode]::Read)
-            try {
-                $entries = @($archive.Entries | Where-Object { $_.FullName -ceq $item.member })
-                if ($entries.Count -ne 1 -or $entries[0].Length -gt $MaxDownload) { throw 'Missing, duplicate or oversized archive member' }
-                $stream = $entries[0].Open()
-                $output = [IO.MemoryStream]::new()
-                try { $stream.CopyTo($output); $data = $output.ToArray() }
-                finally { $output.Dispose(); $stream.Dispose() }
-            } finally { $archive.Dispose(); $memory.Dispose() }
-        } elseif ($item.format -eq 'tar.gz') { $data = Read-TarMember $data $item.member }
-        elseif ($item.format -notin @('raw', 'inline')) { throw 'Unsupported download format' }
-        if ((Get-Digest $data) -ne $item.sha256) { throw "Member hash mismatch: $($item.destination)" }
-        if ($item.destination.EndsWith('.json')) {
-            $config = [Text.Encoding]::UTF8.GetString($data) | ConvertFrom-Json
-            if ($config -isnot [pscustomobject]) { throw 'Game config must be a JSON object' }
-        }
-        $path = Get-Destination $root $item.destination
-        if ($Update -and (Test-Path -LiteralPath $path -PathType Leaf)) {
-            $previous = [IO.File]::ReadAllBytes($path)
-            $backup = Join-Path (Join-Path (Join-Path $Cache 'previous-files') (Get-Digest $previous)) ([IO.Path]::GetFileName($path))
-            [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($backup)) | Out-Null
-            if (-not (Test-Path -LiteralPath $backup)) { [IO.File]::WriteAllBytes($backup, $previous) }
-        }
-        $folder = [IO.Path]::GetDirectoryName($path)
-        [IO.Directory]::CreateDirectory($folder) | Out-Null
-        $temporary = Join-Path $folder ([IO.Path]::GetRandomFileName())
+        if ($failed.ContainsKey($plan.Id)) { continue }
         try {
-            [IO.File]::WriteAllBytes($temporary, $data)
-            if (Test-Path -LiteralPath $path) {
-                if (-not $replace) { $skipped++; continue }
-                [IO.File]::Delete($path)
+            $item = $plan.Item
+            $replace = $Overwrite -or ($Update -and $item.destination -match '\.(nds|srl)$')
+            if ($Update -and (Test-Path -LiteralPath $plan.Path -PathType Leaf) -and
+                (Get-Digest ([IO.File]::ReadAllBytes($plan.Path))) -eq $item.sha256) { $skipped++; continue }
+            if ((Test-Path -LiteralPath $plan.Path) -and -not $replace) {
+                Write-Output "Keep existing: $($item.destination)"
+                $skipped++
+                continue
             }
-            [IO.File]::Move($temporary, $path)
-            $installed++
-        } finally { if (Test-Path -LiteralPath $temporary) { [IO.File]::Delete($temporary) } }
+            if ($DryRun) { Write-Output "Would install $($plan.Id): $($item.destination)"; continue }
+            if ($item.format -eq 'inline') {
+                [byte[]]$data = [Text.Encoding]::UTF8.GetBytes([string]$item.content)
+                if ($item.destination -cnotin $AddonProfiles -or $data.Length -gt 4096) {
+                    throw 'Unsupported inline add-on default'
+                }
+            } else {
+                $key = "$($item.download.asset):$($item.download.sha256)"
+                if (-not $fetched.ContainsKey($key)) { $fetched[$key] = Get-Download $item.download }
+                [byte[]]$data = $fetched[$key]
+            }
+            if ($item.format -eq 'zip') {
+                $memory = [IO.MemoryStream]::new($data, $false)
+                $archive = [IO.Compression.ZipArchive]::new($memory, [IO.Compression.ZipArchiveMode]::Read)
+                try {
+                    $entries = @($archive.Entries | Where-Object { $_.FullName -ceq $item.member })
+                    if ($entries.Count -ne 1 -or $entries[0].Length -gt $MaxDownload) { throw 'Missing, duplicate or oversized archive member' }
+                    $stream = $entries[0].Open()
+                    $output = [IO.MemoryStream]::new()
+                    try { $stream.CopyTo($output); $data = $output.ToArray() }
+                    finally { $output.Dispose(); $stream.Dispose() }
+                } finally { $archive.Dispose(); $memory.Dispose() }
+            } elseif ($item.format -eq 'tar.gz') { $data = Read-TarMember $data $item.member }
+            elseif ($item.format -notin @('raw', 'inline')) { throw 'Unsupported download format' }
+            if ((Get-Digest $data) -ne $item.sha256) { throw "Member hash mismatch: $($item.destination)" }
+            if ($item.destination.EndsWith('.json')) {
+                $config = [Text.Encoding]::UTF8.GetString($data) | ConvertFrom-Json
+                if ($config -isnot [pscustomobject]) { throw 'Game config must be a JSON object' }
+            }
+            $path = Get-Destination $root $item.destination
+            if ($Update -and (Test-Path -LiteralPath $path -PathType Leaf)) {
+                $previous = [IO.File]::ReadAllBytes($path)
+                $backup = Join-Path (Join-Path (Join-Path $Cache 'previous-files') (Get-Digest $previous)) ([IO.Path]::GetFileName($path))
+                [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($backup)) | Out-Null
+                if (-not (Test-Path -LiteralPath $backup)) { [IO.File]::WriteAllBytes($backup, $previous) }
+            }
+            $folder = [IO.Path]::GetDirectoryName($path)
+            [IO.Directory]::CreateDirectory($folder) | Out-Null
+            $temporary = Join-Path $folder ([IO.Path]::GetRandomFileName())
+            try {
+                [IO.File]::WriteAllBytes($temporary, $data)
+                if (Test-Path -LiteralPath $path) {
+                    if (-not $replace) { $skipped++; continue }
+                    [IO.File]::Delete($path)
+                }
+                [IO.File]::Move($temporary, $path)
+                $installed++; $changed[$plan.Id] = $true
+            } finally { if (Test-Path -LiteralPath $temporary) { [IO.File]::Delete($temporary) } }
+        } catch [OperationCanceledException] { throw }
+        catch {
+            $failed[$plan.Id] = "$($plan.Item.destination): $($_.Exception.Message)"
+            Write-Output "FAILED $($plan.Id): $($failed[$plan.Id]); continuing with other apps."
+        }
+    }
+    # Paired launcher/core files may remain staged, but are not reported complete
+    # when a required app failed. Preserve them for the next retry.
+    do {
+        $added = $false
+        foreach ($app in $selected) {
+            if ($failed.ContainsKey($app.id) -or $app.PSObject.Properties.Name -notcontains 'requires') { continue }
+            foreach ($required in $app.requires) {
+                if ($failed.ContainsKey($required)) { $failed[$app.id] = "Required app failed: $required"; $added = $true; break }
+            }
+        }
+    } while ($added)
+    foreach ($app in $selected) {
+        $status = if ($failed.ContainsKey($app.id)) { 'FAILED: ' + $failed[$app.id] }
+            elseif ($DryRun) { 'previewed' } elseif ($changed.ContainsKey($app.id)) { 'installed/updated' } else { 'preserved/current' }
+        Write-Output "$($app.id): $status"
     }
     Write-Output "Installed $installed files; preserved $skipped existing files."
+    if ($failed.Count) {
+        Write-Output ('Completed with failures; retry these apps: ' + (($failed.Keys | Sort-Object) -join ', '))
+        exit 2
+    }
 } catch [OperationCanceledException] { exit 0 }
 catch {
     [Console]::Error.WriteLine("Installation stopped: $($_.Exception.Message)")
