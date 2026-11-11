@@ -57,7 +57,8 @@
         ]
       },
       "bios_evidence": "https://github.com/wavemotion-dave/A5200DS/blob/b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a/readme.md",
-      "license_evidence": "https://github.com/wavemotion-dave/A5200DS/tree/b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a"
+      "license_evidence": "https://github.com/wavemotion-dave/A5200DS/tree/b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a",
+      "content_guidance": "roms/Atari/5200/: .a52"
     },
     {
       "id": "a7800ds",
@@ -107,7 +108,8 @@
         ]
       },
       "bios_evidence": "https://github.com/wavemotion-dave/A7800DS/blob/32b7b1ed78f5edbcd29a797a1376e25a9bd9d265/README.md",
-      "license_evidence": "https://github.com/wavemotion-dave/A7800DS/tree/32b7b1ed78f5edbcd29a797a1376e25a9bd9d265"
+      "license_evidence": "https://github.com/wavemotion-dave/A7800DS/tree/32b7b1ed78f5edbcd29a797a1376e25a9bd9d265",
+      "content_guidance": "roms/Atari/7800/: .a78"
     },
     {
       "id": "a8ds",
@@ -189,7 +191,8 @@
         ]
       },
       "bios_evidence": "https://github.com/wavemotion-dave/A8DS/blob/b5718df173e0b4037bcb8414640af26458c0bade/readme.md",
-      "license_evidence": "https://github.com/wavemotion-dave/A8DS/tree/b5718df173e0b4037bcb8414640af26458c0bade"
+      "license_evidence": "https://github.com/wavemotion-dave/A8DS/tree/b5718df173e0b4037bcb8414640af26458c0bade",
+      "content_guidance": "roms/Atari/8-bit/: .atr, .xex"
     },
     {
       "id": "colecods",
@@ -292,7 +295,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "content_guidance": "roms/ColecoVision/: .col\nroms/MSX/: .msx\nroms/Sord M5/: .m5"
     },
     {
       "id": "dracods",
@@ -394,7 +398,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "content_guidance": "roms/Tandy CoCo/: .ccc cartridges, .cas tapes\nroms/Dragon 32/: .ccc cartridges, .cas tapes"
     },
     {
       "id": "ds994a",
@@ -502,7 +507,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "content_guidance": "roms/TI99/: .rpk; some games also need matching disk files"
     },
     {
       "id": "dslibris",
@@ -726,7 +732,8 @@
             "sha256": "15b41fa030d4de702e0e74c0e3824a2f3ac55efcf07c56fdfa9b2f38b205716d"
           }
         ]
-      }
+      },
+      "content_guidance": "media/books/: .epub, .kepub, .fb2, .fb2.zip, .fbz, .pdb, .prc, .mobi, .azw, .azw3, .opf, .oeb, .oebzip, .pml, .pmlz, .tcr, .txt, .text, .md, .markdown, .pdf, .html, .htm, .xhtml, .rtf, .docx, .odt, .htmlz, .txtz; PDF text reflow, unencrypted books only."
     },
     {
       "id": "dsxp",
@@ -804,7 +811,8 @@
       },
       "prerelease": true,
       "bios_evidence": "https://github.com/nextcode4u/DSXP/blob/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/README.md",
-      "license_evidence": "https://github.com/nextcode4u/DSXP/tree/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0"
+      "license_evidence": "https://github.com/nextcode4u/DSXP/tree/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0",
+      "content_guidance": "media/music/: .mp3"
     },
     {
       "id": "fastvideods",
@@ -855,7 +863,8 @@
         "extra_sources": [],
         "runtime_notices": []
       },
-      "source_coverage": "Published project source plus source submodules at their recorded commits."
+      "source_coverage": "Published project source plus source submodules at their recorded commits.",
+      "content_guidance": "media/videos/: .fv (FastVideoDS encoder)"
     },
     {
       "id": "gameyob-dsi",
@@ -959,7 +968,8 @@
         ]
       },
       "bios_evidence": "https://github.com/Lana-chan/GameYob/blob/04f88d96ca653c60fd1b110ce7011db7e8e906a3/README.txt",
-      "license_evidence": "https://github.com/Lana-chan/GameYob/tree/04f88d96ca653c60fd1b110ce7011db7e8e906a3"
+      "license_evidence": "https://github.com/Lana-chan/GameYob/tree/04f88d96ca653c60fd1b110ce7011db7e8e906a3",
+      "content_guidance": "roms/Game Boy/: .gb, .sgb\nroms/Game Boy Color/: .gbc"
     },
     {
       "id": "gbarunner3",
@@ -1415,7 +1425,8 @@
             "bios.bin": 16384
           }
         }
-      ]
+      ],
+      "content_guidance": "roms/Game Boy Advance/: .gba"
     },
     {
       "id": "gimlids",
@@ -1598,7 +1609,8 @@
             "1541.rom": 16384
           }
         }
-      ]
+      ],
+      "content_guidance": "roms/Commodore 64/: .d64, .crt, .prg"
     },
     {
       "id": "hachibitto",
@@ -1672,7 +1684,8 @@
             "destination": "ATTRIBUTION.md"
           }
         ]
-      }
+      },
+      "content_guidance": "roms/MSX2/: .mx2 cartridges, .mxd disks"
     },
     {
       "id": "jenesisdsplus",
@@ -1728,7 +1741,8 @@
         "extra_sources": [],
         "runtime_notices": []
       },
-      "source_coverage": "Patch and injected-code source only; the original jEnesisDS base source is unavailable."
+      "source_coverage": "Patch and injected-code source only; the original jEnesisDS base source is unavailable.",
+      "content_guidance": "roms/Genesis/: .md, .gen"
     },
     {
       "id": "lodjurds",
@@ -1880,7 +1894,8 @@
           }
         ]
       },
-      "source_coverage": "Published project source plus source submodules at their recorded commits."
+      "source_coverage": "Published project source plus source submodules at their recorded commits.",
+      "content_guidance": "roms/Atari/Lynx/: .lnx"
     },
     {
       "id": "microds",
@@ -1964,7 +1979,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "content_guidance": "roms/Tandy MC-10/: .c10 tapes; optional Alice .k7 tapes"
     },
     {
       "id": "nesds",
@@ -2076,7 +2092,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "content_guidance": "roms/NES/: .nes, .fds"
     },
     {
       "id": "ngpds",
@@ -2256,7 +2273,8 @@
           }
         ]
       },
-      "source_coverage": "Published project source plus source submodules at their recorded commits."
+      "source_coverage": "Published project source plus source submodules at their recorded commits.",
+      "content_guidance": "roms/Neo Geo Pocket/: .ngp, .ngc"
     },
     {
       "id": "nintv-ds",
@@ -2322,7 +2340,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "content_guidance": "roms/Intellivision/: .int"
     },
     {
       "id": "nitrografx",
@@ -2448,7 +2467,8 @@
           }
         ]
       },
-      "source_coverage": "Published project source plus source submodules at their recorded commits."
+      "source_coverage": "Published project source plus source submodules at their recorded commits.",
+      "content_guidance": "roms/PC Engine/: .pce cartridge files"
     },
     {
       "id": "nitroswan",
@@ -2628,7 +2648,8 @@
           }
         ]
       },
-      "source_coverage": "Published project source plus source submodules at their recorded commits."
+      "source_coverage": "Published project source plus source submodules at their recorded commits.",
+      "content_guidance": "roms/WonderSwan/: .ws, .wsc"
     },
     {
       "id": "picodrivetwl",
@@ -2681,7 +2702,8 @@
         "extra_sources": []
       },
       "permission_confirmed": false,
-      "download_noncommercial": true
+      "download_noncommercial": true,
+      "content_guidance": "roms/Genesis/: .md, .gen"
     },
     {
       "id": "pokemini",
@@ -2749,7 +2771,8 @@
         ]
       },
       "bios_evidence": "https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/readme.txt",
-      "license_evidence": "https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/source/PokeMini.c"
+      "license_evidence": "https://github.com/DS-Homebrew/PokeMini/blob/f8eb158f7082d80739075baa3653afc14fdf3d70/source/PokeMini.c",
+      "content_guidance": "roms/Pokemon Mini/: .min"
     },
     {
       "id": "rocketvideoplayer",
@@ -2797,7 +2820,8 @@
             "sha256": "600de0a8c3528d06cfd250fac723e067daaa4bd60c7b35c56ee78f1ddf1d7b71"
           }
         ]
-      }
+      },
+      "content_guidance": "media/videos/: .rvid (matching converter)"
     },
     {
       "id": "s8ds",
@@ -3041,7 +3065,8 @@
           }
         ]
       },
-      "source_coverage": "Published project source plus source submodules at their recorded commits."
+      "source_coverage": "Published project source plus source submodules at their recorded commits.",
+      "content_guidance": "roms/Master System/: .sms\nroms/Game Gear/: .gg\nroms/SG-1000/: .sg"
     },
     {
       "id": "scummvm",
@@ -3112,7 +3137,8 @@
             "sha256": "4369ac5015cc53a9e3e95c6a8189c4ecf97f1010983d86e06c6a997e44aeaf21"
           }
         ]
-      }
+      },
+      "content_guidance": "roms/ScummVM/: scummvm.nds launcher; game folders in titles/"
     },
     {
       "id": "snemulds",
@@ -3169,7 +3195,8 @@
         ]
       },
       "bios_evidence": "https://github.com/cotodevel/SnemulDS/blob/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/README.md",
-      "license_evidence": "https://github.com/cotodevel/SnemulDS/tree/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd"
+      "license_evidence": "https://github.com/cotodevel/SnemulDS/tree/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd",
+      "content_guidance": "roms/SNES/: .sfc, .smc"
     },
     {
       "id": "snemulds-shim",
@@ -3273,7 +3300,8 @@
         ]
       },
       "bios_evidence": "https://github.com/Sanrax/snemulds-shim/blob/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/README.md",
-      "license_evidence": "https://github.com/Sanrax/snemulds-shim/tree/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b"
+      "license_evidence": "https://github.com/Sanrax/snemulds-shim/tree/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b",
+      "content_guidance": "roms/SNES/: .sfc, .smc"
     },
     {
       "id": "speccyse",
@@ -3355,7 +3383,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "content_guidance": "roms/ZX Spectrum/: .z80, .tap, .tzx"
     },
     {
       "id": "stellads",
@@ -3421,7 +3450,8 @@
         ]
       },
       "bios_evidence": "https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/README.md",
-      "license_evidence": "https://github.com/wavemotion-dave/StellaDS/tree/1ff41dc60c4debacd4493bae5bb045cdbbef7800"
+      "license_evidence": "https://github.com/wavemotion-dave/StellaDS/tree/1ff41dc60c4debacd4493bae5bb045cdbbef7800",
+      "content_guidance": "roms/Atari/2600/: .a26"
     },
     {
       "id": "sugards",
@@ -3461,7 +3491,8 @@
             "sha256": "0864248310aa25d294c88e24e91eff0b73d036ba43e0699237def20bed537f92"
           }
         ]
-      }
+      },
+      "content_guidance": "roms/Amstrad CPC/: .dsk, compatible .cpr, .dan"
     },
     {
       "id": "tuna-vids",
@@ -3533,7 +3564,8 @@
           }
         ]
       },
-      "argv_notes": "The released fork still opens argv[1] directly. Optional screen filters use /_nds/colorLut/currentSetting.txt and the named .lut file; filter assets are not required or bundled. Later branch-only touch-input/build fixes are not claimed present in this published release."
+      "argv_notes": "The released fork still opens argv[1] directly. Optional screen filters use /_nds/colorLut/currentSetting.txt and the named .lut file; filter assets are not required or bundled. Later branch-only touch-input/build fixes are not claimed present in this published release.",
+      "content_guidance": "media/videos/: .avi (player-compatible Xvid video / MP3 audio)"
     },
     {
       "id": "wasabids",
@@ -3673,7 +3705,8 @@
           }
         ]
       },
-      "source_coverage": "Published project source plus source submodules at their recorded commits."
+      "source_coverage": "Published project source plus source submodules at their recorded commits.",
+      "content_guidance": "roms/Watara Supervision/: .sv cartridges"
     }
   ],
   "common_notices": [

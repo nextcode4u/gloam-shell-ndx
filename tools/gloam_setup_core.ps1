@@ -360,3 +360,48 @@ function Assert-GloamConfigurationReady([string]$Root) {
         }
     }
 }
+
+# Read-only details for one selected catalog entry; missing metadata is never
+# interpreted as proof that an emulator needs no firmware.
+function Get-GloamAddonDetails($App, [string]$Root) {
+    $lines = [Collections.Generic.List[string]]::new()
+    $lines.Add('Configured formats and default folders')
+    if ($App.PSObject.Properties.Name -contains 'content_guidance' -and $App.content_guidance) { $lines.Add($App.content_guidance) }
+    else { $lines.Add('Not recorded in this catalog; consult the application documentation.') }
+    $lines.Add('')
+    $lines.Add('BIOS / firmware')
+    if ($App.PSObject.Properties.Name -contains 'bios' -and $App.bios) { $lines.Add($App.bios) }
+    else { $lines.Add('Requirements not recorded; do not assume no BIOS is needed.') }
+    $requirements = if ($App.PSObject.Properties.Name -contains 'support_requirements') { @($App.support_requirements) } else { @() }
+    foreach ($requirement in $requirements) {
+        $locations = @($requirement.any_of | ForEach-Object { @($_) -join ' + ' }) -join ' OR '
+        $status = 'Not checked (choose an SD folder)'
+        if ($Root) {
+            $status = 'Missing or wrong size at the listed locations'
+            foreach ($alternative in $requirement.any_of) {
+                $valid = @($alternative).Count -gt 0
+                foreach ($relative in $alternative) {
+                    $path = Get-GloamPath $Root $relative
+                    $file = Get-Item -LiteralPath $path -ErrorAction SilentlyContinue
+                    $size = $null
+                    if ($requirement.PSObject.Properties.Name -contains 'sizes') { $size = $requirement.sizes.PSObject.Properties[[IO.Path]::GetFileName($relative)] }
+                    if (-not $file -or $file.PSIsContainer -or $file.Length -eq 0 -or ($size -and $file.Length -ne $size.Value)) { $valid = $false }
+                }
+                if ($valid) { $status = 'Found'; break }
+            }
+        }
+        $lines.Add("$($requirement.label) [$($requirement.scope)]: $status")
+        $lines.Add('Locations: ' + $locations)
+    }
+    if ($App.id -eq 'gameyob-dsi') {
+        $status = 'not checked'
+        if ($Root) {
+            $file = Get-Item -LiteralPath (Get-GloamPath $Root 'roms/bios/gbc_bios.bin') -ErrorAction SilentlyContinue
+            $status = if ($file -and -not $file.PSIsContainer -and $file.Length) { 'file present (existing files are preserved)' } else { 'not installed yet' }
+        }
+        $lines.Add('Optional free SameBoot supplied by installer: ' + $status)
+    }
+    $lines.Add('Checks cover listed paths and known sizes, not firmware authenticity. BIOS selected inside an emulator may need checking there.')
+    if ($App.PSObject.Properties.Name -contains 'notes' -and $App.notes) { $lines.Add(''); $lines.Add($App.notes) }
+    return $lines -join "`n"
+}

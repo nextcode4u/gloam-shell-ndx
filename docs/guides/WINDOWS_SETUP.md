@@ -189,3 +189,10 @@ For local/offline preparation, the GUI accepts `-Offline -ReleaseDirectory <fold
 with a complete, previously downloaded release set and `SHA256SUMS`. Add-on files
 must also be present in the shared downloader cache. Online setup/update actions
 look up the current published release rather than keeping an older cached version.
+
+Select an application row on **Add-ons** to see its configured formats, default
+content folders and BIOS guidance. The details distinguish built-in firmware,
+optional replacements and user-supplied BIOS. Known BIOS paths are checked on the
+selected SD folder and refreshed after operations. “Found” checks presence and
+known sizes, not authenticity; firmware chosen inside an emulator may need checking
+there. These formats describe the configured routes, not every upstream format.

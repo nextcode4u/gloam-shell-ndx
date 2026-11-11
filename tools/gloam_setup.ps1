@@ -60,6 +60,10 @@ function Show-Page([string]$Name) {
     $animation = [Windows.Media.Animation.DoubleAnimation]::new(0.65, 1, [Windows.Duration]::new([TimeSpan]::FromMilliseconds(120)))
     $ui.Workspace.BeginAnimation([Windows.UIElement]::OpacityProperty, $animation)
 }
+function Update-AddonDetails {
+    $item = $ui.AddonList.SelectedItem
+    if ($item) { $ui.AddonDetails.Text = $item.Name + "`n`n" + (Get-GloamAddonDetails $item.Catalog $script:Root) }
+}
 function Load-Sd {
     $nextRoot = Get-GloamRoot $ui.TargetPath.Text
     if ($script:SettingsDirty -and $nextRoot -ne $script:Root) {
@@ -84,6 +88,7 @@ function Load-Sd {
     if (Test-Path -LiteralPath $folder) { foreach ($theme in Get-ChildItem -LiteralPath $folder -Directory) { $ui.ThemeList.Items.Add($theme.Name) | Out-Null } }
     if (-not $preserveSettings) { Load-GloamSettingsUi }
     Load-GloamOrganizerJournals
+    Update-AddonDetails
     $ui.Workspace.IsEnabled = $true
     $ui.Status.Text = 'Ready: ' + $script:Root; Write-Activity ('Selected SD folder: ' + $script:Root)
 }
@@ -229,9 +234,11 @@ $ui.AddonList.ItemsSource = @($apps | ForEach-Object {
     $details = $name + ' ' + $_.version + "`n" + $_.terms
     if ($_.PSObject.Properties.Name -contains 'bios') { $details += "`nBIOS / support: " + $_.bios }
     if ($_.PSObject.Properties.Name -contains 'notes') { $details += "`n" + $_.notes }
-    [pscustomobject]@{ Selected = $_.id -in $recommended; Id = $_.id; Name = $name; Details = $details; Version = $_.version; Noncommercial = $_.noncommercial; Experimental = $experimental;
+    [pscustomobject]@{ Catalog = $_; Selected = $_.id -in $recommended; Id = $_.id; Name = $name; Details = $details; Version = $_.version; Noncommercial = $_.noncommercial; Experimental = $experimental;
         Terms = $(if ($experimental) { 'Experimental' } elseif ($_.noncommercial) { 'Noncommercial' } else { $_.terms }) }
 })
+$ui.AddonList.Add_SelectionChanged({ Invoke-UiAction { Update-AddonDetails } })
+$ui.AddonList.SelectedIndex = 0
 if ($Target) { $ui.TargetPath.Text = $Target; Load-Sd }
 Show-Page 'Setup'
 if ($SmokeTest) {

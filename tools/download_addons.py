@@ -55,6 +55,7 @@ def reviewed_apps(catalog):
                 "terms": app["license"], "noncommercial": app["redistribution"] == "noncommercial"
                 or app.get("download_noncommercial", False), "files": [*files, *defaults]}
         item["bios"] = app.get("bios", "")
+        item["content_guidance"] = app.get("content_guidance", "")
         item["support_requirements"] = app.get("support_requirements", [])
         if app.get("experimental"):
             item.update(experimental=True, notes=app.get("compatibility_notes", "Experimental build"))

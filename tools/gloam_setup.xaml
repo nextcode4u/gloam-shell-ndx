@@ -184,23 +184,37 @@
             <Button x:Name="ClearApps" Content="Clear"/>
             <CheckBox x:Name="AllowNc" Content="Allow noncommercial apps" ToolTip="Enable only for personal/no-profit use; each application's terms still apply."/>
           </WrapPanel>
-          <DataGrid x:Name="AddonList" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" Background="#17202C" Foreground="#111820" RowBackground="#E6E8EE" AlternatingRowBackground="#D7DCE5" GridLinesVisibility="None" SelectionMode="Single" BorderThickness="0" MinHeight="120" Margin="0,0,0,12">
+          <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
+          <DataGrid x:Name="AddonList" Grid.Column="0" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" Background="#17202C" Foreground="#111820" RowBackground="#E6E8EE" AlternatingRowBackground="#D7DCE5" GridLinesVisibility="None" SelectionMode="Single" BorderThickness="0" MinHeight="120" Margin="0,0,0,12">
             <DataGrid.Resources>
+              <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#544568"/>
+              <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#FFFFFF"/>
               <SolidColorBrush x:Key="{x:Static SystemColors.GrayTextBrushKey}" Color="#445165"/>
             </DataGrid.Resources>
             <DataGrid.RowStyle>
               <Style TargetType="DataGridRow">
                 <Setter Property="ToolTip" Value="{Binding Details}"/>
+                <Style.Triggers>
+                  <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#544568"/>
+                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                  </Trigger>
+                </Style.Triggers>
               </Style>
             </DataGrid.RowStyle>
             <DataGrid.ColumnHeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#28313F"/><Setter Property="Foreground" Value="#E7E9F0"/><Setter Property="Padding" Value="8,5"/></Style></DataGrid.ColumnHeaderStyle>
             <DataGrid.Columns>
               <DataGridCheckBoxColumn Header="Get" Binding="{Binding Selected, UpdateSourceTrigger=PropertyChanged}" Width="45"/>
               <DataGridTextColumn Header="Application" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
-              <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="180" IsReadOnly="True"/>
-              <DataGridTextColumn Header="Terms / status" Binding="{Binding Terms}" Width="180" IsReadOnly="True"/>
+              <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="100" IsReadOnly="True"/>
+              <DataGridTextColumn Header="Terms / status" Binding="{Binding Terms}" Width="120" IsReadOnly="True"/>
             </DataGrid.Columns>
           </DataGrid>
+          <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Margin="12,0,0,12" Background="#17202C" Padding="10">
+            <TextBlock x:Name="AddonDetails" TextWrapping="Wrap" Foreground="#E7E9F0" Text="Select an application to see formats, folders and BIOS requirements."/>
+          </ScrollViewer>
+          </Grid>
           <WrapPanel Grid.Row="3">
             <Button x:Name="InstallAddons" Content="Install selected" Background="#6B548E"/>
             <Button x:Name="CheckAddons" Content="Check updates"/>

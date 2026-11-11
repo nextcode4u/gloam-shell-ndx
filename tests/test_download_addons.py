@@ -19,6 +19,15 @@ from tools.download_addons import (check_updates, check_support, destination, di
 
 
 class DownloadAddonTests(unittest.TestCase):
+    def test_full_catalog_keeps_user_facing_content_and_firmware_guidance(self):
+        catalog = json.loads((Path(__file__).resolve().parents[1] / 'config/addon-dependencies.json').read_text())
+        apps = {app['id']: app for app in reviewed_apps(catalog)}
+        for app in catalog['applications']:
+            self.assertTrue(app['content_guidance'], app['id'])
+            self.assertEqual(apps[app['id']]['content_guidance'], app['content_guidance'])
+            self.assertEqual(apps[app['id']]['bios'], app['bios'])
+
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)

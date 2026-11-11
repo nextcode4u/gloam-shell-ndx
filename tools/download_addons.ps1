@@ -54,6 +54,7 @@ function Convert-ReviewedCatalog($Data) {
         }
         $item = [ordered]@{ id = $app.id; version = $app.version; repository = $app.repository; terms = $app.license; noncommercial = $nc; files = @($files) + @($defaults) }
         $item.bios = if ($app.PSObject.Properties.Name -contains 'bios') { $app.bios } else { '' }
+        $item.content_guidance = if ($app.PSObject.Properties.Name -contains 'content_guidance') { $app.content_guidance } else { '' }
         $item.support_requirements = if ($app.PSObject.Properties.Name -contains 'support_requirements') { @($app.support_requirements) } else { @() }
         if ($app.PSObject.Properties.Name -contains 'experimental' -and $app.experimental) {
             $item.experimental = $true

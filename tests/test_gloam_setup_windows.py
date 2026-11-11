@@ -64,6 +64,22 @@ class GloamSetupTests(unittest.TestCase):
         self.assertEqual(result.returncode == 0, success, output)
         return output
 
+    def test_addon_details_check_bios_without_requiring_installation(self):
+        output = self.run_ps(r"""
+$app = [pscustomobject]@{ id='example'; content_guidance='roms/Example: .rom'; bios='User supplies BIOS'; support_requirements=@(
+    [pscustomobject]@{label='Example BIOS'; scope='required'; any_of=@(@('roms/bios/example.bin')); sizes=[pscustomobject]@{'example.bin'=4}}
+) }
+$before = Get-GloamAddonDetails $app $root
+if ($before -notmatch 'Missing or wrong size' -or $before -notmatch '\.rom') { throw $before }
+$folder = Join-Path $root 'roms/bios'
+[IO.Directory]::CreateDirectory($folder) | Out-Null
+[IO.File]::WriteAllBytes((Join-Path $folder 'example.bin'), [byte[]](1,2))
+if ((Get-GloamAddonDetails $app $root) -notmatch 'Missing or wrong size') { throw 'Accepted wrong BIOS size' }
+[IO.File]::WriteAllBytes((Join-Path $folder 'example.bin'), [byte[]](1,2,3,4))
+if ((Get-GloamAddonDetails $app $root) -notmatch 'required\]: Found') { throw 'Did not detect BIOS' }
+if ((Get-GloamAddonDetails $app '') -notmatch 'Not checked') { throw 'No-target result misleading' }
+""")
+
     def archive(self, name, members):
         path = self.root / name
         with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as archive:
