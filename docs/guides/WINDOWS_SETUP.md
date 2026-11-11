@@ -291,8 +291,9 @@ art. Stronger aliases from the Libretro mirror are preferred, since those names
 are closer to its thumbnail names. Review every preview before applying it.
 No ROM renaming, patching, archive extraction, region guessing or content upload
 is performed. ZIP identification streams a single recognized ROM member without
-extracting it. Archives with multiple ROM candidates, more than 256 members,
-a ROM above 1 GiB or a compression ratio above 1000:1 are refused for identification;
+extracting it; multiple candidates require the explicit member chooser below.
+Archives with more than 256 members, a ROM above 1 GiB or a compression ratio
+above 1000:1 are refused for identification;
 ordinary filename lookup remains available. Other archive formats and multi-file
 sets still need manual title/image selection.
 
