@@ -105,3 +105,32 @@ Auto semantics. The exact backend source revision is recorded in the dependency 
 Commit validates the existing INI before C-string parsing. Binary control bytes,
 read failures, malformed records and oversized input stop the operation without
 replacing configuration or handing off. Ordinary UTF-8, tabs and CR/LF remain supported.
+
+## Compatibility controls and recovery
+
+| Capability | Current contract |
+| --- | --- |
+| Retail mode, boosts, DMA, asynchronous reads, language, save slots/sizing, hotkey | Explicit global/per-title editors; effective values are written for that launch. |
+| Donor ROM paths | Existing backend donor fields are preserved. Gloam does not identify a suitable donor, extract its code or supply donor games. A configured path alone does not prove suitability. |
+| Legacy homebrew RAM disks | Not currently selectable. The homebrew route explicitly clears `RAM_DRIVE_PATH` and `RAM_DRIVE_SIZE` to prevent stale cross-application reuse. Editing the shared INI is not a working override for this route. |
+| SD DSiWare | Official nds-bootstrap route with header-derived public/private saves; no selectable alternate Unlaunch SD-DSiWare route. Installed NAND titles use native requests separately. |
+| AP patches and title-specific backend behavior | The packaged backend provides its own built-in handling. Gloam does not expose a separate external AP-patch picker or promise compatibility from the frontend alone. |
+| Return | The selected backend/application owns the return contract. `QUIT_PATH` is a request; it cannot fix a backend that does not reach its exit path. |
+
+Missing retail/homebrew backends can be repaired with desktop **Setup → Update
+Gloam + backends**, or by restoring the matching files from `sd.zip`. For a
+missing emulator/player, use **Add-ons**, then check the file handler's path.
+BIOS requirements vary by application: use the installer's BIOS column and
+selected-app details. Gloam cannot determine every emulator's internal firmware
+failure from a successful handoff.
+
+For save ambiguity or size conflicts, back up the files first and choose the
+intended save/slot and correct title options. Gloam never silently resizes or
+replaces an existing save. For a launch that reaches a black screen, record the
+route, backend version, boot environment and exact title revision; try defaults
+before changing multiple options. Do not treat this as proof the save is bad.
+
+Older homebrew requiring a RAM disk needs a separately verified launch route;
+donor auto-configuration and alternate SD DSiWare routes remain explicit gaps,
+not controls hidden in Simple settings. Flashcart/DLDI loader work is outside
+this DSi-SD launcher's current scope.

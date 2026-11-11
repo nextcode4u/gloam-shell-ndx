@@ -27,7 +27,9 @@ static bool validate_binary(const char *path, bool identified_homebrew, char err
 {
     FILE *file = fopen(path, "rb");
     if (!file) {
-        snprintf(error, 160, "Application is missing or unreadable. Check its configured path.");
+        snprintf(error, 160,
+                 "Application is missing or unreadable. Install it with desktop Add-ons, or "
+                 "correct its path in the file handler.");
         return false;
     }
     unsigned char header[0x200];
@@ -115,7 +117,9 @@ static bool prepare(const App *app, const char *path, const Association *selecte
     memset(plan, 0, sizeof *plan);
     path_copy(plan->content, path, PATH_CAP);
     if (!app->storage_ready || !app->dsi_mode) {
-        snprintf(error, 160, "Direct homebrew currently requires DSi mode and its SD card.");
+        snprintf(error, 160,
+                 "Launching requires DSi mode with SD access. Start Gloam through a DSi SD boot "
+                 "method, then retry.");
         return false;
     }
     ArgumentList shortcut = {0};

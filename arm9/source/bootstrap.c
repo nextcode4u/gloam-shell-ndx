@@ -89,7 +89,8 @@ static bool save_path(const App *app, const char *target, LaunchPlan *plan, char
     if (regular_size(plan->save, &existing)) {
         if (existing == 0 || existing > 64 * 1024 * 1024) {
             snprintf(error, 160,
-                     "Existing save is empty or exceeds 64 MiB. It was left unchanged.");
+                     "Existing save is empty or exceeds 64 MiB. Back it up and restore a valid "
+                     "copy before retrying; it was left unchanged.");
             return false;
         }
         if (plan->save_bytes && existing != plan->save_bytes) {
@@ -110,7 +111,9 @@ bool bootstrap_prepare(const App *app, const char *target, LaunchPlan *plan, cha
     unsigned char header[0x240];
     FILE *file = fopen(target, "rb");
     if (!file) {
-        snprintf(error, 160, "Game is missing or unreadable.");
+        snprintf(error, 160,
+                 "Game is missing or unreadable. Check the SD card and file path, then refresh "
+                 "this folder.");
         return false;
     }
     uint32_t size;
@@ -166,7 +169,8 @@ bool bootstrap_prepare(const App *app, const char *target, LaunchPlan *plan, cha
         return false;
     if (!regular_size(plan->application, &existing)) {
         snprintf(error, 160,
-                 "Install nds-bootstrap-release.nds in /_nds/. No backend binary is bundled.");
+                 "Missing /_nds/nds-bootstrap-release.nds. Run desktop Setup > Update Gloam + "
+                 "backends, or copy it from sd.zip.");
         return false;
     }
     return true;
@@ -208,12 +212,16 @@ bool bootstrap_prepare_homebrew(const App *app, const char *target, const char *
         return false;
     }
     if (*argument && !regular_size(argument, &bytes)) {
-        snprintf(error, 160, "Homebrew content is missing or unreadable.");
+        snprintf(error, 160,
+                 "Homebrew content is missing or unreadable. Check its path in the selected file "
+                 "handler.");
         return false;
     }
     if (!path_join(plan->application, app->root, "_nds/nds-bootstrap-hb-release.nds") ||
         !regular_size(plan->application, &bytes)) {
-        snprintf(error, 160, "Install /_nds/nds-bootstrap-hb-release.nds for this profile.");
+        snprintf(error, 160,
+                 "Missing /_nds/nds-bootstrap-hb-release.nds. Run desktop Setup > Update Gloam + "
+                 "backends, or copy it from sd.zip.");
         return false;
     }
     plan->route = LAUNCH_BOOTSTRAP_HB;
