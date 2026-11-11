@@ -11,7 +11,10 @@ Archer's MIT notice. The upstream README credits the authors and contributors.
 
 The release builder downloads official binaries, verifies the lock's archive and
 member hashes, and installs the retail/homebrew NDS executables and version file.
-It applies no backend patches. Matching complete upstream source and its build
+It applies no backend patches. Normal development and compatibility validation
+use these same unmodified official binaries. Patched backend experiments are
+not a substitute for correcting emulator behavior and are not part of the
+supported test baseline. Matching complete upstream source and its build
 instructions are included under `dependencies/` in `source.zip`, distributed
 beside the SD archive. Backend source requires its upstream devkitARM
 environment; it is separate from Gloam's BlocksDS build.

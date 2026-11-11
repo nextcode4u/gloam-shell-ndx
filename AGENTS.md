@@ -18,6 +18,11 @@ and [the build guide](docs/development/BUILDING.md) before changing the project.
 - Keep image-generation prompts, prompt logs and draft design concepts out of
   Git and release/source packages. Store them under ignored `build/` or in the
   private workspace. Only production assets belong in version control.
+- Use unmodified official nds-bootstrap release binaries for normal development,
+  compatibility validation and distributed packages. Verify them against the
+  release dependency hashes. Keep any patched backend experiments archived and
+  out of active test setups; do not substitute them without explicit user
+  authorization. Investigate emulator-specific failures in the emulator.
 - Report compatibility limits honestly. Do not turn successful preparation into
   an unverified claim of application boot, save or return support.
 - Commit each completed logical change separately after its relevant checks pass.
