@@ -16,7 +16,7 @@ Screenshots show Gloam's renderer with the supplied themes and example content.
 
 ## Features
 
-- Two-screen browser with Classic, Extended, List, Grid and Cover Shelf views, small/large
+- Two-screen browser with Classic, Extended, List, Grid, Cover Shelf and Library Index views, small/large
   icons, looping text and configurable folder tabs.
 - Themes with palettes, bitmap fonts, backgrounds, music and UI sounds; personal
   appearance presets and on-console controls.

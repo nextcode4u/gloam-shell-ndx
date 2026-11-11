@@ -62,6 +62,7 @@ void title_metadata_tick(App *app)
             continue;
         title_metadata_read(entry->path, app->title_language, entry->internal_title);
         entry->title_loaded = true;
+        app->library_index_dirty = true;
         return; /* At most one title read per frame. */
     }
 }

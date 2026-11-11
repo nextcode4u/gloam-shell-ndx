@@ -105,3 +105,16 @@ export/import and scoped resets. Exports exclude games, saves and source artwork
 `/_nds/dsi-frontend/launch-report.txt` records the last launch preparation;
 Maintenance can export diagnostics. A successful handoff does not prove a title
 started. Clearing the artwork cache never removes source images or game saves.
+
+### Library Index
+
+Choose **Index** under START → Appearance → Browser view, or use `view=index`
+in a theme. The bottom screen shows compact rows with 16-pixel icons; the top
+screen shows folders and alphabetical groups. Left/Right jumps to the first
+item in the next populated group, wrapping past empty groups. Up/Down browses
+normally; L/R changes tabs and Y switches to item details.
+
+Groups count the current directory batch, not the entire SD card. Existing
+sorting stays intact. Common Latin-1 accented initials join their base letter;
+other scripts and punctuation appear under `*` (Other). Genre metadata is not
+required. Index uses fixed compact rows regardless of the stored icon size.

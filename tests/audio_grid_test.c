@@ -129,6 +129,10 @@ int main(int argc, char **argv)
     assert(app_save(&app));
     app_init(&restored, argv[1], true, true);
     assert(restored.browser_style == BROWSER_SHELF);
+    app.browser_style = BROWSER_INDEX;
+    assert(app_save(&app));
+    app_init(&restored, argv[1], true, true);
+    assert(restored.browser_style == BROWSER_INDEX);
     app.browser_style = BROWSER_GRID;
     app.audio.mode = MUSIC_CUSTOM;
     app.audio.music_volume = 45;
@@ -170,6 +174,42 @@ int main(int argc, char **argv)
     assert(app.locations[app.category].selected == 5);
     browser_jump_initial(&app, 1);
     assert(app.locations[app.category].selected == 0);
+    /* Index groups are independent of sort order and never filter the list. */
+    const char *indexed[] = {"Zoo.nds",    "alpha.nds",   "SNES", "3 games.nds",
+                             "Éclair.nds", ".hidden.nds", "NES",  "Another.nds"};
+    app.browser_style = BROWSER_INDEX;
+    app.entry_count = 8;
+    for (int i = 0; i < 8; i++) {
+        memset(&app.entries[i], 0, sizeof(app.entries[i]));
+        strcpy(app.entries[i].name, indexed[i]);
+        app.entries[i].kind = i == 2 || i == 6 ? ITEM_DIRECTORY : ITEM_FILE;
+    }
+    app.locations[app.category].selected = 2;
+    browser_reflow(&app);
+    assert(app.library_index_counts[0] == 2);
+    assert(app.library_index_counts[1] == 1);
+    assert(app.library_index_counts[2] == 2);
+    assert(app.library_index_counts[6] == 1);
+    const int jumps[] = {3, 1, 4, 0, 5, 2};
+    for (unsigned i = 0; i < sizeof(jumps) / sizeof(jumps[0]); i++) {
+        browser_direction(&app, 1, 0);
+        assert(app.locations[app.category].selected == jumps[i]);
+        assert(app.entry_count == 8);
+    }
+    browser_direction(&app, -1, 0);
+    assert(app.locations[app.category].selected == 5);
+    browser_direction(&app, 0, 1);
+    assert(app.locations[app.category].selected == 6);
+    app.entry_count = 1;
+    app.locations[app.category].selected = 0;
+    browser_reflow(&app);
+    browser_index_jump(&app, 1);
+    assert(app.locations[app.category].selected == 0);
+    app.entry_count = 0;
+    browser_reflow(&app);
+    browser_index_jump(&app, -1);
+    for (int i = 0; i < LIBRARY_INDEX_GROUPS; i++)
+        assert(app.library_index_counts[i] == 0);
     puts("PASS: bounded PCM validation/alignment, audio persistence/recovery, grid "
          "navigation/touch/render bounds");
 }

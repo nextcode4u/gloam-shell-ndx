@@ -2,7 +2,7 @@
 # Settings-page bindings. Loaded into the main WPF script after controls exist.
 $settingCombos = @(
     @{ Control='SettingMode'; Key='settings_mode'; Labels=@('Simple','Advanced'); Values=@('simple','advanced') },
-    @{ Control='SettingView'; Key='browser_style'; Labels=@('Classic','Extended','List (no icons)','Grid','Cover shelf'); Values=@('0','1','2','3','4') },
+    @{ Control='SettingView'; Key='browser_style'; Labels=@('Classic','Extended','List (no icons)','Grid','Cover shelf','Library index'); Values=@('0','1','2','3','4','5') },
     @{ Control='SettingIcons'; Key='icon_size'; Labels=@('Small','Large'); Values=@('0','1') },
     @{ Control='SettingSort'; Key='sort_mode'; Labels=@('Name A-Z','Name Z-A','Type','Newest'); Values=@('0','1','2','3') },
     @{ Control='SettingSpeed'; Key='scroll_speed'; Labels=@('Slow','Normal','Fast'); Values=@('0','1','2') },

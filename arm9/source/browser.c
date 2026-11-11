@@ -7,6 +7,7 @@
 #include "directory_scan.h"
 #include "entry_sort.h"
 #include "file_types.h"
+#include "grid.h"
 #include "icons.h"
 #include "installed_titles.h"
 #include "layout.h"
@@ -377,6 +378,8 @@ void browser_reflow(App *app)
         location->scroll = last_scroll;
     app->selection_y_fixed = (location->selected - location->scroll) * layout_row_height(app) * 256;
     app_reset_preview(app);
+    if (app->browser_style == BROWSER_INDEX)
+        browser_index_rebuild(app);
 }
 
 void browser_restore_selection(App *app, const char *path)

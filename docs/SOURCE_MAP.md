@@ -108,3 +108,8 @@ Libretro metadata and cover-name fallbacks. `tools/gloam_dat.cs` is an authored
 fingerprints and strongest-hash indexes, avoiding a full metadata scan for every
 ROM; external XML resolution is disabled. It is compiled in memory by
 Windows PowerShell and packaged as `gloam-dat.cs`. No external runtime is needed.
+
+Library Index groups are cached in `App` and rebuilt by `grid.c` after directory
+publication or displayed-title changes. They cover only the current batch;
+rendering consumes counts without reading files. Selection changes reuse the
+counts, and Index skips cover decoding.

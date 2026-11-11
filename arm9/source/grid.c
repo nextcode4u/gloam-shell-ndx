@@ -1,4 +1,4 @@
-/* Shared directional navigation and touch geometry for the browser's grid. */
+/* Shared directional navigation, index groups and grid touch geometry. */
 #include "grid.h"
 #include "app.h"
 #include "browser.h"
@@ -9,6 +9,10 @@ void browser_direction(App *app, int horizontal, int vertical)
 {
     if (!app->entry_count)
         return;
+    if (app->browser_style == BROWSER_INDEX && horizontal) {
+        browser_index_jump(app, horizontal);
+        return;
+    }
     if (app->browser_style == BROWSER_SHELF) {
         app_move(app, horizontal ? horizontal : vertical * 3);
         return;
@@ -90,5 +94,65 @@ void browser_jump_initial(App *app, int direction)
         }
         app_move(app, target - selected);
         return;
+    }
+}
+
+/* Groups describe the published batch, independent of its current sort order.
+ * Latin-1 accents join their base letter; other scripts share the Other group. */
+int browser_index_group(const App *app, int index)
+{
+    if (index < 0 || index >= app->entry_count)
+        return 0;
+    ItemKind kind = app->entries[index].kind;
+    if (kind == ITEM_DIRECTORY || kind == ITEM_CATEGORY || kind == ITEM_INSTALLED_LIBRARY)
+        return 0;
+    uint32_t c = entry_initial(app, index);
+    if (c >= 0xc0 && c <= 0xc6)
+        c = 'A';
+    else if (c == 0xc7)
+        c = 'C';
+    else if (c >= 0xc8 && c <= 0xcb)
+        c = 'E';
+    else if (c >= 0xcc && c <= 0xcf)
+        c = 'I';
+    else if (c == 0xd1)
+        c = 'N';
+    else if ((c >= 0xd2 && c <= 0xd6) || c == 0xd8)
+        c = 'O';
+    else if (c >= 0xd9 && c <= 0xdc)
+        c = 'U';
+    else if (c == 0xdd || c == 0xff)
+        c = 'Y';
+    return c == '#' ? 1 : c >= 'A' && c <= 'Z' ? (int)(c - 'A') + 2 : 28;
+}
+
+void browser_index_rebuild(App *app)
+{
+    for (int group = 0; group < LIBRARY_INDEX_GROUPS; group++) {
+        app->library_index_counts[group] = 0;
+        app->library_index_first[group] = -1;
+    }
+    for (int i = 0; i < app->entry_count; i++) {
+        int group = browser_index_group(app, i);
+        if (!app->library_index_counts[group]++)
+            app->library_index_first[group] = i;
+    }
+    app->library_index_dirty = false;
+}
+
+void browser_index_jump(App *app, int direction)
+{
+    if (!direction || !app->entry_count || app->scan_directory)
+        return;
+    if (app->library_index_dirty)
+        browser_index_rebuild(app);
+    int current = browser_index_group(app, app->locations[app->category].selected);
+    for (int step = 1; step < LIBRARY_INDEX_GROUPS; step++) {
+        int group = (current + (direction < 0 ? -step : step) + LIBRARY_INDEX_GROUPS) %
+                    LIBRARY_INDEX_GROUPS;
+        if (app->library_index_counts[group]) {
+            app_move(app, app->library_index_first[group] - app->locations[app->category].selected);
+            return;
+        }
     }
 }

@@ -50,12 +50,14 @@ static inline bool layout_has_icons(const App *app)
 }
 static inline int layout_icon_size(const App *app)
 {
-    return app->icon_size == ICON_LARGE ? 32 : 16;
+    return app->browser_style == BROWSER_INDEX ? 16 : app->icon_size == ICON_LARGE ? 32 : 16;
 }
 static inline int layout_row_height(const App *app)
 {
     if (app->browser_style == BROWSER_SHELF)
         return UI_LIST_BOTTOM - layout_list_top(app->category);
+    if (app->browser_style == BROWSER_INDEX)
+        return 18;
     int base;
     if (app->browser_style == BROWSER_LIST)
         base = 16;

@@ -183,10 +183,8 @@ static const SettingsOption appearance[] = {
      "remembered. Applies to Home, System and folder tabs.",
      true, OPT_ICONS},
     {"Browser view",
-     "Shelf: centered covers; left/right selects, up/down skips three. Classic: rows. Extended: "
-     "details. "
-     "List: no icons. Grid: two columns for Small, "
-     "four for Large. Applies to all tabs.",
+     "Index: left/right jumps folders and letters. Shelf: centered covers. Classic: rows. "
+     "Extended: details. List: no icons. Grid: tiles. Applies to all tabs.",
      true, OPT_VIEW},
     {"Cover preview",
      "Show selected-item artwork on top. Off uses item information and avoids cover decoding.",
@@ -1101,7 +1099,7 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
                                                    : "Small";
         break;
     case OPT_VIEW: {
-        static const char *names[] = {"Classic", "Extended", "List", "Grid", "Shelf"};
+        static const char *names[] = {"Classic", "Extended", "List", "Grid", "Shelf", "Index"};
         value = names[app->browser_style];
         break;
     }

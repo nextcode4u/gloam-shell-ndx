@@ -13,6 +13,7 @@
 #include "dashboard.h"
 #include "diagnostics.h"
 #include "game_options.h"
+#include "grid.h"
 #include "icons.h"
 #include "installed_titles.h"
 #include "item_preferences.h"
@@ -62,6 +63,7 @@ static void reset_selection_preview(App *app)
 
 void app_reset_preview(App *app)
 {
+    app->library_index_dirty = true;
     reset_selection_preview(app);
     app->shelf_offset_fixed = 0;
     for (int cell = 0; cell < 3; cell++) {
@@ -242,7 +244,7 @@ void app_move(App *app, int delta)
         app->selection_y_fixed =
             (location->selected - location->scroll) * layout_row_height(app) * 256;
     app->icons_idle_frames = 0;
-    app_reset_preview(app);
+    reset_selection_preview(app);
     app_mark_preferences_dirty(app);
 }
 
@@ -771,6 +773,8 @@ void app_tick(App *app)
         icons_tick(app);
         title_metadata_tick(app);
     }
+    if (app->browser_style == BROWSER_INDEX && app->library_index_dirty)
+        browser_index_rebuild(app);
     if (app->reduced_motion)
         app->shelf_offset_fixed = 0;
     else {
@@ -793,8 +797,8 @@ void app_tick(App *app)
         if (abs(d) < 32)
             app->selection_y_fixed = target;
     }
-    if (!app->settings.open && app->show_covers && !app->artwork.ready && !app->artwork_resolved &&
-        app->selection_idle_frames >= 7)
+    if (app->browser_style != BROWSER_INDEX && !app->settings.open && app->show_covers &&
+        !app->artwork.ready && !app->artwork_resolved && app->selection_idle_frames >= 7)
         artwork_load(app);
     if (!app->settings.open && app->panel == PANEL_NONE)
         artwork_shelf_tick(app);

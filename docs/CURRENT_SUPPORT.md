@@ -6,7 +6,7 @@ a guarantee for every title, boot method or application build.
 
 | Area | Support and limits |
 | --- | --- |
-| Browser | Classic, Extended, List, Grid and a centered horizontal cover Shelf; small/large icons, folder tabs, touch, looping labels, native banners, custom icons and covers. |
+| Browser | Classic, Extended, List, Grid and a centered horizontal cover Shelf and Library Index; small/large icons, folder tabs, touch, looping labels, native banners, custom icons and covers. |
 | Themes | Versioned palette/font packs, wallpapers, optional icon packs with native-banner priority, audio cues/music, bounded layout defaults and personal presets. Fixed-cell ASCII/Latin-1 faces with shared Latin Extended-A, Greek and Cyrillic fallback; Partial UTF-8 interface catalogs cover navigation, settings labels/help, sections and settings-dialog hints with English fallback and a Spanish starter; CJK/RTL and full UI localization remain future work. |
 | Homebrew | Native DSi-SD handoff and argv; return requires a compatible application. Flashcart/DLDI and DS-mode behavior are not general compatibility claims. |
 | Retail DS | nds-bootstrap adapter, options, saves and cheats. The unmodified official backend has reached retail gameplay, its menu, Quit, warm relaunch and cold save readback in a development emulator composition. This does not establish stock-emulator or physical-console compatibility. The packaged official binary contains no private experimental patches. |

@@ -14,6 +14,7 @@
 #define TAB_LABEL_CAP 64
 #define FAVORITE_CAP 64
 #define ICON_CACHE_CAP 16
+#define LIBRARY_INDEX_GROUPS 29
 #define ASSOCIATION_CAP 32
 #define USER_ASSOCIATION_CAP 32
 #define EXTENSION_CAP 16
@@ -200,6 +201,7 @@ typedef enum {
     BROWSER_LIST,
     BROWSER_GRID,
     BROWSER_SHELF,
+    BROWSER_INDEX,
     BROWSER_STYLE_COUNT
 } BrowserStyle;
 typedef enum { SORT_NAME_ASC, SORT_NAME_DESC, SORT_TYPE, SORT_MODIFIED, SORT_COUNT } SortMode;
@@ -375,7 +377,9 @@ typedef struct {
     unsigned frame_count;
     char message[160], title[128], code[8];
     Location folder_history[8];
-    bool library_jump_held;
+    bool library_jump_held, library_index_dirty;
+    uint16_t library_index_counts[LIBRARY_INDEX_GROUPS];
+    int16_t library_index_first[LIBRARY_INDEX_GROUPS];
     Artwork artwork;
     Artwork shelf_artwork[3];
     bool shelf_resolved[3];

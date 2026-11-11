@@ -226,7 +226,7 @@ row_padding=6
 large_grid_columns=3
 ```
 
-All keys are optional. `view` accepts classic/extended/list/grid/shelf and `icon_size`
+All keys are optional. `view` accepts classic/extended/list/grid/shelf/index and `icon_size`
 accepts small/large. These supply defaults when Apply is pressed; ordinary
 Appearance choices can override them afterward and remain saved across restart.
 Preview/cancel does not change browser preferences. Named presets retain their
@@ -307,3 +307,16 @@ Three path-keyed prepared images are retained across selection changes and
 invalidated on explicit refresh. One entry is prepared per tick using the
 existing bounded decoder/cache. Shelf adds approximately 62 KiB of prepared
 image and path storage; rendering never reads files or decodes artwork.
+
+### Library Index
+
+Choose **Index** under START → Appearance → Browser view, or use `view=index`
+in a theme. The bottom screen shows compact rows with 16-pixel icons; the top
+screen shows folders and alphabetical groups. Left/Right jumps to the first
+item in the next populated group, wrapping past empty groups. Up/Down browses
+normally; L/R changes tabs and Y switches to item details.
+
+Groups count the current directory batch, not the entire SD card. Existing
+sorting stays intact. Common Latin-1 accented initials join their base letter;
+other scripts and punctuation appear under `*` (Other). Genre metadata is not
+required. Index uses fixed compact rows regardless of the stored icon size.

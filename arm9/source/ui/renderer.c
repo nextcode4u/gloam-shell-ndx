@@ -6,6 +6,7 @@
 #include "cheats.h"
 #include "dashboard.h"
 #include "game_options.h"
+#include "grid.h"
 #include "icons.h"
 #include "layout.h"
 #include "picker.h"
@@ -25,6 +26,50 @@ typedef ThemePalette Palette;
 static void draw_browser_icon(const App *app, uint16_t *pixels, int index, int x, int y, int size,
                               uint16_t color);
 
+static void draw_library_index(const App *app, uint16_t *pixels, Palette colors)
+{
+    int active = browser_index_group(app, app->locations[app->category].selected);
+    unsigned folders = app->entry_count ? app->library_index_counts[0] : 0;
+    bool selected = active == 0 && folders;
+    if (selected)
+        draw_rectangle(pixels, 12, 49, 154, 16, colors.accent);
+    char label[40];
+    snprintf(label, sizeof label, "Folders  %u", folders);
+    draw_text(pixels, 15, 51, label,
+              selected  ? colors.ink
+              : folders ? colors.text
+                        : colors.line,
+              21);
+    for (int group = 1; group < LIBRARY_INDEX_GROUPS; group++) {
+        int x = 12 + ((group - 1) % 7) * 22, y = 69 + ((group - 1) / 7) * 18;
+        unsigned count = app->entry_count ? app->library_index_counts[group] : 0;
+        bool focused = count && group == active;
+        if (focused)
+            draw_rectangle(pixels, x, y, 20, 16, colors.accent);
+        char letter[2] = {group == 1 ? '#' : group == 28 ? '*' : (char)('A' + group - 2), 0};
+        draw_text(pixels, x + 6, y + 2, letter,
+                  focused ? colors.ink
+                  : count ? colors.text
+                          : colors.line,
+                  1);
+    }
+    char group_name[16];
+    if (active == 0 || active == 1 || active == 28)
+        snprintf(group_name, sizeof group_name, "%s",
+                 active == 0   ? "Folders"
+                 : active == 1 ? "Numbers"
+                               : "Other");
+    else
+        snprintf(group_name, sizeof group_name, "%c", 'A' + active - 2);
+    snprintf(label, sizeof label, "%s: %u", group_name,
+             app->entry_count ? app->library_index_counts[active] : 0);
+    draw_text(pixels, 12, 148, app->scan_directory ? "Reading folder..." : label, colors.muted, 22);
+    draw_text(pixels, 12, 164,
+              app->truncated || app->locations[app->category].batch ? "Current batch only"
+                                                                    : "Left/right: groups",
+              colors.muted, 22);
+}
+
 static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, const char *clock)
 {
     themes_background_draw(&app->themes.active, 0, pixels);
@@ -43,7 +88,9 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
         name = app->slot1.title;
     draw_text_scrolling(pixels, 12, 31, name, colors.text, 154, app->selection_idle_frames,
                         !app->reduced_motion);
-    if (app->detail_tab == 0 && app->show_covers) {
+    if (app->browser_style == BROWSER_INDEX && app->detail_tab == 0) {
+        draw_library_index(app, pixels, colors);
+    } else if (app->detail_tab == 0 && app->show_covers) {
         int x = 15, y = 53, w = 96, h = 104;
         int selected = app->locations[app->category].selected;
         if (entry && (entry->kind == ITEM_SYSTEM || entry->kind == ITEM_INSTALLED_TITLE) &&
@@ -134,7 +181,10 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
                            : entry->kind == ITEM_SYSTEM ? "A: Nintendo Menu"
                                                         : "A: open selection";
         draw_text(pixels, 12, 144, hint, colors.muted, 22);
-        draw_text(pixels, 12, 164, app->show_covers ? "Y: artwork" : "Covers disabled",
+        draw_text(pixels, 12, 164,
+                  app->browser_style == BROWSER_INDEX ? "Y: library index"
+                  : app->show_covers                  ? "Y: artwork"
+                                                      : "Covers disabled",
                   colors.accent, 22);
     }
     for (int row = 0; row < TAB_VISIBLE_COUNT; row++) {
@@ -253,7 +303,7 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
                                             : "Hidden",
                       layout_has_icons(app) ? colors.accent : colors.muted, 6);
         if (app->panel == PANEL_QUICK && i == QUICK_BROWSER_STYLE) {
-            const char *views[] = {"Classic", "Extended", "List", "Grid", "Shelf"};
+            const char *views[] = {"Classic", "Extended", "List", "Grid", "Shelf", "Index"};
             draw_text(pixels, 186, row, views[app->browser_style], colors.accent, 8);
         }
     }
@@ -526,9 +576,10 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
     }
     draw_rectangle(bottom, 10, 176, 236, 1, colors.line);
     draw_text(bottom, 10, 179,
-              app->library_jump_held ? "Y + Up/Down: jump initials"
-              : app->rail_focus      ? "Up/Down tabs  A choose  B/X back"
-                                     : ui_text(&app->language, UI_BROWSER_HINT),
+              app->library_jump_held                ? "Y + Up/Down: jump initials"
+              : app->rail_focus                     ? "Up/Down tabs  A choose  B/X back"
+              : app->browser_style == BROWSER_INDEX ? "< > groups  A open  Y info  X tabs"
+                                                    : ui_text(&app->language, UI_BROWSER_HINT),
               colors.muted, 40);
     if (app->startup_countdown) {
         char countdown[40];

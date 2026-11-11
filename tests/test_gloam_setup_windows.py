@@ -972,6 +972,9 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         theme.write_text('[theme]\nversion=1\n[layout]\nview=shelf\n')
         self.run_ps("$s=Read-GloamState $root; Save-GloamSettings $root (Get-GloamThemeSettings $root test $true) $s.Hash")
         self.assertIn('browser_style=4', state.read_text(encoding='utf-8'))
+        theme.write_text('[theme]\nversion=1\n[layout]\nview=index\n')
+        self.run_ps("$s=Read-GloamState $root; Save-GloamSettings $root (Get-GloamThemeSettings $root test $true) $s.Hash")
+        self.assertIn('browser_style=5', state.read_text(encoding='utf-8'))
         wav = self.sd / 'media/music/fixture.wav'
         wav.parent.mkdir(parents=True)
         with wave.open(str(wav), 'wb') as output:
