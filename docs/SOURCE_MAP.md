@@ -105,5 +105,6 @@ inputs. Windows tests use authored content and image fixtures.
 `tools/gloam_setup_identification.ps1` manages PC-side DAT imports, on-demand
 Libretro metadata and cover-name fallbacks. `tools/gloam_dat.cs` is an authored
 .NET helper for bounded XML/clrmamepro parsing and streaming size/SHA-1/MD5/CRC32
-fingerprints; external XML resolution is disabled. It is compiled in memory by
+fingerprints and strongest-hash indexes, avoiding a full metadata scan for every
+ROM; external XML resolution is disabled. It is compiled in memory by
 Windows PowerShell and packaged as `gloam-dat.cs`. No external runtime is needed.

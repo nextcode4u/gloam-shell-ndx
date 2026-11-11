@@ -73,8 +73,8 @@ function Find-GloamDatNames([string]$Root, [string]$Content, [string]$System, [s
     $fingerprint=[GloamDat]::Fingerprint((Get-GloamPath $Root $Content))
     foreach ($file in $files) {
         $key=$file.FullName+'|'+$file.Length+'|'+$file.LastWriteTimeUtc.Ticks
-        if (-not $script:GloamDatRecords.ContainsKey($key)) { $script:GloamDatRecords[$key]=[GloamDat]::Read($file.FullName) }
-        foreach ($entry in $script:GloamDatRecords[$key]) {
+        if (-not $script:GloamDatRecords.ContainsKey($key)) { $script:GloamDatRecords[$key]=[GloamDatIndex]::new([GloamDat]::Read($file.FullName)) }
+        foreach ($entry in $script:GloamDatRecords[$key].Find($fingerprint)) {
             $method=[GloamDat]::Match($entry,$fingerprint)
             if (-not $method) { continue }
             $source=if ($file.Name -eq 'libretro.dat') { 'Libretro DAT' } else { 'Imported DAT' }

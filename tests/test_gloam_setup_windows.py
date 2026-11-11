@@ -266,6 +266,26 @@ if ([GloamDat]::Match($entries[0],$fingerprint) -ne 'CRC32 + size (weaker)') { t
 """)
         self.assertEqual((folder/'renamed.gb').read_bytes(),data)
 
+    def test_dat_index_preserves_aliases_and_strong_hash_precedence(self):
+        self.run_ps(r"""
+Initialize-GloamDat
+$f=[GloamFingerprint]::new(); $f.Size=3; $f.Sha1='a'*40; $f.Md5='b'*32; $f.Crc='12345678'
+$records=[Collections.Generic.List[GloamDatEntry]]::new()
+foreach ($i in 0..24999) {
+    $e=[GloamDatEntry]::new(); $e.Name='Other '+$i; $e.Size=3; $e.Sha1=$i.ToString('x40'); $e.Md5=''; $e.Crc=$f.Crc
+    $records.Add($e)
+}
+foreach ($name in @('Alias A','Alias B')) {
+    $e=[GloamDatEntry]::new(); $e.Name=$name; $e.Size=3; $e.Sha1=$f.Sha1; $e.Md5=''; $e.Crc=''
+    $records.Add($e)
+}
+$index=[GloamDatIndex]::new($records.ToArray())
+$matches=@($index.Find($f))
+if ($matches.Count -ne 2 -or $matches[0].Name -ne 'Alias A' -or $matches[1].Name -ne 'Alias B') { throw 'Index returned unrelated CRC rows or lost aliases' }
+$f.Size=4
+if (@($index.Find($f)).Count) { throw 'Index ignored file size' }
+""")
+
     def test_dat_rejects_xml_entities_and_bad_hash_records(self):
         entity=self.root/'entity.dat'
         entity.write_text('<!DOCTYPE datafile [<!ENTITY secret SYSTEM "file:///C:/private.txt">]><datafile><game name="&secret;"><rom size="1" crc="00000000"/></game></datafile>')

@@ -19,6 +19,43 @@ public sealed class GloamFingerprint
     public string Sha1, Md5, Crc;
     public long Size;
 }
+// Each record is indexed by its strongest available digest. A bad strong hash
+// therefore cannot accidentally match through a weaker digest in the same row.
+public sealed class GloamDatIndex
+{
+    readonly Dictionary<string, List<GloamDatEntry>> entries =
+        new Dictionary<string, List<GloamDatEntry>>(StringComparer.Ordinal);
+
+    static string Key(long size, string kind, string digest)
+    {
+        return size.ToString(CultureInfo.InvariantCulture) + ":" + kind + ":" + digest;
+    }
+
+    public GloamDatIndex(GloamDatEntry[] records)
+    {
+        foreach (var entry in records) {
+            string kind = entry.Sha1.Length != 0 ? "sha1" : entry.Md5.Length != 0 ? "md5" : "crc";
+            string digest = kind == "sha1" ? entry.Sha1 : kind == "md5" ? entry.Md5 : entry.Crc;
+            string key = Key(entry.Size, kind, digest);
+            List<GloamDatEntry> matches;
+            if (!entries.TryGetValue(key, out matches)) entries[key] = matches = new List<GloamDatEntry>();
+            matches.Add(entry);
+        }
+    }
+
+    public GloamDatEntry[] Find(GloamFingerprint fingerprint)
+    {
+        var result = new List<GloamDatEntry>();
+        string[] kinds = { "sha1", "md5", "crc" };
+        string[] digests = { fingerprint.Sha1, fingerprint.Md5, fingerprint.Crc };
+        for (int i = 0; i < kinds.Length; i++) {
+            List<GloamDatEntry> matches;
+            if (entries.TryGetValue(Key(fingerprint.Size, kinds[i], digests[i]), out matches))
+                result.AddRange(matches);
+        }
+        return result.ToArray();
+    }
+}
 public static class GloamDat
 {
     static string Hex(byte[] bytes) { return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant(); }
