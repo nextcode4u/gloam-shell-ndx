@@ -113,6 +113,12 @@ root, check installed add-ons and stage reviewed updates with backups. See [usag
 | [Installed DSiWare](docs/guides/INSTALLED_DSIWARE.md) / [Slot-1](docs/guides/SLOT1_LAUNCH.md) | Native title and cartridge routes |
 | [Build guide](docs/development/BUILDING.md) / [source map](docs/SOURCE_MAP.md) | Fork, build and contribute |
 
+## Developer note
+
+This project was developed with assistance from AI language models. Some source
+code was generated or refined using AI, then reviewed, modified and integrated
+by the project author where appropriate.
+
 ## Credits and license
 
 Gloam is shaped by the work of the DS homebrew community. **AKMenu Next,
