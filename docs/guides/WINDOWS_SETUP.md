@@ -196,3 +196,9 @@ optional replacements and user-supplied BIOS. Known BIOS paths are checked on th
 selected SD folder and refreshed after operations. “Found” checks presence and
 known sizes, not authenticity; firmware chosen inside an emulator may need checking
 there. These formats describe the configured routes, not every upstream format.
+
+The ROM organizer reuses the selected SD/staging folder. Its system dropdown
+automatically lists folders under `roms` and any configured Games library,
+including the default Atari subcollections. BIOS, saves and ScummVM game data
+are excluded. Use **Other subfolder** only for a custom nested collection; the
+browser opens at the current system folder. Preview remains required before moves.

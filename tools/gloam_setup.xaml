@@ -316,8 +316,8 @@
             <TextBlock Text="Organize a ROM folder" Style="{StaticResource Heading}"/>
             <TextBlock Text="Group loose ROMs into A-Z / # folders, or bring them back. Saves and sidecar art travel with their title; multi-file game folders stay intact." Style="{StaticResource Muted}"/>
             <DockPanel>
-              <Button x:Name="PickOrganizerFolder" Content="Choose folder..." DockPanel.Dock="Right" Margin="10,5,0,12"/>
-              <TextBox x:Name="OrganizerFolder" ToolTip="Choose one system folder inside the SD Games library."/>
+              <Button x:Name="PickOrganizerFolder" Content="Other subfolder..." DockPanel.Dock="Right" Margin="10,5,0,12"/>
+              <ComboBox x:Name="OrganizerFolder" IsEditable="True" IsTextSearchEnabled="True" ToolTip="System folders from the selected SD card: roms and the configured Games library. Choose a system or type a relative subfolder."/>
             </DockPanel>
             <Grid>
               <Grid.ColumnDefinitions>

@@ -88,6 +88,7 @@ function Load-Sd {
     if (Test-Path -LiteralPath $folder) { foreach ($theme in Get-ChildItem -LiteralPath $folder -Directory) { $ui.ThemeList.Items.Add($theme.Name) | Out-Null } }
     if (-not $preserveSettings) { Load-GloamSettingsUi }
     Load-GloamOrganizerJournals
+    Load-GloamOrganizerFolders
     Update-AddonDetails
     $ui.Workspace.IsEnabled = $true
     $ui.Status.Text = 'Ready: ' + $script:Root; Write-Activity ('Selected SD folder: ' + $script:Root)

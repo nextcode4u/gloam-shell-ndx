@@ -80,6 +80,20 @@ if ((Get-GloamAddonDetails $app $root) -notmatch 'required\]: Found') { throw 'D
 if ((Get-GloamAddonDetails $app '') -notmatch 'Not checked') { throw 'No-target result misleading' }
 """)
 
+    def test_organizer_discovers_systems_from_selected_sd(self):
+        for folder in ('roms/NES', 'roms/Atari/2600', 'roms/Atari/Lynx',
+                       'roms/bios', 'roms/saves', 'roms/ScummVM/titles',
+                       'roms/NES/A', 'collections/SNES'):
+            (self.sd / folder).mkdir(parents=True, exist_ok=True)
+        config = self.sd / '_nds/dsi-frontend/tabs.ini'
+        config.parent.mkdir(parents=True)
+        config.write_text('[roots]\ngames=collections\n')
+        self.run_ps(r"""
+$folders = @(Get-GloamOrganizerFolders $root)
+$expected = @('roms/Atari/2600','roms/Atari/Lynx','roms/NES','collections/SNES')
+if (Compare-Object $expected $folders) { throw ($folders -join ', ') }
+""")
+
     def archive(self, name, members):
         path = self.root / name
         with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as archive:

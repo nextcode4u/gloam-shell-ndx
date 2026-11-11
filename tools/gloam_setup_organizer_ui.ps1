@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-$script:OrganizerPlan = ''; $script:OrganizerPlanHash = ''
+$script:OrganizerPlan = ''; $script:OrganizerPlanHash = ''; $script:OrganizerRoot = ''
 $ui.OrganizerMode.ItemsSource = @('A-Z / # folders','Back to system folder'); $ui.OrganizerMode.SelectedIndex = 0
 $ui.OrganizerExtensions.Text = $GloamRomExtensions
 
@@ -7,6 +7,19 @@ function Reset-GloamOrganizerPreview {
     $script:OrganizerPlan = ''; $script:OrganizerPlanHash = ''
     $ui.ApplyOrganization.IsEnabled = $false; $ui.OrganizerPreview.ItemsSource = @()
     $ui.OrganizerSummary.Text = 'Preview first. No files are changed until you apply.'
+}
+function Load-GloamOrganizerFolders {
+    $previous = if ($script:OrganizerRoot -eq $script:Root) { $ui.OrganizerFolder.Text } else { '' }
+    $script:OrganizerRoot = $script:Root
+    $folders = @(Get-GloamOrganizerFolders $script:Root)
+    if ($previous -and $previous -notin $folders) {
+        try { $previous = Get-GloamOrganizerFolder $script:Root $previous; $folders += $previous }
+        catch { $previous = '' }
+    }
+    $ui.OrganizerFolder.ItemsSource = $folders
+    if ($previous -in $folders) { $ui.OrganizerFolder.SelectedItem = $previous }
+    elseif ($folders.Count) { $ui.OrganizerFolder.SelectedIndex = 0 }
+    else { $ui.OrganizerFolder.Text = ''; $ui.OrganizerSummary.Text = 'No system folders found under roms or the configured Games library. Install the SD layout or add your ROM folders first.' }
 }
 function Load-GloamOrganizerJournals {
     $items = @(); $base = '_nds/dsi-frontend/organizer'
@@ -39,10 +52,11 @@ function Complete-GloamOrganizerJob($Job) {
     $script:OrganizerPlan = $path; $script:OrganizerPlanHash = Get-GloamHash $path
     $ui.ApplyOrganization.IsEnabled = @($plan.Moves).Count -gt 0
 }
-foreach ($control in @('OrganizerFolder','OrganizerExtensions')) { $ui[$control].Add_TextChanged({ Reset-GloamOrganizerPreview }) }
+$ui.OrganizerExtensions.Add_TextChanged({ Reset-GloamOrganizerPreview })
+$ui.OrganizerFolder.AddHandler([Windows.Controls.Primitives.TextBoxBase]::TextChangedEvent, [Windows.Controls.TextChangedEventHandler]{ Reset-GloamOrganizerPreview })
 $ui.OrganizerMode.Add_SelectionChanged({ Reset-GloamOrganizerPreview })
 $ui.PickOrganizerFolder.Add_Click({ Invoke-UiAction {
-    $root = Get-SelectedRoot; $dialog = [Windows.Forms.FolderBrowserDialog]::new(); $dialog.SelectedPath = $root; $dialog.Description = 'Choose one system ROM folder on the SD card'
+    $root = Get-SelectedRoot; $dialog = [Windows.Forms.FolderBrowserDialog]::new(); $dialog.SelectedPath = if ($ui.OrganizerFolder.Text) { Get-GloamPath $root $ui.OrganizerFolder.Text } else { Get-GloamPath $root 'roms' }; $dialog.Description = 'Choose one system ROM folder on the SD card'
     if ($dialog.ShowDialog() -eq 'OK') { $ui.OrganizerFolder.Text = Get-GloamOrganizerFolder $root $dialog.SelectedPath }; $dialog.Dispose()
 } })
 $ui.PreviewOrganization.Add_Click({ Invoke-UiAction {

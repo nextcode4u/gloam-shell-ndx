@@ -20,6 +20,30 @@ function Get-GloamOrganizerFolder([string]$Root, [string]$Folder) {
     return $parts -join '/'
 }
 
+# Discover system folders without walking ROM collections or following links.
+function Get-GloamOrganizerFolders([string]$Root) {
+    $tabs = Read-GloamIni (Get-GloamPath $Root '_nds/dsi-frontend/tabs.ini')
+    $libraries = @('roms')
+    if ($tabs.Contains('roots') -and $tabs['roots']['games']) {
+        $libraries += ConvertTo-GloamRelative $Root $tabs['roots']['games']
+    }
+    foreach ($library in $libraries | Select-Object -Unique) {
+        $path = Get-GloamPath $Root $library
+        if (-not (Test-Path -LiteralPath $path -PathType Container)) { continue }
+        foreach ($folder in Get-ChildItem -LiteralPath $path -Directory | Sort-Object Name) {
+            if ($folder.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
+            try { $relative = Get-GloamOrganizerFolder $Root ($library + '/' + $folder.Name) }
+            catch { continue } # Exclude BIOS, saves and multi-file ScummVM data.
+            if ($folder.Name -eq 'Atari') {
+                foreach ($system in Get-ChildItem -LiteralPath $folder.FullName -Directory | Sort-Object Name) {
+                    if ($system.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
+                    try { Get-GloamOrganizerFolder $Root ($relative + '/' + $system.Name) } catch { continue }
+                }
+            } else { $relative }
+        }
+    }
+}
+
 function Get-GloamOrganizerStamp([string]$Root, [string]$Relative) {
     $file = Get-Item -LiteralPath (Get-GloamPath $Root $Relative)
     if ($file.PSIsContainer) { throw 'A move source is a folder.' }
