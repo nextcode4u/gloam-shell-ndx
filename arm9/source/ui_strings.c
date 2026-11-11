@@ -2,7 +2,9 @@
 #include "ui_strings.h"
 #include "paths.h"
 #include "text.h"
+#include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 static const struct {
     const char *key, *english;
@@ -24,9 +26,26 @@ const char *ui_text(const UiLanguage *language, UiString key)
         return "";
     return language->values[key][0] ? language->values[key] : strings[key].english;
 }
-static bool valid_text(const char *value)
+const char *ui_translate(const UiLanguage *language, const char *key, const char *fallback)
 {
-    if (!*value || strlen(value) >= 96)
+    for (unsigned i = 0; i < language->extra_count; i++)
+        if (!strcmp(language->extra[i].key, key))
+            return language->extra[i].value;
+    return fallback;
+}
+static bool extra_key(const char *key)
+{
+    if (strlen(key) >= 48 || (strncmp(key, "setting.", 8) && strncmp(key, "section.", 8) &&
+                              strncmp(key, "dialog.", 7) && strncmp(key, "value.", 6)))
+        return false;
+    for (const char *p = key; *p; p++)
+        if (!((*p >= 'a' && *p <= 'z') || (*p >= '0' && *p <= '9') || *p == '_' || *p == '.'))
+            return false;
+    return true;
+}
+static bool valid_text(const char *value, size_t capacity)
+{
+    if (!*value || strlen(value) >= capacity)
         return false;
     while (*value) {
         const char *start = value;
@@ -45,13 +64,18 @@ void ui_language_load(UiLanguage *language, const char *root, bool enabled)
     FILE *file = fopen(path, "r");
     if (!file)
         return;
-    UiLanguage candidate = {0};
-    char line[256];
-    unsigned bytes = 0, seen = 0;
+    UiLanguage *candidate = calloc(1, sizeof *candidate);
+    if (!candidate) {
+        fclose(file);
+        return;
+    }
+    char line[512];
+    unsigned bytes = 0;
+    bool seen[UI_STRING_COUNT] = {0};
     bool valid = true, version = false;
     while (fgets(line, sizeof line, file)) {
         bytes += strlen(line);
-        if (bytes > 4096 || (!strchr(line, '\n') && !feof(file))) {
+        if (bytes > 32768 || (!strchr(line, '\n') && !feof(file))) {
             valid = false;
             break;
         }
@@ -73,18 +97,38 @@ void ui_language_load(UiLanguage *language, const char *root, bool enabled)
         int key = 0;
         while (key < UI_STRING_COUNT && strcmp(line, strings[key].key))
             key++;
-        if (key == UI_STRING_COUNT || (key <= UI_FILES && strlen(value) >= 64) ||
-            (seen & (1u << key)) || !valid_text(value)) {
+        if (key == UI_STRING_COUNT && extra_key(line)) {
+            if (candidate->extra_count >= UI_EXTRA_CAP ||
+                !valid_text(value, strstr(line, ".help") ? 256 : 96)) {
+                valid = false;
+                break;
+            }
+            bool duplicate = false;
+            for (unsigned i = 0; i < candidate->extra_count; i++)
+                if (!strcmp(candidate->extra[i].key, line))
+                    duplicate = true;
+            if (duplicate) {
+                valid = false;
+                break;
+            }
+            UiTranslation *entry = &candidate->extra[candidate->extra_count++];
+            strcpy(entry->key, line);
+            strcpy(entry->value, value);
+            continue;
+        }
+        if (key == UI_STRING_COUNT || (key <= UI_FILES && strlen(value) >= 64) || seen[key] ||
+            !valid_text(value, 96)) {
             valid = false;
             break;
         }
-        seen |= 1u << key;
-        strcpy(candidate.values[key], value);
+        seen[key] = true;
+        strcpy(candidate->values[key], value);
     }
     valid &= version && !ferror(file);
     fclose(file);
     if (valid) {
-        candidate.loaded = true;
-        *language = candidate;
+        candidate->loaded = true;
+        *language = *candidate;
     }
+    free(candidate);
 }

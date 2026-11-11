@@ -27,6 +27,7 @@ int settings_section_count(const App *app);
 const char *settings_section_name(const App *app, int section);
 int settings_option_count(const App *app, int section);
 const SettingsOption *settings_option(const App *app, int section, int index);
+const char *settings_option_text(const App *app, const SettingsOption *option, bool help);
 void settings_value(const App *app, const SettingsOption *option, char *out, size_t capacity);
 void settings_format_clock(char out[12], int hour, int minute, bool twelve_hour);
 void settings_render(const App *app, uint16_t *top, uint16_t *bottom);

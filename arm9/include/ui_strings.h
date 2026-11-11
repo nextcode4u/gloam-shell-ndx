@@ -16,11 +16,18 @@ typedef enum {
     UI_EMPTY_FOLDER,
     UI_STRING_COUNT
 } UiString;
+#define UI_EXTRA_CAP 192
 typedef struct {
+    char key[48], value[256];
+} UiTranslation;
+typedef struct {
+    UiTranslation extra[UI_EXTRA_CAP];
+    unsigned extra_count;
     char values[UI_STRING_COUNT][96];
     bool loaded;
 } UiLanguage;
 /* Optional partial catalog; absent keys always retain English. No renderer I/O. */
 void ui_language_load(UiLanguage *language, const char *root, bool enabled);
+const char *ui_translate(const UiLanguage *language, const char *key, const char *fallback);
 const char *ui_text(const UiLanguage *language, UiString key);
 #endif

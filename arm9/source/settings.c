@@ -21,6 +21,7 @@
 #include "preferences.h"
 #include "tabs.h"
 #include "themes.h"
+#include "ui_strings.h"
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -97,6 +98,77 @@ enum {
     OPT_ROUTE_PICTO,
     OPT_ROUTE_DOWNLOAD,
     OPT_ROUTE_MENU
+};
+
+static const char *option_keys[] = {
+    [OPT_SETTINGS_MODE] = "settings_mode",
+    [OPT_AUTO_LAUNCH] = "auto_launch",
+    [OPT_CONFIG_EXPORT] = "config_export",
+    [OPT_CONFIG_IMPORT] = "config_import",
+    [OPT_RESET_CONFIGURATION] = "reset_configuration",
+    [OPT_DIAGNOSTICS] = "diagnostics",
+    [OPT_RESET_BROWSER] = "reset_browser",
+    [OPT_CLEAR_RECENT] = "clear_recent",
+    [OPT_CLEAR_CACHES] = "clear_caches",
+    [OPT_PRESET_SLOT] = "preset_slot",
+    [OPT_PRESET_SAVE] = "preset_save",
+    [OPT_PRESET_LOAD] = "preset_load",
+    [OPT_RESET_APPEARANCE] = "reset_appearance",
+    [OPT_ACCENT] = "accent",
+    [OPT_MOTION] = "motion",
+    [OPT_ICONS] = "icons",
+    [OPT_VIEW] = "view",
+    [OPT_COVERS] = "covers",
+    [OPT_CLOCK] = "clock",
+    [OPT_SORT] = "sort",
+    [OPT_HIDDEN] = "hidden",
+    [OPT_SYSTEM_FILES] = "system_files",
+    [OPT_EXTENSIONS] = "extensions",
+    [OPT_FILTER] = "filter",
+    [OPT_HIDE_SAVES] = "hide_saves",
+    [OPT_HIDE_BIOS] = "hide_bios",
+    [OPT_SPEED] = "speed",
+    [OPT_STARTUP] = "startup",
+    [OPT_AUDIO] = "audio",
+    [OPT_PROFILES] = "profiles",
+    [OPT_LAUNCH] = "launch",
+    [OPT_LOADERS] = "loaders",
+    [OPT_CHEATS] = "cheats",
+    [OPT_SYSTEM] = "system",
+    [OPT_SYSTEM_MENU] = "system_menu",
+    [OPT_ENVIRONMENT] = "environment",
+    [OPT_UNLAUNCH] = "unlaunch",
+    [OPT_REFRESH] = "refresh",
+    [OPT_SAVE] = "save",
+    [OPT_ABOUT] = "about",
+    [OPT_TABS] = "tabs",
+    [OPT_TOOLCHAIN] = "toolchain",
+    [OPT_THEME] = "theme",
+    [OPT_DASHBOARD] = "dashboard",
+    [OPT_MUSIC_MODE] = "music_mode",
+    [OPT_MUSIC_PATH] = "music_path",
+    [OPT_MUSIC_VOLUME] = "music_volume",
+    [OPT_EFFECTS] = "effects",
+    [OPT_EFFECTS_VOLUME] = "effects_volume",
+    [OPT_BRIGHTNESS] = "brightness",
+    [OPT_BATTERY] = "battery",
+    [OPT_SLEEP] = "sleep",
+    [OPT_TITLE_SOURCE] = "title_source",
+    [OPT_TITLE_LANGUAGE] = "title_language",
+    [OPT_TOP_BACKGROUND] = "top_background",
+    [OPT_BOTTOM_BACKGROUND] = "bottom_background",
+    [OPT_WALL_STRENGTH] = "wall_strength",
+    [OPT_RESET_WALLPAPERS] = "reset_wallpapers",
+    [OPT_ROUTE_DIRECT] = "route_direct",
+    [OPT_ROUTE_RETAIL] = "route_retail",
+    [OPT_ROUTE_HOMEBREW] = "route_homebrew",
+    [OPT_ROUTE_SLOT1] = "route_slot1",
+    [OPT_ROUTE_SETTINGS] = "route_settings",
+    [OPT_ROUTE_CAMERA] = "route_camera",
+    [OPT_ROUTE_SOUND] = "route_sound",
+    [OPT_ROUTE_PICTO] = "route_picto",
+    [OPT_ROUTE_DOWNLOAD] = "route_download",
+    [OPT_ROUTE_MENU] = "route_menu",
 };
 static const char *section_names[] = {"Appearance",   "Browser & Home", "Audio",
                                       "Games & Apps", "Boot & System",  "Maintenance",
@@ -429,7 +501,17 @@ const char *settings_section_name(const App *app, int section)
 {
     if (section < 0 || section >= settings_section_count(app))
         return "Frontend Settings";
-    return settings_is_simple(app) ? simple_sections[section].name : section_names[section];
+    static const char *keys[] = {"appearance", "browser",     "audio", "games",
+                                 "system",     "maintenance", "launch"};
+    const char *name =
+        settings_is_simple(app) ? simple_sections[section].name : section_names[section];
+    char key[48];
+    /* Simple pages use their own fixed order; names remain separate from keys. */
+    if (settings_is_simple(app))
+        snprintf(key, sizeof key, "section.simple_%d", section);
+    else
+        snprintf(key, sizeof key, "section.%s", keys[section]);
+    return ui_translate(&app->language, key, name);
 }
 int settings_option_count(const App *app, int section)
 {
@@ -1104,6 +1186,15 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
     default:
         break;
     }
+    static const char *common[] = {"On",       "Off",    "Auto",    "Enabled",
+                                   "Disabled", "Simple", "Advanced"};
+    static const char *keys[] = {"value.on",       "value.off",    "value.auto",    "value.enabled",
+                                 "value.disabled", "value.simple", "value.advanced"};
+    for (unsigned i = 0; i < sizeof common / sizeof *common; i++)
+        if (!strcmp(value, common[i])) {
+            value = ui_translate(&app->language, keys[i], value);
+            break;
+        }
     path_copy(out, value, capacity);
 }
 void settings_format_clock(char out[12], int hour, int minute, bool twelve_hour)
@@ -1117,4 +1208,11 @@ void settings_format_clock(char out[12], int hour, int minute, bool twelve_hour)
                  hour < 12 ? "AM" : "PM");
     else
         snprintf(out, 12, "%02d:%02d", hour, minute);
+}
+
+const char *settings_option_text(const App *app, const SettingsOption *option, bool help)
+{
+    char key[48];
+    snprintf(key, sizeof key, "setting.%s.%s", option_keys[option->id], help ? "help" : "label");
+    return ui_translate(&app->language, key, help ? option->help : option->label);
 }

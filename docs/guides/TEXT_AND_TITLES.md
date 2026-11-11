@@ -92,8 +92,22 @@ settings=Réglages
 Stable keys are `home`, `games`, `apps`, `media`, `system`, `files`, `settings`,
 `reading_folder`, `browser_hint`, `tab_hint`, `installed_titles`, `empty_folder`.
 Unspecified keys use English. User-defined tab labels remain user content.
-Files are bounded to 4 KiB and values to 95 UTF-8 bytes (63 for tab labels). Invalid UTF-8, unknown
-or duplicate keys, control characters and unsupported versions discard the whole
+Files are bounded to 32 KiB. Navigation and label values allow 95 UTF-8 bytes (63 for tab labels); setting help allows 255. Invalid UTF-8, unknown navigation keys, invalid translation
+namespaces, duplicate keys, control characters and unsupported versions discard the whole
 catalog. Early recovery bypasses it. Configuration export/import includes the
 catalog, and configuration reset archives it. No language file is read while
 rendering. Existing fonts still determine script coverage; CJK/RTL needs more work.
+
+Settings labels and help use stable `setting.<option>.label` and
+`setting.<option>.help` keys. Section names, settings-dialog hints and common
+values use `section.*`, `dialog.*` and `value.*`. Up to 192 additional entries
+are allowed. Missing entries retain English; language files cannot change any
+setting values or launch behavior. Keep help within six display lines and test
+long labels with scrolling enabled and Reduced motion.
+
+[The editable English template](../../config/languages/template.ini) lists the
+settings keys. [The Spanish starter](../../config/languages/spanish.ini) covers
+navigation, settings labels, sections and common hints/values; most help and
+runtime errors still fall back to English. Copy the desired file to
+`/_nds/dsi-frontend/language.ini` and restart. These are interface catalogs,
+not the separate language passed to games or used for their title banners.

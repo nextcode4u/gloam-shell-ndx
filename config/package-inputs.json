@@ -628,6 +628,8 @@
     "config/README.md",
     "config/addon-dependencies.json",
     "config/emulator-presets.json",
+    "config/languages/spanish.ini",
+    "config/languages/template.ini",
     "config/package-inputs.json",
     "config/release-dependencies.json",
     "docs/CURRENT_SUPPORT.md",
