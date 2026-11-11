@@ -161,7 +161,8 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
         draw_text(pixels, 209, 158, "v", colors.muted, 1);
     draw_rectangle(pixels, 10, 176, 236, 1, colors.line);
     draw_text(pixels, 10, 179, clock, colors.muted, 11);
-    draw_text(pixels, app->clock_12_hour ? 76 : 54, 179, "L/R tabs", colors.muted, 15);
+    draw_text(pixels, app->clock_12_hour ? 76 : 54, 179, ui_text(&app->language, UI_TAB_HINT),
+              colors.muted, 15);
     draw_text(pixels, 179, 179, app->storage_ready ? "SD OK" : "NO SD",
               app->storage_ready ? colors.accent : colors.muted, 6);
     draw_text(pixels, 226, 179, app->dsi_mode ? "DSi" : "DS", colors.muted, 3);
@@ -364,12 +365,14 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
     Palette colors = themes_palette(app);
     draw_top_screen(app, top, colors, clock);
     themes_background_draw(&app->themes.active, 1, bottom);
-    draw_text_scrolling(
-        bottom, 10, 7,
-        app->category == CATEGORY_SYSTEM && app->installed_open ? "Installed DSiWare"
-                                                                : tabs_label(app, app->category),
-        colors.text, 161, app->frame_count - app->tab_text_started_frame, !app->reduced_motion);
-    draw_text(bottom, 188, 7, "Settings", colors.accent, 8);
+    draw_text_scrolling(bottom, 10, 7,
+                        app->category == CATEGORY_SYSTEM && app->installed_open
+                            ? ui_text(&app->language, UI_INSTALLED_TITLES)
+                            : tabs_label(app, app->category),
+                        colors.text, 161, app->frame_count - app->tab_text_started_frame,
+                        !app->reduced_motion);
+    draw_text_scrolling(bottom, 188, 7, ui_text(&app->language, UI_SETTINGS), colors.accent, 58,
+                        app->frame_count, !app->reduced_motion);
     const Location *location = &app->locations[app->category];
     int list_top = layout_list_top(app->category);
     int visible_rows = layout_visible_rows(app);
@@ -378,7 +381,7 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
     int list_height = layout_list_bottom(app) - list_top;
     if (layout_has_path(app->category)) {
         draw_text_scrolling(bottom, 10, 22,
-                            app->scan_directory ? "Reading folder..."
+                            app->scan_directory ? ui_text(&app->language, UI_READING_FOLDER)
                             : app->truncated    ? "512+ items / SELECT: folder batches"
                                                 : location->path,
                             colors.muted, 231, app->selection_idle_frames, !app->reduced_motion);
@@ -390,9 +393,9 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
                               ? (*app->installed_catalog.status ? app->installed_catalog.status
                                                                 : "Reading NAND titles...")
                           : app->storage_ready
-                              ? (app->scan_directory    ? "Reading folder..."
+                              ? (app->scan_directory    ? ui_text(&app->language, UI_READING_FOLDER)
                                  : app->directory_error ? "Folder unavailable"
-                                                        : "No items in this folder")
+                                                        : ui_text(&app->language, UI_EMPTY_FOLDER))
                               : "SD card not mounted",
                           colors.text, 31, 3);
         draw_text(bottom, 16, 84, "B back   L/R change tab", colors.muted, 38);
@@ -462,7 +465,7 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
     draw_rectangle(bottom, 10, 176, 236, 1, colors.line);
     draw_text(bottom, 10, 179,
               app->rail_focus ? "Up/Down tabs  A choose  B/X back"
-                              : "A Open B Back X Tabs Y Info SEL",
+                              : ui_text(&app->language, UI_BROWSER_HINT),
               colors.muted, 40);
     if (app->startup_countdown) {
         char countdown[40];

@@ -1,6 +1,7 @@
 #ifndef FRONTEND_TYPES_H
 #define FRONTEND_TYPES_H
 #include "font_pack.h"
+#include "ui_strings.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -298,6 +299,7 @@ typedef struct {
     int entry_count;
     bool truncated;
     bool directory_error;
+    UiLanguage language;
     char favorites[FAVORITE_CAP][PATH_CAP];
     int favorite_count;
     Panel panel, panel_parent;

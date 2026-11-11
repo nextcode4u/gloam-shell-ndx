@@ -73,3 +73,27 @@ column, using up to three lines at the normal theme font size. `SYSTEM APP`
 therefore shows completely as two lines. File size, console and storage rows
 sit below the reserved label area, so longer labels do not overlap them or the
 tab rail. Selected filenames, paths and tab names retain their scrolling loop.
+
+## Partial interface catalogs
+
+`/_nds/dsi-frontend/language.ini` is an optional UTF-8 catalog independent of the
+banner-title language and theme font. It currently covers built-in tab labels,
+Settings, reading-folder text and browser/footer hints. Other dialogs and
+settings remain English; this is localization groundwork, not a full translation.
+
+```ini
+version=1
+home=Accueil
+games=Jeux
+apps=Applications
+settings=Réglages
+```
+
+Stable keys are `home`, `games`, `apps`, `media`, `system`, `files`, `settings`,
+`reading_folder`, `browser_hint`, `tab_hint`, `installed_titles`, `empty_folder`.
+Unspecified keys use English. User-defined tab labels remain user content.
+Files are bounded to 4 KiB and values to 95 UTF-8 bytes. Invalid UTF-8, unknown
+or duplicate keys, control characters and unsupported versions discard the whole
+catalog. Early recovery bypasses it. Configuration export/import includes the
+catalog, and configuration reset archives it. No language file is read while
+rendering. Existing fonts still determine script coverage; CJK/RTL needs more work.

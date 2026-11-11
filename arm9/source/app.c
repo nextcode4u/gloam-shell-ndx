@@ -81,6 +81,7 @@ void app_init_mode(App *app, const char *root, bool storage, bool dsi, bool reco
     if (storage && (!configuration_reset_recover(root, recovery_error) ||
                     !configuration_recover(root, recovery_error)))
         app->storage_ready = false;
+    ui_language_load(&app->language, root, app->storage_ready && !recovery);
     tabs_load(app);
     if (app->storage_ready) {
         preferences_load(app);

@@ -11,8 +11,6 @@
 
 static const char *builtin_ids[CATEGORY_COUNT] = {"home",  "games",  "apps",
                                                   "media", "system", "files"};
-static const char *builtin_labels[CATEGORY_COUNT] = {"Home",  "Games",  "Apps",
-                                                     "Media", "System", "Files"};
 
 static void defaults(App *app)
 {
@@ -23,7 +21,7 @@ static void defaults(App *app)
     for (int index = 0; index < CATEGORY_COUNT; index++) {
         Tab *tab = &app->tabs[index];
         path_copy(tab->id, builtin_ids[index], sizeof tab->id);
-        path_copy(tab->label, builtin_labels[index], sizeof tab->label);
+        path_copy(tab->label, ui_text(&app->language, (UiString)index), sizeof tab->label);
         path_default_category(tab->home, app->root, index);
         path_copy(app->locations[index].path, tab->home, PATH_CAP);
     }

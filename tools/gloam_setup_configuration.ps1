@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # The same DSCFG001 record layout and whitelist used by the launcher and Python tool.
 function Test-GloamConfigurationName([string]$Name) {
-    if ($Name -cin @('state.ini','tabs.ini','dashboard.ini','recent.ini','appearance-1.ini','appearance-2.ini','appearance-3.ini')) { return $true }
+    if ($Name -cin @('state.ini','tabs.ini','dashboard.ini','recent.ini', 'language.ini','appearance-1.ini','appearance-2.ini','appearance-3.ini')) { return $true }
     return $Name -cmatch '^(games|items)/[0-9a-f]{16}(\.cheats)?\.ini$' -or $Name -cmatch '^plugins/user/[a-z0-9_-]{1,15}\.ini$'
 }
 
@@ -61,7 +61,7 @@ function Export-GloamConfiguration([string]$Root, [string]$Path) {
     $root = Get-GloamRoot $Root
     if ([IO.Path]::GetExtension($Path) -ne '.dsconfig') { throw 'Save configuration as .dsconfig.' }
     $base = '_nds/dsi-frontend/'
-    $names = @('state.ini','tabs.ini','dashboard.ini','recent.ini','appearance-1.ini','appearance-2.ini','appearance-3.ini')
+    $names = @('state.ini','tabs.ini','dashboard.ini','recent.ini', 'language.ini','appearance-1.ini','appearance-2.ini','appearance-3.ini')
     foreach ($folder in @('games','items','plugins/user')) {
         $directory = Get-GloamPath $root ($base + $folder)
         if (Test-Path -LiteralPath $directory -PathType Container) {
