@@ -426,6 +426,26 @@ class GloamSetupTests(unittest.TestCase):
         package.write_bytes(b'Changed archive')
         self.run_ps(code, success=False)
 
+    def test_disabled_dropdown_keeps_display_name_and_text_field_value(self):
+        xaml = literal(win(self.installer / 'gloam-setup.xaml'))
+        self.run_ps('Add-Type -AssemblyName PresentationFramework; '
+                    + '$window = [Windows.Markup.XamlReader]::Parse([IO.File]::ReadAllText(' + xaml + ')); '
+                    + "$window.FindName('PageSetup').Visibility = 'Collapsed'; "
+                    + "$window.FindName('PageLibrary').Visibility = 'Visible'; "
+                    + "$combo = $window.FindName('Profiles'); "
+                    + "$combo.ItemsSource = @([pscustomobject]@{Name='Example player';Id='internal-id'}); "
+                    + '$combo.SelectedIndex = 0; '
+                    + "$field = $window.FindName('ProfileName'); $field.Text = 'Example player'; "
+                    + 'function Read-RenderedText($node) { '
+                    + 'if ($node -is [Windows.Controls.TextBlock]) { $node.Text }; '
+                    + 'for ($i=0; $i -lt [Windows.Media.VisualTreeHelper]::GetChildrenCount($node); $i++) { '
+                    + 'Read-RenderedText ([Windows.Media.VisualTreeHelper]::GetChild($node,$i)) } }; '
+                    + 'try { $window.Show(); foreach ($enabled in @($false,$true)) { '
+                    + '$combo.IsEnabled=$enabled; $field.IsEnabled=$enabled; $window.UpdateLayout(); '
+                    + "if ('Example player' -notin @(Read-RenderedText $combo)) { throw 'Dropdown lost its display name' }; "
+                    + "if ($field.Text -cne 'Example player') { throw 'Text field value changed' } "
+                    + '} } finally { $window.Close() }')
+
     def test_gui_loads_every_page_and_runs_read_only_worker_without_blocking(self):
         gui = literal(win(self.installer / 'gloam-setup.ps1'))
         for page in ['Setup', 'Addons', 'Library', 'Organizer', 'Settings', 'Themes', 'Maintenance']:

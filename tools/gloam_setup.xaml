@@ -76,7 +76,7 @@
                 <Border Background="#202936" BorderBrush="#465365" BorderThickness="1" Padding="{TemplateBinding Padding}">
                   <DockPanel>
                     <Path DockPanel.Dock="Right" Data="M 0 0 L 8 0 L 4 4 Z" Fill="#B4C0D2" Width="8" Height="4" Margin="12,0,0,0" VerticalAlignment="Center"/>
-                    <ContentPresenter Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" TextElement.Foreground="#B4C0D2" VerticalAlignment="Center"/>
+                    <ContentPresenter Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" TextElement.Foreground="#B4C0D2" VerticalAlignment="Center"/>
                   </DockPanel>
                 </Border>
               </ControlTemplate>
