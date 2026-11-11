@@ -202,3 +202,6 @@ automatically lists folders under `roms` and any configured Games library,
 including the default Atari subcollections. BIOS, saves and ScummVM game data
 are excluded. Use **Other subfolder** only for a custom nested collection; the
 browser opens at the current system folder. Preview remains required before moves.
+
+**Open ROMs folder** on the organizer page opens `roms` on the selected SD/staging
+folder in File Explorer, creating the folder if it does not exist yet.

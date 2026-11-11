@@ -55,6 +55,7 @@ function Complete-GloamOrganizerJob($Job) {
 $ui.OrganizerExtensions.Add_TextChanged({ Reset-GloamOrganizerPreview })
 $ui.OrganizerFolder.AddHandler([Windows.Controls.Primitives.TextBoxBase]::TextChangedEvent, [Windows.Controls.TextChangedEventHandler]{ Reset-GloamOrganizerPreview })
 $ui.OrganizerMode.Add_SelectionChanged({ Reset-GloamOrganizerPreview })
+$ui.OpenOrganizerRoms.Add_Click({ Invoke-UiAction { Open-SdFolder 'roms' } })
 $ui.PickOrganizerFolder.Add_Click({ Invoke-UiAction {
     $root = Get-SelectedRoot; $dialog = [Windows.Forms.FolderBrowserDialog]::new(); $dialog.SelectedPath = if ($ui.OrganizerFolder.Text) { Get-GloamPath $root $ui.OrganizerFolder.Text } else { Get-GloamPath $root 'roms' }; $dialog.Description = 'Choose one system ROM folder on the SD card'
     if ($dialog.ShowDialog() -eq 'OK') { $ui.OrganizerFolder.Text = Get-GloamOrganizerFolder $root $dialog.SelectedPath }; $dialog.Dispose()
