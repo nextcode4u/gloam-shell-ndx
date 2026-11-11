@@ -33,8 +33,8 @@ A DSi homebrew boot method with SD access is still required; see
   The checked bundled add-on pack is included by default; uncheck it for a
   frontend-only setup.
 - **Update Gloam + backends** refreshes the frontend, official nds-bootstrap,
-  Slot-1 helper and forwarder/TMD. Existing settings, profiles, themes and saves
-  are kept; replaced runtime files receive backups.
+  Slot-1 helper and forwarder/TMD, plus unchanged bundled themes. Existing
+  settings, profiles, customized themes and saves are kept; replaced files receive backups.
 - **Update BOOT.NDS only** downloads the current frontend binary. Existing
   assets, backend versions, settings and content stay in place. Check release
   notes for updates that also require new runtime assets.
@@ -334,3 +334,14 @@ to hash. No files are extracted or modified. The selected member retains the
 existing size/ratio bounds; duplicate member names are rejected. This does not
 add ZIP launch support to an emulator. Changing either choice discards the old
 prepared preview so it cannot accidentally be applied under the new choice.
+
+### Updating bundled themes
+
+Full runtime updates refresh a bundled theme only when its existing supplied
+files match the originals recorded by setup. A customized or unrecognized pack
+is kept intact, including its assets; the activity log names preserved packs.
+Identical files are adopted into the local receipt, and exact original pre-icon
+manifests are recognized for migration. Replaced files receive setup backups.
+A missing or damaged receipt never authorizes replacing an unknown theme.
+Imported themes remain separate. Rename a customized pack if you want to keep
+it alongside a fresh bundled version. Frontend-only updates do not change themes.

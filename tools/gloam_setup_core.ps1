@@ -126,6 +126,43 @@ function Get-GloamPackage([string]$Directory, [string]$Name) {
     return $file
 }
 
+# Receipts describe installed originals, never personal theme edits. Unknown or
+# malformed receipts cannot authorize replacing files.
+function Read-GloamThemeReceipt([string]$Root) {
+    $result = @{}
+    $path = Get-GloamPath $Root '_nds/dsi-frontend/setup-theme-hashes.json'
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return $result }
+    try {
+        if ((Get-Item -LiteralPath $path).Length -gt 1MB) { throw 'Oversized theme receipt.' }
+        $data = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+        foreach ($entry in $data.PSObject.Properties) {
+            if ($entry.Name -notmatch '^_nds/dsi-frontend/themes/[A-Za-z0-9_-]+/.+$' -or
+                [string]$entry.Value -notmatch '^[a-f0-9]{64}$') { throw 'Invalid theme receipt.' }
+            Get-GloamPath $Root $entry.Name | Out-Null
+            $result[$entry.Name] = [string]$entry.Value
+        }
+    } catch { Write-Host 'Theme receipt unavailable; preserving unrecognized existing themes.'; return @{} }
+    return $result
+}
+
+function Get-GloamLegacyThemeHashes {
+    # Original bundled manifests before icon packs (source revision 154e82a).
+    # Exact path/hash matches let existing untouched installs migrate safely.
+    return @{
+        '_nds/dsi-frontend/themes/copper/theme.ini' = 'd878b4ae94208fca50621f81b258b2228e5afea1230c800bbfa40cc1946d6fc8'
+        '_nds/dsi-frontend/themes/eclipse/theme.ini' = '9b966a188ad0aef6fee225a9038e5fdd1658bf8e1c7327826d9739a28441143f'
+        '_nds/dsi-frontend/themes/ember/theme.ini' = '60ffeb8e53e1397261e787d0c5b49e72c0fb1290ab4c5fc19b1c84da2a754f16'
+        '_nds/dsi-frontend/themes/folio/theme.ini' = 'd29aca1fa86893ea89502051fe5913e7ef4eacabe99044a2cdf56d488b5b8a82'
+        '_nds/dsi-frontend/themes/garnet/theme.ini' = '810d13799e38c09e01b60ab584b04455a8a581525ae19b6e5ef32da5b1277b95'
+        '_nds/dsi-frontend/themes/glacier/theme.ini' = 'c13b5523ab16cab71f061fa980241ccf42571c852ec7a7ebfb1a6d40f045e053'
+        '_nds/dsi-frontend/themes/nocturne/theme.ini' = '4a1cbfcb3fc6f3e345f310a2382aa32427506f69465dd436b3ea1f9d7312a8eb'
+        '_nds/dsi-frontend/themes/phosphor/theme.ini' = 'bcd41744e2345afd82ffb9eba037e731ce784a940b6dc146ffe7180984023d13'
+        '_nds/dsi-frontend/themes/prism/theme.ini' = '628ebdd46b25b24437eb5f47e757b86c741b966b17c96f8b2eb331896ce823fe'
+        '_nds/dsi-frontend/themes/slate/theme.ini' = '8fabc805a75b8321faf5547faa8d0540c05c07a0ad540ed8c385679a3f1ec30a'
+        '_nds/dsi-frontend/themes/tide/theme.ini' = '1445ae1909ec665da8d26f01882cc7ed4b694b30e119d25c9d0a0e802f3ea39d'
+    }
+}
+
 function Install-GloamArchive([string]$Root, [string]$ArchivePath, [bool]$UpdateRuntime = $false) {
     $root = Get-GloamRoot $Root
     $archive = [IO.Compression.ZipFile]::OpenRead($ArchivePath)
@@ -157,19 +194,59 @@ function Install-GloamArchive([string]$Root, [string]$ArchivePath, [bool]$Update
                 if ($seen.ContainsKey($parent) -and -not $seen[$parent]) { throw 'An archive file blocks a parent folder.' }
             }
         }
+        $receipt = Read-GloamThemeReceipt $root
+        $legacy = Get-GloamLegacyThemeHashes
+        $blockedThemes = @{}
+        $themeHashes = @{}
+        $existingHashes = @{}
+        # Decide per pack before writing: a customized manifest or asset keeps
+        # the entire pack intact, avoiding mixed old/new assets.
+        foreach ($item in $plan) {
+            if ($item.Folder -or $item.Relative -notmatch '^(_nds/dsi-frontend/themes/[A-Za-z0-9_-]+)/') { continue }
+            $pack = $Matches[1]
+            $stream = $item.Entry.Open(); $hash = [Security.Cryptography.SHA256]::Create()
+            try { $incoming = ([BitConverter]::ToString($hash.ComputeHash($stream))).Replace('-', '').ToLowerInvariant() }
+            finally { $hash.Dispose(); $stream.Dispose() }
+            $themeHashes[$item.Relative] = $incoming
+            $path = Get-GloamPath $root $item.Relative
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { continue }
+            $current = Get-GloamHash $path
+            $existingHashes[$item.Relative] = $current
+            $original = $receipt.ContainsKey($item.Relative) -and $receipt[$item.Relative] -eq $current
+            $oldManifest = $legacy.ContainsKey($item.Relative) -and $legacy[$item.Relative] -eq $current
+            if ($current -ne $incoming -and (-not $UpdateRuntime -or (-not $original -and -not $oldManifest))) {
+                $blockedThemes[$pack] = $true
+            }
+        }
+        foreach ($pack in $blockedThemes.Keys) { Write-Host "Preserved customized/unrecognized theme: $pack" }
         # Validate the entire destination plan before creating any SD files.
         foreach ($item in $plan) {
             $path = Get-GloamPath $root $item.Relative
+            $themeFile = $themeHashes.ContainsKey($item.Relative)
+            if ($item.Relative -match '^(_nds/dsi-frontend/themes/[A-Za-z0-9_-]+)(/|$)' -and
+                $blockedThemes.ContainsKey($Matches[1])) { continue }
             if ($item.Folder) { [IO.Directory]::CreateDirectory($path) | Out-Null; continue }
+            if ($themeFile -and $existingHashes.ContainsKey($item.Relative)) {
+                if ((Get-GloamHash $path) -ne $existingHashes[$item.Relative]) { throw 'Theme changed during update; retry after closing its editor.' }
+                if ($existingHashes[$item.Relative] -eq $themeHashes[$item.Relative]) {
+                    $receipt[$item.Relative] = $themeHashes[$item.Relative]
+                    continue
+                }
+            }
             $stream = $item.Entry.Open(); $memory = [IO.MemoryStream]::new()
             try { $stream.CopyTo($memory); [byte[]]$bytes = $memory.ToArray() }
             finally { $stream.Dispose(); $memory.Dispose() }
             $owned = @('BOOT.NDS','_nds/nds-bootstrap-release.nds',
                 '_nds/dsi-frontend/loaders/slot1launch.nds','_nds/dsi-frontend/install/gloam-forwarder.dsi',
                 '_nds/dsi-frontend/install/gloam-forwarder.tmd')
-            $replace = $item.Relative -ceq 'BOOT.NDS' -or ($UpdateRuntime -and $item.Relative -cin $owned)
+            $replace = ($themeFile -and $UpdateRuntime) -or $item.Relative -ceq 'BOOT.NDS' -or ($UpdateRuntime -and $item.Relative -cin $owned)
             if (Write-GloamFile $root $item.Relative $bytes $replace) { Write-Host "Installed: $($item.Relative)" }
             else { Write-Host "Kept existing: $($item.Relative)" }
+            if ($themeFile) { $receipt[$item.Relative] = $themeHashes[$item.Relative] }
+        }
+        if ($themeHashes.Count) {
+            $json = $receipt | ConvertTo-Json -Depth 3
+            Write-GloamFile $root '_nds/dsi-frontend/setup-theme-hashes.json' ([Text.UTF8Encoding]::new($false).GetBytes($json)) $true | Out-Null
         }
     } finally { $archive.Dispose() }
 }

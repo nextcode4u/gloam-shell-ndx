@@ -684,6 +684,38 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.run_ps('Copy-GloamContent $root @(' + literal(win(first)) + ',' + literal(win(first)) + ") 'media/duplicate'", success=False)
         self.assertFalse((self.sd / 'media/duplicate').exists())
 
+    def test_theme_updates_preserve_customized_packs_and_track_originals(self):
+        base = '_nds/dsi-frontend/themes/'
+        first = self.archive('first.zip', {base+'stock/theme.ini': b'original',
+                            base+'personal/theme.ini': b'original',
+                            base+'personal/background.png': b'old asset'})
+        self.run_ps('Install-GloamArchive $root ' + literal(win(first)))
+        personal = self.sd / (base+'personal/theme.ini')
+        personal.write_bytes(b'my colors')
+        newer = self.archive('newer.zip', {base+'stock/theme.ini': b'updated',
+                            base+'personal/theme.ini': b'updated',
+                            base+'personal/background.png': b'new asset',
+                            base+'personal/icons/folder.png': b'new icon'})
+        self.run_ps('Install-GloamArchive $root ' + literal(win(newer)) + ' $true')
+        self.assertEqual((self.sd / (base+'stock/theme.ini')).read_bytes(), b'updated')
+        self.assertEqual(personal.read_bytes(), b'my colors')
+        self.assertEqual((personal.parent/'background.png').read_bytes(), b'old asset')
+        self.assertFalse((personal.parent/'icons').exists())
+        receipt = self.sd / '_nds/dsi-frontend/setup-theme-hashes.json'
+        receipt.write_text('malformed')
+        third = self.archive('third.zip', {base+'stock/theme.ini': b'next'})
+        self.run_ps('Install-GloamArchive $root ' + literal(win(third)) + ' $true')
+        self.assertEqual((self.sd / (base+'stock/theme.ini')).read_bytes(), b'updated')
+        self.assertTrue(list((self.sd/'_nds/dsi-frontend/setup-backups').rglob('theme.ini')))
+        legacy = self.sd / (base+'legacy/theme.ini')
+        legacy.parent.mkdir(parents=True)
+        legacy.write_bytes(b'known old manifest')
+        newer = self.archive('legacy.zip', {base+'legacy/theme.ini': b'new manifest'})
+        known = hashlib.sha256(legacy.read_bytes()).hexdigest()
+        self.run_ps("function Get-GloamLegacyThemeHashes { return @{ '" + base + "legacy/theme.ini'='" + known + "' } }; Install-GloamArchive $root " + literal(win(newer)) + ' $true')
+        self.assertEqual(legacy.read_bytes(), b'new manifest')
+
+
     def test_theme_import_keeps_existing_themes(self):
         theme = self.root / 'moon'
         theme.mkdir()
