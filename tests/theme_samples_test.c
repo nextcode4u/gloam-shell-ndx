@@ -46,12 +46,14 @@ static int luminance(uint16_t color)
 int main(int argc, char **argv)
 {
     assert(argc == 2);
-    const char *ids[] = {"folio", "nocturne", "tide", "phosphor", "eclipse", "prism"};
-    int views[] = {BROWSER_LIST, BROWSER_EXTENDED, BROWSER_GRID, BROWSER_CLASSIC, BROWSER_GRID, BROWSER_GRID};
-    int sizes[] = {ICON_SMALL, ICON_SMALL, ICON_LARGE, ICON_SMALL, ICON_LARGE, ICON_LARGE};
-    int columns[] = {4, 4, 3, 4, 2, 4};
-    int padding[] = {0, 2, 6, 0, 12, 0};
-    for (int theme = 0; theme < 6; theme++) {
+    const char *ids[] = {"folio", "nocturne", "tide", "phosphor", "eclipse", "prism", "ember", "glacier", "garnet"};
+    int views[] = {BROWSER_LIST, BROWSER_EXTENDED, BROWSER_GRID, BROWSER_CLASSIC, BROWSER_GRID, BROWSER_GRID,
+                   BROWSER_EXTENDED, BROWSER_GRID, BROWSER_LIST};
+    int sizes[] = {ICON_SMALL, ICON_SMALL, ICON_LARGE, ICON_SMALL, ICON_LARGE, ICON_LARGE,
+                   ICON_LARGE, ICON_LARGE, ICON_SMALL};
+    int columns[] = {4, 4, 3, 4, 2, 4, 4, 3, 4};
+    int padding[] = {0, 2, 6, 0, 12, 0, 4, 4, 2};
+    for (int theme = 0; theme < 9; theme++) {
         app_init(&app, argv[1], true, true);
         ThemePackage previous = app.themes.active;
         int previous_view = app.browser_style, previous_size = app.icon_size;
@@ -65,10 +67,10 @@ int main(int argc, char **argv)
         assert(!strcmp(app.theme_id, ids[theme]) && app.browser_style == views[theme]);
         assert(app.icon_size == sizes[theme]);
         assert(app.themes.active.external_font == (theme != 0 && theme != 3));
-        if (theme == 1 || theme == 4)
+        if (theme == 1 || theme == 4 || theme >= 6)
             assert(app.themes.active.font.glyph_count == FONT_GLYPHS);
         assert(app.themes.active.row_padding == padding[theme]);
-        if (sizes[theme] == ICON_LARGE)
+        if (sizes[theme] == ICON_LARGE && views[theme] == BROWSER_GRID)
             assert(layout_grid_columns(&app) == columns[theme]);
         for (int screen = 0; screen < 2; screen++) {
             themes_background_draw(&app.themes.active, screen, top.pixels);

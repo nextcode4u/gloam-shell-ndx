@@ -68,6 +68,9 @@ A, or cancel with B. The packages are ready to copy; no build step is needed.
 | Phosphor | Near-black and soft terminal green. | Classic, small icons, zero padding, built-in font, no wallpapers/music, three quiet low-pitched cues. A lightweight baseline. |
 | Eclipse | Dark plum with a pale lunar halo. | Large Grid, two columns, maximum 12px padding, Latin-1 font, 512×512 PNG/JPEG wallpapers at maximum 35% strength, original 8-second loop. Exercises center cropping and spacious layout limits. |
 | Prism | Cool white with blue and lilac facets. | Large Grid, four columns, zero padding, bold ASCII font, native-size PNG/JPEG wallpapers at 35%, original 8-second loop. Exercises narrow labels, looping text and light-theme contrast. |
+| Ember | Amber sunset and layered desert silhouettes. | Extended, large icons, 4px padding, Latin-1 font, PNG backgrounds at 25%, warm low-pitched cues and an original 8-second loop. |
+| Glacier | Ice-blue peaks against deep navy. | Large Grid, three columns, 4px padding, Latin-1 font, PNG backgrounds at 30%, clear UI tones and an original 8-second loop. |
+| Garnet | Black cherry with ruby chevrons. | List, small icons, 2px padding, Latin-1 font, PNG backgrounds at 25%, low UI tones and an original 8-second loop. Keeps the browser focused on names. |
 
 Nocturne and Tide share a 256×384 composition split into native-size
 screens. Text and controls are drawn by the launcher; they are not baked into
@@ -89,6 +92,14 @@ frame-time limit. All three have per-package credits and reproducible assets.
 Regenerate this gallery with `.venv/bin/python tools/make_screenshots.py --theme-variants`
 after building the host renderer. The images show actual renderer output with
 the supplied example folders; physical LCD contrast still needs hardware review.
+
+![Ember, Glacier and Garnet rendered at native resolution](../images/theme-atmosphere.png)
+
+Use `.venv/bin/python tools/make_screenshots.py --theme-variants atmosphere` to
+regenerate the second gallery. These three variants use native 256×192 backgrounds
+and the same bounded audio format as the other samples; each music loop adds
+250 KiB of sample memory only while enabled. Each package includes its own credits
+and font license.
 
 START → Audio → Background music must be Theme to hear a package's loop;
 Theme sounds enables its cues. Applying a theme respects personal audio levels,

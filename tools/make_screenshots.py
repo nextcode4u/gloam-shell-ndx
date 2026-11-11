@@ -14,7 +14,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--theme-variants", action="store_true", help="Render the boundary-theme gallery")
+    parser.add_argument("--theme-variants", nargs="?", const="boundary",
+                        choices=("boundary", "atmosphere"), help="Render a theme gallery")
     args = parser.parse_args()
     preview = ROOT / "build/host/preview"
     if not preview.is_file():
@@ -27,11 +28,15 @@ def main() -> None:
         state = card / "_nds/dsi-frontend/state.ini"
         examples = [("browser", "nocturne", []), ("settings", "tide", ["settings"])]
         if args.theme_variants:
-            examples = [(theme, theme, []) for theme in ("phosphor", "eclipse", "prism")]
+            names = (("ember", "glacier", "garnet") if args.theme_variants == "atmosphere"
+                     else ("phosphor", "eclipse", "prism"))
+            examples = [(theme, theme, []) for theme in names]
         gallery = Image.new("RGB", (256 * 3, 420), "#090d12")
         for index, (name, theme, extra) in enumerate(examples):
-            grid = args.theme_variants and theme != "phosphor"
-            state.write_text(f"version=1\ntheme_id={theme}\nbrowser_style={3 if grid else 0}\nicon_size={1 if grid else 0}\n")
+            views = {"phosphor": (0, 0), "eclipse": (3, 1), "prism": (3, 1),
+                     "ember": (1, 1), "glacier": (3, 1), "garnet": (2, 0)}
+            view, size = views[theme] if args.theme_variants else (0, 0)
+            state.write_text(f"version=1\ntheme_id={theme}\nbrowser_style={view}\nicon_size={size}\n")
             prefix = Path(temporary) / name
             subprocess.run([str(preview), str(card), str(prefix), "1", *extra], check=True)
             combined = Image.new("RGB", (256, 396), "#090d12")
@@ -44,7 +49,8 @@ def main() -> None:
             else:
                 combined.save(output / f"{name}.png", optimize=True)
         if args.theme_variants:
-            gallery.save(output / "theme-variants.png", optimize=True)
+            filename = "theme-atmosphere.png" if args.theme_variants == "atmosphere" else "theme-variants.png"
+            gallery.save(output / filename, optimize=True)
     print("Updated documentation screenshots from the host renderer.")
 
 

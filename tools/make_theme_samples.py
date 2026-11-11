@@ -24,6 +24,29 @@ FONT_DIRECTORY = Path("/usr/share/fonts/truetype/dejavu")
 
 def background(name: str, screen: int) -> bytes:
     """Quiet geometry across a shared 256x384 canvas; no text baked into art."""
+    if name in ("ember", "glacier", "garnet"):
+        base = {"ember": "#19120c", "glacier": "#0b1927", "garnet": "#190c13"}[name]
+        image = Image.new("RGB", (256, 384), base)
+        draw = ImageDraw.Draw(image)
+        if name == "ember":
+            draw.ellipse((138, 28, 238, 128), fill="#b97432")
+            for points, color in [
+                ([(0, 163), (110, 136), (256, 180), (256, 384), (0, 384)], "#58402c"),
+                ([(0, 236), (154, 190), (256, 222), (256, 384), (0, 384)], "#8b5632"),
+                ([(0, 336), (88, 290), (256, 312), (256, 384), (0, 384)], "#39251d"),
+            ]:
+                draw.polygon(points, fill=color)
+        elif name == "glacier":
+            for x, y in [(190, 32), (130, 174), (205, 264)]:
+                draw.polygon([(x, y), (x+66, y+110), (x-80, y+110)], fill="#36748a")
+                draw.polygon([(x, y), (x+66, y+110), (x+9, y+76)], fill="#91d4e0")
+        else:
+            for y in (-40, 150, 340):
+                draw.polygon([(165, y), (250, y+80), (165, y+160), (200, y+80)], fill="#8a294b")
+                draw.line([(151, y), (235, y+80), (151, y+160)], fill="#d2718b", width=2)
+        output = io.BytesIO()
+        image.crop((0, screen*192, 256, (screen+1)*192)).save(output, format="PNG", optimize=True)
+        return output.getvalue()
     if name in ("eclipse", "prism"):
         # Eclipse exercises the decoder's maximum dimensions and center crop.
         side = 512 if name == "eclipse" else 256
@@ -92,6 +115,12 @@ def music(name: str) -> bytes:
         notes = [164.8138, 220, 246.9417, 220, 196, 164.8138, 146.8324, 164.8138]
     elif name == "prism":
         notes = [293.6648, 369.9944, 440, 554.3653, 493.8833, 440, 369.9944, 329.6276]
+    elif name == "ember":
+        notes = [196, 246.9417, 293.6648, 246.9417, 220, 196, 164.8138, 196]
+    elif name == "glacier":
+        notes = [329.6276, 493.8833, 440, 369.9944, 329.6276, 293.6648, 246.9417, 293.6648]
+    elif name == "garnet":
+        notes = [146.8324, 174.6141, 220, 196, 174.6141, 164.8138, 130.8128, 146.8324]
     frames = bytearray()
     for frequency in notes:
         for index in range(rate):
@@ -116,7 +145,8 @@ def music(name: str) -> bytes:
 def assets() -> dict[Path, bytes]:
     result = {}
     for name, pitch in [("folio", 0.65), ("nocturne", 0.8), ("tide", 1.2),
-                        ("phosphor", 0.5), ("eclipse", 0.7), ("prism", 1.4)]:
+                        ("phosphor", 0.5), ("eclipse", 0.7), ("prism", 1.4),
+                        ("ember", 0.6), ("glacier", 1.05), ("garnet", 0.45)]:
         for filename, notes, duration, level in [
             ("cursor", [880 * pitch], 0.025, 0.075),
             ("confirm", [660 * pitch, 990 * pitch], 0.065, 0.10),
@@ -137,6 +167,8 @@ def assets() -> dict[Path, bytes]:
     )
     result[Path("eclipse/fonts/ui.dsfont")] = result[Path("nocturne/fonts/ui.dsfont")]
     result[Path("prism/fonts/ui.dsfont")] = result[Path("tide/fonts/ui.dsfont")]
+    for name in ("ember", "glacier", "garnet"):
+        result[Path(name) / "fonts/ui.dsfont"] = result[Path("nocturne/fonts/ui.dsfont")]
     return result
 
 
