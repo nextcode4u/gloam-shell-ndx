@@ -69,7 +69,7 @@ typedef struct {
 typedef struct {
     char path[PATH_CAP];
     uint16_t pixels[32 * 32];
-    bool occupied, ready;
+    bool occupied, ready, system_fallback;
     unsigned last_used;
     unsigned char animation_tiles[8][512];
     uint16_t animation_palettes[8][16], animation_sequence[64];
@@ -237,6 +237,7 @@ typedef struct {
     int default_view, default_icon_size;
     unsigned row_padding, large_grid_columns;
     char backgrounds[2][PATH_CAP];
+    char icon_directory[PATH_CAP];
     unsigned background_strength;
     char music[PATH_CAP], sounds[3][PATH_CAP];
 } ThemePackage;

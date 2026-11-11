@@ -359,6 +359,7 @@
     "arm9/source/tabs.c",
     "arm9/source/text.c",
     "arm9/source/theme_backgrounds.c",
+    "arm9/source/theme_icons.c",
     "arm9/source/themes.c",
     "arm9/source/title_metadata.c",
     "arm9/source/ui/association_view.c",

@@ -18,7 +18,7 @@ protocol definitions live in `common/include`.
 | Game options, saves and cheats | `game_options.c`, `game_editor.c`, `game_save_table.c`, `cheats.c`, `cheat_editor.c`, `cheat_backend.c`. |
 | Artwork | `artwork.c`, `artwork_cache.c`, `artwork_disk_cache.c`, `album_art.c`, `image_decode.c`, `image_input.c`, `image_job.c`. |
 | Icons and title metadata | `icons.c`, `animated_icon.c`, `system_icons.c`, `slot1.c`, `title_metadata.c`; `file_types.c` classifies fallbacks and `ui/item_icons.c` draws their shared symbol family. System icons use discovered native banners with original built-in fallbacks. `slot1.c` reads cartridge metadata cooperatively through bounded hardware callbacks in `main.c`. |
-| Themes, fonts and text | `themes.c`, `theme_backgrounds.c`, `font_pack.c`, `text.c`, `ui/font*.h`. |
+| Themes, fonts and text | `themes.c`, `theme_backgrounds.c`, `theme_icons.c`, `font_pack.c`, `text.c`, `ui/font*.h`. |
 | Launcher audio and reports | `audio.c`, `diagnostics.c`. |
 | Drawing and screen composition | `ui/drawing.c`, `ui/renderer.c`, and the individual `ui/*_view.c` files. |
 

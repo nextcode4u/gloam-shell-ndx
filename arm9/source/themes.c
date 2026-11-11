@@ -127,7 +127,8 @@ static bool load(App *app, const char *id, ThemePackage *package)
             continue;
         if (*key == '[') {
             if (strcmp(key, "[theme]") && strcmp(key, "[colors]") && strcmp(key, "[fonts]") &&
-                strcmp(key, "[audio]") && strcmp(key, "[backgrounds]") && strcmp(key, "[layout]"))
+                strcmp(key, "[audio]") && strcmp(key, "[backgrounds]") && strcmp(key, "[layout]") &&
+                strcmp(key, "[icons]"))
                 valid = false;
             path_copy(section, key, sizeof section);
             continue;
@@ -211,6 +212,12 @@ static bool load(App *app, const char *id, ThemePackage *package)
                 else
                     path_copy(package->backgrounds[screen], path, PATH_CAP);
             }
+        } else if (!strcmp(section, "[icons]")) {
+            if (strcmp(key, "directory") || !*value || *value == '/' || strchr(value, ':') ||
+                !path_resolve_sd(path, directory, value))
+                valid = false;
+            else
+                path_copy(package->icon_directory, path, PATH_CAP);
         } else if (!strcmp(section, "[audio]")) {
             char *destination = !strcmp(key, "music")     ? package->music
                                 : !strcmp(key, "cursor")  ? package->sounds[0]
@@ -271,6 +278,8 @@ void themes_init(App *app)
         themes_accent_override(app);
     font_use(&app->themes.active.font);
     themes_background_load(&app->themes.active, false);
+    themes_icons_cancel();
+    themes_icons_load(&app->themes.active, false);
 }
 static int compare_ids(const void *left, const void *right)
 {
@@ -285,8 +294,11 @@ static void preview(App *app)
                            : "Invalid package, font or contrast; retained current theme.",
               sizeof state->status);
     font_use(state->ready ? &state->candidate.font : &state->active.font);
-    if (state->ready)
+    themes_icons_cancel();
+    if (state->ready) {
         themes_background_load(&state->candidate, true);
+        themes_icons_load(&state->candidate, true);
+    }
 }
 void themes_open(App *app)
 {
@@ -335,6 +347,7 @@ void themes_move(App *app, int direction)
 void themes_cancel(App *app)
 {
     themes_background_cancel();
+    themes_icons_cancel();
     app->themes.open = false;
     font_use(&app->themes.active.font);
 }
@@ -349,6 +362,7 @@ void themes_apply(App *app)
     }
     app->themes.active = app->themes.candidate;
     themes_background_accept();
+    themes_icons_accept();
     path_copy(app->theme_id, app->themes.active.id, sizeof app->theme_id);
     app->theme_accent_override = false;
     if (app->themes.active.default_view >= 0)

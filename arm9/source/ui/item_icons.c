@@ -1,5 +1,6 @@
 /* Original, palette-tinted 16x16 symbols shared by every placeholder surface. */
 #include "drawing.h"
+#include "themes.h"
 
 static const uint16_t glyphs[PLACEHOLDER_COUNT][16] = {
     [PLACEHOLDER_FILE] = {0x0000, 0x3fc0, 0x2060, 0x2050, 0x2048, 0x2078, 0x2008, 0x2008, 0x2008,
@@ -50,6 +51,30 @@ void draw_placeholder_icon(uint16_t *pixels, int x, int y, int size, Placeholder
                 column++;
             int left = x + start * size / 16, right = x + (column + 1) * size / 16;
             draw_rectangle(pixels, left, top, right - left, bottom - top, color);
+        }
+    }
+}
+
+/* Nearest-neighbour scaling keeps small pixel art crisp; clip every destination. */
+void draw_theme_icon(const ThemePackage *package, uint16_t *pixels, int x, int y, int size,
+                     PlaceholderIcon icon, uint16_t color)
+{
+    if (size <= 0 || size > 96)
+        return;
+    const uint16_t *image = themes_icon(package, icon);
+    if (!image) {
+        draw_placeholder_icon(pixels, x, y, size, icon, color);
+        return;
+    }
+    for (int row = 0; row < size; row++) {
+        if (y + row < 0 || y + row >= 192)
+            continue;
+        for (int column = 0; column < size; column++) {
+            if (x + column < 0 || x + column >= 256)
+                continue;
+            uint16_t pixel = image[(row * 32 / size) * 32 + column * 32 / size];
+            if (pixel & 0x8000)
+                pixels[(y + row) * 256 + x + column] = pixel;
         }
     }
 }

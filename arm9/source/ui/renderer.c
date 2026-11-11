@@ -72,7 +72,8 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
             draw_rectangle(pixels, x, y, w, h, colors.surface);
             draw_rectangle(pixels, x, y, 3, h, colors.accent);
             EntryFileType type = entry_file_type(entry);
-            draw_placeholder_icon(pixels, x + (w - 48) / 2, y + 12, 48, type.icon, colors.accent);
+            draw_theme_icon(&app->themes.active, pixels, x + (w - 48) / 2, y + 12, 48, type.icon,
+                            colors.accent);
             const char *label =
                 app->show_covers && !app->artwork_resolved && app->selection_idle_frames >= 7
                     ? "LOADING"
@@ -273,16 +274,24 @@ static void draw_browser_icon(const App *app, uint16_t *pixels, int index, int x
 {
     const BrowserIcon *icon = icons_for_entry(app, index);
     if (icon) {
+        const uint16_t *image = icon->pixels;
+        if (icon->system_fallback && app->entries[index].kind == ITEM_SYSTEM) {
+            const uint16_t *themed =
+                themes_icon(&app->themes.active, PLACEHOLDER_COUNT + app->entries[index].target);
+            if (themed)
+                image = themed;
+        }
         for (int row = 0; row < size; row++) {
             for (int column = 0; column < size; column++) {
-                uint16_t pixel = icon->pixels[(row * 32 / size) * 32 + column * 32 / size];
+                uint16_t pixel = image[(row * 32 / size) * 32 + column * 32 / size];
                 if (pixel & 0x8000)
                     pixels[(y + row) * 256 + x + column] = pixel;
             }
         }
         return;
     }
-    draw_placeholder_icon(pixels, x, y, size, entry_file_type(&app->entries[index]).icon, color);
+    draw_theme_icon(&app->themes.active, pixels, x, y, size,
+                    entry_file_type(&app->entries[index]).icon, color);
 }
 
 static void draw_grid(const App *app, uint16_t *pixels, Palette colors)

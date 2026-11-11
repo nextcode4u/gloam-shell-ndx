@@ -16,4 +16,6 @@ void draw_text_wrapped(uint16_t *pixels, int x, int y, const char *value, uint16
                        int line_width, int max_lines);
 void draw_placeholder_icon(uint16_t *pixels, int x, int y, int size, PlaceholderIcon icon,
                            uint16_t color);
+void draw_theme_icon(const ThemePackage *package, uint16_t *pixels, int x, int y, int size,
+                     PlaceholderIcon icon, uint16_t color);
 #endif

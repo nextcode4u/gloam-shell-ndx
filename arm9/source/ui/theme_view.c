@@ -13,7 +13,8 @@ void themes_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_text_clipped(top, 10, 32, package->name, palette.text, 33);
     draw_rectangle(top, 10, 56, 236, 22, palette.surface);
     draw_rectangle(top, 10, 56, 3, 22, palette.accent);
-    draw_text(top, 20, 61, "Nintendo DS / Sample title", palette.text, 30);
+    draw_theme_icon(package, top, 15, 59, 16, PLACEHOLDER_FOLDER, palette.accent);
+    draw_text(top, 37, 61, "Nintendo DS / Sample", palette.text, 27);
     draw_text(top, 10, 93, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", palette.text, 32);
     draw_text(top, 10, 111, "abcdefghijklmnopqrstuvwxyz", palette.muted, 32);
     draw_text(top, 10, 129, "0123456789 !? / . ( )", palette.text, 32);

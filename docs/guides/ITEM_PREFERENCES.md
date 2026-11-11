@@ -90,7 +90,8 @@ animation remains available when no custom icon is assigned.
 
 When no native, assigned or association icon is available, the browser uses the
 same original 16-pixel symbol family as the top-screen cover placeholder and
-file pickers. Symbols scale cleanly with small/large/grid layouts and use the
+file pickers. Optional theme PNGs override these generic symbols; see THEME_PACKAGES.md.
+Built-in symbols scale cleanly with small/large/grid layouts and use the
 active theme's colours. List view remains text-only below.
 
 Distinct symbols cover folders, games, applications, audio, video, books/PDF,

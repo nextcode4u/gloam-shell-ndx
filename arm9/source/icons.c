@@ -120,6 +120,7 @@ static bool load_path(App *app, int index, const char *path, bool png, int syste
     icon->last_used = app->frame_count;
     icon->animation_count = 0;
     icon->ready = false;
+    icon->system_fallback = false;
     if (strncmp(path, "system:", 7)) {
         app->icon_reads++;
         icon->ready =
@@ -127,8 +128,10 @@ static bool load_path(App *app, int index, const char *path, bool png, int syste
         if (icon->ready && !png)
             icon_load_animation(path, icon);
     }
-    if (!icon->ready && system_target >= 0)
+    if (!icon->ready && system_target >= 0) {
         icon->ready = icon_system_fallback(system_target, icon->pixels);
+        icon->system_fallback = icon->ready;
+    }
     app->entry_icons[index] = slot;
     return icon->ready;
 }

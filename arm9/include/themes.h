@@ -1,6 +1,12 @@
 #ifndef FRONTEND_THEMES_H
 #define FRONTEND_THEMES_H
+#include "file_types.h"
 #include "types.h"
+#define THEME_ICON_COUNT (PLACEHOLDER_COUNT + 7)
+void themes_icons_load(const ThemePackage *package, bool preview);
+void themes_icons_accept(void);
+void themes_icons_cancel(void);
+const uint16_t *themes_icon(const ThemePackage *package, int index);
 #define THEME_ACCENT_COUNT 16
 const char *themes_accent_name(int index);
 void themes_init(App *app);

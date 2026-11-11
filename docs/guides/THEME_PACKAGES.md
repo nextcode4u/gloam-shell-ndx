@@ -7,7 +7,7 @@ records the package ID in normal frontend state; the original package is not
 edited. Restart reloads that package. Missing/invalid packages use the built-in
 appearance and report the fallback, while retaining the requested ID for repair.
 
-The current package format supports palettes, fixed-cell fonts, per-screen backgrounds and audio.
+The current package format supports palettes, fixed-cell fonts, per-screen backgrounds, icon packs and audio.
 Named on-console appearance snapshots are documented in [APPEARANCE_PRESETS.md](APPEARANCE_PRESETS.md). Bounded layout defaults/spacing/grid overrides are implemented (see below);
 variable font metrics and full UI localization remain further work. This version does not interpret AKMenu or
 TWiLight theme files directly. Required navigation keeps its shared geometry.
@@ -239,3 +239,52 @@ columns to protect label readability. Invalid layout values reject the package
 without changing the active theme. Settings, tab rail, required navigation and
 font-cell bounds retain their native geometry. Arbitrary widget positions and
 unbounded custom layout scripts are not supported.
+
+## Theme icon packs
+
+Optional package-local icons replace the generic symbols used in browser rows,
+Home shortcuts, pickers and cover placeholders. Add this to `theme.ini`:
+
+```ini
+[icons]
+directory=icons
+```
+
+Place any of these **32×32 PNGs**, at most **64 KiB each**, in that directory:
+
+- File families: `file.png`, `folder.png`, `game.png`, `application.png`,
+  `audio.png`, `video.png`, `book.png`, `text.png`, `image.png`, `save.png`,
+  `config.png`, `archive.png`, `shortcut.png`, `system.png`, `missing.png`.
+- System fallbacks: `settings.png`, `camera.png`, `sound.png`, `pictochat.png`,
+  `download-play.png`, `system-menu.png`, `slot1.png`.
+
+Each image is optional. Missing, malformed or oversized images use the built-in
+symbol; they do not invalidate other images or the theme. The directory must
+stay inside the theme package (no absolute paths or `..`). PNG colours are kept
+as RGB555 with binary transparency (alpha below 128 is transparent), and scaled
+without smoothing. Accent overrides do not recolour PNGs. List view stays text-only.
+
+Assigned item icons, native title/cartridge banners and association icons take
+priority over theme fallbacks. System images replace fallback symbols only;
+readable native system-app banners keep their animations. Cover images remain
+independent. Theme icons are static.
+
+Decoding happens on theme load/preview, never in the renderer. Each decoded
+image uses 2 KiB; all 22 use 44 KiB, or 88 KiB while previewing a second full
+pack. Cancel frees the preview and retains the applied icons. Applying a theme
+replaces its icon bank; no per-frame filesystem reads are added.
+
+All eleven bundled themes include matching icon sets. Reproduce or check them:
+
+```sh
+.venv/bin/python tools/make_theme_icons.py
+.venv/bin/python tools/make_theme_icons.py --check
+```
+
+These original icon variants share Gloam's recognizable symbol family, with
+palette-specific colours and outline, round or angular badge treatments.
+The icons are CC0; each package includes a credit notice.
+
+**Compatibility:** these manifests require a build with `[icons]` support. Older
+builds reject unknown theme sections. Update `BOOT.NDS` with these theme packages;
+existing third-party themes without `[icons]` continue to use built-in symbols.
