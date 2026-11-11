@@ -165,7 +165,7 @@ $ui.OpenBackups.Add_Click({ Invoke-UiAction { Open-SdFolder '_nds/dsi-frontend/s
 $ui.OpenThemes.Add_Click({ Invoke-UiAction { Open-SdFolder '_nds/dsi-frontend/themes' } })
 $ui.OpenRelease.Add_Click({ Start-Process 'https://github.com/nextcode4u/gloam-shell-ndx/releases' })
 $ui.Recommended.Add_Click({ foreach ($item in $ui.AddonList.ItemsSource) { $item.Selected = $item.Id -in $recommended }; $ui.AddonList.Items.Refresh() })
-$ui.SelectAll.Add_Click({ foreach ($item in $ui.AddonList.ItemsSource) { $item.Selected = -not $item.Experimental -and (-not $item.Noncommercial -or $ui.AllowNc.IsChecked) }; $ui.AddonList.Items.Refresh() })
+$ui.SelectAll.Add_Click({ foreach ($item in $ui.AddonList.ItemsSource) { $item.Selected = $true }; $ui.AddonList.Items.Refresh() })
 $ui.ClearApps.Add_Click({ foreach ($item in $ui.AddonList.ItemsSource) { $item.Selected = $false }; $ui.AddonList.Items.Refresh() })
 $ui.Profiles.Add_SelectionChanged({
     $profile = $ui.Profiles.SelectedItem

@@ -39,7 +39,7 @@ A DSi homebrew boot method with SD access is still required; see
   assets, backend versions, settings and content stay in place. Check release
   notes for updates that also require new runtime assets.
 - **Add-ons** lists the complete reviewed application catalog. Choose individual
-  apps, use Recommended, or select all regular apps. Install selected can fetch
+  apps, use Recommended, or use Select all to include every app. Install selected can fetch
   any app in this list, including apps also bundled in `addons.zip`. It fills missing files;
   Update selected replaces changed application binaries while preserving personal
   configurations and saves. Check updates reports differences first.
@@ -50,8 +50,8 @@ A DSi homebrew boot method with SD access is still required; see
   sizes; see [firmware requirements](ADDONS.md#free-replacements-and-remaining-firmware).
 
 Noncommercial packages need the explicit no-profit-use checkbox. Experimental
-apps need individual selection; their compatibility notes appear in the activity
-log. Download-only applications come directly from their upstream releases.
+apps are included by Select all and can also be selected individually; their
+compatibility notes appear in the activity log. Download-only applications come directly from their upstream releases.
 The GUI uses the existing downloader and reviewed catalog rather than a second
 set of install rules. Downloads and setup operations run in a separate process;
 the activity log shows progress and errors.

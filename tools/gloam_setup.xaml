@@ -128,7 +128,7 @@
           </StackPanel>
           <WrapPanel Grid.Row="1">
             <Button x:Name="Recommended" Content="Recommended"/>
-            <Button x:Name="SelectAll" Content="Select all regular apps"/>
+            <Button x:Name="SelectAll" Content="Select all" ToolTip="Select every app, including experimental builds. Noncommercial apps still require the opt-in checkbox before installation."/>
             <Button x:Name="ClearApps" Content="Clear"/>
             <CheckBox x:Name="AllowNc" Content="Allow noncommercial apps" ToolTip="Enable only for personal/no-profit use; each application's terms still apply."/>
           </WrapPanel>
@@ -152,7 +152,7 @@
             <Button x:Name="UpdateAddons" Content="Update selected"/>
             <Button x:Name="CheckSupport" Content="Check installed BIOS / support"/>
           </WrapPanel>
-          <TextBlock Grid.Row="4" Text="Updates preserve settings and saves. Experimental apps need explicit selection; check the activity log for compatibility notes." Foreground="#ADB8CA" Margin="0,0,0,12"/>
+          <TextBlock Grid.Row="4" Text="Updates preserve settings and saves. Select all includes experimental apps; check the activity log for compatibility notes." Foreground="#ADB8CA" Margin="0,0,0,12"/>
         </Grid>
         <ScrollViewer x:Name="PageLibrary" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
           <StackPanel Margin="4,0,12,0">
