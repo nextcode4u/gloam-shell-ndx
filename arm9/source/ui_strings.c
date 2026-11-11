@@ -73,7 +73,8 @@ void ui_language_load(UiLanguage *language, const char *root, bool enabled)
         int key = 0;
         while (key < UI_STRING_COUNT && strcmp(line, strings[key].key))
             key++;
-        if (key == UI_STRING_COUNT || (seen & (1u << key)) || !valid_text(value)) {
+        if (key == UI_STRING_COUNT || (key <= UI_FILES && strlen(value) >= 64) ||
+            (seen & (1u << key)) || !valid_text(value)) {
             valid = false;
             break;
         }

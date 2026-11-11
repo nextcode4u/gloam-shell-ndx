@@ -28,6 +28,13 @@ int main(int argc, char **argv)
         ui_language_load(&app.language, argv[1], true);
         assert(!app.language.loaded && !strcmp(ui_text(&app.language, UI_GAMES), "Games"));
     }
+    char too_long[96] = "version=1\ngames=";
+    size_t prefix = strlen(too_long);
+    memset(too_long + prefix, 'A', 64);
+    too_long[prefix + 64] = 0;
+    catalog(argv[1], too_long);
+    ui_language_load(&app.language, argv[1], true);
+    assert(!app.language.loaded);
     catalog(argv[1], "version=1\ngames=Jeux\n");
     app_init_mode(&app, argv[1], true, true, true);
     assert(!app.language.loaded && !strcmp(tabs_label(&app, CATEGORY_GAMES), "Games"));
