@@ -205,3 +205,7 @@ browser opens at the current system folder. Preview remains required before move
 
 **Open ROMs folder** on the organizer page opens `roms` on the selected SD/staging
 folder in File Explorer, creating the folder if it does not exist yet.
+
+When adding a folder tab, type its SD-relative path or use **Choose folder**.
+The picker starts at the current folder when it exists, otherwise at the selected
+SD root. Choosing a folder fills the path; **Save folder and tab** applies it.

@@ -301,7 +301,10 @@
               </StackPanel>
             </Grid>
             <TextBlock Text="Folder on SD"/>
-            <TextBox x:Name="TabFolder" Text="roms/New System"/>
+            <DockPanel>
+              <Button x:Name="PickTabFolder" Content="Choose folder..." DockPanel.Dock="Right" Margin="10,5,0,12"/>
+              <TextBox x:Name="TabFolder" Text="roms/New System" ToolTip="Type an SD-relative path or choose a folder on the selected SD card."/>
+            </DockPanel>
             <Button x:Name="SaveTab" Content="Save folder and tab" HorizontalAlignment="Left" Background="#6B548E"/>
           </StackPanel>
         </ScrollViewer>

@@ -201,6 +201,23 @@ $ui.PickContent.Add_Click({ Invoke-UiAction {
     $root = Get-SelectedRoot; $dialog = [Windows.Forms.FolderBrowserDialog]::new(); $dialog.SelectedPath = $root; $dialog.Description = 'Choose a content folder on the selected SD card'
     if ($dialog.ShowDialog() -eq 'OK') { $ui.ContentFolder.Text = 'sd:/' + (ConvertTo-GloamRelative $root $dialog.SelectedPath) }; $dialog.Dispose()
 } })
+$ui.PickTabFolder.Add_Click({ Invoke-UiAction {
+    $root = Get-SelectedRoot
+    $dialog = [Windows.Forms.FolderBrowserDialog]::new()
+    try {
+        $dialog.SelectedPath = $root
+        $dialog.Description = 'Choose a tab folder on the selected SD card'
+        $dialog.ShowNewFolderButton = $true
+        # An unfinished typed path should not prevent choosing a folder instead.
+        try {
+            $current = Get-GloamPath $root (ConvertTo-GloamRelative $root $ui.TabFolder.Text)
+            if (Test-Path -LiteralPath $current -PathType Container) { $dialog.SelectedPath = $current }
+        } catch { }
+        if ($dialog.ShowDialog() -eq 'OK') {
+            $ui.TabFolder.Text = ConvertTo-GloamRelative $root $dialog.SelectedPath
+        }
+    } finally { $dialog.Dispose() }
+} })
 $ui.CopyContent.Add_Click({ Invoke-UiAction {
     Get-SelectedRoot | Out-Null
     $dialog = [Windows.Forms.OpenFileDialog]::new(); $dialog.Filter = 'Content files|*.*'; $dialog.Multiselect = $true
