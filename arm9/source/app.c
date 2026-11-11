@@ -303,6 +303,34 @@ void app_panel_close(App *app)
     }
 }
 
+/* A small session-only MRU keeps nested browsing positions and batch indexes.
+ * Current per-tab locations still use the normal persistent preferences. */
+static void remember_folder(App *app)
+{
+    const Location *current = &app->locations[app->category];
+    if (!layout_has_path(app->category) || !current->path[0])
+        return;
+    int slot = 7;
+    for (int i = 0; i < 8; i++)
+        if (!strcmp(app->folder_history[i].path, current->path)) {
+            slot = i;
+            break;
+        }
+    memmove(app->folder_history + 1, app->folder_history, slot * sizeof(Location));
+    app->folder_history[0] = *current;
+}
+static void recall_folder(App *app)
+{
+    Location *current = &app->locations[app->category];
+    current->selected = current->scroll = 0;
+    current->batch = 0;
+    for (int i = 0; i < 8; i++)
+        if (!strcmp(app->folder_history[i].path, current->path)) {
+            *current = app->folder_history[i];
+            break;
+        }
+}
+
 void app_open(App *app)
 {
     const Entry *entry = app_selected(app);
@@ -368,9 +396,9 @@ void app_open(App *app)
             return;
         }
         Location *location = &app->locations[app->category];
+        remember_folder(app);
         path_copy(location->path, path, PATH_CAP);
-        location->selected = location->scroll = 0;
-        location->batch = 0;
+        recall_folder(app);
         app_scan(app);
         app_mark_preferences_dirty(app);
         return;
@@ -476,6 +504,9 @@ void app_back(App *app)
         app_category(app, CATEGORY_HOME);
         return;
     }
+    char child[PATH_CAP];
+    path_copy(child, location->path, sizeof child);
+    remember_folder(app);
     const char *root = tabs_browse_root(app, app->category);
     size_t n = strlen(root), len = strlen(location->path);
     if (!path_is_within_root(location->path, root)) {
@@ -494,9 +525,9 @@ void app_back(App *app)
         else
             path_copy(location->path, root, PATH_CAP);
     }
-    location->selected = location->scroll = 0;
-    location->batch = 0;
+    recall_folder(app);
     app_scan(app);
+    browser_restore_selection(app, child);
     app_mark_preferences_dirty(app);
 }
 

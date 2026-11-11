@@ -242,6 +242,7 @@ int main(int argc, char **argv)
     image_job_set_clock(artwork_clock, 263, 32); /* About 2 ms of decode work. */
     artwork_cache_enable_async(true);
     int applied_scroll_speed = -1;
+    bool library_jump_used = false, details_pending = false;
     while (1) {
         /* Keep settings adjustment predictable even when browser scrolling is Fast. */
         int speed =
@@ -253,6 +254,11 @@ int main(int argc, char **argv)
         }
         scanKeys();
         unsigned down = keysDown(), repeat = keysDownRepeat();
+        if (down & KEY_Y) {
+            library_jump_used = false;
+            details_pending = false;
+        }
+        app.library_jump_held = (keysHeld() & KEY_Y) != 0;
         if ((app.startup_countdown || app.startup_due) && (down || repeat)) {
             startup_cancel(&app);
             down = repeat = 0; /* The cancelling press does not also launch an item. */
@@ -404,6 +410,8 @@ int main(int argc, char **argv)
             if (down & KEY_A)
                 app_panel_activate(&app);
         } else {
+            if (down & KEY_Y)
+                details_pending = true;
             if (repeat & KEY_L)
                 app_category(&app, app.category - 1);
             if (repeat & KEY_R)
@@ -412,18 +420,25 @@ int main(int argc, char **argv)
                 browser_direction(&app, -1, 0);
             if (repeat & KEY_RIGHT)
                 browser_direction(&app, 1, 0);
-            if (repeat & KEY_UP)
-                browser_direction(&app, 0, -1);
-            if (repeat & KEY_DOWN)
-                browser_direction(&app, 0, 1);
+            if (repeat & (KEY_UP | KEY_DOWN)) {
+                int direction = repeat & KEY_UP ? -1 : 1;
+                if (app.library_jump_held) {
+                    browser_jump_initial(&app, direction);
+                    library_jump_used = true;
+                } else
+                    browser_direction(&app, 0, direction);
+            }
             if (down & KEY_A)
                 app_open(&app);
             if (down & KEY_SELECT)
                 app_panel(&app, PANEL_ACTIONS);
             if (down & KEY_X)
                 app_rail_toggle(&app);
-            if (down & KEY_Y)
-                app_toggle_details(&app);
+            if (keysUp() & KEY_Y) {
+                if (details_pending && !library_jump_used && !app.launch_requested)
+                    app_toggle_details(&app);
+                details_pending = false;
+            }
         }
         if (!app.storage_lost && (down & KEY_TOUCH)) {
             touchPosition t;

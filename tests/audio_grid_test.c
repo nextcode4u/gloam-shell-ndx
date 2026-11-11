@@ -123,6 +123,27 @@ int main(int argc, char **argv)
     assert(!restored.audio.music.samples && *restored.audio.status);
     audio_event(&restored, AUDIO_CURSOR);
     assert(restored.audio.event == AUDIO_NONE);
+    app.entry_count = 6;
+    const char *names[] = {"1 first", "2 second", "Alpha", "apple", "Beta", "Zulu"};
+    for (int i = 0; i < 6; i++) {
+        memset(&app.entries[i], 0, sizeof app.entries[i]);
+        strcpy(app.entries[i].name, names[i]);
+        app.entries[i].kind = ITEM_DIRECTORY;
+    }
+    app.locations[app.category].selected = 0;
+    browser_reflow(&app);
+    browser_jump_initial(&app, 1);
+    assert(app.locations[app.category].selected == 2);
+    browser_jump_initial(&app, 1);
+    assert(app.locations[app.category].selected == 4);
+    browser_jump_initial(&app, -1);
+    assert(app.locations[app.category].selected == 2);
+    browser_jump_initial(&app, -1);
+    assert(app.locations[app.category].selected == 0);
+    browser_jump_initial(&app, -1);
+    assert(app.locations[app.category].selected == 5);
+    browser_jump_initial(&app, 1);
+    assert(app.locations[app.category].selected == 0);
     puts("PASS: bounded PCM validation/alignment, audio persistence/recovery, grid "
          "navigation/touch/render bounds");
 }

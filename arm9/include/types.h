@@ -374,6 +374,8 @@ typedef struct {
     int selection_y_fixed; /* Selection offset in 24.8 fixed-point pixels. */
     unsigned frame_count;
     char message[160], title[128], code[8];
+    Location folder_history[8];
+    bool library_jump_held;
     Artwork artwork;
     Artwork shelf_artwork[3];
     bool shelf_resolved[3];

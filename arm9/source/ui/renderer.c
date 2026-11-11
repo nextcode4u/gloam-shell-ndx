@@ -517,8 +517,9 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
     }
     draw_rectangle(bottom, 10, 176, 236, 1, colors.line);
     draw_text(bottom, 10, 179,
-              app->rail_focus ? "Up/Down tabs  A choose  B/X back"
-                              : ui_text(&app->language, UI_BROWSER_HINT),
+              app->library_jump_held ? "Y + Up/Down: jump initials"
+              : app->rail_focus      ? "Up/Down tabs  A choose  B/X back"
+                                     : ui_text(&app->language, UI_BROWSER_HINT),
               colors.muted, 40);
     if (app->startup_countdown) {
         char countdown[40];

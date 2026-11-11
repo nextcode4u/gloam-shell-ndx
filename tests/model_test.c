@@ -112,12 +112,20 @@ int main(int argc, char **argv)
     assert(strstr(restored.locations[1].path, root) == restored.locations[1].path);
     app_category(&app, 5);
     app_category(&app, 1);
+    put(root, "roms/Folder/A.txt", "First authored file");
+    put(root, "roms/Folder/B.txt", "Second authored file");
     app.locations[1].selected = 0;
     app_scan(&app);
     app_open(&app);
-    assert(strstr(app.locations[1].path, "Folder"));
+    assert(strstr(app.locations[1].path, "Folder") && app.entry_count == 2);
+    app_move(&app, 1);
+    app_back(&app);
+    app_open(&app);
+    assert(app.locations[1].selected == 1);
     app_back(&app);
     assert(app.category == 1);
+    assert(app_selected(&app)->kind == ITEM_DIRECTORY &&
+           !strcmp(app_selected(&app)->name, "Folder"));
     /* PNG decoding is lazy, bounded and content-type independent. */
     app.locations[1].selected = 1;
     artwork_load(&app);

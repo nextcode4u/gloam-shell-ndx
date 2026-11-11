@@ -44,3 +44,17 @@ warning panels bypass automatic launching; a failed preflight shows its error
 without restarting the countdown. Imported configuration reloads do not start
 a new countdown. Settings changes take effect at the next normal startup.
 The delay uses native frames, so blocking work can lengthen the visible wait.
+
+## Fast navigation and session positions
+
+Hold Y and press Up/Down in a browser to jump to a different initial-letter
+group in the current sorted batch. Digits share one group; ASCII and Latin-1
+case pairs share initials. This follows the displayed order, including custom
+sort modes; it does not search unloaded batches. Release Y without a jump to
+change the details view. L/R continues to switch tabs.
+
+Eight recently visited folder positions (including their batch index) are kept
+in session memory. Back restores the parent position and reselects the folder
+by path when it is still present. Reopening a remembered folder restores its
+position. Existing per-tab locations continue to persist across restarts;
+the extra eight-folder history is not written to the SD card.
