@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 static App app;
 static uint16_t top[256 * 192], bottom[256 * 192];
 static void render_write_ppm(const char *path, const uint16_t *pixels, int height)
@@ -25,23 +26,48 @@ static void render_write_ppm(const char *path, const uint16_t *pixels, int heigh
     fclose(f);
 }
 
+static double milliseconds(void)
+{
+    struct timespec time;
+    clock_gettime(CLOCK_MONOTONIC, &time);
+    return time.tv_sec * 1000.0 + time.tv_nsec / 1000000.0;
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 3) {
         fprintf(stderr, "usage: preview <SD folder> <output prefix> [category] [quick|settings]\n");
         return 1;
     }
+    bool profile = argc > 4 && !strcmp(argv[4], "profile");
+    double started = milliseconds();
     app_init(&app, argv[1], true, true);
     if (argc > 3)
         app_category(&app, atoi(argv[3]));
     if (argc > 4 && !strcmp(argv[4], "settings")) {
         settings_open(&app);
-    } else if (argc > 4)
+    } else if (argc > 4 && !profile)
         app_panel(&app, PANEL_QUICK);
     for (int frame = 0; frame < 20; frame++)
         app_tick(&app);
     app.panel_age = 20;
     artwork_load(&app);
+    if (profile) {
+        double ready = milliseconds(), slowest = 0;
+        for (int frame = 0; frame < 300; frame++) {
+            double begin = milliseconds();
+            render_app(&app, top, bottom, "22:30");
+            double elapsed = milliseconds() - begin;
+            if (elapsed > slowest)
+                slowest = elapsed;
+            app.frame_count++;
+        }
+        printf("{\"prepare_ms\":%.3f,\"render_mean_ms\":%.4f,\"render_max_ms\":%.4f,"
+               "\"app_state_bytes\":%zu,\"framebuffer_bytes\":%zu,\"visible_batch_items\":%d}\n",
+               ready - started, (milliseconds() - ready) / 300, slowest, sizeof app,
+               sizeof top + sizeof bottom, app.entry_count);
+        return 0;
+    }
     /* Rendering uses native SD paths; host fixture locations are private. */
     Location *location = &app.locations[app.category];
     size_t root_length = strlen(app.root);

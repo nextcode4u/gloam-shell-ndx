@@ -157,3 +157,19 @@ so merge these fields into preserved files rather than replacing user settings.
 GitHub build checks and the manually triggered draft-prerelease workflow are
 described in [releasing](RELEASING.md). Verify local artifacts with
 `python3 tools/verify_release.py --addons` before uploading the complete set.
+
+## Repeatable host profiling
+
+After `tools/host-check.sh`, run:
+
+```sh
+python3 tools/profile_frontend.py --items 10000
+```
+
+This creates an isolated authored library under `build/`, profiles preparation
+and 300 rendered frames for Phosphor, Eclipse and Prism, and removes the fixture.
+`build/frontend-profile.json` records timings, the retained browser batch and
+static App/framebuffer sizes. These are host CPU/filesystem measurements, not
+DSi boot times or total peak RAM (decoded assets, heap, stacks and SDK allocations
+are additional). Compare runs on the same machine/build; physical-console
+profiling is still required. The tool accepts no existing SD-card target.
