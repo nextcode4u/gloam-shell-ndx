@@ -4,3 +4,6 @@ Original geometric artwork and synthesized audio by the Gloam Shell NDX project.
 Rebuild with `python tools/make_theme_samples.py` using the pinned Pillow version.
 These original theme assets may be used, modified and redistributed under CC0 1.0:
 https://creativecommons.org/publicdomain/zero/1.0/
+
+The original icons in `icons/` are dedicated to the public domain under CC0-1.0.
+Reproduce them with `tools/make_theme_icons.py`; they use Gloam’s shared symbol masks.

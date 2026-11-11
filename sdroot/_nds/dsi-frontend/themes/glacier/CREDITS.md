@@ -6,3 +6,6 @@ These original theme assets may be used, modified and redistributed under CC0 1.
 https://creativecommons.org/publicdomain/zero/1.0/
 
 The packed DejaVu Sans Mono font retains its own terms; see `fonts/LICENSE.txt`.
+
+The original icons in `icons/` are dedicated to the public domain under CC0-1.0.
+Reproduce them with `tools/make_theme_icons.py`; they use Gloam’s shared symbol masks.

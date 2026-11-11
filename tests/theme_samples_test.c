@@ -46,11 +46,12 @@ static int luminance(uint16_t color)
 int main(int argc, char **argv)
 {
     assert(argc == 2);
-    const char *ids[] = {"folio", "nocturne", "tide", "phosphor", "eclipse", "prism", "ember", "glacier", "garnet"};
-    int views[] = {BROWSER_LIST, BROWSER_EXTENDED, BROWSER_GRID, BROWSER_CLASSIC, BROWSER_GRID, BROWSER_GRID,
-                   BROWSER_EXTENDED, BROWSER_GRID, BROWSER_LIST};
-    int sizes[] = {ICON_SMALL, ICON_SMALL, ICON_LARGE, ICON_SMALL, ICON_LARGE, ICON_LARGE,
-                   ICON_LARGE, ICON_LARGE, ICON_SMALL};
+    const char *ids[] = {"folio", "nocturne", "tide",    "phosphor", "eclipse",
+                         "prism", "ember",    "glacier", "garnet"};
+    int views[] = {BROWSER_LIST, BROWSER_EXTENDED, BROWSER_GRID, BROWSER_CLASSIC, BROWSER_GRID,
+                   BROWSER_GRID, BROWSER_EXTENDED, BROWSER_GRID, BROWSER_LIST};
+    int sizes[] = {ICON_SMALL, ICON_SMALL, ICON_LARGE, ICON_SMALL, ICON_LARGE,
+                   ICON_LARGE, ICON_LARGE, ICON_LARGE, ICON_SMALL};
     int columns[] = {4, 4, 3, 4, 2, 4, 4, 3, 4};
     int padding[] = {0, 2, 6, 0, 12, 0, 4, 4, 2};
     for (int theme = 0; theme < 9; theme++) {
@@ -58,6 +59,8 @@ int main(int argc, char **argv)
         ThemePackage previous = app.themes.active;
         int previous_view = app.browser_style, previous_size = app.icon_size;
         choose(ids[theme]);
+        for (int icon = 0; icon < THEME_ICON_COUNT; icon++)
+            assert(themes_icon(&app.themes.candidate, icon));
         draw();
         themes_cancel(&app);
         assert(!memcmp(&previous, &app.themes.active, sizeof previous));

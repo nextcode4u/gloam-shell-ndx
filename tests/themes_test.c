@@ -1,3 +1,4 @@
+#include "../arm9/source/ui/drawing.h"
 #include "app.h"
 #include "font_pack.h"
 #include "layout.h"
@@ -32,20 +33,45 @@ int main(int argc, char **argv)
                  layout) >= 0 &&
            !fclose(layout));
     ThemePackage original = app.themes.active;
+    assert(!themes_icon(&original, PLACEHOLDER_FOLDER));
     themes_open(&app);
     assert(app.themes.count == 4 && app.themes.ready);
     themes_move(&app, 1);
     assert(!strcmp(app.themes.candidate.id, "copper") && app.themes.candidate.external_font);
     assert(!memcmp(&original, &app.themes.active, sizeof original) && !app.preferences_dirty);
     assert(memcmp(&original.font, &app.themes.candidate.font, sizeof original.font));
+    const uint16_t *folder = themes_icon(&app.themes.candidate, PLACEHOLDER_FOLDER);
+    assert(folder && themes_icon(&app.themes.candidate, PLACEHOLDER_COUNT + 6));
+    uint16_t expected[32 * 32];
+    memcpy(expected, folder, sizeof expected);
+    assert(!themes_icon(&original, PLACEHOLDER_FOLDER));
+    memset(top, 0, sizeof top);
+    draw_theme_icon(&app.themes.candidate, top, 0, 0, 32, PLACEHOLDER_FOLDER, 0xffff);
+    for (int y = 0; y < 32; y++)
+        for (int x = 0; x < 32; x++)
+            assert(top[y * 256 + x] == expected[y * 32 + x]);
+    draw_theme_icon(&app.themes.candidate, top, -10, 180, 64, PLACEHOLDER_FOLDER, 0xffff);
     render_app(&app, top, bottom, "12:00");
     themes_cancel(&app);
     assert(!app.themes.open && !*app.theme_id);
+    assert(!themes_icon(&app.themes.candidate, PLACEHOLDER_FOLDER));
     assert(font_row('A', 3) == original.font.rows['A' - 32][3]);
     themes_open(&app);
     themes_move(&app, 1);
     themes_apply(&app);
     assert(!app.themes.open && !strcmp(app.theme_id, "copper") && app.preferences_dirty);
+    assert(!memcmp(themes_icon(&app.themes.active, PLACEHOLDER_FOLDER), expected, sizeof expected));
+    /* A bad or absent symbol must not reject the package or poison other icons. */
+    write_text(root, "_nds/dsi-frontend/themes/copper/icons/folder.png", "broken PNG");
+    assert(path_join(manifest, root, "_nds/dsi-frontend/themes/copper/icons/file.png"));
+    assert(!remove(manifest));
+    themes_open(&app);
+    assert(app.themes.ready);
+    assert(!themes_icon(&app.themes.candidate, PLACEHOLDER_FOLDER));
+    assert(!themes_icon(&app.themes.candidate, PLACEHOLDER_FILE));
+    assert(themes_icon(&app.themes.candidate, PLACEHOLDER_AUDIO));
+    themes_cancel(&app);
+    assert(!memcmp(themes_icon(&app.themes.active, PLACEHOLDER_FOLDER), expected, sizeof expected));
     assert(app.themes.active.palette.bg != original.palette.bg);
     assert(app.browser_style == BROWSER_GRID && app.icon_size == ICON_LARGE);
     assert(layout_grid_columns(&app) == 3 && layout_row_height(&app) == 58);

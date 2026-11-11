@@ -43,6 +43,7 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" \
     tests/icons_test.c -o build/host/icons-test
 mkdir "$fixture/icon-test"
+cp -r sdroot/_nds/dsi-frontend/themes/copper/icons "$fixture/icon-test/"
 ASAN_OPTIONS=detect_leaks=1 build/host/icons-test "$fixture/icon-test"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \

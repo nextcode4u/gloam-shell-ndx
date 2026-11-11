@@ -8,6 +8,7 @@
 #include "paths.h"
 #include "preferences.h"
 #include "renderer.h"
+#include "themes.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -268,6 +269,9 @@ int main(int argc, char **argv)
         select_entry(name);
         assert(icons_for_entry(&app, find_entry(name))->pixels[1] == (0x8000 | (i + 1)));
     }
+    assert(path_join(app.themes.active.icon_directory, root, "icons"));
+    themes_icons_load(&app.themes.active, false);
+    assert(themes_icon(&app.themes.active, PLACEHOLDER_COUNT + 1));
     /* System actions have original fallbacks even without NAND or SD access. */
     app_category(&app, CATEGORY_SYSTEM);
     app.browser_style = BROWSER_CLASSIC;
@@ -281,7 +285,7 @@ int main(int argc, char **argv)
     uint16_t fallback[7][32 * 32];
     for (int i = 0; i < 7; i++) {
         assert(icon_system_fallback(i, fallback[i]));
-        assert(icons_for_entry(&app, i));
+        assert(icons_for_entry(&app, i)->system_fallback);
         assert(!memcmp(icons_for_entry(&app, i)->pixels, fallback[i], sizeof fallback[i]));
         assert(fallback[i][0] == 0); /* Transparent margins. */
         for (int j = 0; j < i; j++)
@@ -297,8 +301,9 @@ int main(int argc, char **argv)
     icons_reset(&app);
     settle();
     const BrowserIcon *camera = icons_for_entry(&app, 1);
-    assert(camera && camera->pixels[1] == 0x801f); /* Native banner wins. */
-    assert(!icons_for_entry(&app, 0));             /* List loads only the top-screen preview. */
+    assert(camera && !camera->system_fallback &&
+           camera->pixels[1] == 0x801f); /* Native banner wins. */
+    assert(!icons_for_entry(&app, 0));   /* List loads only the top-screen preview. */
     app.show_covers = true;
     render_app(&app, top.pixels, bottom.pixels, "12:00");
     assert(top.pixels[73 * 256 + 33] == 0x801f);
@@ -309,6 +314,13 @@ int main(int argc, char **argv)
     settle();
     camera = icons_for_entry(&app, 1);
     assert(camera && !memcmp(camera->pixels, fallback[1], sizeof fallback[1]));
+    assert(camera->system_fallback);
+    render_app(&app, top.pixels, bottom.pixels, "12:00");
+    const uint16_t *themed_camera = themes_icon(&app.themes.active, PLACEHOLDER_COUNT + 1);
+    for (int y = 0; y < 32; y++)
+        for (int x = 0; x < 32; x++)
+            if (themed_camera[y * 32 + x] & 0x8000)
+                assert(top.pixels[(73 + 2 * y) * 256 + 31 + 2 * x] == themed_camera[y * 32 + x]);
     reads = app.icon_reads;
     settle();
     assert(app.icon_reads == reads); /* A missing/corrupt banner is not retried every frame. */
