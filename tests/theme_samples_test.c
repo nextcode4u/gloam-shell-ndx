@@ -46,9 +46,12 @@ static int luminance(uint16_t color)
 int main(int argc, char **argv)
 {
     assert(argc == 2);
-    const char *ids[] = {"folio", "nocturne", "tide"};
-    int views[] = {BROWSER_LIST, BROWSER_EXTENDED, BROWSER_GRID};
-    for (int theme = 0; theme < 3; theme++) {
+    const char *ids[] = {"folio", "nocturne", "tide", "phosphor", "eclipse", "prism"};
+    int views[] = {BROWSER_LIST, BROWSER_EXTENDED, BROWSER_GRID, BROWSER_CLASSIC, BROWSER_GRID, BROWSER_GRID};
+    int sizes[] = {ICON_SMALL, ICON_SMALL, ICON_LARGE, ICON_SMALL, ICON_LARGE, ICON_LARGE};
+    int columns[] = {4, 4, 3, 4, 2, 4};
+    int padding[] = {0, 2, 6, 0, 12, 0};
+    for (int theme = 0; theme < 6; theme++) {
         app_init(&app, argv[1], true, true);
         ThemePackage previous = app.themes.active;
         int previous_view = app.browser_style, previous_size = app.icon_size;
@@ -60,18 +63,19 @@ int main(int argc, char **argv)
         choose(ids[theme]);
         themes_apply(&app);
         assert(!strcmp(app.theme_id, ids[theme]) && app.browser_style == views[theme]);
-        assert(app.icon_size == (theme == 2 ? ICON_LARGE : ICON_SMALL));
-        assert(app.themes.active.external_font == (theme != 0));
-        if (theme == 1)
+        assert(app.icon_size == sizes[theme]);
+        assert(app.themes.active.external_font == (theme != 0 && theme != 3));
+        if (theme == 1 || theme == 4)
             assert(app.themes.active.font.glyph_count == FONT_GLYPHS);
-        if (theme == 2)
-            assert(layout_grid_columns(&app) == 3 && app.themes.active.row_padding == 6);
+        assert(app.themes.active.row_padding == padding[theme]);
+        if (sizes[theme] == ICON_LARGE)
+            assert(layout_grid_columns(&app) == columns[theme]);
         for (int screen = 0; screen < 2; screen++) {
             themes_background_draw(&app.themes.active, screen, top.pixels);
             bool varied = false;
             for (int pixel = 1; pixel < 256 * 192; pixel++)
                 varied |= top.pixels[pixel] != top.pixels[0];
-            assert(varied == (theme != 0)); /* Both PNG and JPEG actually decoded. */
+            assert(varied == (theme != 0 && theme != 3)); /* Both PNG and JPEG actually decoded. */
         }
         ThemePalette original_palette = app.themes.active.palette;
         uint16_t resolved[THEME_ACCENT_COUNT];
@@ -108,8 +112,8 @@ int main(int argc, char **argv)
         app.audio.mode = MUSIC_THEME;
         app.audio.effects_enabled = true;
         audio_reload(&app);
-        assert((app.audio.music.samples != NULL) == (theme != 0));
-        if (theme != 0)
+        assert((app.audio.music.samples != NULL) == (theme != 0 && theme != 3));
+        if (theme != 0 && theme != 3)
             assert(app.audio.music.bytes == 256000 && !*app.audio.status);
         for (int sound = 0; sound < 3; sound++) {
             assert(app.audio.effects[sound].samples && app.audio.effects[sound].bytes);

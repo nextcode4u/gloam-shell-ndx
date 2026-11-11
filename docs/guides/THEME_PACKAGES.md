@@ -65,12 +65,30 @@ A, or cancel with B. The packages are ready to copy; no build step is needed.
 | Folio | Warm paper and graphite; a quiet reading interface. | List, small icons, no padding, built-in font, no wallpapers/music, three soft UI cues. |
 | Nocturne | Indigo mountain silhouettes and lavender highlights. | Extended, small icons, 2px padding, external Latin-1 font, independent PNG wallpapers, original 8-second loop and three UI cues. |
 | Tide | Sea-glass paper and broad coastal bands. | Large Grid, three columns, 6px padding, external ASCII font, PNG top/JPEG bottom, original 8-second loop and three brighter UI cues. |
+| Phosphor | Near-black and soft terminal green. | Classic, small icons, zero padding, built-in font, no wallpapers/music, three quiet low-pitched cues. A lightweight baseline. |
+| Eclipse | Dark plum with a pale lunar halo. | Large Grid, two columns, maximum 12px padding, Latin-1 font, 512×512 PNG/JPEG wallpapers at maximum 35% strength, original 8-second loop. Exercises center cropping and spacious layout limits. |
+| Prism | Cool white with blue and lilac facets. | Large Grid, four columns, zero padding, bold ASCII font, native-size PNG/JPEG wallpapers at 35%, original 8-second loop. Exercises narrow labels, looping text and light-theme contrast. |
 
-The two illustrated themes share a 256×384 composition split into native-size
+Nocturne and Tide share a 256×384 composition split into native-size
 screens. Text and controls are drawn by the launcher; they are not baked into
-the artwork. The three packages add about 550 KiB in total. A music loop uses
+the artwork. Folio, Nocturne and Tide add about 550 KiB in total. A music loop uses
 250 KiB of sample memory only while its theme's music is enabled; unused theme
 packages are not preloaded. Folio needs no wallpaper or music buffers.
+
+Eclipse deliberately uses the maximum accepted image dimensions, not oversized
+or malformed files. Its outer image area is cropped; both screens retain a
+256×192 prepared background. Prism deliberately favors density: long titles
+need the selected-label marquee, and Reduced motion keeps those labels static.
+Use Eclipse's wider tiles or List view when complete names matter more than
+density. Theme packages cannot override Reduced motion or personal audio levels.
+These variants exercise supported boundaries, not a measured hardware memory or
+frame-time limit. All three have per-package credits and reproducible assets.
+
+![Phosphor, Eclipse and Prism rendered at native resolution](../images/theme-variants.png)
+
+Regenerate this gallery with `.venv/bin/python tools/make_screenshots.py --theme-variants`
+after building the host renderer. The images show actual renderer output with
+the supplied example folders; physical LCD contrast still needs hardware review.
 
 START → Audio → Background music must be Theme to hear a package's loop;
 Theme sounds enables its cues. Applying a theme respects personal audio levels,
