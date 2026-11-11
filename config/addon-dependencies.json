@@ -3808,6 +3808,8 @@
     "gloam-setup-organizer.ps1": "tools/gloam_setup_organizer.ps1",
     "gloam-setup-organizer-ui.ps1": "tools/gloam_setup_organizer_ui.ps1",
     "gloam-setup-artwork.ps1": "tools/gloam_setup_artwork.ps1",
-    "gloam-setup-artwork-ui.ps1": "tools/gloam_setup_artwork_ui.ps1"
+    "gloam-setup-artwork-ui.ps1": "tools/gloam_setup_artwork_ui.ps1",
+    "gloam-setup-identification.ps1": "tools/gloam_setup_identification.ps1",
+    "gloam-dat.cs": "tools/gloam_dat.cs"
   }
 }

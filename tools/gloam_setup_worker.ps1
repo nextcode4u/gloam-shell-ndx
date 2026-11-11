@@ -11,6 +11,7 @@ try {
     . (Join-Path $PSScriptRoot 'gloam-setup-configuration.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-organizer.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-artwork.ps1')
+    . (Join-Path $PSScriptRoot 'gloam-setup-identification.ps1')
     $job = Get-Content -LiteralPath $Request -Raw -Encoding UTF8 | ConvertFrom-Json
     $root = Get-GloamRoot $job.Target
     $directory = [string]$job.ReleaseDirectory
@@ -23,6 +24,14 @@ try {
         Write-Host "Release: $($release.tag_name)"
     }
     switch ($job.Action) {
+        'ArtworkDatImport' {
+            foreach ($file in $job.Sources) { $count=Import-GloamDat $job.Options.DatDirectory $job.Options.System $file; Write-Host ("Imported $count records from " + [IO.Path]::GetFileName($file)) }
+        }
+        'ArtworkDatUpdate' {
+            if ($job.Offline) { throw 'DAT updates require an internet connection.' }
+            $count=Update-GloamDat $job.Options.DatDirectory $job.Options.System
+            Write-Host ("Updated $count identification records for " + $job.Options.System)
+        }
         'ArtworkScan' {
             $rows = @(Get-GloamArtworkLibrary $root $job.Options.Folder ([bool]$job.Options.Recursive))
             [IO.File]::WriteAllText((Join-Path ([IO.Path]::GetDirectoryName($Request)) 'artwork-results.json'), (ConvertTo-Json -InputObject $rows -Depth 12), [Text.UTF8Encoding]::new($false))
@@ -35,11 +44,18 @@ try {
                 if ($job.Action -eq 'ArtworkFetch') { $row.Candidate=''; $row.CandidateHash=''; $row.Source='' }
                 try {
                     if ($job.Action -eq 'ArtworkFetch') {
-                        $url = if ($job.Options.Url) { $job.Options.Url } else { Get-GloamArtworkUrl $root $row.Content $job.Options.System $row.MatchName $job.Options.Region }
-                        $bytes = Get-GloamArtworkDownload $url
+                        if ($job.Options.Url) {
+                            $url=$job.Options.Url; $bytes=Get-GloamArtworkDownload $url; $method='Direct image URL (review)'
+                        } else {
+                            $useDat=$job.Options.PSObject.Properties.Name -contains 'UseDat' -and $job.Options.UseDat
+                            $cache=if ($job.Options.PSObject.Properties.Name -contains 'DatDirectory') { $job.Options.DatDirectory } else { Join-Path $env:LOCALAPPDATA 'Gloam/Setup/databases' }
+                            $match=Get-GloamIdentifiedCover $root $row.Content $job.Options.System $row.MatchName $job.Options.Region $useDat $cache
+                            $url=$match.Url; $bytes=$match.Bytes; $method=$match.Identification; $row.MatchName=$match.Name
+                        }
+                        $row | Add-Member -NotePropertyName Identification -NotePropertyValue $method -Force
                         $path = Join-Path ([IO.Path]::GetDirectoryName($Request)) ([Guid]::NewGuid().ToString('N') + '.png')
                         [IO.File]::WriteAllBytes($path,$bytes)
-                        $row.Candidate=$path; $row.CandidateHash=Get-GloamHash $path; $row.Source=$url; $row.Result='Preview ready - review before applying'
+                        $row.Candidate=$path; $row.CandidateHash=Get-GloamHash $path; $row.Source=$url; $row.Result='Preview ready - '+$method
                     } else {
                         Set-GloamArtwork $root $row.Content $row.Candidate $row.CandidateHash $row.Source ([bool]$job.Options.Replace)
                         $state = Get-GloamArtworkState $root $row.Content

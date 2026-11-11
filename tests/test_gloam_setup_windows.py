@@ -35,7 +35,8 @@ class GloamSetupTests(unittest.TestCase):
         self.sd.mkdir()
         self.installer = self.root / 'installer'
         self.installer.mkdir()
-        for original, output in [('gloam_setup_artwork.ps1','gloam-setup-artwork.ps1'),
+        for original, output in [('gloam_setup_identification.ps1','gloam-setup-identification.ps1'),
+                                 ('gloam_dat.cs','gloam-dat.cs'),('gloam_setup_artwork.ps1','gloam-setup-artwork.ps1'),
                                  ('gloam_setup_artwork_ui.ps1','gloam-setup-artwork-ui.ps1'),('gloam_setup_core.ps1', 'gloam-setup-core.ps1'),
                                  ('gloam_setup_organizer.ps1', 'gloam-setup-organizer.ps1'),
                                  ('gloam_setup_organizer_ui.ps1', 'gloam-setup-organizer-ui.ps1'),
@@ -56,6 +57,7 @@ class GloamSetupTests(unittest.TestCase):
 
         self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-organizer.ps1')) + '; '
         self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-artwork.ps1')) + '; '
+        self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-identification.ps1')) + '; '
 
     def run_ps(self, code, success=True):
         import base64
@@ -232,6 +234,75 @@ if ($rows[0].Status -ne 'Check record') { throw 'Invalid record was hidden' }
                              + ' -Target $root -Offline -SmokeTest -SmokeAction ArtworkScan -ScreenshotPage Artwork')
         self.assertIn('GUI worker exit: 0', output)
         self.assertFalse((self.sd / '_nds/dsi-frontend/items').exists())
+
+    def test_dat_identifies_renamed_rom_from_xml_and_clrmamepro(self):
+        import zlib
+        folder=self.sd/'roms/Game Boy'
+        folder.mkdir(parents=True)
+        data=b'Authored ROM identification fixture'
+        (folder/'renamed.gb').write_bytes(data)
+        sha=hashlib.sha1(data).hexdigest()
+        md5=hashlib.md5(data).hexdigest()
+        crc=f'{zlib.crc32(data):08x}'
+        xml=self.root/'tosec.dat'
+        xml.write_text(f'<?xml version="1.0"?><!DOCTYPE datafile SYSTEM "https://example.invalid/never-fetch.dtd"><datafile><game name="Example (1994)(Author)"><rom name="Example.gb" size="{len(data)}" crc="{crc}" md5="{md5}" sha1="{sha}"/></game></datafile>')
+        text=self.root/'nointro.dat'
+        text.write_text(f'clrmamepro ( name "Nintendo - Game Boy" )\ngame ( name "Example (USA)" rom ( name "Example (USA).gb" size {len(data)} crc {crc} md5 {md5} sha1 {sha} ) )')
+        self.run_ps('$xml='+literal(win(xml))+'; $dat='+literal(win(text))+r"""
+Initialize-GloamDat
+$rom=Get-GloamPath $root 'roms/Game Boy/renamed.gb'
+$fingerprint=[GloamDat]::Fingerprint($rom)
+$entries=[GloamDat]::Read($xml)
+if ([GloamDat]::Match($entries[0],$fingerprint) -ne 'SHA-1 + size') { throw 'XML fingerprint mismatch' }
+$cache=Join-Path $root 'dat-cache'
+Import-GloamDat $cache 'Nintendo - Game Boy' $xml | Out-Null
+Import-GloamDat $cache 'Nintendo - Game Boy' $dat | Out-Null
+$names=@(Find-GloamDatNames $root 'roms/Game Boy/renamed.gb' 'Nintendo - Game Boy' $cache)
+if ($names.Count -ne 2 -or 'Example (USA)' -notin $names.Name) { throw 'DAT aliases missing' }
+$entries[0].Sha1='0000000000000000000000000000000000000000'
+if ([GloamDat]::Match($entries[0],$fingerprint)) { throw 'Fell back to CRC despite SHA-1 mismatch' }
+$entries[0].Sha1=''; $entries[0].Md5=''
+if ([GloamDat]::Match($entries[0],$fingerprint) -ne 'CRC32 + size (weaker)') { throw 'CRC not labeled' }
+""")
+        self.assertEqual((folder/'renamed.gb').read_bytes(),data)
+
+    def test_dat_rejects_xml_entities_and_bad_hash_records(self):
+        entity=self.root/'entity.dat'
+        entity.write_text('<!DOCTYPE datafile [<!ENTITY secret SYSTEM "file:///C:/private.txt">]><datafile><game name="&secret;"><rom size="1" crc="00000000"/></game></datafile>')
+        malformed=self.root/'bad.dat'
+        malformed.write_text('game ( name "Example" rom (size 3 sha1 "invalid") )')
+        self.run_ps('$entity='+literal(win(entity))+'; $bad='+literal(win(malformed))+r"""
+Initialize-GloamDat
+foreach ($path in @($entity,$bad)) {
+    $refused=$false
+    try { [GloamDat]::Read($path) | Out-Null } catch { $refused=$true }
+    if (-not $refused) { throw 'Accepted invalid DAT' }
+}
+""")
+
+    def test_dat_cover_lookup_prefers_hash_name_and_falls_back_without_editing_rom(self):
+        folder=self.sd/'roms/Game Boy'
+        folder.mkdir(parents=True)
+        data=b'Authored renamed ROM fixture'
+        rom=folder/'Unknown.gb'; rom.write_bytes(data)
+        dat=self.root/'catalog.dat'
+        dat.write_text(f'game ( name "Canonical Title (USA)" rom ( size {len(data)} sha1 {hashlib.sha1(data).hexdigest()} ) )')
+        self.run_ps('$dat='+literal(win(dat))+r"""
+$cache=Join-Path $root 'dat-cache'
+$folder=Get-GloamDatFolder $cache 'Nintendo - Game Boy'
+[IO.Directory]::CreateDirectory($folder) | Out-Null
+Copy-Item -LiteralPath $dat -Destination (Join-Path $folder 'libretro.dat')
+function Get-GloamArtworkDownload([string]$Url) { return ,([byte[]](1,2,3)) }
+$result=Get-GloamIdentifiedCover $root 'roms/Game Boy/Unknown.gb' 'Automatic by folder' 'Unknown' 'US' $true $cache
+if ($result.Name -ne 'Canonical Title (USA)' -or $result.Identification -ne 'SHA-1 + size / Libretro DAT') { throw 'Did not prefer checksum identity' }
+function Get-GloamArtworkDownload([string]$Url) {
+    if ($Url -match 'Canonical') { throw 'Synthetic missing cover' }
+    return ,([byte[]](1,2,3))
+}
+$result=Get-GloamIdentifiedCover $root 'roms/Game Boy/Unknown.gb' 'Automatic by folder' 'Unknown' 'US' $true $cache
+if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') { throw 'No filename fallback' }
+""")
+        self.assertEqual(rom.read_bytes(),data)
 
     def archive(self, name, members):
         path = self.root / name

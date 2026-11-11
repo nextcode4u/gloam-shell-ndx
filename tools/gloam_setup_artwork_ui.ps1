@@ -32,12 +32,13 @@ function Show-GloamArtworkSelection {
     $ui.ArtworkCurrent.Source = $null; $ui.ArtworkCandidate.Source = $null
     if (-not $item) { return }
     $ui.ArtworkMatch.Text = $item.MatchName
-    $ui.ArtworkInfo.Text = $item.Content + "`n" + $item.Kind + "`n" + $item.Result + "`n" + $item.Source
+    $ui.ArtworkInfo.Text = $item.Content + "`n" + $item.Kind + "`n" + $item.Identification + "`n" + $item.Result + "`n" + $item.Source
     try { Show-GloamArtworkImage $ui.ArtworkCurrent $item.Image; Show-GloamArtworkImage $ui.ArtworkCandidate $item.Candidate }
     catch { $ui.ArtworkInfo.Text += "`nPreview unavailable: " + $_.Exception.Message }
 }
 function Complete-GloamArtworkJob($Job) {
     if ($Job.Action -notlike 'Artwork*') { return }
+    if ($Job.Action -in @('ArtworkDatImport','ArtworkDatUpdate')) { $ui.ArtworkSummary.Text='DAT metadata is ready on this PC. Download previews to identify checked files; see the activity log for imported record counts.'; return }
     $file = Join-Path $Job.Folder 'artwork-results.json'
     if (-not (Test-Path -LiteralPath $file)) { return }
     $results = @(Get-Content -LiteralPath $file -Raw -Encoding UTF8 | ConvertFrom-Json)
@@ -46,7 +47,7 @@ function Complete-GloamArtworkJob($Job) {
         foreach ($result in $results) {
             $item = @($ui.ArtworkList.ItemsSource | Where-Object Content -CEQ $result.Content)
             if ($item.Count -ne 1) { continue }
-            foreach ($field in @('Status','Kind','Image','Candidate','CandidateHash','Source','Result','Selected')) { $item[0].$field = $result.$field }
+            foreach ($field in @('Status','Kind','Image','Candidate','CandidateHash','Source','Result','Selected','Identification','MatchName')) { $item[0].$field = $result.$field }
         }
         $ui.ArtworkList.Items.Refresh()
     }
@@ -76,7 +77,7 @@ $ui.ArtworkFetch.Add_Click({ Invoke-UiAction {
     if (-not $items.Count -or $items.Count -gt 50) { throw 'Check 1-50 items per download batch.' }
     if ($ui.ArtworkUrl.Text -and $items.Count -ne 1) { throw 'A direct image URL applies to one checked item at a time.' }
     if ($items.Count -eq 1 -and $ui.ArtworkList.SelectedItem -eq $items[0]) { $items[0].MatchName = $ui.ArtworkMatch.Text }
-    Start-SetupJob 'ArtworkFetch' @() @{ Items=$items; System=[string]$ui.ArtworkSystem.SelectedItem; Region=[string]$ui.ArtworkRegion.SelectedItem; Url=$ui.ArtworkUrl.Text }
+    Start-SetupJob 'ArtworkFetch' @() @{ Items=$items; System=[string]$ui.ArtworkSystem.SelectedItem; Region=[string]$ui.ArtworkRegion.SelectedItem; Url=$ui.ArtworkUrl.Text; UseDat=[bool]$ui.ArtworkUseDat.IsChecked; DatDirectory=(Join-Path $env:LOCALAPPDATA 'Gloam/Setup/databases') }
 } })
 $ui.ArtworkImport.Add_Click({ Invoke-UiAction {
     Get-SelectedRoot | Out-Null
@@ -108,4 +109,26 @@ $ui.ArtworkRemove.Add_Click({ Invoke-UiAction {
     $item.Status=$state.Status; $item.Kind=$state.Kind; $item.Image=$state.Image
     $item.Result='Assignment cleared; original images and automatic covers kept.'
     $ui.ArtworkList.Items.Refresh(); Show-GloamArtworkSelection
+} })
+
+function Get-GloamSelectedDatSystem {
+    $item=$ui.ArtworkList.SelectedItem
+    $content=if ($item) { $item.Content } else { $ui.ArtworkFolder.Text.TrimEnd('/')+'/.dat-selection' }
+    $system=Resolve-GloamArtworkSystem $content ([string]$ui.ArtworkSystem.SelectedItem)
+    if ($system -eq 'Nintendo DS (GameTDB ID)') { $system='Nintendo - Nintendo DS' }
+    return $system
+}
+$ui.ArtworkImportDat.Add_Click({ Invoke-UiAction {
+    Get-SelectedRoot | Out-Null
+    $system=Get-GloamSelectedDatSystem
+    $dialog=[Windows.Forms.OpenFileDialog]::new(); $dialog.Filter='Extracted TOSEC / No-Intro / Redump DATs|*.dat;*.xml'; $dialog.Multiselect=$true
+    try {
+        if ($dialog.ShowDialog() -eq 'OK') {
+            Start-SetupJob 'ArtworkDatImport' $dialog.FileNames @{ System=$system; DatDirectory=(Join-Path $env:LOCALAPPDATA 'Gloam/Setup/databases') }
+        }
+    } finally { $dialog.Dispose() }
+} })
+$ui.ArtworkUpdateDat.Add_Click({ Invoke-UiAction {
+    $system=Get-GloamSelectedDatSystem
+    Start-SetupJob 'ArtworkDatUpdate' @() @{ System=$system; DatDirectory=(Join-Path $env:LOCALAPPDATA 'Gloam/Setup/databases') }
 } })

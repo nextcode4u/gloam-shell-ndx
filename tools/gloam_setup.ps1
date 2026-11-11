@@ -21,6 +21,7 @@ if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Start w
 . (Join-Path $PSScriptRoot 'gloam-setup-organizer.ps1')
 . (Join-Path $PSScriptRoot 'gloam-setup-configuration.ps1')
 . (Join-Path $PSScriptRoot 'gloam-setup-artwork.ps1')
+. (Join-Path $PSScriptRoot 'gloam-setup-identification.ps1')
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
 Add-Type -AssemblyName WindowsBase

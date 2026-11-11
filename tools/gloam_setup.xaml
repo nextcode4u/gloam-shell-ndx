@@ -355,6 +355,9 @@
                 <Expander Header="Download options" Foreground="#E7E9F0"><StackPanel>
                 <TextBlock Text="Download system"/>
                 <ComboBox x:Name="ArtworkSystem"/>
+                <CheckBox x:Name="ArtworkUseDat" Content="Identify with DAT checksums" IsChecked="True" ToolTip="Use cached/imported metadata; fetch the system's Libretro No-Intro/TOSEC DAT if missing. ROM data stays on this PC."/>
+                <WrapPanel><Button x:Name="ArtworkImportDat" Content="Import DAT..."/><Button x:Name="ArtworkUpdateDat" Content="Update DAT"/></WrapPanel>
+                <TextBlock Text="Choose the matching system before importing an extracted TOSEC, No-Intro or Redump DAT." TextWrapping="Wrap" Foreground="#ADB8CA"/>
                 <TextBlock Text="DS cover language"/>
                 <ComboBox x:Name="ArtworkRegion"/>
                 <TextBlock Text="Exact title (single selection)"/>

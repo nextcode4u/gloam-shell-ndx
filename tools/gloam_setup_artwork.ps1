@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Artwork is downloaded on demand, never bundled with Gloam releases.
 $GloamArtworkSystems = [ordered]@{
-    'Automatic by folder'=''; 'Nintendo DS (GameTDB ID)'=''; 'Nintendo - Game Boy'='Game Boy';
+    'Automatic by folder'=''; 'Nintendo DS (GameTDB ID)'=''; 'Nintendo - Nintendo DS'='Nintendo DS'; 'Nintendo - Game Boy'='Game Boy';
     'Nintendo - Game Boy Color'='Game Boy Color'; 'Nintendo - Game Boy Advance'='Game Boy Advance';
     'Nintendo - Nintendo Entertainment System'='NES'; 'Nintendo - Super Nintendo Entertainment System'='SNES';
     'Sega - Mega Drive - Genesis'='Genesis'; 'Sega - Master System - Mark III'='Master System';
@@ -10,7 +10,10 @@ $GloamArtworkSystems = [ordered]@{
     'SNK - Neo Geo Pocket Color'='Neo Geo Pocket'; 'Atari - 2600'='2600';
     'Atari - 5200'='5200'; 'Atari - 7800'='7800'; 'Atari - Lynx'='Lynx';
     'Coleco - ColecoVision'='ColecoVision'; 'Mattel - Intellivision'='Intellivision';
-    'Nintendo - Pokemon Mini'='Pokemon Mini'
+    'Nintendo - Pokemon Mini'='Pokemon Mini'; 'Commodore - 64'='Commodore 64';
+    'Amstrad - CPC'='Amstrad CPC'; 'Sinclair - ZX Spectrum'='ZX Spectrum';
+    'Microsoft - MSX'='MSX'; 'Microsoft - MSX2'='MSX2';
+    'Atari - 8-bit Family'='8-bit'; 'Watara - Supervision'='Watara Supervision'
 }
 
 function Read-GloamArtworkRecord([string]$Root, [string]$Content) {
@@ -63,7 +66,7 @@ function ConvertTo-GloamArtworkPng([byte[]]$Bytes) {
     } finally { $stream.Dispose() }
 }
 
-function Get-GloamArtworkUrl([string]$Root, [string]$Content, [string]$System, [string]$Name, [string]$Region='US') {
+function Resolve-GloamArtworkSystem([string]$Content, [string]$System) {
     if (-not $GloamArtworkSystems.Contains($System)) { throw 'Choose an artwork system.' }
     if ($System -eq 'Automatic by folder') {
         if ([IO.Path]::GetExtension($Content) -in @('.nds','.dsi','.srl')) { $System='Nintendo DS (GameTDB ID)' }
@@ -73,6 +76,11 @@ function Get-GloamArtworkUrl([string]$Root, [string]$Content, [string]$System, [
             $System=$matches[0]
         }
     }
+    return $System
+}
+
+function Get-GloamArtworkUrl([string]$Root, [string]$Content, [string]$System, [string]$Name, [string]$Region='US') {
+    $System = Resolve-GloamArtworkSystem $Content $System
     if ($System -eq 'Nintendo DS (GameTDB ID)') {
         if ($Region -notin @('US','EN','JA','FR','DE','ES','IT','KO')) { throw 'Unsupported cover language.' }
         if ([IO.Path]::GetExtension($Content) -notin @('.nds','.dsi','.srl')) { throw 'DS title-ID lookup requires an NDS/DSi executable.' }
@@ -232,7 +240,7 @@ function Get-GloamArtworkLibrary([string]$Root, [string]$Folder, [bool]$Recursiv
             catch { $state = [pscustomobject]@{ Status='Check record'; Kind=$_.Exception.Message; Image='' } }
             [pscustomobject]@{ Selected=$false; Content=$content; Name=$item.Name; IsFolder=$item.PSIsContainer;
                 MatchName=$(if ($item.PSIsContainer) { $item.Name } else { [IO.Path]::GetFileNameWithoutExtension($item.Name) });
-                Status=$state.Status; Kind=$state.Kind; Image=$state.Image; Candidate=''; CandidateHash=''; Source=''; Result='' }
+                Status=$state.Status; Kind=$state.Kind; Image=$state.Image; Candidate=''; CandidateHash=''; Source=''; Identification=''; Result='' }
         }
     }
 }

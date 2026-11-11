@@ -237,7 +237,8 @@ association defaults. Save/configuration files and support directories are skipp
   [GameTDB](https://www.gametdb.com/DS/Downloads); other configured systems use the
   filename and [Libretro's box-art naming convention](https://github.com/libretro-thumbnails/libretro-thumbnails).
   Choose a system or correct the exact title for a single checked item when needed.
-  Region/revision suffixes matter; there is no fuzzy or checksum-based guessing.
+  Region/revision suffixes matter; DAT identification can resolve renamed files
+  before the filename fallback. There is no fuzzy title guessing.
   DS cover language can be selected explicitly. A missing match is not an error
   in the ROM, and these services do not have covers for every title.
 - A **direct HTTPS image URL** works for one checked item, including books, music
@@ -257,3 +258,39 @@ Images remain on the user's PC/SD card and are not included in Gloam releases.
 Downloaded images keep a source-URL note beside the managed cover. Name-based
 matches should be visually reviewed for the correct game, region and edition.
 Restart Gloam or use Refresh metadata if an old cover is still cached.
+
+### DAT-assisted cover identification
+
+**Identify with DAT checksums** is enabled in Download options. DS title-ID lookup
+still runs first. Other systems use their cached Libretro No-Intro DAT when
+available; a missing cache is fetched on demand from
+[libretro-database](https://github.com/libretro/libretro-database/tree/master/metadat/no-intro).
+When that system has no No-Intro mirror, its Libretro TOSEC mirror is tried.
+Computer-system covers also include Commodore 64, Amstrad CPC, ZX Spectrum, MSX/MSX2
+and Atari 8-bit Family. If a DS ID has no artwork, the Nintendo DS DAT/name route is also tried.
+**Update DAT** refreshes the selected system's mirror. A missing mirror does not
+prevent ordinary filename lookup or use of imported metadata.
+
+For [TOSEC DATs](https://www.tosecdev.org/downloads), No-Intro or Redump metadata,
+extract the downloaded pack, choose the matching system in Download options and
+use **Import DAT** for its `.dat`/`.xml` files. XML and clrmamepro text formats are
+accepted. Files must contain ROM sizes and hashes. The cache is PC-only under
+`%LOCALAPPDATA%/Gloam/Setup/databases`; DATs and ROMs are not bundled in releases.
+Imported DATs are added alongside the mirror; originals remain unchanged.
+
+Identification reads the local file and compares its size plus SHA-1, MD5 or CRC32
+(preferred in that order per record). It never falls back to a weaker hash after a
+stronger hash in that record disagrees. CRC32-only matches are labeled weaker;
+ambiguous CRC names fall back to filename lookup. Hash-derived aliases are tried
+before the filename, with up to eight metadata names per item. The Result/details
+show whether the preview came from an ID, a DAT hash or filename matching.
+
+A DAT identifies content; it does not provide a cover image. TOSEC and artwork
+providers may use different names, so identification can succeed without finding
+art. Stronger aliases from the Libretro mirror are preferred, since those names
+are closer to its thumbnail names. Review every preview before applying it.
+No ROM renaming, patching, archive extraction, region guessing or content upload
+is performed. The current lookup hashes the complete file: compressed ROMs,
+header variants, patches and multi-file sets may require a matching DAT or manual
+title/image selection. DATs are limited to 32 MiB/250,000 entries each and ROM
+identification to 1 GiB per file. Metadata source notes remain beside the cache.

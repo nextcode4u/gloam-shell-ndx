@@ -76,3 +76,9 @@ supported game box art from [Libretro thumbnails](https://github.com/libretro-th
 Thanks to their contributors and the original artists, developers and publishers.
 Artwork is fetched directly at the user's request; it is not bundled with Gloam
 or covered by Gloam's source-code license. The manager is an original implementation.
+
+Optional DAT-assisted identification accepts metadata from [TOSEC](https://www.tosecdev.org/),
+[No-Intro](https://no-intro.org/) and [Redump](http://redump.org/) and can fetch the
+[Libretro No-Intro metadata mirror](https://github.com/libretro/libretro-database/tree/master/metadat/no-intro).
+The metadata retains its upstream terms; it is downloaded/imported on the user's
+PC, not included in Gloam's release archives.
