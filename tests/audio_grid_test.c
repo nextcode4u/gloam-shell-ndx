@@ -86,20 +86,44 @@ int main(int argc, char **argv)
     browser_reflow(&app);
     assert(layout_visible_rows(&app) == 3);
     assert(grid_touch_index(&app, 249, 50) == -1);
+    assert(grid_touch_index(&app, 48, 90) == -1); /* No item before the first. */
+    assert(grid_touch_index(&app, 128, 90) == 0);
+    assert(grid_touch_index(&app, 208, 90) == 1);
+    assert(grid_touch_index(&app, 128, 154) == -1); /* Caption is not a cover. */
+    /* A resolved DS banner must not enlarge the browser icon. */
+    static uint16_t before_cover[62 * 84];
+    render_app(&app, top.pixels, bottom.pixels, "12:00");
+    for (int y = 0; y < 84; y++)
+        memcpy(before_cover + y * 62, bottom.pixels + (56 + y) * 256 + 97, 62 * 2);
+    strcpy(app.shelf_paths[0], app.entries[0].path);
+    app.shelf_artwork[0].ready = true;
+    app.shelf_artwork[0].width = app.shelf_artwork[0].height = 32;
+    strcpy(app.shelf_artwork[0].source, "NDS banner");
+    render_app(&app, top.pixels, bottom.pixels, "12:00");
+    for (int y = 0; y < 84; y++)
+        assert(!memcmp(before_cover + y * 62, bottom.pixels + (56 + y) * 256 + 97, 62 * 2));
     assert(layout_list_bottom(&app) == UI_LIST_BOTTOM);
     browser_direction(&app, 0, 1);
-    assert(app.locations[1].selected == 3 && app.locations[1].scroll == 3);
+    assert(app.locations[1].selected == 3 && app.locations[1].scroll == 2);
     browser_direction(&app, -1, 0);
-    assert(app.locations[1].selected == 2 && app.locations[1].scroll == 0);
+    assert(app.locations[1].selected == 2 && app.locations[1].scroll == 1);
     browser_direction(&app, 0, -1);
     assert(app.locations[1].selected == 16 && app.locations[1].scroll == 15);
-    assert(grid_touch_index(&app, 170, 50) == -1); /* Empty last-page cell. */
+    assert(grid_touch_index(&app, 208, 90) == -1); /* No item after the last. */
+    assert(grid_touch_index(&app, 128, 90) == 16);
+    app.reduced_motion = false;
     for (int i = 0; i < 36; i++) {
+        if (i % 9 == 0)
+            browser_direction(&app, i % 18 ? -1 : 1, 0);
         app_tick(&app);
         render_app(&app, top.pixels, bottom.pixels, "12:00");
         assert(top.before == 0xCAFE1234 && top.after == 0xCAFE1234);
         assert(bottom.before == 0xCAFE1234 && bottom.after == 0xCAFE1234);
     }
+    app.reduced_motion = true;
+    browser_direction(&app, 1, 0);
+    assert(app.shelf_offset_fixed == 0);
+    assert(grid_touch_index(&app, 128, 90) == app.locations[1].selected);
     assert(app_save(&app));
     app_init(&restored, argv[1], true, true);
     assert(restored.browser_style == BROWSER_SHELF);

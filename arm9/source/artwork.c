@@ -172,26 +172,60 @@ void artwork_load(App *app)
     artwork_load_entry(app, app_selected(app), &app->artwork, &app->artwork_resolved, true);
 }
 
-/* Prepare at most one shelf entry per tick, after the selected preview. The
- * existing bounded decoder and four-image cache are shared with the top screen. */
+/* Three path-keyed slots survive selection changes. Explicit refreshes still
+ * invalidate them, so editing a cover never leaves an old prepared image. */
+static int shelf_slot(const App *app, const char *path)
+{
+    for (int slot = 0; slot < 3; slot++)
+        if (!strcmp(app->shelf_paths[slot], path))
+            return slot;
+    return -1;
+}
+
+const Artwork *artwork_shelf_for_entry(const App *app, int index)
+{
+    if (index < 0 || index >= app->entry_count)
+        return NULL;
+    int slot = shelf_slot(app, app->entries[index].path);
+    return slot >= 0 ? &app->shelf_artwork[slot] : NULL;
+}
+
 void artwork_shelf_tick(App *app)
 {
     if (app->browser_style != BROWSER_SHELF || !app->show_covers ||
         app->selection_idle_frames < 7 || (!app->artwork.ready && !app->artwork_resolved))
         return;
-    const Location *location = &app->locations[app->category];
+    int first = app->locations[app->category].selected - 1;
     for (int cell = 0; cell < 3; cell++) {
-        int index = location->scroll + cell;
-        if (index >= app->entry_count)
-            break;
-        if (app->shelf_resolved[cell])
+        int index = first + cell;
+        if (index < 0 || index >= app->entry_count)
             continue;
-        if (index == location->selected) {
-            app->shelf_artwork[cell] = app->artwork;
-            app->shelf_resolved[cell] = true;
+        const char *path = app->entries[index].path;
+        int slot = shelf_slot(app, path);
+        if (slot < 0) {
+            for (slot = 0; slot < 3; slot++) {
+                bool visible = false;
+                for (int i = first; i < first + 3; i++)
+                    if (i >= 0 && i < app->entry_count &&
+                        !strcmp(app->shelf_paths[slot], app->entries[i].path))
+                        visible = true;
+                if (!visible)
+                    break;
+            }
+            if (slot == 3)
+                return;
+            path_copy(app->shelf_paths[slot], path, PATH_CAP);
+            app->shelf_resolved[slot] = false;
+            app->shelf_artwork[slot].ready = false;
+        }
+        if (app->shelf_resolved[slot])
+            continue;
+        if (index == app->locations[app->category].selected) {
+            app->shelf_artwork[slot] = app->artwork;
+            app->shelf_resolved[slot] = true;
         } else {
-            artwork_load_entry(app, &app->entries[index], &app->shelf_artwork[cell],
-                               &app->shelf_resolved[cell], false);
+            artwork_load_entry(app, &app->entries[index], &app->shelf_artwork[slot],
+                               &app->shelf_resolved[slot], false);
         }
         return;
     }

@@ -165,7 +165,8 @@ int main(int argc, char **argv)
     app.browser_style = BROWSER_SHELF;
     app.show_covers = true;
     app.entry_count = 3;
-    app.locations[app.category].selected = app.locations[app.category].scroll = 0;
+    app.locations[app.category].selected = 1;
+    app.locations[app.category].scroll = 0;
     for (int i = 0; i < 3; i++) {
         app.entries[i].kind = ITEM_FILE;
         snprintf(app.entries[i].path, PATH_CAP, "%s/roms/Shelf%d.demo", root, i);
@@ -184,7 +185,13 @@ int main(int argc, char **argv)
     unsigned shelf_reads = app.artwork_reads;
     artwork_shelf_tick(&app);
     assert(app.artwork_reads == shelf_reads);
+    app_move(&app, 1);
+    const Artwork *retained = artwork_shelf_for_entry(&app, 1);
+    assert(retained && retained->ready);
+    assert(artwork_shelf_for_entry(&app, 2)->ready);
+    assert(app.artwork_reads == shelf_reads); /* Selection does not reload neighbors. */
     app_reset_preview(&app);
+    assert(!artwork_shelf_for_entry(&app, 1));
     assert(!app.shelf_resolved[0] && !app.shelf_artwork[2].ready);
     puts("PASS: bounded prepared artwork LRU, negative cache, source invalidation, refresh and "
          "association fallback priority");

@@ -9,6 +9,10 @@ void browser_direction(App *app, int horizontal, int vertical)
 {
     if (!app->entry_count)
         return;
+    if (app->browser_style == BROWSER_SHELF) {
+        app_move(app, horizontal ? horizontal : vertical * 3);
+        return;
+    }
     if (!layout_is_grid(app)) {
         if (horizontal)
             app_page(app, horizontal);
@@ -31,6 +35,16 @@ void browser_direction(App *app, int horizontal, int vertical)
 }
 int grid_touch_index(const App *app, int x, int y)
 {
+    if (app->browser_style == BROWSER_SHELF) {
+        if (x < 8 || x >= 248 || y < 54 || y >= 148)
+            return -1;
+        /* Hit-test the same moving row that is drawn, including partial edges. */
+        int shifted = x - 8 - app->shelf_offset_fixed / 256;
+        if (shifted < 0 || shifted >= 240)
+            return -1;
+        int index = app->locations[app->category].selected - 1 + shifted / 80;
+        return index >= 0 && index < app->entry_count ? index : -1;
+    }
     int top = layout_list_top(app->category);
     if (!layout_is_grid(app) || x < 6 || x >= 250 || y < top || y >= layout_list_bottom(app))
         return -1;

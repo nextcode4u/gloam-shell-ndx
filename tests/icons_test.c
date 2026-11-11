@@ -188,7 +188,9 @@ int main(int argc, char **argv)
                 Location *location = &app.locations[category];
                 int cell = location->selected - location->scroll;
                 assert(cell >= 0 && cell < layout_visible_rows(&app));
-                if (layout_is_grid(&app)) {
+                if (style == BROWSER_SHELF) {
+                    assert(grid_touch_index(&app, 128, 90) == location->selected);
+                } else if (layout_is_grid(&app)) {
                     int x = 6 + cell % layout_grid_columns(&app) * layout_grid_cell_width(&app) + 8;
                     int y = layout_list_top(category) +
                             cell / layout_grid_columns(&app) * layout_row_height(&app) + 8;

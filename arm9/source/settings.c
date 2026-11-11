@@ -183,7 +183,8 @@ static const SettingsOption appearance[] = {
      "remembered. Applies to Home, System and folder tabs.",
      true, OPT_ICONS},
     {"Browser view",
-     "Shelf: three covers; left/right selects, up/down pages. Classic: rows. Extended: details. "
+     "Shelf: centered covers; left/right selects, up/down skips three. Classic: rows. Extended: "
+     "details. "
      "List: no icons. Grid: two columns for Small, "
      "four for Large. Applies to all tabs.",
      true, OPT_VIEW},

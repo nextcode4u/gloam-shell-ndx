@@ -292,14 +292,18 @@ existing third-party themes without `[icons]` continue to use built-in symbols.
 ### Cover shelf
 
 Choose **Shelf** in browser appearance settings, or set `view=shelf` in a theme.
-Three covers appear on the touch screen; the selected item's full name scrolls
-below them and its existing details remain on the top screen. Left/right selects
-one item, up/down changes shelf rows, and L/R switches tabs. Tap once to select,
-then tap the selected item to open it. Home and custom folder tabs use the same
-layout. Missing covers use native or theme icons; disabling covers keeps icons.
+The selected cover stays centered between its neighbors on a continuous shelf.
+Left/right moves one item, up/down skips three, and L/R switches tabs. The full
+selected name scrolls below the shelf; details remain on the top screen. Tap a
+neighbor to select it, then tap the selected item to open it. Home and custom
+folder tabs use the same layout. Reduced motion disables the horizontal slide.
 
-Shelf geometry is fixed for readability at 256×192. Icon-size, row-padding and
-large-grid-column settings still apply to their other layouts. Covers retain
-their aspect ratio. Only three visible images are prepared, one entry per tick,
-using the existing bounded artwork decoder/cache. The shelf adds approximately
-59 KiB of prepared-image storage; it does not decode images while rendering.
+Jackets retain their size while artwork resolves. Missing covers and native
+banners use fixed 32-pixel browser icons, including animated banners. Covers
+retain their aspect ratio inside the jackets. Icon-size, row-padding and grid
+column settings apply to their other layouts.
+
+Three path-keyed prepared images are retained across selection changes and
+invalidated on explicit refresh. One entry is prepared per tick using the
+existing bounded decoder/cache. Shelf adds approximately 62 KiB of prepared
+image and path storage; rendering never reads files or decodes artwork.

@@ -51,17 +51,24 @@ void app_mark_preferences_dirty(App *app)
     app->preferences_idle_frames = 0;
 }
 
-void app_reset_preview(App *app)
+static void reset_selection_preview(App *app)
 {
     artwork_cache_cancel_pending();
     app->selection_idle_frames = 0;
     app->artwork.ready = false;
     app->artwork_resolved = false;
+    app->title[0] = app->code[0] = 0;
+}
+
+void app_reset_preview(App *app)
+{
+    reset_selection_preview(app);
+    app->shelf_offset_fixed = 0;
     for (int cell = 0; cell < 3; cell++) {
+        app->shelf_paths[cell][0] = 0;
         app->shelf_artwork[cell].ready = false;
         app->shelf_resolved[cell] = false;
     }
-    app->title[0] = app->code[0] = 0;
 }
 
 void app_init_mode(App *app, const char *root, bool storage, bool dsi, bool recovery)
@@ -204,12 +211,23 @@ void app_move(App *app, int delta)
         return;
     Location *location = &app->locations[app->category];
     int old = location->scroll;
+    int previous = location->selected;
     location->selected =
         ((location->selected + delta) % app->entry_count + app->entry_count) % app->entry_count;
     if (app->category == CATEGORY_SYSTEM && app->installed_open &&
         app->entries[location->selected].kind == ITEM_INSTALLED_TITLE)
         app->installed_selected_id =
             app->installed_catalog.titles[app->entries[location->selected].target].title.low;
+    if (app->browser_style == BROWSER_SHELF) {
+        location->scroll = location->selected > 0 ? location->selected - 1 : 0;
+        app->shelf_offset_fixed = !app->reduced_motion && abs(location->selected - previous) == 1
+                                      ? (location->selected - previous) * 80 * 256
+                                      : 0;
+        app->icons_idle_frames = 0;
+        reset_selection_preview(app);
+        app_mark_preferences_dirty(app);
+        return;
+    }
     if (layout_is_grid(app)) {
         browser_reflow(app);
         app->icons_idle_frames = 0;
@@ -752,6 +770,13 @@ void app_tick(App *app)
     if (!app->settings.open) {
         icons_tick(app);
         title_metadata_tick(app);
+    }
+    if (app->reduced_motion)
+        app->shelf_offset_fixed = 0;
+    else {
+        app->shelf_offset_fixed -= app->shelf_offset_fixed / 3;
+        if (abs(app->shelf_offset_fixed) < 256)
+            app->shelf_offset_fixed = 0;
     }
     app->selection_idle_frames++;
     if (app->panel_age < 24)

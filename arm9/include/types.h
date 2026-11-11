@@ -379,6 +379,8 @@ typedef struct {
     Artwork artwork;
     Artwork shelf_artwork[3];
     bool shelf_resolved[3];
+    char shelf_paths[3][PATH_CAP];
+    int shelf_offset_fixed; /* Horizontal shelf motion in 24.8 pixels. */
     bool artwork_resolved;
     unsigned artwork_reads;
 } App;

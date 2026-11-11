@@ -54,9 +54,10 @@ Touch selects an entry; tap again to open. Overflow text loops while selected,
 unless Reduced motion is enabled. Frontend settings are separate from Nintendo
 DSi System Settings in the System tab.
 
-Choose **Shelf** under START → Appearance → Browser view for three covers per
-page. Left/right selects a title, up/down changes shelf rows, and L/R switches
-tabs. Missing covers use icons. The launcher remembers eight recently visited
+Choose **Shelf** under START → Appearance → Browser view for a horizontal shelf
+with the selected cover centered between its neighbors. Left/right moves one
+item, up/down skips three, and L/R switches tabs. Covers and missing-cover icons
+keep a consistent size; Reduced motion disables the horizontal slide. The launcher remembers eight recently visited
 folder positions during the session; Back returns to the folder you entered.
 Current per-tab locations still persist across restarts.
 

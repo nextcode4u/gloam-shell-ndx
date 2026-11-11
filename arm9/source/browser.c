@@ -342,6 +342,11 @@ void browser_reflow(App *app)
         location->selected = app->entry_count ? app->entry_count - 1 : 0;
     if (location->selected < 0)
         location->selected = 0;
+    if (app->browser_style == BROWSER_SHELF) {
+        location->scroll = location->selected > 0 ? location->selected - 1 : 0;
+        app_reset_preview(app);
+        return;
+    }
     if (layout_is_grid(app)) {
         int visible = layout_visible_rows(app) / layout_grid_columns(app);
         int selected_row = location->selected / layout_grid_columns(app);

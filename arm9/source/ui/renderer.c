@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include "app.h"
+#include "artwork.h"
 #include "association_editor.h"
 #include "browser.h"
 #include "cheats.h"
@@ -285,7 +286,8 @@ static void draw_browser_icon(const App *app, uint16_t *pixels, int index, int x
         for (int row = 0; row < size; row++) {
             for (int column = 0; column < size; column++) {
                 uint16_t pixel = image[(row * 32 / size) * 32 + column * 32 / size];
-                if (pixel & 0x8000)
+                if ((pixel & 0x8000) && x + column >= 0 && x + column < 256 && y + row >= 0 &&
+                    y + row < 192)
                     pixels[(y + row) * 256 + x + column] = pixel;
             }
         }
@@ -295,53 +297,57 @@ static void draw_browser_icon(const App *app, uint16_t *pixels, int index, int x
                     entry_file_type(&app->entries[index]).icon, color);
 }
 
-/* Flat covers leave room for a full-width selected name; no perspective or
- * resampling work beyond the three already prepared thumbnails. */
+/* Fixed-size jackets on a continuous shelf. Banners remain native icons,
+ * rather than becoming oversized cover artwork once their preview resolves. */
 static void draw_shelf(const App *app, uint16_t *pixels, Palette colors)
 {
     const Location *location = &app->locations[app->category];
-    int top = layout_list_top(app->category);
+    int offset = app->shelf_offset_fixed / 256;
+    draw_rectangle(pixels, 10, 140, 236, 2, colors.line);
     for (int cell = 0; cell < 3; cell++) {
-        int index = location->scroll + cell;
-        if (index >= app->entry_count)
-            break;
-        int x = 6 + cell * layout_grid_cell_width(app);
+        int index = location->selected - 1 + cell;
+        if (index < 0 || index >= app->entry_count)
+            continue;
+        int x = 17 + cell * 80 + offset;
         bool selected = index == location->selected;
-        const Artwork *art = &app->shelf_artwork[cell];
-        if (selected)
-            draw_rectangle(pixels, x + 2, top, 76, 98, colors.surface);
-        if (app->show_covers && art->ready) {
-            int width = 68, height = art->height * width / art->width;
-            if (height > 78) {
-                height = 78;
+        const Artwork *art = artwork_shelf_for_entry(app, index);
+        draw_rectangle(pixels, x, 56, 62, 84, colors.surface);
+        draw_rectangle(pixels, x, 56, 2, 84, selected ? colors.accent : colors.line);
+        draw_rectangle(pixels, x + 2, 56, 60, 1, colors.line);
+        if (app->show_covers && art && art->ready && strcmp(art->source, "NDS banner")) {
+            int width = 56, height = art->height * width / art->width;
+            if (height > 76) {
+                height = 76;
                 width = art->width * height / art->height;
             }
             if (width < 1)
                 width = 1;
             if (height < 1)
                 height = 1;
-            int left = x + (80 - width) / 2, y = top + 4 + (78 - height) / 2;
+            int left = x + 4 + (56 - width) / 2, y = 60 + (76 - height) / 2;
             for (int row = 0; row < height; row++)
                 for (int column = 0; column < width; column++) {
                     uint16_t color = art->pixels[(row * art->height / height) * art->width +
                                                  column * art->width / width];
-                    if (color & 0x8000)
+                    if ((color & 0x8000) && left + column >= 0 && left + column < 256)
                         pixels[(y + row) * 256 + left + column] = color;
                 }
         } else {
-            draw_browser_icon(app, pixels, index, x + 24, top + 27, 32,
+            draw_browser_icon(app, pixels, index, x + 16, 78, 32,
                               selected ? colors.accent : colors.muted);
         }
-        draw_rectangle(pixels, x + 6, top + 84, 68, selected ? 2 : 1,
-                       selected ? colors.accent : colors.line);
-        char name[256];
-        browser_display_name(app, &app->entries[index], name);
-        draw_text_clipped(pixels, x + 5, top + 89, name, selected ? colors.text : colors.muted, 10);
+        if (selected)
+            draw_rectangle(pixels, x, 143, 62, 2, colors.accent);
     }
-    char name[256];
+    char name[256], position[24];
+    snprintf(position, sizeof position, "%d / %d", location->selected + 1, app->entry_count);
+    draw_text(pixels, 12, 42, position, colors.muted, 24);
     browser_display_name(app, &app->entries[location->selected], name);
     draw_text_scrolling(pixels, 12, 151, name, colors.text, 230, app->selection_idle_frames,
                         !app->reduced_motion);
+    draw_rectangle(pixels, 12, 168, 232, 1, colors.line);
+    int progress = app->entry_count > 1 ? 224 * location->selected / (app->entry_count - 1) : 112;
+    draw_rectangle(pixels, 12 + progress, 167, 8, 3, colors.accent);
 }
 
 static void draw_grid(const App *app, uint16_t *pixels, Palette colors)
@@ -504,7 +510,7 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
                     draw_text(bottom, 239, y + (row_height - 12) / 2, "*", colors.accent, 1);
             }
         }
-        if (app->entry_count > visible_rows) {
+        if (app->entry_count > visible_rows && app->browser_style != BROWSER_SHELF) {
             int h = list_height * visible_rows / app->entry_count;
             if (h < 5)
                 h = 5;
