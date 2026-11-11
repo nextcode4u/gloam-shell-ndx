@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -17,6 +18,7 @@ public sealed class GloamDatEntry
 public sealed class GloamFingerprint
 {
     public string Sha1, Md5, Crc;
+    public string Description = "Complete file";
     public long Size;
 }
 // Each record is indexed by its strongest available digest. A bad strong hash
@@ -61,10 +63,12 @@ public static class GloamDat
     static string Hex(byte[] bytes) { return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant(); }
     public static GloamFingerprint Fingerprint(string path)
     {
-        using (var file = File.OpenRead(path))
+        using (var file = File.OpenRead(path)) return FingerprintStream(file, file.Length);
+    }
+    static GloamFingerprint FingerprintStream(Stream file, long size)
+    {
         using (var sha = SHA1.Create())
         using (var md5 = MD5.Create()) {
-            long size = file.Length;
             if (size > 1024L * 1024 * 1024) throw new InvalidDataException("Identification limit is 1 GiB per file.");
             var table = new uint[256];
             for (uint i = 0; i < 256; i++) {
@@ -85,6 +89,64 @@ public static class GloamDat
             if (total != size) throw new IOException("Content changed during identification.");
             sha.TransformFinalBlock(new byte[0], 0, 0); md5.TransformFinalBlock(new byte[0], 0, 0);
             return new GloamFingerprint { Size=size, Sha1=Hex(sha.Hash), Md5=Hex(md5.Hash), Crc=(crc ^ 0xffffffffU).ToString("x8") };
+        }
+    }
+    static GloamFingerprint[] FingerprintVariants(Func<Stream> open, long length, string name, string label)
+    {
+        var result = new List<GloamFingerprint>();
+        using (var stream = open()) {
+            var whole = FingerprintStream(stream, length);
+            whole.Description = label;
+            result.Add(whole);
+        }
+        string extension = Path.GetExtension(name).ToLowerInvariant();
+        int skip = 0;
+        string reason = "";
+        if (extension == ".nes" && length > 16) {
+            using (var stream = open()) {
+                var header = new byte[16];
+                int count = 0, read;
+                while (count < header.Length && (read = stream.Read(header, count, header.Length-count)) > 0) count += read;
+                if (count == 16 && header[0] == 78 && header[1] == 69 && header[2] == 83 && header[3] == 26) {
+                    skip = (header[6] & 4) != 0 ? 528 : 16;
+                    reason = "iNES header/trainer excluded";
+                }
+            }
+        } else if ((extension == ".smc" || extension == ".sfc") && length > 512 && length % 1024 == 512) {
+            skip = 512;
+            reason = "possible SNES copier header excluded";
+        }
+        if (skip > 0 && length > skip) {
+            using (var stream = open()) {
+                for (int i = 0; i < skip; i++) if (stream.ReadByte() < 0) throw new EndOfStreamException();
+                var payload = FingerprintStream(stream, length-skip);
+                payload.Description = label + "; " + reason;
+                result.Add(payload);
+            }
+        }
+        return result.ToArray();
+    }
+    public static GloamFingerprint[] Identify(string path)
+    {
+        if (!String.Equals(Path.GetExtension(path), ".zip", StringComparison.OrdinalIgnoreCase))
+            return FingerprintVariants(() => File.OpenRead(path), new FileInfo(path).Length, path, "Complete file");
+        if (new FileInfo(path).Length > 1024L*1024*1024) throw new InvalidDataException("ZIP exceeds 1 GiB.");
+        using (var file = File.OpenRead(path))
+        using (var archive = new ZipArchive(file, ZipArchiveMode.Read)) {
+            if (archive.Entries.Count > 256) throw new InvalidDataException("ZIP exceeds 256 members.");
+            const string extensions = "|.nds|.dsi|.srl|.nes|.sfc|.smc|.gb|.gbc|.gba|.gen|.md|.sms|.gg|.sg|.pce|.ws|.wsc|.ngp|.ngc|.a26|.a52|.a78|.lnx|.col|.rom|.bin|.dsk|.tap|.tzx|.z80|.int|.min|";
+            ZipArchiveEntry member = null;
+            foreach (var entry in archive.Entries) {
+                string extension = Path.GetExtension(entry.Name).ToLowerInvariant();
+                if (extension.Length == 0 || !extensions.Contains("|" + extension + "|")) continue;
+                if (member != null) throw new InvalidDataException("ZIP contains multiple ROM candidates; choose an individual ROM for identification.");
+                member = entry;
+            }
+            if (member == null) throw new InvalidDataException("ZIP contains no supported ROM member.");
+            if (member.Length > 1024L*1024*1024 || member.Length > Math.Max(1L, member.CompressedLength)*1000)
+                throw new InvalidDataException("ZIP member exceeds identification size/ratio limits.");
+            // Read only: member names are never used as extraction paths.
+            return FingerprintVariants(() => member.Open(), member.Length, member.Name, "ZIP member: " + member.FullName);
         }
     }
     static string Value(Dictionary<string,string> fields, string key)

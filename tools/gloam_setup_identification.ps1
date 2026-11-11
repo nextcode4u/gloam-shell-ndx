@@ -2,7 +2,7 @@
 $script:GloamDatRecords = @{}
 $script:GloamDatAttempts = @{}
 function Initialize-GloamDat {
-    if (-not ('GloamDat' -as [type])) { Add-Type -Path (Join-Path $PSScriptRoot 'gloam-dat.cs') -ReferencedAssemblies @('System.dll','System.Core.dll','System.Xml.dll') }
+    if (-not ('GloamDat' -as [type])) { Add-Type -Path (Join-Path $PSScriptRoot 'gloam-dat.cs') -ReferencedAssemblies @('System.dll','System.Core.dll','System.Xml.dll','System.IO.Compression.dll') }
 }
 function Get-GloamDatFolder([string]$Cache, [string]$System) {
     if (-not $GloamArtworkSystems.Contains($System) -or $System -in @('Automatic by folder','Nintendo DS (GameTDB ID)')) { throw 'Choose a specific system for DAT identification.' }
@@ -70,17 +70,20 @@ function Find-GloamDatNames([string]$Root, [string]$Content, [string]$System, [s
     if (-not (Test-Path -LiteralPath $folder -PathType Container)) { return }
     $files=@(Get-ChildItem -LiteralPath $folder -Filter '*.dat' | Sort-Object @{Expression={if ($_.Name -eq 'libretro.dat') {0} else {1}}},Name)
     if (-not $files.Count) { return }
-    $fingerprint=[GloamDat]::Fingerprint((Get-GloamPath $Root $Content))
+    $fingerprints=[GloamDat]::Identify((Get-GloamPath $Root $Content))
     foreach ($file in $files) {
         $key=$file.FullName+'|'+$file.Length+'|'+$file.LastWriteTimeUtc.Ticks
         if (-not $script:GloamDatRecords.ContainsKey($key)) { $script:GloamDatRecords[$key]=[GloamDatIndex]::new([GloamDat]::Read($file.FullName)) }
+        foreach ($fingerprint in $fingerprints) {
         foreach ($entry in $script:GloamDatRecords[$key].Find($fingerprint)) {
             $method=[GloamDat]::Match($entry,$fingerprint)
             if (-not $method) { continue }
             $source=if ($file.Name -eq 'libretro.dat') { 'Libretro DAT' } else { 'Imported DAT' }
             $note=$file.FullName+'.source.txt'
             if ($file.Name -eq 'libretro.dat' -and (Test-Path -LiteralPath $note) -and (Get-Item -LiteralPath $note).Length -lt 4096 -and [IO.File]::ReadAllText($note).Contains('/tosec/')) { $source='Libretro TOSEC DAT' }
+            if ($fingerprint.Description -ne 'Complete file') { $method += "; " + $fingerprint.Description }
             [pscustomobject]@{ Name=$entry.Name; Method=$method; Source=$source }
+        }
         }
     }
 }

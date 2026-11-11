@@ -290,7 +290,17 @@ providers may use different names, so identification can succeed without finding
 art. Stronger aliases from the Libretro mirror are preferred, since those names
 are closer to its thumbnail names. Review every preview before applying it.
 No ROM renaming, patching, archive extraction, region guessing or content upload
-is performed. The current lookup hashes the complete file: compressed ROMs,
-header variants, patches and multi-file sets may require a matching DAT or manual
-title/image selection. DATs are limited to 32 MiB/250,000 entries each and ROM
-identification to 1 GiB per file. Metadata source notes remain beside the cache.
+is performed. ZIP identification streams a single recognized ROM member without
+extracting it. Archives with multiple ROM candidates, more than 256 members,
+a ROM above 1 GiB or a compression ratio above 1000:1 are refused for identification;
+ordinary filename lookup remains available. Other archive formats and multi-file
+sets still need manual title/image selection.
+
+Complete-file hashes are tried alongside explicitly labeled payload variants for
+[iNES headers/trainers](https://www.nesdev.org/wiki/INES) and possible
+[512-byte SNES copier headers](https://snes.nesdev.org/wiki/ROM_file_formats).
+The payload must still match the DAT's size and hash; detecting a possible header
+alone does not identify a game. No header is removed from the user's file.
+Patches or other header formats may need a matching DAT or manual selection.
+DATs are limited to 32 MiB/250,000 entries each and ROM identification to 1 GiB.
+Metadata source notes remain beside the cache.

@@ -286,6 +286,38 @@ $f.Size=4
 if (@($index.Find($f)).Count) { throw 'Index ignored file size' }
 """)
 
+    def test_dat_archive_and_header_variants_are_read_only_and_bounded(self):
+        payload=b'Authored payload!'*2048
+        header=bytearray(16); header[:4]=b'NES\x1a'; header[6]=4
+        nes=self.sd/'example.nes'; nes.write_bytes(header+bytes(512)+payload)
+        snes=self.sd/'example.smc'; snes.write_bytes(bytes(512)+payload)
+        single=self.sd/'single.zip'
+        with zipfile.ZipFile(single,'w',zipfile.ZIP_DEFLATED) as z:
+            z.writestr('../nested/example.nes',nes.read_bytes())
+            z.writestr('README.txt','Authored fixture')
+        multiple=self.sd/'multiple.zip'
+        with zipfile.ZipFile(multiple,'w') as z:
+            z.writestr('one.gb',b'one'); z.writestr('two.gb',b'two')
+        huge=self.sd/'ratio.zip'
+        with zipfile.ZipFile(huge,'w',zipfile.ZIP_DEFLATED) as z:
+            z.writestr('zero.gb',bytes(8*1024*1024))
+        before={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in self.sd.iterdir()}
+        self.run_ps('$expected='+literal(hashlib.sha1(payload).hexdigest())+r"""
+Initialize-GloamDat
+foreach ($name in @('example.nes','example.smc','single.zip')) {
+    $variants=[GloamDat]::Identify((Join-Path $root $name))
+    if ($variants.Count -ne 2 -or $variants[1].Sha1 -ne $expected) { throw ('Wrong payload digest: '+$name) }
+    if ($variants[1].Description -notlike '*excluded*') { throw 'Header variant not labeled' }
+}
+foreach ($name in @('multiple.zip','ratio.zip')) {
+    $refused=$false
+    try { [GloamDat]::Identify((Join-Path $root $name)) | Out-Null } catch { $refused=$true }
+    if (-not $refused) { throw ('Unsafe or ambiguous archive accepted: '+$name) }
+}
+""")
+        self.assertEqual(before,{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in self.sd.iterdir()})
+        self.assertFalse((self.root/'nested').exists())
+
     def test_dat_rejects_xml_entities_and_bad_hash_records(self):
         entity=self.root/'entity.dat'
         entity.write_text('<!DOCTYPE datafile [<!ENTITY secret SYSTEM "file:///C:/private.txt">]><datafile><game name="&secret;"><rom size="1" crc="00000000"/></game></datafile>')
