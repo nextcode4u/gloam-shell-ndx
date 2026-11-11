@@ -191,7 +191,8 @@ int main(int argc, char **argv)
                 assert(cell >= 0 && cell < layout_visible_rows(&app));
                 if (style == BROWSER_SHELF) {
                     int shelf_top = layout_shelf_top(&app);
-                    assert(shelf_top == 40); /* No unused folder-path gap on Home/System. */
+                    assert(shelf_top ==
+                           56); /* Stable shelf position across folder and system tabs. */
                     assert(grid_touch_index(&app, 128, shelf_top + 10) == location->selected);
                     assert(grid_touch_index(&app, 128, shelf_top - 1) == -1);
                     assert(grid_touch_index(&app, 128, shelf_top + UI_SHELF_CARD_HEIGHT + 6) == -1);

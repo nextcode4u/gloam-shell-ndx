@@ -363,9 +363,7 @@ static void draw_shelf(const App *app, uint16_t *pixels, Palette colors)
         bool selected = index == location->selected;
         const Artwork *art = artwork_shelf_for_entry(app, index);
         draw_rectangle(pixels, x, top, 62, UI_SHELF_CARD_HEIGHT, colors.surface);
-        draw_rectangle(pixels, x, top, 2, UI_SHELF_CARD_HEIGHT,
-                       selected ? colors.accent : colors.line);
-        draw_rectangle(pixels, x + 2, top, 60, 1, colors.line);
+        draw_rectangle(pixels, x, top, 62, 1, colors.line);
         if (app->show_covers && art && art->ready && strcmp(art->source, "NDS banner")) {
             int width = 56, height = art->height * width / art->width;
             if (height > UI_SHELF_CARD_HEIGHT - 8) {
@@ -394,13 +392,13 @@ static void draw_shelf(const App *app, uint16_t *pixels, Palette colors)
     }
     char name[256], position[24];
     snprintf(position, sizeof position, "%d / %d", location->selected + 1, app->entry_count);
-    draw_text(pixels, 12, layout_list_top(app->category) + 1, position, colors.muted, 24);
+    draw_text(pixels, 12, top - 14, position, colors.muted, 24);
     browser_display_name(app, &app->entries[location->selected], name);
     draw_text_scrolling(pixels, 12, base + 11, name, colors.text, 230, app->selection_idle_frames,
                         !app->reduced_motion);
-    draw_rectangle(pixels, 12, base + 32, 232, 1, colors.line);
+    draw_rectangle(pixels, 12, base + 28, 232, 1, colors.line);
     int progress = app->entry_count > 1 ? 224 * location->selected / (app->entry_count - 1) : 112;
-    draw_rectangle(pixels, 12 + progress, base + 31, 8, 3, colors.accent);
+    draw_rectangle(pixels, 12 + progress, base + 27, 8, 3, colors.accent);
 }
 
 static void draw_grid(const App *app, uint16_t *pixels, Palette colors)
