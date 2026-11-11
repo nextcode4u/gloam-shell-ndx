@@ -62,7 +62,16 @@ function Show-Page([string]$Name) {
 }
 function Update-AddonDetails {
     $item = $ui.AddonList.SelectedItem
-    if ($item) { $ui.AddonDetails.Text = $item.Name + "`n`n" + (Get-GloamAddonDetails $item.Catalog $script:Root) }
+    if ($item) { $ui.AddonDetails.Text = $item.Name + ' ' + $item.Version + "`n" + $item.Catalog.terms + "`nInstallation: " + $item.Installation + "`nBIOS: " + $item.BiosStatus + "`n`n" + (Get-GloamAddonDetails $item.Catalog $script:Root) }
+}
+function Update-AddonStatus {
+    foreach ($item in $ui.AddonList.ItemsSource) {
+        $status = Get-GloamAddonStatus $item.Catalog $script:Root
+        $item.Installation = $status.Installation
+        $item.BiosStatus = $status.BiosStatus
+    }
+    $ui.AddonList.Items.Refresh()
+    Update-AddonDetails
 }
 function Load-Sd {
     $nextRoot = Get-GloamRoot $ui.TargetPath.Text
@@ -89,7 +98,7 @@ function Load-Sd {
     if (-not $preserveSettings) { Load-GloamSettingsUi }
     Load-GloamOrganizerJournals
     Load-GloamOrganizerFolders
-    Update-AddonDetails
+    Update-AddonStatus
     $ui.Workspace.IsEnabled = $true
     $ui.Status.Text = 'Ready: ' + $script:Root; Write-Activity ('Selected SD folder: ' + $script:Root)
 }
@@ -252,11 +261,12 @@ $ui.AddonList.ItemsSource = @($apps | ForEach-Object {
     $details = $name + ' ' + $_.version + "`n" + $_.terms
     if ($_.PSObject.Properties.Name -contains 'bios') { $details += "`nBIOS / support: " + $_.bios }
     if ($_.PSObject.Properties.Name -contains 'notes') { $details += "`n" + $_.notes }
-    [pscustomobject]@{ Catalog = $_; Selected = $_.id -in $recommended; Id = $_.id; Name = $name; Details = $details; Version = $_.version; Noncommercial = $_.noncommercial; Experimental = $experimental;
+    [pscustomobject]@{ Installation = 'Not checked'; BiosStatus = 'Not checked'; Catalog = $_; Selected = $_.id -in $recommended; Id = $_.id; Name = $name; Details = $details; Version = $_.version; Noncommercial = $_.noncommercial; Experimental = $experimental;
         Terms = $(if ($experimental) { 'Experimental' } elseif ($_.noncommercial) { 'Noncommercial' } else { $_.terms }) }
 })
 $ui.AddonList.Add_SelectionChanged({ Invoke-UiAction { Update-AddonDetails } })
 $ui.AddonList.SelectedIndex = 0
+Update-AddonStatus
 if ($Target) { $ui.TargetPath.Text = $Target; Load-Sd }
 Show-Page 'Setup'
 if ($SmokeTest) {

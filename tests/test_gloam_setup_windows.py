@@ -94,6 +94,32 @@ $expected = @('roms/Atari/2600','roms/Atari/Lynx','roms/NES','collections/SNES')
 if (Compare-Object $expected $folders) { throw ($folders -join ', ') }
 """)
 
+    def test_addon_columns_refresh_install_and_firmware_status(self):
+        self.run_ps(r"""
+$app = [pscustomobject]@{ id='example'; files=@([pscustomobject]@{destination='apps/one.nds'}, [pscustomobject]@{destination='apps/two.nds'}); bios_mode='required'; support_requirements=@(
+    [pscustomobject]@{ label='BIOS'; scope='required'; any_of=@(@('roms/bios/test.bin')); sizes=[pscustomobject]@{'test.bin'=4} }
+) }
+$status = Get-GloamAddonStatus $app $root
+if ($status.Installation -ne 'Not installed' -or $status.BiosStatus -ne 'Required - missing') { throw 'Empty card status' }
+[IO.Directory]::CreateDirectory((Join-Path $root 'apps')) | Out-Null
+[IO.File]::WriteAllBytes((Join-Path $root 'apps/one.nds'), [byte[]](1))
+if ((Get-GloamAddonStatus $app $root).Installation -ne 'Partial install') { throw 'Partial install status' }
+[IO.File]::WriteAllBytes((Join-Path $root 'apps/two.nds'), [byte[]](1))
+[IO.Directory]::CreateDirectory((Join-Path $root 'roms/bios')) | Out-Null
+[IO.File]::WriteAllBytes((Join-Path $root 'roms/bios/test.bin'), [byte[]](1,2,3,4))
+$status = Get-GloamAddonStatus $app $root
+if ($status.Installation -ne 'Installed' -or $status.BiosStatus -ne 'Present') { throw 'Installed status' }
+$app.bios_mode='optional'; $app.support_requirements[0].scope='optional'
+if ((Get-GloamAddonStatus $app $root).BiosStatus -ne 'Optional - present') { throw 'Optional present status' }
+Remove-Item -LiteralPath (Join-Path $root 'roms/bios/test.bin')
+if ((Get-GloamAddonStatus $app $root).BiosStatus -ne 'Optional - missing') { throw 'Optional missing status' }
+$app.support_requirements=@(); $app.bios_mode='embedded'
+if ((Get-GloamAddonStatus $app $root).BiosStatus -ne 'Embedded in app') { throw 'Embedded status' }
+$app.bios_mode='none'
+if ((Get-GloamAddonStatus $app $root).BiosStatus -ne 'Not needed') { throw 'No BIOS status' }
+if ((Get-GloamAddonStatus $app '').Installation -ne 'Not checked') { throw 'No card status' }
+""")
+
     def archive(self, name, members):
         path = self.root / name
         with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as archive:

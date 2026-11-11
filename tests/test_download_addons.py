@@ -26,6 +26,7 @@ class DownloadAddonTests(unittest.TestCase):
             self.assertTrue(app['content_guidance'], app['id'])
             self.assertEqual(apps[app['id']]['content_guidance'], app['content_guidance'])
             self.assertEqual(apps[app['id']]['bios'], app['bios'])
+            self.assertEqual(apps[app['id']]['bios_mode'], app['bios_mode'])
 
 
     def setUp(self):

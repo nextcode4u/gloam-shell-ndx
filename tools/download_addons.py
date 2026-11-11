@@ -55,6 +55,7 @@ def reviewed_apps(catalog):
                 "terms": app["license"], "noncommercial": app["redistribution"] == "noncommercial"
                 or app.get("download_noncommercial", False), "files": [*files, *defaults]}
         item["bios"] = app.get("bios", "")
+        item["bios_mode"] = app.get("bios_mode", "unknown")
         item["content_guidance"] = app.get("content_guidance", "")
         item["support_requirements"] = app.get("support_requirements", [])
         if app.get("experimental"):

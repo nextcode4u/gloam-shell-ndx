@@ -206,9 +206,9 @@
             <DataGrid.ColumnHeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#28313F"/><Setter Property="Foreground" Value="#E7E9F0"/><Setter Property="Padding" Value="8,5"/></Style></DataGrid.ColumnHeaderStyle>
             <DataGrid.Columns>
               <DataGridCheckBoxColumn Header="Get" Binding="{Binding Selected, UpdateSourceTrigger=PropertyChanged}" Width="45"/>
-              <DataGridTextColumn Header="Application" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
-              <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="100" IsReadOnly="True"/>
-              <DataGridTextColumn Header="Terms / status" Binding="{Binding Terms}" Width="120" IsReadOnly="True"/>
+              <DataGridTextColumn Header="Application" Binding="{Binding Name}" Width="*" MinWidth="140" IsReadOnly="True"/>
+              <DataGridTextColumn Header="Installation" Binding="{Binding Installation}" Width="105" IsReadOnly="True"/>
+              <DataGridTextColumn Header="BIOS" Binding="{Binding BiosStatus}" Width="155" IsReadOnly="True"/>
             </DataGrid.Columns>
           </DataGrid>
           <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Margin="12,0,0,12" Background="#17202C" Padding="10">

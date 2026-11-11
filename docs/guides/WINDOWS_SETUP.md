@@ -209,3 +209,12 @@ folder in File Explorer, creating the folder if it does not exist yet.
 When adding a folder tab, type its SD-relative path or use **Choose folder**.
 The picker starts at the current folder when it exists, otherwise at the selected
 SD root. Choosing a folder fills the path; **Save folder and tab** applies it.
+
+The add-on list shows **Installation** and **BIOS** status for the selected card.
+Installation checks nonempty executable files at the configured package paths;
+it does not verify their version or guarantee every support file is installed.
+BIOS status distinguishes embedded firmware, optional files, missing required
+files and requirements for particular systems. Firmware selected within an
+emulator must be checked there. Columns refresh after selecting a card and after
+install, update or BIOS checks. Version and license information remain in the
+selected-app details.

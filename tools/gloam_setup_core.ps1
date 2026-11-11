@@ -372,23 +372,12 @@ function Get-GloamAddonDetails($App, [string]$Root) {
     $lines.Add('BIOS / firmware')
     if ($App.PSObject.Properties.Name -contains 'bios' -and $App.bios) { $lines.Add($App.bios) }
     else { $lines.Add('Requirements not recorded; do not assume no BIOS is needed.') }
-    $requirements = if ($App.PSObject.Properties.Name -contains 'support_requirements') { @($App.support_requirements) } else { @() }
+    $requirements = @(if ($App.PSObject.Properties.Name -contains 'support_requirements') { $App.support_requirements })
     foreach ($requirement in $requirements) {
         $locations = @($requirement.any_of | ForEach-Object { @($_) -join ' + ' }) -join ' OR '
         $status = 'Not checked (choose an SD folder)'
         if ($Root) {
-            $status = 'Missing or wrong size at the listed locations'
-            foreach ($alternative in $requirement.any_of) {
-                $valid = @($alternative).Count -gt 0
-                foreach ($relative in $alternative) {
-                    $path = Get-GloamPath $Root $relative
-                    $file = Get-Item -LiteralPath $path -ErrorAction SilentlyContinue
-                    $size = $null
-                    if ($requirement.PSObject.Properties.Name -contains 'sizes') { $size = $requirement.sizes.PSObject.Properties[[IO.Path]::GetFileName($relative)] }
-                    if (-not $file -or $file.PSIsContainer -or $file.Length -eq 0 -or ($size -and $file.Length -ne $size.Value)) { $valid = $false }
-                }
-                if ($valid) { $status = 'Found'; break }
-            }
+            $status = if (Test-GloamFirmwareRequirement $requirement $Root) { 'Found' } else { 'Missing or wrong size at the listed locations' }
         }
         $lines.Add("$($requirement.label) [$($requirement.scope)]: $status")
         $lines.Add('Locations: ' + $locations)
@@ -404,4 +393,52 @@ function Get-GloamAddonDetails($App, [string]$Root) {
     $lines.Add('Checks cover listed paths and known sizes, not firmware authenticity. BIOS selected inside an emulator may need checking there.')
     if ($App.PSObject.Properties.Name -contains 'notes' -and $App.notes) { $lines.Add(''); $lines.Add($App.notes) }
     return $lines -join "`n"
+}
+
+function Test-GloamFirmwareRequirement($requirement, [string]$Root) {
+    foreach ($alternative in $requirement.any_of) {
+        $valid = @($alternative).Count -gt 0
+        foreach ($relative in $alternative) {
+            $path = Get-GloamPath $Root $relative
+            $file = Get-Item -LiteralPath $path -ErrorAction SilentlyContinue
+            $size = $null
+            if ($requirement.PSObject.Properties.Name -contains 'sizes') { $size = $requirement.sizes.PSObject.Properties[[IO.Path]::GetFileName($relative)] }
+            if (-not $file -or $file.PSIsContainer -or $file.Length -eq 0 -or ($size -and $file.Length -ne $size.Value)) { $valid = $false }
+        }
+        if ($valid) { return $true }
+    }
+    return $false
+}
+
+function Get-GloamAddonStatus($App, [string]$Root) {
+    $installation = 'Not checked'
+    if ($Root) {
+        $executables = @($App.files | Where-Object { $_.destination -match '\.(nds|srl)$' })
+        $present = @($executables | Where-Object {
+            $file = Get-Item -LiteralPath (Get-GloamPath $Root $_.destination) -ErrorAction SilentlyContinue
+            $file -and -not $file.PSIsContainer -and $file.Length -gt 0
+        }).Count
+        $installation = if (-not $executables.Count) { 'Unknown' } elseif (-not $present) { 'Not installed' } elseif ($present -lt $executables.Count) { 'Partial install' } else { 'Installed' }
+    }
+    $mode = if ($App.PSObject.Properties.Name -contains 'bios_mode') { $App.bios_mode } else { 'unknown' }
+    $bios = switch ($mode) {
+        'none' { 'Not needed' }
+        'embedded' { 'Embedded in app' }
+        'optional' { 'Optional - check app' }
+        'manual' { 'Check in emulator' }
+        'required-manual' { 'Required - check app' }
+        'saving-manual' { 'Saving needs BIOS' }
+        'required' { 'Required (unchecked)' }
+        'conditional' { 'Depends on system' }
+        default { 'Unknown' }
+    }
+    $requirements = @(if ($App.PSObject.Properties.Name -contains 'support_requirements') { $App.support_requirements })
+    if ($Root -and $requirements.Count) {
+        $missing = @($requirements | Where-Object { -not (Test-GloamFirmwareRequirement $_ $Root) })
+        if (-not $missing.Count) { $bios = if ($mode -eq 'optional') { 'Optional - present' } else { 'Present' } }
+        elseif (@($missing | Where-Object { $_.scope -eq 'required' }).Count) { $bios = 'Required - missing' }
+        elseif ($mode -eq 'optional') { $bios = 'Optional - missing' }
+        else { $bios = 'System BIOS missing' }
+    }
+    return [pscustomobject]@{ Installation = $installation; BiosStatus = $bios }
 }
