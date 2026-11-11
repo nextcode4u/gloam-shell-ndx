@@ -218,3 +218,42 @@ files and requirements for particular systems. Firmware selected within an
 emulator must be checked there. Columns refresh after selecting a card and after
 install, update or BIOS checks. Version and license information remain in the
 selected-app details.
+
+## Artwork
+
+Choose **Artwork**, select a collection on the current SD card and click **Scan
+folder**. Enable **Subfolders** for a recursive scan (up to 5,000 items; choose a
+smaller collection for larger libraries). The list includes files and folders,
+shows individual, shared folder and embedded MP3 art, and recognizes configured
+association defaults. Save/configuration files and support directories are skipped.
+
+- **Select missing** checks files without artwork. Check individual rows to include
+  folders or replace a cover. Selecting a row shows its current image and prepared preview.
+- **Import image** accepts PNG/JPEG for the selected row. **Download previews**
+  fetches up to 50 checked items without writing to the SD card. Failed matches
+  appear in the Result column and do not stop other downloads.
+- **Download options** defaults to automatic system detection from the standard
+  folder names (or DS file extension). DS uses its four-character header ID with
+  [GameTDB](https://www.gametdb.com/DS/Downloads); other configured systems use the
+  filename and [Libretro's box-art naming convention](https://github.com/libretro-thumbnails/libretro-thumbnails).
+  Choose a system or correct the exact title for a single checked item when needed.
+  Region/revision suffixes matter; there is no fuzzy or checksum-based guessing.
+  DS cover language can be selected explicitly. A missing match is not an error
+  in the ROM, and these services do not have covers for every title.
+- A **direct HTTPS image URL** works for one checked item, including books, music
+  or custom folders. Use the final PNG/JPEG URL; redirects and non-image pages are
+  rejected. Music/book database searches are not provided. Existing MP3 APIC art
+  is read using the same bounded ID3v2.3/v2.4 subset as the launcher.
+- Review the previews, then **Apply checked previews**. Existing artwork is kept
+  unless **Replace existing artwork** is enabled. Prepared PNGs retain aspect ratio
+  and fit within 256 pixels and 1 MiB. Version-1 per-item records point to managed
+  images under `/_nds/dsi-frontend/covers/`; application/icon preferences are retained.
+- **Clear assignment** restores automatic lookup. It never deletes sidecars,
+  embedded art, shared images or old managed covers. Previous item records are
+  backed up under `setup-backups`; native `.bak` records are left intact.
+
+Downloads send only a game ID/title to the selected provider, never ROM contents.
+Images remain on the user's PC/SD card and are not included in Gloam releases.
+Downloaded images keep a source-URL note beside the managed cover. Name-based
+matches should be visually reviewed for the correct game, region and edition.
+Restart Gloam or use Refresh metadata if an old cover is still cached.

@@ -92,3 +92,12 @@ companion grouping, Gloam identity migration and journaled apply/undo), with WPF
 bindings in `tools/gloam_setup_organizer_ui.ps1`. Previews stay on the PC; apply
 revalidates the full plan before writing an SD recovery journal and moving files.
 Filename collisions skip whole title groups, without renaming or overwriting.
+
+Artwork management lives in `tools/gloam_setup_artwork.ps1` (bounded scans,
+ID3 APIC reads, image conversion, provider URLs and sparse item assignments), with
+WPF bindings in `tools/gloam_setup_artwork_ui.ps1`. The setup worker runs scans,
+download preparation and batch apply; results are returned per item so one
+failure does not abort later items. Downloads/imports prepare PC-side candidates;
+apply revalidates their hashes and uses backed-up item writes without deleting
+original or shared artwork. Providers are read-only, on-demand sources, not build
+inputs. Windows tests use authored content and image fixtures.

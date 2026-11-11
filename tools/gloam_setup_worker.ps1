@@ -10,6 +10,7 @@ try {
     . (Join-Path $PSScriptRoot 'gloam-setup-settings.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-configuration.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-organizer.ps1')
+    . (Join-Path $PSScriptRoot 'gloam-setup-artwork.ps1')
     $job = Get-Content -LiteralPath $Request -Raw -Encoding UTF8 | ConvertFrom-Json
     $root = Get-GloamRoot $job.Target
     $directory = [string]$job.ReleaseDirectory
@@ -22,6 +23,35 @@ try {
         Write-Host "Release: $($release.tag_name)"
     }
     switch ($job.Action) {
+        'ArtworkScan' {
+            $rows = @(Get-GloamArtworkLibrary $root $job.Options.Folder ([bool]$job.Options.Recursive))
+            [IO.File]::WriteAllText((Join-Path ([IO.Path]::GetDirectoryName($Request)) 'artwork-results.json'), (ConvertTo-Json -InputObject $rows -Depth 12), [Text.UTF8Encoding]::new($false))
+            Write-Host ("Found " + $rows.Count + ' items. No SD files changed.')
+        }
+        { $_ -in @('ArtworkFetch','ArtworkApply') } {
+            $failed = $false; $rows = @($job.Options.Items)
+            if ($job.Action -eq 'ArtworkFetch' -and ($rows.Count -gt 50 -or $job.Offline)) { throw 'Downloads require an online batch of at most 50 items.' }
+            foreach ($row in $rows) {
+                if ($job.Action -eq 'ArtworkFetch') { $row.Candidate=''; $row.CandidateHash=''; $row.Source='' }
+                try {
+                    if ($job.Action -eq 'ArtworkFetch') {
+                        $url = if ($job.Options.Url) { $job.Options.Url } else { Get-GloamArtworkUrl $root $row.Content $job.Options.System $row.MatchName $job.Options.Region }
+                        $bytes = Get-GloamArtworkDownload $url
+                        $path = Join-Path ([IO.Path]::GetDirectoryName($Request)) ([Guid]::NewGuid().ToString('N') + '.png')
+                        [IO.File]::WriteAllBytes($path,$bytes)
+                        $row.Candidate=$path; $row.CandidateHash=Get-GloamHash $path; $row.Source=$url; $row.Result='Preview ready - review before applying'
+                    } else {
+                        Set-GloamArtwork $root $row.Content $row.Candidate $row.CandidateHash $row.Source ([bool]$job.Options.Replace)
+                        $state = Get-GloamArtworkState $root $row.Content
+                        $row.Status=$state.Status; $row.Kind=$state.Kind; $row.Image=$state.Image; $row.Result='Applied'; $row.Selected=$false
+                    }
+                } catch { $row.Result=$_.Exception.Message; $failed=$true }
+                finally { if ($job.Action -eq 'ArtworkFetch') { Start-Sleep -Milliseconds 500 } }
+                Write-Host ($row.Content + ': ' + $row.Result)
+            }
+            [IO.File]::WriteAllText((Join-Path ([IO.Path]::GetDirectoryName($Request)) 'artwork-results.json'), (ConvertTo-Json -InputObject $rows -Depth 12), [Text.UTF8Encoding]::new($false))
+            if ($failed) { exit 2 }
+        }
         'PreviewOrganization' {
             $plan = New-GloamOrganizerPlan $root $job.Options.Folder $job.Options.Mode $job.Options.Extensions
             Write-GloamOrganizerJson (Join-Path ([IO.Path]::GetDirectoryName($Request)) 'organizer-plan.json') $plan

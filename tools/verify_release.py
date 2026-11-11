@@ -93,6 +93,10 @@ def verify(directory, addons=False):
                             'addon-installer/gloam-setup-configuration.ps1'}
                 if settings & set(archive.namelist()) and not settings <= set(archive.namelist()):
                     raise ValueError('Graphical settings/backup modules are incomplete')
+                artwork = {'addon-installer/gloam-setup-artwork.ps1', 'addon-installer/gloam-setup-artwork-ui.ps1'}
+                uses_artwork = b'gloam-setup-artwork.ps1' in archive.read('addon-installer/gloam-setup.ps1')
+                if (uses_artwork or artwork & set(archive.namelist())) and not artwork <= set(archive.namelist()):
+                    raise ValueError('Graphical artwork modules are incomplete')
                 organizer = {'addon-installer/gloam-setup-organizer.ps1',
                              'addon-installer/gloam-setup-organizer-ui.ps1'}
                 if organizer & set(archive.namelist()) and not organizer <= set(archive.namelist()):

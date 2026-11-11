@@ -8,8 +8,8 @@ param(
     [switch]$Offline,
     [switch]$SmokeTest,
     [switch]$SmokeDirtySettings,
-    [ValidateSet('Setup','Addons','Library','Organizer','Settings','Themes','Maintenance')][string]$ScreenshotPage = 'Setup',
-    [ValidateSet('','CheckSupport','CheckSetup','SaveSettings','PreviewOrganization','InstallAddons')][string]$SmokeAction,
+    [ValidateSet('Setup','Addons','Library','Organizer','Artwork','Settings','Themes','Maintenance')][string]$ScreenshotPage = 'Setup',
+    [ValidateSet('','CheckSupport','CheckSetup','SaveSettings','PreviewOrganization','InstallAddons','ArtworkScan')][string]$SmokeAction,
     [string]$ScreenshotPath,
     [string]$SmokeOrganizerFolder
 )
@@ -20,6 +20,7 @@ if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Start w
 . (Join-Path $PSScriptRoot 'gloam-setup-settings.ps1')
 . (Join-Path $PSScriptRoot 'gloam-setup-organizer.ps1')
 . (Join-Path $PSScriptRoot 'gloam-setup-configuration.ps1')
+. (Join-Path $PSScriptRoot 'gloam-setup-artwork.ps1')
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
 Add-Type -AssemblyName WindowsBase
@@ -53,7 +54,7 @@ function Get-SelectedRoot {
     return $root
 }
 function Show-Page([string]$Name) {
-    foreach ($page in @('Setup','Addons','Library','Organizer','Settings','Themes','Maintenance')) {
+    foreach ($page in @('Setup','Addons','Library','Organizer','Artwork','Settings','Themes','Maintenance')) {
         $ui['Page' + $page].Visibility = if ($page -eq $Name) { 'Visible' } else { 'Collapsed' }
         $ui['Nav' + $page].Background = if ($page -eq $Name) { '#544568' } else { '#28313F' }
     }
@@ -98,6 +99,7 @@ function Load-Sd {
     if (-not $preserveSettings) { Load-GloamSettingsUi }
     Load-GloamOrganizerJournals
     Load-GloamOrganizerFolders
+    Load-GloamArtworkUi
     Update-AddonStatus
     $ui.Workspace.IsEnabled = $true
     $ui.Status.Text = 'Ready: ' + $script:Root; Write-Activity ('Selected SD folder: ' + $script:Root)
@@ -150,8 +152,8 @@ $timer.Add_Tick({
             $finishedJob = $script:Job
             $code = $script:Job.Process.ExitCode; $script:Job.Process.Dispose(); $script:Job = $null
             $ui.Workspace.IsEnabled = $true; $ui.TargetBar.IsEnabled = $true; $ui.Progress.Visibility = 'Collapsed'
-            if ($code -eq 0) { Load-Sd; Complete-GloamOrganizerJob $finishedJob; $ui.Status.Text = 'Complete. You can safely remove the SD card after Windows finishes writing.' }
-            elseif ($code -eq 2) { Load-Sd; $ui.Status.Text = 'Completed with failures. See the activity log for installed, preserved and failed apps.' }
+            if ($code -eq 0) { Load-Sd; Complete-GloamOrganizerJob $finishedJob; Complete-GloamArtworkJob $finishedJob; $ui.Status.Text = 'Complete. You can safely remove the SD card after Windows finishes writing.' }
+            elseif ($code -eq 2) { Load-Sd; Complete-GloamArtworkJob $finishedJob; $ui.Status.Text = 'Completed with failures. See the activity log for installed, preserved and failed apps.' }
             else { Reset-GloamOrganizerPreview; Load-GloamOrganizerJournals; $ui.Status.Text = 'Operation failed. See the activity log; existing backups were kept.' }
             if ($SmokeTest -and $SmokeAction) {
                 if ($SmokeDirtySettings -and (-not $script:SettingsDirty -or $ui.SettingMusicVolume.Value -ne 33)) { throw 'Pending settings were lost after a background check.' }
@@ -163,7 +165,7 @@ $timer.Add_Tick({
 $timer.Start()
 $window.Add_Closing({ param($sender,$eventArgs) if ($null -ne $script:Job) { $eventArgs.Cancel = $true; $ui.Status.Text = 'Wait for the SD operation to finish before closing.' } })
 $window.Add_Closed({ $timer.Stop() })
-foreach ($name in @('Setup','Addons','Library','Organizer','Settings','Themes','Maintenance')) {
+foreach ($name in @('Setup','Addons','Library','Organizer','Artwork','Settings','Themes','Maintenance')) {
     $ui['Nav' + $name].Tag = $name
     $ui['Nav' + $name].Add_Click({ param($sender,$eventArgs) Show-Page ([string]$sender.Tag) })
 }
@@ -241,6 +243,7 @@ $ui.ImportTheme.Add_Click({ Invoke-UiAction {
 } })
 . (Join-Path $PSScriptRoot 'gloam-setup-settings-ui.ps1')
 . (Join-Path $PSScriptRoot 'gloam-setup-organizer-ui.ps1')
+. (Join-Path $PSScriptRoot 'gloam-setup-artwork-ui.ps1')
 if (-not (Test-Path -LiteralPath $Manifest)) { throw 'Keep Gloam Setup beside downloads.json and the shared installer scripts.' }
 $catalog = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json
 $apps = if ($catalog.PSObject.Properties.Name -contains 'updates') { $catalog.updates } else { $catalog.applications }
@@ -296,7 +299,7 @@ if ($SmokeTest) {
         else { $window.Close() }
     })
     $window.Add_ContentRendered({
-        foreach ($page in @('Addons','Library','Organizer','Settings','Themes','Maintenance','Setup')) { $ui['Nav' + $page].RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent)) }
+        foreach ($page in @('Addons','Library','Organizer','Artwork','Settings','Themes','Maintenance','Setup')) { $ui['Nav' + $page].RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent)) }
         Show-Page $ScreenshotPage
         $script:SmokeTimer.Start()
     })

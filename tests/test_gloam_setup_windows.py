@@ -35,7 +35,8 @@ class GloamSetupTests(unittest.TestCase):
         self.sd.mkdir()
         self.installer = self.root / 'installer'
         self.installer.mkdir()
-        for original, output in [('gloam_setup_core.ps1', 'gloam-setup-core.ps1'),
+        for original, output in [('gloam_setup_artwork.ps1','gloam-setup-artwork.ps1'),
+                                 ('gloam_setup_artwork_ui.ps1','gloam-setup-artwork-ui.ps1'),('gloam_setup_core.ps1', 'gloam-setup-core.ps1'),
                                  ('gloam_setup_organizer.ps1', 'gloam-setup-organizer.ps1'),
                                  ('gloam_setup_organizer_ui.ps1', 'gloam-setup-organizer-ui.ps1'),
                                  ('gloam_setup_settings.ps1', 'gloam-setup-settings.ps1'),
@@ -54,6 +55,7 @@ class GloamSetupTests(unittest.TestCase):
         self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-settings.ps1')) + '; . ' + literal(win(self.installer / 'gloam-setup-configuration.ps1')) + '; '
 
         self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-organizer.ps1')) + '; '
+        self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-artwork.ps1')) + '; '
 
     def run_ps(self, code, success=True):
         import base64
@@ -119,6 +121,117 @@ $app.bios_mode='none'
 if ((Get-GloamAddonStatus $app $root).BiosStatus -ne 'Not needed') { throw 'No BIOS status' }
 if ((Get-GloamAddonStatus $app '').Installation -ne 'Not checked') { throw 'No card status' }
 """)
+
+    def artwork_png(self):
+        import struct, zlib
+        def chunk(kind, data):
+            return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
+        return (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', 2, 2, 8, 6, 0, 0, 0))
+                + chunk(b'IDAT', zlib.compress((b'\0' + b'\x90\x40\xff\xff' * 2) * 2)) + chunk(b'IEND', b''))
+
+    def test_artwork_import_preserves_originals_and_application(self):
+        folder = self.sd / 'media/books'
+        folder.mkdir(parents=True)
+        (folder / 'Example.md').write_text('Authored book fixture')
+        image = self.root / 'sample.png'
+        image.write_bytes(self.artwork_png())
+        self.run_ps("$source=" + literal(win(image)) + r"""
+$content='media/books/Example.md'
+$rows=@(Get-GloamArtworkLibrary $root 'media/books' $false)
+if ($rows.Count -ne 1 -or $rows[0].Status -ne 'Missing') { throw 'Scan status' }
+$record=Read-GloamArtworkRecord $root $content
+$record.Values['application']='sd:/apps/reader.nds'
+Save-GloamArtworkRecord $root $record
+$png=ConvertTo-GloamArtworkPng ([IO.File]::ReadAllBytes($source))
+[IO.File]::WriteAllBytes($source,$png)
+$hash=Get-GloamHash $source
+Set-GloamArtwork $root $content $source $hash 'Authored fixture' $false
+$state=Get-GloamArtworkState $root $content
+if ($state.Status -ne 'Present' -or $state.Kind -ne 'Assigned') { throw 'Missing assignment' }
+$original=Get-GloamHash $state.Image
+$refused=$false
+try { Set-GloamArtwork $root $content $source $hash 'Authored fixture' $false } catch { $refused=$true }
+if (-not $refused) { throw 'Replaced existing art without opt-in' }
+Set-GloamArtwork $root $content $source $hash 'Authored fixture' $true
+Clear-GloamArtwork $root $content
+$record=Read-GloamArtworkRecord $root $content
+if ($record.Values['application'] -ne 'sd:/apps/reader.nds' -or $record.Values['cover']) { throw 'Lost per-file application' }
+if ((Get-GloamHash $state.Image) -ne $original) { throw 'Original image changed' }
+if ((Get-GloamArtworkState $root $content).Status -ne 'Missing') { throw 'Assignment not cleared' }
+""")
+        self.assertEqual((folder / 'Example.md').read_text(), 'Authored book fixture')
+
+    def test_artwork_urls_and_embedded_music(self):
+        import struct
+        folder = self.sd / 'media/music'
+        folder.mkdir(parents=True)
+        payload = b'\0image/png\0\x03\0' + self.artwork_png()
+        frame = b'APIC' + struct.pack('>I', len(payload)) + b'\0\0' + payload
+        size = bytes((len(frame) >> shift) & 127 for shift in (21, 14, 7, 0))
+        (folder / 'Example.mp3').write_bytes(b'ID3\x03\0\0' + size + frame + b'authored audio fixture')
+        ds = self.sd / 'roms/DS'
+        ds.mkdir(parents=True)
+        (ds / 'Example.nds').write_bytes(b'AuthoredTest' + b'ASME')
+        self.run_ps(r"""
+$url=Get-GloamArtworkUrl $root 'roms/DS/Example.nds' 'Nintendo DS (GameTDB ID)' '' 'US'
+if ($url -ne 'https://art.gametdb.com/ds/coverS/US/ASME.png') { throw $url }
+$url=Get-GloamArtworkUrl $root 'media/music/Example.mp3' 'Nintendo - Game Boy' 'Example & Test (USA)'
+if ($url -notmatch 'Example%20_%20Test%20') { throw $url }
+$state=Get-GloamArtworkState $root 'media/music/Example.mp3'
+if ($state.Status -ne 'Embedded') { throw $state.Status }
+$png=ConvertTo-GloamArtworkPng (Get-GloamEmbeddedArtwork $state.Image)
+if (-not $png.Length) { throw 'No embedded image' }
+$refused=$false
+try { Get-GloamArtworkDownload 'file:///C:/private.png' } catch { $refused=$true }
+if (-not $refused) { throw 'Accepted non-HTTPS URL' }
+""")
+
+    def test_artwork_rejects_mismatched_record_and_invalid_image(self):
+        (self.sd / 'roms').mkdir()
+        (self.sd / 'roms/demo.nds').write_bytes(b'Authored fixture')
+        self.run_ps(r"""
+$record=Read-GloamArtworkRecord $root 'roms/demo.nds'
+$record.Values['content']='sd:/roms/different.nds'
+Save-GloamArtworkRecord $root $record
+$refused=$false
+try { Clear-GloamArtwork $root 'roms/demo.nds' } catch { $refused=$true }
+if (-not $refused) { throw 'Overwrote mismatched identity' }
+$refused=$false
+try { ConvertTo-GloamArtworkPng ([Text.Encoding]::UTF8.GetBytes('<html>not an image</html>')) } catch { $refused=$true }
+if (-not $refused) { throw 'Accepted HTML as image' }
+$rows=@(Get-GloamArtworkLibrary $root 'roms' $false)
+if ($rows[0].Status -ne 'Check record') { throw 'Invalid record was hidden' }
+""")
+
+    def test_artwork_worker_continues_after_bad_preview(self):
+        folder = self.sd / 'roms/NES'
+        folder.mkdir(parents=True)
+        for name in ('First.nes', 'Second.nes'):
+            (folder / name).write_bytes(b'authored fixture')
+        image = self.root / 'preview.png'
+        image.write_bytes(self.artwork_png())
+        rows = []
+        for name in ('First.nes', 'Second.nes'):
+            rows.append(dict(Content='roms/NES/' + name, Candidate=win(image),
+                             CandidateHash='0'*64 if name.startswith('First') else hashlib.sha256(image.read_bytes()).hexdigest(),
+                             Source='Authored fixture', Result='', Status='Missing', Kind='', Image='', Selected=True))
+        request = self.root / 'request.json'
+        request.write_text(json.dumps(dict(Action='ArtworkApply', Target=win(self.sd),
+                                          ReleaseDirectory=win(self.root), Offline=True,
+                                          Options=dict(Items=rows, Replace=False))))
+        self.run_ps('& ' + literal(win(self.installer / 'gloam-setup-worker.ps1')) + ' -Request ' + literal(win(request)), success=False)
+        results = json.loads((self.root / 'artwork-results.json').read_text(encoding='utf-8-sig'))
+        self.assertIn('preview changed', results[0]['Result'])
+        self.assertEqual(results[1]['Result'], 'Applied')
+        self.assertEqual((folder / 'First.nes').read_bytes(), b'authored fixture')
+
+    def test_gui_artwork_scan_uses_selected_card(self):
+        (self.sd / 'roms').mkdir()
+        (self.sd / 'roms/Example.nds').write_bytes(b'authored fixture')
+        output = self.run_ps('& ' + literal(win(self.installer / 'gloam-setup.ps1'))
+                             + ' -Target $root -Offline -SmokeTest -SmokeAction ArtworkScan -ScreenshotPage Artwork')
+        self.assertIn('GUI worker exit: 0', output)
+        self.assertFalse((self.sd / '_nds/dsi-frontend/items').exists())
 
     def archive(self, name, members):
         path = self.root / name

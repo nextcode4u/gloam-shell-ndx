@@ -139,6 +139,7 @@
         <Button x:Name="NavSetup" Content="Setup" HorizontalContentAlignment="Left"/>
         <Button x:Name="NavAddons" Content="Add-ons" HorizontalContentAlignment="Left"/>
         <Button x:Name="NavLibrary" Content="Library" HorizontalContentAlignment="Left"/>
+        <Button x:Name="NavArtwork" Content="Artwork" HorizontalContentAlignment="Left" Padding="9,9"/>
         <Button x:Name="NavOrganizer" Content="ROM organizer" HorizontalContentAlignment="Left" Padding="9,9"/>
         <Button x:Name="NavSettings" Content="Settings" HorizontalContentAlignment="Left"/>
         <Button x:Name="NavThemes" Content="Themes" HorizontalContentAlignment="Left"/>
@@ -308,6 +309,72 @@
             <Button x:Name="SaveTab" Content="Save folder and tab" HorizontalAlignment="Left" Background="#6B548E"/>
           </StackPanel>
         </ScrollViewer>
+
+        <Grid x:Name="PageArtwork" Visibility="Collapsed">
+          <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+          <StackPanel>
+            <TextBlock Text="Artwork" Style="{StaticResource Heading}"/>
+            <TextBlock Text="Scan games, music, books or folders. Import or download a preview, then apply the covers you choose." Style="{StaticResource Muted}"/>
+            <DockPanel>
+              <Button x:Name="ArtworkScan" Content="Scan folder" DockPanel.Dock="Right"/>
+              <Button x:Name="PickArtworkFolder" Content="Choose folder..." DockPanel.Dock="Right"/>
+              <CheckBox x:Name="ArtworkRecursive" Content="Subfolders" DockPanel.Dock="Right"/>
+              <TextBox x:Name="ArtworkFolder" Text="roms"/>
+            </DockPanel>
+            <WrapPanel>
+              <Button x:Name="ArtworkMissing" Content="Select missing"/>
+              <Button x:Name="ArtworkClearChecks" Content="Clear selection"/>
+              <Button x:Name="ArtworkFetch" Content="Download previews"/>
+              <Button x:Name="ArtworkImport" Content="Import image..."/>
+              <Button x:Name="ArtworkRemove" Content="Clear assignment" ToolTip="Restore automatic artwork lookup. Original images, sidecars and embedded art are not deleted."/>
+            </WrapPanel>
+          </StackPanel>
+          <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="290"/></Grid.ColumnDefinitions>
+            <DataGrid x:Name="ArtworkList" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" SelectionMode="Single" Background="#17202C" Foreground="#111820" RowBackground="#E6E8EE" AlternatingRowBackground="#D7DCE5" GridLinesVisibility="None" BorderThickness="0" MinHeight="100" Margin="0,0,12,12">
+              <DataGrid.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.GrayTextBrushKey}" Color="#445165"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#544568"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#FFFFFF"/>
+              </DataGrid.Resources>
+              <DataGrid.ColumnHeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#28313F"/><Setter Property="Foreground" Value="#E7E9F0"/><Setter Property="Padding" Value="8,5"/></Style></DataGrid.ColumnHeaderStyle>
+              <DataGrid.Columns>
+                <DataGridCheckBoxColumn Header="Use" Binding="{Binding Selected, UpdateSourceTrigger=PropertyChanged}" Width="42"/>
+                <DataGridTextColumn Header="File / folder" Binding="{Binding Content}" Width="*" MinWidth="120" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Cover" Binding="{Binding Status}" Width="100" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="150" IsReadOnly="True"/>
+              </DataGrid.Columns>
+              <DataGrid.RowStyle><Style TargetType="DataGridRow"><Setter Property="ToolTip" Value="{Binding Result}"/></Style></DataGrid.RowStyle>
+            </DataGrid>
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,12">
+              <StackPanel>
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                  <StackPanel><TextBlock Text="Current"/><Image x:Name="ArtworkCurrent" Height="80" Stretch="Uniform" Margin="0,5,8,10"/></StackPanel>
+                  <StackPanel Grid.Column="1"><TextBlock Text="Preview"/><Image x:Name="ArtworkCandidate" Height="80" Stretch="Uniform" Margin="0,5,8,10"/></StackPanel>
+                </Grid>
+                <Expander Header="Download options" Foreground="#E7E9F0"><StackPanel>
+                <TextBlock Text="Download system"/>
+                <ComboBox x:Name="ArtworkSystem"/>
+                <TextBlock Text="DS cover language"/>
+                <ComboBox x:Name="ArtworkRegion"/>
+                <TextBlock Text="Exact title (single selection)"/>
+                <TextBox x:Name="ArtworkMatch" ToolTip="Libretro filename including region, e.g. Super Mario World (USA). GameTDB uses the DS header ID instead."/>
+                <TextBlock Text="Or direct HTTPS image URL"/>
+                <TextBox x:Name="ArtworkUrl" ToolTip="One checked item; leave blank to use the selected provider."/>
+                </StackPanel></Expander>
+                <TextBlock x:Name="ArtworkInfo" TextWrapping="Wrap" Foreground="#ADB8CA"/>
+                <TextBlock Text="Sources: GameTDB / Libretro thumbnails. Downloads send title IDs or names, never ROM contents. Name matches need review." TextWrapping="Wrap" Foreground="#ADB8CA" Margin="0,12,0,8"/>
+              </StackPanel>
+            </ScrollViewer>
+          </Grid>
+          <StackPanel Grid.Row="2">
+            <TextBlock x:Name="ArtworkSummary" TextWrapping="Wrap" Foreground="#ADB8CA"/>
+            <WrapPanel>
+              <Button x:Name="ArtworkApply" Content="Apply checked previews" Background="#6B548E"/>
+              <CheckBox x:Name="ArtworkReplace" Content="Replace existing artwork" ToolTip="Overrides the item's current cover assignment; originals are kept. Existing records are backed up."/>
+            </WrapPanel>
+          </StackPanel>
+        </Grid>
 
         <Grid x:Name="PageOrganizer" Visibility="Collapsed">
           <Grid.RowDefinitions>

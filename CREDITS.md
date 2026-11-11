@@ -68,3 +68,11 @@ Lordus/RocketRobz/xonn83 (jEnesisDS Plus), Chishm and DS-Homebrew contributors
 PicoDriveTWL credits Ryan FB, RocketRobz, xonn83 and its core authors.
 These binaries are not bundled; the shared installer links directly to their
 pinned downloads. See [the download-only scope](docs/guides/DOWNLOAD_ONLY_ADDONS.md).
+
+### Optional cover downloads
+
+Gloam Setup retrieves DS covers from [GameTDB](https://www.gametdb.com/) and other
+supported game box art from [Libretro thumbnails](https://github.com/libretro-thumbnails/libretro-thumbnails).
+Thanks to their contributors and the original artists, developers and publishers.
+Artwork is fetched directly at the user's request; it is not bundled with Gloam
+or covered by Gloam's source-code license. The manager is an original implementation.

@@ -660,6 +660,8 @@
     "tools/download_addons.py",
     "tools/gloam_setup.ps1",
     "tools/gloam_setup.xaml",
+    "tools/gloam_setup_artwork.ps1",
+    "tools/gloam_setup_artwork_ui.ps1",
     "tools/gloam_setup_configuration.ps1",
     "tools/gloam_setup_core.ps1",
     "tools/gloam_setup_organizer.ps1",
