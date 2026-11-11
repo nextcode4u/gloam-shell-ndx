@@ -23,7 +23,7 @@ ROOT_RECORDS = {
     "state.ini",
     "tabs.ini",
     "dashboard.ini",
-    "recent.ini", "language.ini",
+    "recent.ini", "language.ini", "collections.ini",
     "appearance-1.ini",
     "appearance-2.ini",
     "appearance-3.ini",

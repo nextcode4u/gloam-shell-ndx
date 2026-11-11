@@ -44,9 +44,10 @@ static void put_number(unsigned char *p, uint32_t value)
 }
 static bool allowed(const char *name)
 {
-    static const char *root_records[] = {"state.ini",        "tabs.ini",        "dashboard.ini",
-                                         "recent.ini",       "language.ini",    "appearance-1.ini",
-                                         "appearance-2.ini", "appearance-3.ini"};
+    static const char *root_records[] = {
+        "state.ini",        "tabs.ini",         "dashboard.ini",
+        "recent.ini",       "language.ini",     "collections.ini",
+        "appearance-1.ini", "appearance-2.ini", "appearance-3.ini"};
     for (unsigned i = 0; i < sizeof root_records / sizeof *root_records; i++)
         if (!strcmp(name, root_records[i]))
             return true;

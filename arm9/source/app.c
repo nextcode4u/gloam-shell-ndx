@@ -7,6 +7,7 @@
 #include "audio.h"
 #include "browser.h"
 #include "cheats.h"
+#include "collections.h"
 #include "configuration.h"
 #include "configuration_reset.h"
 #include "dashboard.h"
@@ -89,6 +90,7 @@ void app_init_mode(App *app, const char *root, bool storage, bool dsi, bool reco
     }
     dashboard_load(app);
     app->recovery_mode = recovery;
+    collections_load(app);
     if (recovery) {
         app->recovery_preferences.accent_index = app->accent_index;
         app->recovery_preferences.icon_size = app->icon_size;
@@ -140,6 +142,7 @@ void app_init(App *app, const char *root, bool storage, bool dsi)
 
 void app_category(App *app, int c)
 {
+    app->collection_open = -1;
     app->tab_text_started_frame = app->frame_count;
     app->rail_focus = false;
     app->settings.open = false;
@@ -273,9 +276,10 @@ void app_panel(App *app, Panel p)
         app->action_enabled[12] = app->truncated && !app->scan_directory;
         app->action_enabled[13] = app->category != CATEGORY_HOME &&
                                   app->locations[app->category].batch && !app->scan_directory;
-        app->action_enabled[10] = entry && entry->kind == ITEM_MISSING && app->storage_ready;
-        app->action_enabled[11] =
-            entry && app->category == CATEGORY_HOME && *entry->path && app->storage_ready;
+        app->action_enabled[10] =
+            entry && entry->kind == ITEM_MISSING && app->storage_ready && app->collection_open < 0;
+        app->action_enabled[11] = entry && app->category == CATEGORY_HOME && *entry->path &&
+                                  app->storage_ready && app->collection_open < 0;
     }
     app->panel = p;
     app->panel_selection = 0;
@@ -323,10 +327,25 @@ void app_open(App *app)
         app->system_title_requested = 5 + (int)index;
         return;
     }
+    if (entry->kind == ITEM_MISSING && app->collection_open >= 0) {
+        app_show_message(
+            app, "Collection target missing. Update its path in the desktop Library editor.");
+        return;
+    }
     if (entry->kind == ITEM_MISSING) {
         app->panel = PANEL_NONE;
         if (!picker_open(app, PICKER_REPAIR))
             app_show_message(app, "Could not open Locate. Check SD access and available memory.");
+        return;
+    }
+    if (entry->kind == ITEM_CATEGORY && entry->target < 0) {
+        int group = -entry->target - 1;
+        if (group >= app->collections.count)
+            return;
+        app->collection_home_selection = app->locations[CATEGORY_HOME].selected;
+        app->collection_open = group;
+        app->locations[CATEGORY_HOME].selected = app->locations[CATEGORY_HOME].scroll = 0;
+        app_scan(app);
         return;
     }
     if (entry->kind == ITEM_CATEGORY) {
@@ -336,8 +355,10 @@ void app_open(App *app)
     if (entry->kind == ITEM_DIRECTORY) {
         char path[PATH_CAP];
         path_copy(path, entry->path, sizeof path);
-        if (app->category == CATEGORY_HOME)
+        if (app->category == CATEGORY_HOME) {
             app->category = CATEGORY_FILES;
+            app->collection_open = -1;
+        }
         if (!path_is_within_root(path, tabs_browse_root(app, app->category))) {
             app_show_message(app, "Folder outside this tab's root. Browse it through Files.");
             return;
@@ -426,8 +447,14 @@ void app_back(App *app)
         app_panel_close(app);
         return;
     }
-    if (app->category == CATEGORY_HOME)
+    if (app->category == CATEGORY_HOME) {
+        if (app->collection_open >= 0) {
+            app->collection_open = -1;
+            app->locations[CATEGORY_HOME].selected = app->collection_home_selection;
+            app_scan(app);
+        }
         return;
+    }
     Location *location = &app->locations[app->category];
     if (app->category == CATEGORY_SYSTEM && app->installed_open) {
         installed_catalog_cancel(&app->installed_catalog);

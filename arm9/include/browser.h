@@ -12,4 +12,5 @@ void browser_restore_selection(App *app, const char *path);
 void browser_display_name(const App *app, const Entry *entry, char output[256]);
 const Entry *app_selected(const App *app);
 const char *entry_type(const Entry *entry);
+void browser_add_entry(App *app, const char *name, const char *path, ItemKind kind, int target);
 #endif

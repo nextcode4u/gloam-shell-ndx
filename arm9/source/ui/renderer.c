@@ -366,7 +366,9 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
     draw_top_screen(app, top, colors, clock);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_text_scrolling(bottom, 10, 7,
-                        app->category == CATEGORY_SYSTEM && app->installed_open
+                        app->category == CATEGORY_HOME && app->collection_open >= 0
+                            ? app->collections.groups[app->collection_open].label
+                        : app->category == CATEGORY_SYSTEM && app->installed_open
                             ? ui_text(&app->language, UI_INSTALLED_TITLES)
                             : tabs_label(app, app->category),
                         colors.text, 161, app->frame_count - app->tab_text_started_frame,

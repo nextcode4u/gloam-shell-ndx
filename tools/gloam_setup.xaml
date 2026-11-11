@@ -307,6 +307,20 @@
               <TextBox x:Name="TabFolder" Text="roms/New System" ToolTip="Type an SD-relative path or choose a folder on the selected SD card."/>
             </DockPanel>
             <Button x:Name="SaveTab" Content="Save folder and tab" HorizontalAlignment="Left" Background="#6B548E"/>
+            <Separator Margin="0,15,0,18" Background="#354052"/>
+            <TextBlock Text="Named Home collections" FontSize="18" FontWeight="SemiBold"/>
+            <TextBlock Text="Group shortcuts without moving content. Up to eight collections share 32 distinct targets. They appear with Pinned items on Home." Style="{StaticResource Muted}"/>
+            <ComboBox x:Name="Collections" DisplayMemberPath="Label"/>
+            <TextBlock Text="Collection ID (optional for new groups) / label"/>
+            <TextBox x:Name="CollectionId"/>
+            <TextBox x:Name="CollectionLabel"/>
+            <TextBlock Text="Targets on SD (one path per line)"/>
+            <TextBox x:Name="CollectionPaths" AcceptsReturn="True" Height="100" VerticalScrollBarVisibility="Auto"/>
+            <WrapPanel>
+              <Button x:Name="AddCollectionFiles" Content="Choose files..."/>
+              <Button x:Name="SaveCollection" Content="Save collection" Background="#6B548E"/>
+              <Button x:Name="RemoveCollection" Content="Remove selected collection" ToolTip="Removes only this group, never its games or saves."/>
+            </WrapPanel>
           </StackPanel>
         </ScrollViewer>
 

@@ -505,3 +505,46 @@ function Test-GloamTheme([string]$Source) {
     }
     return [pscustomobject]@{Valid=($errors.Count -eq 0);Errors=$errors.ToArray();Warnings=$warnings.ToArray();Icons=$icons.ToArray();Source=$root}
 }
+
+function Get-GloamCollections([string]$Root) {
+    $data=Read-GloamIni (Get-GloamPath $Root '_nds/dsi-frontend/collections.ini')
+    foreach ($key in $data.Keys) { if ($key -like 'collection.*') {
+        $paths=@($data[$key].Keys | Where-Object { $_ -match '^item[0-9]+$' } | Sort-Object { [int]$_.Substring(4) } | ForEach-Object { $data[$key][$_] })
+        [pscustomobject]@{Id=$key.Substring(11);Label=$data[$key]['label'];Paths=($paths -join "`r`n")}
+    } }
+}
+function Save-GloamCollection([string]$Root,[string]$Id,[string]$Label,[string]$Paths) {
+    $generatedId=-not $Id
+    if (-not $Id -and $Label) { $Id=($Label.ToLowerInvariant() -replace '[^a-z0-9]+','-').Trim('-'); if (-not $Id) { $Id='collection' }; if ($Id.Length -gt 31) { $Id=$Id.Substring(0,31) } }
+    if ($Id -cnotmatch '^[a-z0-9_-]{1,31}$' -or -not $Label -or [Text.Encoding]::UTF8.GetByteCount($Label) -ge 64 -or $Label -match '[\x00-\x1f]') { throw 'Use a lowercase ID (31 characters maximum) and a short collection label.' }
+    $file='_nds/dsi-frontend/collections.ini'; $data=Read-GloamIni (Get-GloamPath $Root $file)
+    if (-not $data.Contains('collections')) { $data['collections']=[ordered]@{version='1'} }
+    if ($data['collections']['version'] -ne '1') { throw 'Unsupported collections version.' }
+    $entries=[ordered]@{label=$Label}; $seen=@{}; $index=0
+    foreach ($line in ($Paths -split "`r?`n")) {
+        $value=$line.Trim(); if (-not $value) { continue }
+        if ($value -notin @('system:settings','system:camera','system:sound','system:pictochat','system:download-play','system:menu','system:slot1')) {
+            $relative=ConvertTo-GloamRelative $Root $value; Get-GloamPath $Root $relative | Out-Null; $value='sd:/'+$relative
+        }
+        if ([Text.Encoding]::UTF8.GetByteCount($value) -ge 768) { throw 'Collection path is too long.' }
+        if ($seen.ContainsKey($value)) { continue }; $seen[$value]=$true
+        if ($index -ge 32) { throw 'A collection supports at most 32 items.' }
+        $entries['item'+$index]=$value; $index++
+    }
+    if ($generatedId -and $data.Contains('collection.'+$Id)) { throw 'That collection already exists. Select it to edit, or enter another ID.' }
+    $data['collection.'+$Id]=$entries
+    $groups=@($data.Keys | Where-Object { $_ -like 'collection.*' })
+    if ($groups.Count -gt 8) { throw 'At most eight named collections are supported.' }
+    $all=@{}
+    foreach ($key in $groups) { foreach ($item in $data[$key].Keys) { if ($item -match '^item[0-9]+$') { $all[$data[$key][$item]]=$true } } }
+    if ($all.Count -gt 32) { throw 'Collections share a pool of at most 32 distinct targets.' }
+    $bytes=ConvertTo-GloamIni $data
+    Write-GloamFile $Root $file $bytes $true | Out-Null
+}
+function Remove-GloamCollection([string]$Root,[string]$Id) {
+    if ($Id -cnotmatch '^[a-z0-9_-]{1,31}$') { throw 'Choose an existing collection.' }
+    $file='_nds/dsi-frontend/collections.ini'; $data=Read-GloamIni (Get-GloamPath $Root $file)
+    if (-not $data.Contains('collection.'+$Id)) { throw 'Collection no longer exists. Reload the SD folder.' }
+    $data.Remove('collection.'+$Id)
+    Write-GloamFile $Root $file (ConvertTo-GloamIni $data) $true | Out-Null
+}

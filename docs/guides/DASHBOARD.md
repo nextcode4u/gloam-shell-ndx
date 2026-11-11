@@ -33,7 +33,7 @@ backup if the current file is missing or invalid. Paths are normalized against
 the mounted SD root and foreign devices/parent traversal are rejected.
 
 This is the first configurable dashboard. Arbitrary custom sections, richer
-widgets, separate pin collections and playtime tracking are not implemented.
+widgets and playtime tracking are not implemented. Named shortcut collections are described below.
 
 System destinations can also be pinned from the System tab. Their stable
 `system:` identities resolve Settings, Camera, Sound, PictoChat, Download Play,
@@ -45,3 +45,36 @@ Auto-launch recent is separately configured under Browser & Home: Off (default),
 3, 5 or 10 seconds. Any input cancels the countdown; early SELECT recovery and
 a disabled Recent section bypass it. A failed launch returns to browsing without
 restarting the countdown. Configuration reload also bypasses auto-launch.
+
+## Named collections
+
+Use the desktop tool's **Library → Named Home collections** to create, edit or
+remove a group and pick files already on the selected SD card. Targets can span
+system folders; nothing is moved or copied. Collections appear in Home's Pinned
+items section when it is visible. A opens a group; B returns to Home and restores
+the selected group. Switching tabs leaves the group. The normal Favorites list
+is independent. Collection rows are separate from the visible-item limit on
+individual Favorites.
+
+Up to eight groups share 32 distinct target paths (about 25 KiB of bounded App
+state); a target can appear in several groups without duplicating its path.
+Missing targets remain visible; repair their paths in the desktop editor.
+Removing a group does not remove its files, artwork, Favorites or saves.
+Restart Gloam after editing. Recovery bypasses collections.
+
+`/_nds/dsi-frontend/collections.ini` example:
+
+```ini
+[collections]
+version=1
+[collection.evening]
+label=Evening games
+item0=sd:/roms/Nintendo DS/Example.nds
+item1=system:settings
+```
+
+IDs use up to 31 letters/digits/underscores/hyphens; labels use up to 63 UTF-8
+bytes. Item keys are `item0`–`item31`; paths must remain on the SD card or use a
+known `system:` destination. Files are bounded to 64 KiB. Invalid configurations
+are ignored as a whole, leaving ordinary Home links and Favorites available.
+Configuration import/export includes collections; reset archives them.

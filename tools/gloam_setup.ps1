@@ -92,6 +92,8 @@ function Load-Sd {
         if ($key.StartsWith('tab.')) { $tabs += [pscustomobject]@{ Id = $key.Substring(4); Label = $data[$key]['label']; Folder = $data[$key]['path'] } }
     }
     $ui.Tabs.ItemsSource = $tabs; $ui.Tabs.SelectedIndex = 0
+    $ui.Collections.ItemsSource=@([pscustomobject]@{Id='';Label='+ New collection';Paths=''})+@(Get-GloamCollections $script:Root)
+    $ui.Collections.SelectedIndex=0
     foreach ($pair in @(@('games','GamesRoot','roms'),@('apps','AppsRoot','apps'),@('media','MediaRoot','media'))) {
         $ui[$pair[1]].Text = if ($data.Contains('roots') -and $data['roots'][$pair[0]]) { $data['roots'][$pair[0]] } else { $pair[2] }
     }
@@ -248,6 +250,22 @@ $ui.CopyContent.Add_Click({ Invoke-UiAction {
 } })
 $ui.SaveProfile.Add_Click({ Invoke-UiAction { Save-GloamProfile (Get-SelectedRoot) $ui.ProfileId.Text $ui.ProfileName.Text $ui.Extensions.Text $ui.Application.Text $ui.ContentFolder.Text ([bool]$ui.UseBootstrap.IsChecked) ([bool]$ui.UseHbargv.IsChecked) $ui.DsApplication.Text; Load-Sd; Write-Activity 'File handler saved. Restart Gloam to reload it.' } })
 $ui.SaveTab.Add_Click({ Invoke-UiAction { Save-GloamTab (Get-SelectedRoot) $ui.TabId.Text $ui.TabLabel.Text $ui.TabFolder.Text; Load-Sd; Write-Activity 'Folder tab saved. Restart Gloam to reload it.' } })
+$ui.Collections.Add_SelectionChanged({
+    $selected=$ui.Collections.SelectedItem
+    if ($selected) { $ui.CollectionId.Text=$selected.Id; $ui.CollectionLabel.Text=if ($selected.Id) {$selected.Label} else {''}; $ui.CollectionPaths.Text=$selected.Paths }
+})
+$ui.AddCollectionFiles.Add_Click({ Invoke-UiAction {
+    $root=Get-SelectedRoot; $dialog=[Windows.Forms.OpenFileDialog]::new(); $dialog.Multiselect=$true; $dialog.InitialDirectory=$root
+    try { if ($dialog.ShowDialog() -eq 'OK') { foreach ($path in $dialog.FileNames) { $ui.CollectionPaths.AppendText("`r`n"+'sd:/'+(ConvertTo-GloamRelative $root $path)) } } } finally { $dialog.Dispose() }
+} })
+$ui.RemoveCollection.Add_Click({ Invoke-UiAction {
+    Remove-GloamCollection (Get-SelectedRoot) ([string]$ui.Collections.SelectedItem.Id)
+    Load-Sd; Write-Activity 'Collection removed; content and saves were kept.'
+} })
+$ui.SaveCollection.Add_Click({ Invoke-UiAction {
+    Save-GloamCollection (Get-SelectedRoot) $ui.CollectionId.Text $ui.CollectionLabel.Text $ui.CollectionPaths.Text
+    Load-Sd; Write-Activity 'Collection saved. Restart Gloam to reload it; content and saves were not moved.'
+} })
 $ui.SaveRoots.Add_Click({ Invoke-UiAction { Save-GloamRoots (Get-SelectedRoot) $ui.GamesRoot.Text $ui.AppsRoot.Text $ui.MediaRoot.Text; Load-Sd; Write-Activity 'Library folders saved.' } })
 function Show-ThemeReport([string]$Source) {
     $report=Test-GloamTheme $Source

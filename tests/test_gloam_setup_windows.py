@@ -904,6 +904,17 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.assertEqual((private / 'state.ini').read_bytes(), original)
         self.assertEqual(save.read_bytes(), b'Authored save fixture')
 
+    def test_named_collections_preserve_content_and_other_groups(self):
+        original = self.sd / 'title.nds'; original.write_bytes(b'authored fixture')
+        self.run_ps("Save-GloamCollection $root evening Evening 'sd:/title.nds'; Save-GloamCollection $root tools Tools 'system:settings'; Save-GloamCollection $root evening Games 'sd:/missing.nds'; $groups=@(Get-GloamCollections $root); if ($groups.Count -ne 2) { throw 'Lost a group' }")
+        path=self.sd/'_nds/dsi-frontend/collections.ini'; before=path.read_bytes()
+        self.assertIn('label=Games', path.read_text(encoding='utf-8-sig'))
+        self.assertIn('system:settings', path.read_text(encoding='utf-8-sig'))
+        self.run_ps("Save-GloamCollection $root unsafe Unsafe '../outside.nds'",success=False)
+        self.assertEqual(path.read_bytes(),before)
+        self.run_ps("Remove-GloamCollection $root tools; if (@(Get-GloamCollections $root).Count -ne 1) { throw 'Remove failed' }")
+        self.assertEqual(original.read_bytes(),b'authored fixture')
+
     def test_theme_inspection_previews_icons_and_blocks_unsafe_import(self):
         source = self.root / 'theme-check'
         shutil.copytree(ROOT / 'sdroot/_nds/dsi-frontend/themes/ember', source)

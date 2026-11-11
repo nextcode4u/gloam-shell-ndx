@@ -3,6 +3,7 @@
 #include "app.h"
 #include "artwork.h"
 #include "associations.h"
+#include "collections.h"
 #include "directory_scan.h"
 #include "entry_sort.h"
 #include "file_types.h"
@@ -96,8 +97,7 @@ void browser_display_name(const App *app, const Entry *entry, char output[256])
     }
 }
 
-static void add_browser_entry(App *app, const char *name, const char *path, ItemKind kind,
-                              int target)
+void browser_add_entry(App *app, const char *name, const char *path, ItemKind kind, int target)
 {
     if (app->entry_count >= ENTRY_CAP) {
         app->truncated = true;
@@ -221,7 +221,9 @@ void app_scan(App *app)
     app->entry_count = 0;
     app->truncated = false;
     app->directory_error = false;
-    if (app->category == CATEGORY_HOME) {
+    if (app->category == CATEGORY_HOME && app->collection_open >= 0) {
+        collections_scan(app);
+    } else if (app->category == CATEGORY_HOME) {
         for (int order = 0; order < DASH_SECTION_COUNT; order++) {
             DashboardSection section = app->dashboard.config.order[order];
             bool visible = app->dashboard.config.enabled[section];
@@ -230,13 +232,20 @@ void app_scan(App *app)
                 static const char *names[] = {"Browse games", "Apps & tools", "Media",
                                               "System applications", "Browse SD card"};
                 for (int i = 0; visible && i < (limit ? limit : 5); i++)
-                    add_browser_entry(app, names[i], "", ITEM_CATEGORY, i + 1);
+                    browser_add_entry(app, names[i], "", ITEM_CATEGORY, i + 1);
             } else if (visible && section == DASH_TABS) {
                 for (int i = CATEGORY_COUNT;
                      i < app->tab_count && (!limit || i - CATEGORY_COUNT < limit); i++)
-                    add_browser_entry(app, tabs_label(app, i), "", ITEM_CATEGORY, i);
+                    browser_add_entry(app, tabs_label(app, i), "", ITEM_CATEGORY, i);
             } else if (app->storage_ready && visible &&
                        (section == DASH_PINS || section == DASH_RECENT)) {
+                if (section == DASH_PINS)
+                    for (int group = 0; group < app->collections.count; group++) {
+                        char label[128];
+                        snprintf(label, sizeof label, "Collection: %s",
+                                 app->collections.groups[group].label);
+                        browser_add_entry(app, label, "", ITEM_CATEGORY, -group - 1);
+                    }
                 int count =
                     section == DASH_PINS ? app->favorite_count : app->dashboard.recent_count;
                 for (int i = 0; i < count && (!limit || i < limit); i++) {
@@ -244,7 +253,7 @@ void app_scan(App *app)
                         section == DASH_PINS ? app->favorites[i] : app->dashboard.recent[i].path;
                     int destination = system_destination(path);
                     if (destination >= 0) {
-                        add_browser_entry(app, system_destination_name(destination), path,
+                        browser_add_entry(app, system_destination_name(destination), path,
                                           ITEM_SYSTEM, destination);
                         continue;
                     }
@@ -257,7 +266,7 @@ void app_scan(App *app)
                              : section == DASH_RECENT ? "Recent: "
                                                       : "",
                              240, name ? name + 1 : path);
-                    add_browser_entry(app, label, path,
+                    browser_add_entry(app, label, path,
                                       missing                   ? ITEM_MISSING
                                       : S_ISDIR(status.st_mode) ? ITEM_DIRECTORY
                                                                 : ITEM_FILE,
@@ -275,7 +284,7 @@ void app_scan(App *app)
                     if (!installed_title_path(&app->installed_catalog, i, path))
                         continue;
                     InstalledTitle *title = &app->installed_catalog.titles[i];
-                    add_browser_entry(app, title->name, path, ITEM_INSTALLED_TITLE, (int)i);
+                    browser_add_entry(app, title->name, path, ITEM_INSTALLED_TITLE, (int)i);
                     app->entries[app->entry_count - 1].size = title->bytes;
                     if (title->title.low == app->installed_selected_id)
                         app->locations[CATEGORY_SYSTEM].selected = (int)i;
@@ -285,9 +294,9 @@ void app_scan(App *app)
             if (!app->system_catalog.attempted)
                 app->system_discovery_requested = true;
             for (int target = 0; target < 7; target++)
-                add_browser_entry(app, system_destination_name(target),
+                browser_add_entry(app, system_destination_name(target),
                                   system_destination_uri(target), ITEM_SYSTEM, target);
-            add_browser_entry(app, "Installed DSiWare", "system:installed", ITEM_INSTALLED_LIBRARY,
+            browser_add_entry(app, "Installed DSiWare", "system:installed", ITEM_INSTALLED_LIBRARY,
                               7);
         }
     } else if (app->storage_ready) {

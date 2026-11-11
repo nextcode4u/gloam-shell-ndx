@@ -22,6 +22,19 @@
 #define LAUNCH_ARG_CAP 16
 #define LAUNCH_DATA_CAP 4096
 
+#define COLLECTION_CAP 8
+#define COLLECTION_ITEM_CAP 32
+typedef struct {
+    char id[32], label[64];
+    unsigned char items[COLLECTION_ITEM_CAP], count;
+} NamedCollection;
+typedef struct {
+    NamedCollection groups[COLLECTION_CAP];
+    char paths[COLLECTION_ITEM_CAP][PATH_CAP];
+    int count, item_count;
+    bool invalid;
+} CollectionState;
+
 typedef enum {
     CATEGORY_HOME,
     CATEGORY_GAMES,
@@ -300,6 +313,8 @@ typedef struct {
     bool truncated;
     bool directory_error;
     UiLanguage language;
+    CollectionState collections;
+    int collection_open, collection_home_selection;
     char favorites[FAVORITE_CAP][PATH_CAP];
     int favorite_count;
     Panel panel, panel_parent;
