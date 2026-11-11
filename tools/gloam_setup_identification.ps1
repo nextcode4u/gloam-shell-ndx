@@ -64,13 +64,13 @@ function Update-GloamDat([string]$Cache, [string]$System) {
     }
     throw 'No Libretro No-Intro or TOSEC DAT is available for this system. Import a matching DAT instead.'
 }
-function Find-GloamDatNames([string]$Root, [string]$Content, [string]$System, [string]$Cache) {
+function Find-GloamDatNames([string]$Root, [string]$Content, [string]$System, [string]$Cache, [string]$ArchiveMember="") {
     Initialize-GloamDat
     $folder=Get-GloamDatFolder $Cache $System
     if (-not (Test-Path -LiteralPath $folder -PathType Container)) { return }
     $files=@(Get-ChildItem -LiteralPath $folder -Filter '*.dat' -File | Sort-Object @{Expression={if ($_.Name -eq 'libretro.dat') {0} else {1}}},Name)
     if (-not $files.Count) { return }
-    $fingerprints=[GloamDat]::Identify((Get-GloamPath $Root $Content))
+    $fingerprints=[GloamDat]::Identify((Get-GloamPath $Root $Content),$ArchiveMember)
     foreach ($file in $files) {
         $key=$file.FullName+'|'+$file.Length+'|'+$file.LastWriteTimeUtc.Ticks
         if (-not $script:GloamDatRecords.ContainsKey($key)) {
@@ -94,8 +94,12 @@ function Find-GloamDatNames([string]$Root, [string]$Content, [string]$System, [s
     }
 }
 
-function Get-GloamIdentifiedCover([string]$Root, [string]$Content, [string]$System, [string]$Name, [string]$Region, [bool]$UseDat, [string]$Cache) {
+function Get-GloamIdentifiedCover([string]$Root, [string]$Content, [string]$System, [string]$Name, [string]$Region, [bool]$UseDat, [string]$Cache, [string]$ArchiveMember="", [string]$IdentityChoice="") {
     $system=Resolve-GloamArtworkSystem $Content $System
+    if ($IdentityChoice) {
+        $url=Get-GloamArtworkUrl $Root $Content $system $IdentityChoice $Region
+        return [pscustomobject]@{Bytes=(Get-GloamArtworkDownload $url);Url=$url;Identification='User-selected title (review)';Name=$IdentityChoice}
+    }
     if ($system -eq 'Nintendo DS (GameTDB ID)') {
         try {
             $url=Get-GloamArtworkUrl $Root $Content $system $Name $Region
@@ -114,18 +118,21 @@ function Get-GloamIdentifiedCover([string]$Root, [string]$Content, [string]$Syst
             catch { Write-Host ('DAT download unavailable for '+$system+': '+$_.Exception.Message) }
         }
         try {
-            $matches=@(Find-GloamDatNames $Root $Content $system $Cache)
+            $matches=@(Find-GloamDatNames $Root $Content $system $Cache $ArchiveMember)
             # Prefer stronger matches. CRC-only aliases cannot resolve a collision.
             $strong=@($matches | Where-Object { $_.Method -notlike 'CRC32*' })
             if ($strong.Count) { $matches=$strong }
-            if (-not $strong.Count -and @($matches | ForEach-Object Name | Sort-Object -Unique).Count -gt 1) {
-                $note='Filename match; DAT CRC match ambiguous'; $matches=@()
+            $names=@($matches | ForEach-Object Name | Sort-Object -Unique)
+            if ($names.Count -gt 1) {
+                $error=[InvalidOperationException]::new('Multiple DAT title matches. Select a title in the artwork chooser before downloading.')
+                $error.Data['Choices']=$names
+                throw $error
             }
             foreach ($match in $matches | Select-Object -First 8) {
                 $candidates.Add([pscustomobject]@{ Name=$match.Name; Method=($match.Method+' / '+$match.Source) })
             }
             if (-not $matches.Count -and $note -eq 'Filename match (review)') { $note='Filename match; no DAT identification' }
-        } catch { $note='Filename match; DAT unavailable'; Write-Host $_.Exception.Message }
+        } catch { if ($_.Exception.Data.Contains('Choices')) { throw }; $note='Filename match; DAT unavailable'; Write-Host $_.Exception.Message }
     }
     $candidates.Add([pscustomobject]@{ Name=$Name; Method=$note })
     $seen=@{}; $last='No candidate names.'

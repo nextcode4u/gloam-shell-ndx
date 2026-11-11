@@ -126,7 +126,23 @@ public static class GloamDat
         }
         return result.ToArray();
     }
-    public static GloamFingerprint[] Identify(string path)
+    const string RomExtensions = "|.nds|.dsi|.srl|.nes|.sfc|.smc|.gb|.gbc|.gba|.gen|.md|.sms|.gg|.sg|.pce|.ws|.wsc|.ngp|.ngc|.a26|.a52|.a78|.lnx|.col|.rom|.bin|.dsk|.tap|.tzx|.z80|.int|.min|";
+    static bool RomMember(ZipArchiveEntry entry) {
+        string extension = Path.GetExtension(entry.Name).ToLowerInvariant();
+        return extension.Length > 0 && RomExtensions.Contains("|" + extension + "|");
+    }
+    public static string[] ArchiveMembers(string path) {
+        if (new FileInfo(path).Length > 1024L*1024*1024) throw new InvalidDataException("ZIP exceeds 1 GiB.");
+        using (var file = File.OpenRead(path))
+        using (var archive = new ZipArchive(file, ZipArchiveMode.Read)) {
+            if (archive.Entries.Count > 256) throw new InvalidDataException("ZIP exceeds 256 members.");
+            var names = new List<string>();
+            foreach (var entry in archive.Entries) if (RomMember(entry)) names.Add(entry.FullName);
+            return names.ToArray();
+        }
+    }
+    public static GloamFingerprint[] Identify(string path) { return Identify(path, ""); }
+    public static GloamFingerprint[] Identify(string path, string selectedMember)
     {
         if (!String.Equals(Path.GetExtension(path), ".zip", StringComparison.OrdinalIgnoreCase))
             return FingerprintVariants(() => File.OpenRead(path), new FileInfo(path).Length, path, "Complete file");
@@ -134,12 +150,10 @@ public static class GloamDat
         using (var file = File.OpenRead(path))
         using (var archive = new ZipArchive(file, ZipArchiveMode.Read)) {
             if (archive.Entries.Count > 256) throw new InvalidDataException("ZIP exceeds 256 members.");
-            const string extensions = "|.nds|.dsi|.srl|.nes|.sfc|.smc|.gb|.gbc|.gba|.gen|.md|.sms|.gg|.sg|.pce|.ws|.wsc|.ngp|.ngc|.a26|.a52|.a78|.lnx|.col|.rom|.bin|.dsk|.tap|.tzx|.z80|.int|.min|";
             ZipArchiveEntry member = null;
             foreach (var entry in archive.Entries) {
-                string extension = Path.GetExtension(entry.Name).ToLowerInvariant();
-                if (extension.Length == 0 || !extensions.Contains("|" + extension + "|")) continue;
-                if (member != null) throw new InvalidDataException("ZIP contains multiple ROM candidates; choose an individual ROM for identification.");
+                if (!RomMember(entry) || (!String.IsNullOrEmpty(selectedMember) && entry.FullName != selectedMember)) continue;
+                if (member != null) throw new InvalidDataException("ZIP contains multiple ROM candidates; select a unique member for identification.");
                 member = entry;
             }
             if (member == null) throw new InvalidDataException("ZIP contains no supported ROM member.");

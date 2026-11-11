@@ -320,3 +320,16 @@ layout values and paths escaping the package before writing files; existing
 packs are never overwritten. Missing optional images do not block import.
 This desktop check is not a substitute for Gloam's font, wallpaper/audio decoder
 and colour-contrast checks or viewing the pack on the console.
+
+### Ambiguous artwork identification
+
+When a DAT returns multiple distinct names for a matching ROM, the artwork row
+reports ambiguity instead of downloading the first name. Select that row, choose
+a title in **Ambiguous DAT title**, then download its preview. A user choice is
+labelled as such; it is not promoted to a verified identity.
+
+For ZIPs containing several ROM candidates, **ZIP member** chooses which member
+to hash. No files are extracted or modified. The selected member retains the
+existing size/ratio bounds; duplicate member names are rejected. This does not
+add ZIP launch support to an emulator. Changing either choice discards the old
+prepared preview so it cannot accidentally be applied under the new choice.

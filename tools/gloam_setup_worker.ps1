@@ -51,7 +51,9 @@ try {
                         } else {
                             $useDat=$job.Options.PSObject.Properties.Name -contains 'UseDat' -and $job.Options.UseDat
                             $cache=if ($job.Options.PSObject.Properties.Name -contains 'DatDirectory') { $job.Options.DatDirectory } else { Join-Path $env:LOCALAPPDATA 'Gloam/Setup/databases' }
-                            $match=Get-GloamIdentifiedCover $root $row.Content $job.Options.System $row.MatchName $job.Options.Region $useDat $cache
+                            $member=if ($row.PSObject.Properties.Name -contains 'ArchiveMember') { $row.ArchiveMember } else { '' }
+                            $choice=if ($row.PSObject.Properties.Name -contains 'IdentityChoice') { $row.IdentityChoice } else { '' }
+                            $match=Get-GloamIdentifiedCover $root $row.Content $job.Options.System $row.MatchName $job.Options.Region $useDat $cache $member $choice
                             $url=$match.Url; $bytes=$match.Bytes; $method=$match.Identification; $row.MatchName=$match.Name
                         }
                         $row | Add-Member -NotePropertyName Identification -NotePropertyValue $method -Force
@@ -64,6 +66,7 @@ try {
                         $row.Status=$state.Status; $row.Kind=$state.Kind; $row.Image=$state.Image; $row.Result='Applied'; $row.Selected=$false
                     }
                 } catch {
+                    if ($_.Exception.Data.Contains('Choices')) { $row | Add-Member -NotePropertyName IdentityChoices -NotePropertyValue @($_.Exception.Data['Choices']) -Force }
                     $row.Result=$_.Exception.Message
                     if ($_.Exception -is [OperationCanceledException]) { $cancelled=$true; break }
                     $failed=$true

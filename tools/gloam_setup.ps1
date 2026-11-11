@@ -169,7 +169,10 @@ $timer.Add_Tick({
                 Write-Host ('GUI worker exit: ' + $code); $window.Close()
             }
         }
-    } catch { Write-Activity $_.Exception.Message }
+    } catch {
+        Write-Activity $_.Exception.Message
+        if ($SmokeTest -and $null -eq $script:Job) { Write-Host ("GUI refresh failed: " + $_.Exception.Message + " at " + $_.ScriptStackTrace); $window.Close() }
+    }
 })
 $timer.Start()
 $window.Add_Closing({ param($sender,$eventArgs) if ($null -ne $script:Job) { $eventArgs.Cancel = $true; $ui.Status.Text = 'Wait for the SD operation to finish before closing.' } })

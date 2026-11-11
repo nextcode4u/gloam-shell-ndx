@@ -361,6 +361,10 @@
                 <TextBlock Text="DS cover language"/>
                 <ComboBox x:Name="ArtworkRegion"/>
                 <TextBlock Text="Exact title (single selection)"/>
+                <TextBlock Text="ZIP member (identification only)"/>
+                <ComboBox x:Name="ArtworkArchiveMember"/>
+                <TextBlock Text="Ambiguous DAT title: choose a match"/>
+                <ComboBox x:Name="ArtworkIdentityChoice"/>
                 <TextBox x:Name="ArtworkMatch" ToolTip="Libretro filename including region, e.g. Super Mario World (USA). GameTDB uses the DS header ID instead."/>
                 <TextBlock Text="Or direct HTTPS image URL"/>
                 <TextBox x:Name="ArtworkUrl" ToolTip="One checked item; leave blank to use the selected provider."/>

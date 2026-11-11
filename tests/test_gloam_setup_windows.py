@@ -359,6 +359,10 @@ foreach ($name in @('example.nes','example.smc','single.zip')) {
     if ($variants.Count -ne 2 -or $variants[1].Sha1 -ne $expected) { throw ('Wrong payload digest: '+$name) }
     if ($variants[1].Description -notlike '*excluded*') { throw 'Header variant not labeled' }
 }
+$members=@([GloamDat]::ArchiveMembers((Join-Path $root 'multiple.zip')))
+if ($members.Count -ne 2) { throw 'Missing archive choices' }
+$selected=[GloamDat]::Identify((Join-Path $root 'multiple.zip'),'two.gb')
+if ($selected.Count -ne 1 -or $selected[0].Size -ne 3 -or $selected[0].Description -ne 'ZIP member: two.gb') { throw 'Wrong selected member' }
 foreach ($name in @('multiple.zip','ratio.zip')) {
     $refused=$false
     try { [GloamDat]::Identify((Join-Path $root $name)) | Out-Null } catch { $refused=$true }
@@ -380,6 +384,25 @@ foreach ($path in @($entity,$bad)) {
     try { [GloamDat]::Read($path) | Out-Null } catch { $refused=$true }
     if (-not $refused) { throw 'Accepted invalid DAT' }
 }
+""")
+
+    def test_dat_ambiguous_names_require_explicit_choice(self):
+        folder=self.sd/'roms/Game Boy'; folder.mkdir(parents=True)
+        data=b'Authored ambiguous fixture'; (folder/'Unknown.gb').write_bytes(data)
+        dat=self.root/'aliases.dat'
+        dat.write_text('\n'.join(f'game ( name "{name}" rom ( size {len(data)} sha1 {hashlib.sha1(data).hexdigest()} ) )' for name in ('First title','Second title')))
+        self.run_ps('$dat='+literal(win(dat))+r"""
+$cache=Join-Path $root 'dat-cache'; $folder=Get-GloamDatFolder $cache 'Nintendo - Game Boy'
+[IO.Directory]::CreateDirectory($folder) | Out-Null
+Copy-Item -LiteralPath $dat -Destination (Join-Path $folder 'libretro.dat')
+function Get-GloamArtworkDownload([string]$Url) { throw 'Should not download before choice' }
+$choices=@()
+try { Get-GloamIdentifiedCover $root 'roms/Game Boy/Unknown.gb' 'Automatic by folder' 'Unknown' 'US' $true $cache | Out-Null }
+catch { $choices=@($_.Exception.Data['Choices']) }
+if ($choices.Count -ne 2) { throw 'Ambiguity not returned to chooser' }
+function Get-GloamArtworkDownload([string]$Url) { return ,([byte[]](1,2,3)) }
+$result=Get-GloamIdentifiedCover $root 'roms/Game Boy/Unknown.gb' 'Automatic by folder' 'Unknown' 'US' $true $cache '' 'Second title'
+if ($result.Name -ne 'Second title' -or $result.Identification -notlike 'User-selected*') { throw 'Choice not used' }
 """)
 
     def test_dat_cover_lookup_prefers_hash_name_and_falls_back_without_editing_rom(self):

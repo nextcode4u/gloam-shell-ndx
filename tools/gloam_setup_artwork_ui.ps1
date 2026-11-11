@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 $script:ArtworkRoot = ''
+$script:ArtworkSelectionLoading = $false
 $ui.ArtworkSystem.ItemsSource = @($GloamArtworkSystems.Keys)
 $ui.ArtworkSystem.SelectedIndex = 0
 $ui.ArtworkRegion.ItemsSource = @('US','EN','JA','FR','DE','ES','IT','KO')
@@ -31,6 +32,16 @@ function Show-GloamArtworkSelection {
     $item = $ui.ArtworkList.SelectedItem
     $ui.ArtworkCurrent.Source = $null; $ui.ArtworkCandidate.Source = $null
     if (-not $item) { return }
+    $script:ArtworkSelectionLoading = $true
+    $ui.ArtworkArchiveMember.ItemsSource=@('')
+    if ([IO.Path]::GetExtension($item.Content) -eq '.zip') {
+        try { Initialize-GloamDat; $ui.ArtworkArchiveMember.ItemsSource=@('')+@([GloamDat]::ArchiveMembers((Get-GloamPath (Get-SelectedRoot) $item.Content))) }
+        catch { Write-Activity $_.Exception.Message }
+    }
+    $ui.ArtworkArchiveMember.SelectedItem=$item.ArchiveMember
+    $ui.ArtworkIdentityChoice.ItemsSource=@('')+@($item.IdentityChoices)
+    $ui.ArtworkIdentityChoice.SelectedItem=$item.IdentityChoice
+    $script:ArtworkSelectionLoading = $false
     $ui.ArtworkMatch.Text = $item.MatchName
     $ui.ArtworkInfo.Text = $item.Content + "`n" + $item.Kind + "`n" + $item.Identification + "`n" + $item.Result + "`n" + $item.Source
     try { Show-GloamArtworkImage $ui.ArtworkCurrent $item.Image; Show-GloamArtworkImage $ui.ArtworkCandidate $item.Candidate }
@@ -41,13 +52,13 @@ function Complete-GloamArtworkJob($Job) {
     if ($Job.Action -in @('ArtworkDatImport','ArtworkDatUpdate')) { $ui.ArtworkSummary.Text='DAT metadata is ready on this PC. Download previews to identify checked files; see the activity log for imported record counts.'; return }
     $file = Join-Path $Job.Folder 'artwork-results.json'
     if (-not (Test-Path -LiteralPath $file)) { return }
-    $results = @(Get-Content -LiteralPath $file -Raw -Encoding UTF8 | ConvertFrom-Json)
+    $results = @(Get-Content -LiteralPath $file -Raw -Encoding UTF8 | ConvertFrom-Json | ForEach-Object { $_ })
     if ($Job.Action -eq 'ArtworkScan') { $ui.ArtworkList.ItemsSource = $results }
     else {
         foreach ($result in $results) {
             $item = @($ui.ArtworkList.ItemsSource | Where-Object Content -CEQ $result.Content)
             if ($item.Count -ne 1) { continue }
-            foreach ($field in @('Status','Kind','Image','Candidate','CandidateHash','Source','Result','Selected','Identification','MatchName')) { $item[0].$field = $result.$field }
+            foreach ($field in @('Status','Kind','Image','Candidate','CandidateHash','Source','Result','Selected','Identification','MatchName','IdentityChoices')) { if ($result.PSObject.Properties.Name -contains $field) { $item[0] | Add-Member -NotePropertyName $field -NotePropertyValue $result.$field -Force } }
         }
         $ui.ArtworkList.Items.Refresh()
     }
@@ -55,6 +66,22 @@ function Complete-GloamArtworkJob($Job) {
     if ($ui.ArtworkList.SelectedIndex -lt 0 -and @($ui.ArtworkList.ItemsSource).Count) { $ui.ArtworkList.SelectedIndex = 0 }
     Show-GloamArtworkSelection
 }
+function Clear-GloamArtworkCandidate {
+    $item=$ui.ArtworkList.SelectedItem
+    $item.Candidate=''; $item.CandidateHash=''; $item.Source=''; $item.Identification=''
+    $item.Result='Choice changed; download a new preview before applying.'
+    $ui.ArtworkCandidate.Source=$null; $ui.ArtworkList.Items.Refresh()
+}
+$ui.ArtworkArchiveMember.Add_SelectionChanged({
+    if (-not $script:ArtworkSelectionLoading -and $ui.ArtworkList.SelectedItem -and $null -ne $ui.ArtworkArchiveMember.SelectedItem) {
+        $ui.ArtworkList.SelectedItem.ArchiveMember=[string]$ui.ArtworkArchiveMember.SelectedItem
+        $ui.ArtworkList.SelectedItem.IdentityChoice=''; $ui.ArtworkList.SelectedItem.IdentityChoices=@()
+        $ui.ArtworkIdentityChoice.ItemsSource=@(''); Clear-GloamArtworkCandidate
+    }
+})
+$ui.ArtworkIdentityChoice.Add_SelectionChanged({
+    if (-not $script:ArtworkSelectionLoading -and $ui.ArtworkList.SelectedItem -and $null -ne $ui.ArtworkIdentityChoice.SelectedItem) { $ui.ArtworkList.SelectedItem.IdentityChoice=[string]$ui.ArtworkIdentityChoice.SelectedItem; Clear-GloamArtworkCandidate }
+})
 $ui.ArtworkList.Add_SelectionChanged({ Show-GloamArtworkSelection })
 $ui.PickArtworkFolder.Add_Click({ Invoke-UiAction {
     $root = Get-SelectedRoot; $dialog = [Windows.Forms.FolderBrowserDialog]::new()

@@ -247,6 +247,7 @@ function Get-GloamArtworkLibrary([string]$Root, [string]$Folder, [bool]$Recursiv
             try { $state = Get-GloamArtworkState $Root $content $profiles }
             catch { $state = [pscustomobject]@{ Status='Check record'; Kind=$_.Exception.Message; Image='' } }
             [pscustomobject]@{ Selected=$false; Content=$content; Name=$item.Name; IsFolder=$item.PSIsContainer;
+                ArchiveMember=''; IdentityChoice=''; IdentityChoices=@();
                 MatchName=$(if ($item.PSIsContainer) { $item.Name } else { [IO.Path]::GetFileNameWithoutExtension($item.Name) });
                 Status=$state.Status; Kind=$state.Kind; Image=$state.Image; Candidate=''; CandidateHash=''; Source=''; Identification=''; Result='' }
         }
