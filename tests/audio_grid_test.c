@@ -91,17 +91,19 @@ int main(int argc, char **argv)
     assert(grid_touch_index(&app, 208, 90) == 1);
     assert(grid_touch_index(&app, 128, 154) == -1); /* Caption is not a cover. */
     /* A resolved DS banner must not enlarge the browser icon. */
-    static uint16_t before_cover[62 * 84];
+    static uint16_t before_cover[62 * UI_SHELF_CARD_HEIGHT];
     render_app(&app, top.pixels, bottom.pixels, "12:00");
-    for (int y = 0; y < 84; y++)
-        memcpy(before_cover + y * 62, bottom.pixels + (56 + y) * 256 + 97, 62 * 2);
+    for (int y = 0; y < UI_SHELF_CARD_HEIGHT; y++)
+        memcpy(before_cover + y * 62, bottom.pixels + (layout_shelf_top(&app) + y) * 256 + 97,
+               62 * 2);
     strcpy(app.shelf_paths[0], app.entries[0].path);
     app.shelf_artwork[0].ready = true;
     app.shelf_artwork[0].width = app.shelf_artwork[0].height = 32;
     strcpy(app.shelf_artwork[0].source, "NDS banner");
     render_app(&app, top.pixels, bottom.pixels, "12:00");
-    for (int y = 0; y < 84; y++)
-        assert(!memcmp(before_cover + y * 62, bottom.pixels + (56 + y) * 256 + 97, 62 * 2));
+    for (int y = 0; y < UI_SHELF_CARD_HEIGHT; y++)
+        assert(!memcmp(before_cover + y * 62,
+                       bottom.pixels + (layout_shelf_top(&app) + y) * 256 + 97, 62 * 2));
     assert(layout_list_bottom(&app) == UI_LIST_BOTTOM);
     browser_direction(&app, 0, 1);
     assert(app.locations[1].selected == 3 && app.locations[1].scroll == 2);

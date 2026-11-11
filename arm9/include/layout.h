@@ -16,6 +16,14 @@ static inline int layout_list_top(int category)
     return layout_has_path(category) ? 41 : 25;
 }
 
+#define UI_SHELF_CARD_HEIGHT 72
+#define UI_SHELF_ICON_SIZE 48
+
+static inline int layout_shelf_top(const App *app)
+{
+    return layout_list_top(app->category) + 15;
+}
+
 static inline bool layout_is_grid(const App *app)
 {
     return app->browser_style == BROWSER_GRID || app->browser_style == BROWSER_SHELF;

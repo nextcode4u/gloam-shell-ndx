@@ -299,7 +299,7 @@ neighbor to select it, then tap the selected item to open it. Home and custom
 folder tabs use the same layout. Reduced motion disables the horizontal slide.
 
 Jackets retain their size while artwork resolves. Missing covers and native
-banners use fixed 32-pixel browser icons, including animated banners. Covers
+banners use fixed 48-pixel browser icons, including animated banners. Covers
 retain their aspect ratio inside the jackets. Icon-size, row-padding and grid
 column settings apply to their other layouts.
 

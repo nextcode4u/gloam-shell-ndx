@@ -189,7 +189,11 @@ int main(int argc, char **argv)
                 int cell = location->selected - location->scroll;
                 assert(cell >= 0 && cell < layout_visible_rows(&app));
                 if (style == BROWSER_SHELF) {
-                    assert(grid_touch_index(&app, 128, 90) == location->selected);
+                    int shelf_top = layout_shelf_top(&app);
+                    assert(shelf_top == 40); /* No unused folder-path gap on Home/System. */
+                    assert(grid_touch_index(&app, 128, shelf_top + 10) == location->selected);
+                    assert(grid_touch_index(&app, 128, shelf_top - 1) == -1);
+                    assert(grid_touch_index(&app, 128, shelf_top + UI_SHELF_CARD_HEIGHT + 6) == -1);
                 } else if (layout_is_grid(&app)) {
                     int x = 6 + cell % layout_grid_columns(&app) * layout_grid_cell_width(&app) + 8;
                     int y = layout_list_top(category) +

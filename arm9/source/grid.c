@@ -36,7 +36,8 @@ void browser_direction(App *app, int horizontal, int vertical)
 int grid_touch_index(const App *app, int x, int y)
 {
     if (app->browser_style == BROWSER_SHELF) {
-        if (x < 8 || x >= 248 || y < 54 || y >= 148)
+        int top = layout_shelf_top(app);
+        if (x < 8 || x >= 248 || y < top || y >= top + UI_SHELF_CARD_HEIGHT + 6)
             return -1;
         /* Hit-test the same moving row that is drawn, including partial edges. */
         int shifted = x - 8 - app->shelf_offset_fixed / 256;

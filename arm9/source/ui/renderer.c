@@ -303,7 +303,8 @@ static void draw_shelf(const App *app, uint16_t *pixels, Palette colors)
 {
     const Location *location = &app->locations[app->category];
     int offset = app->shelf_offset_fixed / 256;
-    draw_rectangle(pixels, 10, 140, 236, 2, colors.line);
+    int top = layout_shelf_top(app), base = top + UI_SHELF_CARD_HEIGHT;
+    draw_rectangle(pixels, 10, base, 236, 2, colors.line);
     for (int cell = 0; cell < 3; cell++) {
         int index = location->selected - 1 + cell;
         if (index < 0 || index >= app->entry_count)
@@ -311,20 +312,21 @@ static void draw_shelf(const App *app, uint16_t *pixels, Palette colors)
         int x = 17 + cell * 80 + offset;
         bool selected = index == location->selected;
         const Artwork *art = artwork_shelf_for_entry(app, index);
-        draw_rectangle(pixels, x, 56, 62, 84, colors.surface);
-        draw_rectangle(pixels, x, 56, 2, 84, selected ? colors.accent : colors.line);
-        draw_rectangle(pixels, x + 2, 56, 60, 1, colors.line);
+        draw_rectangle(pixels, x, top, 62, UI_SHELF_CARD_HEIGHT, colors.surface);
+        draw_rectangle(pixels, x, top, 2, UI_SHELF_CARD_HEIGHT,
+                       selected ? colors.accent : colors.line);
+        draw_rectangle(pixels, x + 2, top, 60, 1, colors.line);
         if (app->show_covers && art && art->ready && strcmp(art->source, "NDS banner")) {
             int width = 56, height = art->height * width / art->width;
-            if (height > 76) {
-                height = 76;
+            if (height > UI_SHELF_CARD_HEIGHT - 8) {
+                height = UI_SHELF_CARD_HEIGHT - 8;
                 width = art->width * height / art->height;
             }
             if (width < 1)
                 width = 1;
             if (height < 1)
                 height = 1;
-            int left = x + 4 + (56 - width) / 2, y = 60 + (76 - height) / 2;
+            int left = x + 4 + (56 - width) / 2, y = top + (UI_SHELF_CARD_HEIGHT - height) / 2;
             for (int row = 0; row < height; row++)
                 for (int column = 0; column < width; column++) {
                     uint16_t color = art->pixels[(row * art->height / height) * art->width +
@@ -333,21 +335,22 @@ static void draw_shelf(const App *app, uint16_t *pixels, Palette colors)
                         pixels[(y + row) * 256 + left + column] = color;
                 }
         } else {
-            draw_browser_icon(app, pixels, index, x + 16, 78, 32,
-                              selected ? colors.accent : colors.muted);
+            draw_browser_icon(app, pixels, index, x + (62 - UI_SHELF_ICON_SIZE) / 2,
+                              top + (UI_SHELF_CARD_HEIGHT - UI_SHELF_ICON_SIZE) / 2,
+                              UI_SHELF_ICON_SIZE, selected ? colors.accent : colors.muted);
         }
         if (selected)
-            draw_rectangle(pixels, x, 143, 62, 2, colors.accent);
+            draw_rectangle(pixels, x, base + 3, 62, 2, colors.accent);
     }
     char name[256], position[24];
     snprintf(position, sizeof position, "%d / %d", location->selected + 1, app->entry_count);
-    draw_text(pixels, 12, 42, position, colors.muted, 24);
+    draw_text(pixels, 12, layout_list_top(app->category) + 1, position, colors.muted, 24);
     browser_display_name(app, &app->entries[location->selected], name);
-    draw_text_scrolling(pixels, 12, 151, name, colors.text, 230, app->selection_idle_frames,
+    draw_text_scrolling(pixels, 12, base + 11, name, colors.text, 230, app->selection_idle_frames,
                         !app->reduced_motion);
-    draw_rectangle(pixels, 12, 168, 232, 1, colors.line);
+    draw_rectangle(pixels, 12, base + 32, 232, 1, colors.line);
     int progress = app->entry_count > 1 ? 224 * location->selected / (app->entry_count - 1) : 112;
-    draw_rectangle(pixels, 12 + progress, 167, 8, 3, colors.accent);
+    draw_rectangle(pixels, 12 + progress, base + 31, 8, 3, colors.accent);
 }
 
 static void draw_grid(const App *app, uint16_t *pixels, Palette colors)
