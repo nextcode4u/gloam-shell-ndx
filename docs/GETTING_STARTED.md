@@ -46,12 +46,20 @@ The legacy `dsi-frontend` asset namespace is intentional for compatibility.
 | L / R | Change tab or settings page |
 | START | Frontend settings |
 | SELECT | Item actions |
-| Y | Overview / details |
+| Y (release) | Overview / details |
+| Hold Y + Up / Down | Jump between initial-letter groups in the current folder batch |
 | X | Focus the tab rail |
 
 Touch selects an entry; tap again to open. Overflow text loops while selected,
 unless Reduced motion is enabled. Frontend settings are separate from Nintendo
 DSi System Settings in the System tab.
+
+Choose **Shelf** under START → Appearance → Browser view for three covers per
+page. Left/right selects a title, up/down changes shelf rows, and L/R switches
+tabs. Missing covers use icons. The launcher remembers eight recently visited
+folder positions during the session; Back returns to the folder you entered.
+Current per-tab locations still persist across restarts.
+
 
 ## Simple and Advanced settings
 
