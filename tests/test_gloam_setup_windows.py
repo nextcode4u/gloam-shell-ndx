@@ -227,6 +227,29 @@ if ($rows[0].Status -ne 'Check record') { throw 'Invalid record was hidden' }
         self.assertEqual(results[1]['Result'], 'Applied')
         self.assertEqual((folder / 'First.nes').read_bytes(), b'authored fixture')
 
+    def test_artwork_cancel_keeps_sd_and_retry_clears_stale_identification(self):
+        (self.sd/'roms').mkdir()
+        rom=self.sd/'roms/Example.nes'; rom.write_bytes(b'authored fixture')
+        request=self.root/'request.json'
+        row=dict(Content='roms/Example.nes', Candidate='old.png', CandidateHash='old',
+                 Source='old URL', Identification='old match', Result='', Selected=True)
+        job=dict(Action='ArtworkFetch', Target=win(self.sd), ReleaseDirectory=win(self.root),
+                 Offline=False, Options=dict(Items=[row], Url='http://example.invalid/refused'))
+        request.write_text(json.dumps(job))
+        command='& '+literal(win(self.installer/'gloam-setup-worker.ps1'))+' -Request '+literal(win(request))
+        self.run_ps(command,success=False)
+        result=json.loads((self.root/'artwork-results.json').read_text(encoding='utf-8-sig'))[0]
+        self.assertEqual(result['Identification'],'')
+        self.assertEqual(result['Candidate'],'')
+        (self.root/'cancel').write_text('')
+        output=self.run_ps(command,success=False)
+        self.assertIn('Cancelled',output)
+        job['Action']='ArtworkScan';job['Options']=dict(Folder='roms',Recursive=True)
+        request.write_text(json.dumps(job))
+        self.assertIn('cancelled',self.run_ps(command,success=False))
+        self.assertEqual(rom.read_bytes(),b'authored fixture')
+        self.assertFalse((self.sd/'_nds').exists())
+
     def test_gui_artwork_scan_uses_selected_card(self):
         (self.sd / 'roms').mkdir()
         (self.sd / 'roms/Example.nds').write_bytes(b'authored fixture')
@@ -259,6 +282,11 @@ Import-GloamDat $cache 'Nintendo - Game Boy' $xml | Out-Null
 Import-GloamDat $cache 'Nintendo - Game Boy' $dat | Out-Null
 $names=@(Find-GloamDatNames $root 'roms/Game Boy/renamed.gb' 'Nintendo - Game Boy' $cache)
 if ($names.Count -ne 2 -or 'Example (USA)' -notin $names.Name) { throw 'DAT aliases missing' }
+$folder=Get-GloamDatFolder $cache 'Nintendo - Game Boy'
+[IO.File]::WriteAllText((Join-Path $folder 'corrupt.dat'),'not a DAT')
+$names=@(Find-GloamDatNames $root 'roms/Game Boy/renamed.gb' 'Nintendo - Game Boy' $cache)
+if ($names.Count -ne 2) { throw 'A damaged DAT prevented valid metadata lookup' }
+if ($script:GloamDatRecords.Count -gt 2) { throw 'Unbounded retained DAT indexes' }
 $entries[0].Sha1='0000000000000000000000000000000000000000'
 if ([GloamDat]::Match($entries[0],$fingerprint)) { throw 'Fell back to CRC despite SHA-1 mismatch' }
 $entries[0].Sha1=''; $entries[0].Md5=''

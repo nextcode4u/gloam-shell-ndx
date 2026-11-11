@@ -304,3 +304,9 @@ alone does not identify a game. No header is removed from the user's file.
 Patches or other header formats may need a matching DAT or manual selection.
 DATs are limited to 32 MiB/250,000 entries each and ROM identification to 1 GiB.
 Metadata source notes remain beside the cache.
+
+Artwork scans and preview downloads offer **Cancel artwork** while working.
+Cancellation waits for the current file/request, retains completed previews,
+and leaves SD artwork unchanged. Applying covers and other SD writes must finish
+normally; they do not expose this cancellation control. Failed preview retries
+clear the previous candidate and identification label.

@@ -13,6 +13,7 @@ try {
     . (Join-Path $PSScriptRoot 'gloam-setup-artwork.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-identification.ps1')
     $job = Get-Content -LiteralPath $Request -Raw -Encoding UTF8 | ConvertFrom-Json
+    $script:GloamCancelFile = Join-Path ([IO.Path]::GetDirectoryName($Request)) 'cancel'
     $root = Get-GloamRoot $job.Target
     $directory = [string]$job.ReleaseDirectory
     if (-not $job.Offline -and $job.Action -in @('Install','UpdateRuntime','UpdateFrontend','InstallBundled')) {
@@ -38,10 +39,11 @@ try {
             Write-Host ("Found " + $rows.Count + ' items. No SD files changed.')
         }
         { $_ -in @('ArtworkFetch','ArtworkApply') } {
-            $failed = $false; $rows = @($job.Options.Items)
+            $cancelled = $false; $failed = $false; $rows = @($job.Options.Items)
             if ($job.Action -eq 'ArtworkFetch' -and ($rows.Count -gt 50 -or $job.Offline)) { throw 'Downloads require an online batch of at most 50 items.' }
             foreach ($row in $rows) {
-                if ($job.Action -eq 'ArtworkFetch') { $row.Candidate=''; $row.CandidateHash=''; $row.Source='' }
+                if ($job.Action -eq 'ArtworkFetch' -and (Test-Path -LiteralPath $script:GloamCancelFile)) { $cancelled=$true; break }
+                if ($job.Action -eq 'ArtworkFetch') { $row.Candidate=''; $row.CandidateHash=''; $row.Source=''; $row | Add-Member -NotePropertyName Identification -NotePropertyValue '' -Force }
                 try {
                     if ($job.Action -eq 'ArtworkFetch') {
                         if ($job.Options.Url) {
@@ -61,11 +63,16 @@ try {
                         $state = Get-GloamArtworkState $root $row.Content
                         $row.Status=$state.Status; $row.Kind=$state.Kind; $row.Image=$state.Image; $row.Result='Applied'; $row.Selected=$false
                     }
-                } catch { $row.Result=$_.Exception.Message; $failed=$true }
+                } catch {
+                    $row.Result=$_.Exception.Message
+                    if ($_.Exception -is [OperationCanceledException]) { $cancelled=$true; break }
+                    $failed=$true
+                }
                 finally { if ($job.Action -eq 'ArtworkFetch') { Start-Sleep -Milliseconds 500 } }
                 Write-Host ($row.Content + ': ' + $row.Result)
             }
             [IO.File]::WriteAllText((Join-Path ([IO.Path]::GetDirectoryName($Request)) 'artwork-results.json'), (ConvertTo-Json -InputObject $rows -Depth 12), [Text.UTF8Encoding]::new($false))
+            if ($cancelled) { Write-Host 'Cancelled. Completed previews were kept; no SD artwork changed.'; exit 3 }
             if ($failed) { exit 2 }
         }
         'PreviewOrganization' {
@@ -127,6 +134,7 @@ try {
     Write-Host 'Done.'
     exit 0
 } catch {
+    if ($_.Exception -is [OperationCanceledException]) { Write-Host $_.Exception.Message; exit 3 }
     [Console]::Error.WriteLine('Operation failed: ' + $_.Exception.Message)
     exit 1
 }

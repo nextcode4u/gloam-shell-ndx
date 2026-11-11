@@ -68,22 +68,28 @@ function Find-GloamDatNames([string]$Root, [string]$Content, [string]$System, [s
     Initialize-GloamDat
     $folder=Get-GloamDatFolder $Cache $System
     if (-not (Test-Path -LiteralPath $folder -PathType Container)) { return }
-    $files=@(Get-ChildItem -LiteralPath $folder -Filter '*.dat' | Sort-Object @{Expression={if ($_.Name -eq 'libretro.dat') {0} else {1}}},Name)
+    $files=@(Get-ChildItem -LiteralPath $folder -Filter '*.dat' -File | Sort-Object @{Expression={if ($_.Name -eq 'libretro.dat') {0} else {1}}},Name)
     if (-not $files.Count) { return }
     $fingerprints=[GloamDat]::Identify((Get-GloamPath $Root $Content))
     foreach ($file in $files) {
         $key=$file.FullName+'|'+$file.Length+'|'+$file.LastWriteTimeUtc.Ticks
-        if (-not $script:GloamDatRecords.ContainsKey($key)) { $script:GloamDatRecords[$key]=[GloamDatIndex]::new([GloamDat]::Read($file.FullName)) }
-        foreach ($fingerprint in $fingerprints) {
-        foreach ($entry in $script:GloamDatRecords[$key].Find($fingerprint)) {
-            $method=[GloamDat]::Match($entry,$fingerprint)
-            if (-not $method) { continue }
-            $source=if ($file.Name -eq 'libretro.dat') { 'Libretro DAT' } else { 'Imported DAT' }
-            $note=$file.FullName+'.source.txt'
-            if ($file.Name -eq 'libretro.dat' -and (Test-Path -LiteralPath $note) -and (Get-Item -LiteralPath $note).Length -lt 4096 -and [IO.File]::ReadAllText($note).Contains('/tosec/')) { $source='Libretro TOSEC DAT' }
-            if ($fingerprint.Description -ne 'Complete file') { $method += "; " + $fingerprint.Description }
-            [pscustomobject]@{ Name=$entry.Name; Method=$method; Source=$source }
+        if (-not $script:GloamDatRecords.ContainsKey($key)) {
+            try { $index=[GloamDatIndex]::new([GloamDat]::Read($file.FullName)) }
+            catch { Write-Host ('Skipping invalid DAT '+$file.Name+': '+$_.Exception.Message); continue }
+            # Bound retained metadata when a batch crosses many systems/imports.
+            if ($script:GloamDatRecords.Count -ge 2) { $script:GloamDatRecords.Clear() }
+            $script:GloamDatRecords[$key]=$index
         }
+        foreach ($fingerprint in $fingerprints) {
+            foreach ($entry in $script:GloamDatRecords[$key].Find($fingerprint)) {
+                $method=[GloamDat]::Match($entry,$fingerprint)
+                if (-not $method) { continue }
+                $source=if ($file.Name -eq 'libretro.dat') { 'Libretro DAT' } else { 'Imported DAT' }
+                $note=$file.FullName+'.source.txt'
+                if ($file.Name -eq 'libretro.dat' -and (Test-Path -LiteralPath $note) -and (Get-Item -LiteralPath $note).Length -lt 4096 -and [IO.File]::ReadAllText($note).Contains('/tosec/')) { $source='Libretro TOSEC DAT' }
+                if ($fingerprint.Description -ne 'Complete file') { $method += "; " + $fingerprint.Description }
+                [pscustomobject]@{ Name=$entry.Name; Method=$method; Source=$source }
+            }
         }
     }
 }
@@ -124,6 +130,7 @@ function Get-GloamIdentifiedCover([string]$Root, [string]$Content, [string]$Syst
     $candidates.Add([pscustomobject]@{ Name=$Name; Method=$note })
     $seen=@{}; $last='No candidate names.'
     foreach ($candidate in $candidates) {
+        Assert-GloamArtworkActive
         $url=Get-GloamArtworkUrl $Root $Content $system $candidate.Name $Region
         if ($seen.ContainsKey($url)) { continue }; $seen[$url]=$true
         try {

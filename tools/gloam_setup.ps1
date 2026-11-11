@@ -134,8 +134,15 @@ function Start-SetupJob([string]$Action, [string[]]$Sources = @(), [hashtable]$O
     $null = $process.Handle # Keep a process handle so ExitCode remains available after exit.
     $script:Job = @{ Process = $process; Folder = $folder; Action = $Action }; $script:LastLog = ''
     $ui.Workspace.IsEnabled = $false; $ui.TargetBar.IsEnabled = $false; $ui.Progress.Visibility = 'Visible'; $ui.Progress.IsIndeterminate = $true
+    $ui.CancelArtwork.Visibility = if ($Action -in @('ArtworkScan','ArtworkFetch')) { 'Visible' } else { 'Collapsed' }; $ui.CancelArtwork.IsEnabled=$true
     $ui.Status.Text = 'Working: ' + $Action; Write-Activity ('Started: ' + $Action)
 }
+$ui.CancelArtwork.Add_Click({ Invoke-UiAction {
+    if ($null -eq $script:Job -or $script:Job.Action -notin @('ArtworkScan','ArtworkFetch')) { return }
+    [IO.File]::WriteAllText((Join-Path $script:Job.Folder 'cancel'), '')
+    $ui.CancelArtwork.IsEnabled=$false
+    $ui.Status.Text='Cancelling after the current file/request; completed previews will be kept.'
+} })
 $timer = [Windows.Threading.DispatcherTimer]::new(); $timer.Interval = [TimeSpan]::FromMilliseconds(250)
 $timer.Add_Tick({
     if ($null -eq $script:Job) { return }
@@ -152,8 +159,9 @@ $timer.Add_Tick({
             $script:Job.Process.WaitForExit()
             $finishedJob = $script:Job
             $code = $script:Job.Process.ExitCode; $script:Job.Process.Dispose(); $script:Job = $null
-            $ui.Workspace.IsEnabled = $true; $ui.TargetBar.IsEnabled = $true; $ui.Progress.Visibility = 'Collapsed'
+            $ui.Workspace.IsEnabled = $true; $ui.TargetBar.IsEnabled = $true; $ui.Progress.Visibility = 'Collapsed'; $ui.CancelArtwork.Visibility='Collapsed'
             if ($code -eq 0) { Load-Sd; Complete-GloamOrganizerJob $finishedJob; Complete-GloamArtworkJob $finishedJob; $ui.Status.Text = 'Complete. You can safely remove the SD card after Windows finishes writing.' }
+            elseif ($code -eq 3) { Complete-GloamArtworkJob $finishedJob; $ui.Status.Text='Cancelled. Completed previews kept; SD artwork unchanged.' }
             elseif ($code -eq 2) { Load-Sd; Complete-GloamArtworkJob $finishedJob; $ui.Status.Text = 'Completed with failures. See the activity log for installed, preserved and failed apps.' }
             else { Reset-GloamOrganizerPreview; Load-GloamOrganizerJournals; $ui.Status.Text = 'Operation failed. See the activity log; existing backups were kept.' }
             if ($SmokeTest -and $SmokeAction) {

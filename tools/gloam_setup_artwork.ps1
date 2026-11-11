@@ -223,13 +223,21 @@ function Get-GloamArtworkState([string]$Root, [string]$Content, [object[]]$Profi
     return [pscustomobject]@{ Status='Missing'; Kind='No individual/folder cover'; Image='' }
 }
 
+function Assert-GloamArtworkActive {
+    if ((Test-Path variable:script:GloamCancelFile) -and (Test-Path -LiteralPath $script:GloamCancelFile)) {
+        throw [OperationCanceledException]::new('Artwork operation cancelled; no SD artwork was changed.')
+    }
+}
+
 function Get-GloamArtworkLibrary([string]$Root, [string]$Folder, [bool]$Recursive) {
     $relative = ConvertTo-GloamRelative $Root $Folder
     $pending = [Collections.Generic.Queue[string]]::new(); $pending.Enqueue($relative)
     $count = 0; $profiles = @(Get-GloamArtworkProfiles $Root)
     while ($pending.Count) {
+        Assert-GloamArtworkActive
         $current = $pending.Dequeue()
         foreach ($item in Get-ChildItem -LiteralPath (Get-GloamPath $Root $current) | Sort-Object Name) {
+            Assert-GloamArtworkActive
             if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
             if ($item.Name -in @('bios','saves','_nds','_gba','data','.git')) { continue }
             if (-not $item.PSIsContainer -and ($item.Extension -in @('.png','.jpg','.jpeg','.sav','.pub','.prv','.bak','.ini','.json','.xml','.log') -or $item.Name -match '^README')) { continue }
