@@ -6,14 +6,14 @@ Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 function Get-GloamRoot([string]$Target) {
-    if (-not $Target -or -not (Test-Path -LiteralPath $Target -PathType Container)) {
+    if (-not $Target -or -not [IO.Directory]::Exists($Target)) {
         throw 'Choose an existing SD card or staging folder first.'
     }
     $root = [IO.Path]::GetFullPath($Target)
     if ($env:SystemDrive -and $root.TrimEnd('\') -eq $env:SystemDrive) {
         throw 'Choose the SD card or a staging folder, not the Windows system drive.'
     }
-    $node = Get-Item -LiteralPath $root
+    $node = [IO.DirectoryInfo]::new($root)
     while ($null -ne $node) {
         if ($node.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Linked folders are not supported.' }
         $node = $node.Parent
@@ -26,14 +26,19 @@ function Get-GloamPath([string]$Root, [string]$Relative) {
         throw "Invalid SD-relative path: $Relative"
     }
     $root = Get-GloamRoot $Root
-    $path = [IO.Path]::GetFullPath((Join-Path $root $Relative))
+    $path = [IO.Path]::GetFullPath([IO.Path]::Combine($root, $Relative))
     if (-not $path.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) { throw 'Path leaves the selected SD folder.' }
     $cursor = $path
     while ($cursor.Length -ge $root.TrimEnd('\').Length) {
-        if (Test-Path -LiteralPath $cursor) {
-            $item = Get-Item -LiteralPath $cursor
-            if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Linked SD paths are not supported.' }
-            if ($cursor -ne $path -and -not $item.PSIsContainer) { throw 'A parent path is a file.' }
+        # Avoid repeated PowerShell provider invocations for every artwork path.
+        # Still inspect every ancestor on every call: no cached link decisions.
+        $attributes = $null
+        try { $attributes = [IO.File]::GetAttributes($cursor) }
+        catch [IO.FileNotFoundException] { }
+        catch [IO.DirectoryNotFoundException] { }
+        if ($null -ne $attributes) {
+            if ($attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Linked SD paths are not supported.' }
+            if ($cursor -ne $path -and -not ($attributes -band [IO.FileAttributes]::Directory)) { throw 'A parent path is a file.' }
         }
         $parent = [IO.Path]::GetDirectoryName($cursor)
         if (-not $parent -or $parent -eq $cursor) { break }

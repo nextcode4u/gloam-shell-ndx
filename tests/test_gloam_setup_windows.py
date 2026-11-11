@@ -258,6 +258,28 @@ if ($rows[0].Status -ne 'Check record') { throw 'Invalid record was hidden' }
         self.assertIn('GUI worker exit: 0', output)
         self.assertFalse((self.sd / '_nds/dsi-frontend/items').exists())
 
+    def test_path_fast_checks_reject_junctions_and_file_parents(self):
+        self.run_ps(r"""
+$outside=Join-Path ([IO.Directory]::GetParent($root).FullName) 'outside'
+[IO.Directory]::CreateDirectory($outside) | Out-Null
+[IO.File]::WriteAllText((Join-Path $outside 'private.txt'),'authored fixture')
+$link=Join-Path $root 'linked'
+New-Item -ItemType Junction -Path $link -Value $outside | Out-Null
+try {
+    $refused=$false
+    try { Get-GloamPath $root 'linked/private.txt' | Out-Null } catch { $refused=$true }
+    if (-not $refused) { throw 'Accepted linked SD path' }
+    $refused=$false
+    try { Get-GloamRoot $link | Out-Null } catch { $refused=$true }
+    if (-not $refused) { throw 'Accepted linked root' }
+} finally { [IO.Directory]::Delete($link) }
+[IO.File]::WriteAllText((Join-Path $root 'file'),'authored fixture')
+$refused=$false
+try { Get-GloamPath $root 'file/child' | Out-Null } catch { $refused=$true }
+if (-not $refused) { throw 'Accepted file as parent' }
+if ((Get-GloamPath $root 'new/missing.txt') -ne (Join-Path $root 'new/missing.txt')) { throw 'Refused legitimate missing path' }
+""")
+
     def test_dat_identifies_renamed_rom_from_xml_and_clrmamepro(self):
         import zlib
         folder=self.sd/'roms/Game Boy'
