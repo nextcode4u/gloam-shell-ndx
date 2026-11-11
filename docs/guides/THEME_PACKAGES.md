@@ -226,7 +226,7 @@ row_padding=6
 large_grid_columns=3
 ```
 
-All keys are optional. `view` accepts classic/extended/list/grid and `icon_size`
+All keys are optional. `view` accepts classic/extended/list/grid/shelf and `icon_size`
 accepts small/large. These supply defaults when Apply is pressed; ordinary
 Appearance choices can override them afterward and remain saved across restart.
 Preview/cancel does not change browser preferences. Named presets retain their
@@ -288,3 +288,18 @@ The icons are CC0; each package includes a credit notice.
 **Compatibility:** these manifests require a build with `[icons]` support. Older
 builds reject unknown theme sections. Update `BOOT.NDS` with these theme packages;
 existing third-party themes without `[icons]` continue to use built-in symbols.
+
+### Cover shelf
+
+Choose **Shelf** in browser appearance settings, or set `view=shelf` in a theme.
+Three covers appear on the touch screen; the selected item's full name scrolls
+below them and its existing details remain on the top screen. Left/right selects
+one item, up/down changes shelf rows, and L/R switches tabs. Tap once to select,
+then tap the selected item to open it. Home and custom folder tabs use the same
+layout. Missing covers use native or theme icons; disabling covers keeps icons.
+
+Shelf geometry is fixed for readability at 256×192. Icon-size, row-padding and
+large-grid-column settings still apply to their other layouts. Covers retain
+their aspect ratio. Only three visible images are prepared, one entry per tick,
+using the existing bounded artwork decoder/cache. The shelf adds approximately
+59 KiB of prepared-image storage; it does not decode images while rendering.

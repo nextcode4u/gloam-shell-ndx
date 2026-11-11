@@ -169,7 +169,7 @@ static bool load(App *app, const char *id, ThemePackage *package)
             path_copy(font, value, sizeof font);
         } else if (!strcmp(section, "[layout]")) {
             if (!strcmp(key, "view")) {
-                static const char *names[] = {"classic", "extended", "list", "grid"};
+                static const char *names[] = {"classic", "extended", "list", "grid", "shelf"};
                 bool matched = false;
                 for (int i = 0; i < BROWSER_STYLE_COUNT; i++)
                     if (!strcmp(value, names[i])) {

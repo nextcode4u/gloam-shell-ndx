@@ -4,6 +4,7 @@
 /* Resolve artwork for the current selection. Called after selection settles. */
 bool artwork_decode_image(Artwork *artwork, const char *path);
 void artwork_load(App *app);
+void artwork_shelf_tick(App *app);
 /* Four prepared images in RAM, validated against source file metadata. */
 bool artwork_cached_read(Artwork *artwork, const char *path, bool embedded);
 void artwork_cache_clear(void);

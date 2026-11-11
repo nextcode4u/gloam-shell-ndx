@@ -32,6 +32,8 @@ int grid_touch_index(const App *app, int x, int y)
     int top = layout_list_top(app->category);
     if (!layout_is_grid(app) || x < 6 || x >= 250 || y < top || y >= layout_list_bottom(app))
         return -1;
+    if ((x - 6) / layout_grid_cell_width(app) >= layout_grid_columns(app))
+        return -1;
     int index = app->locations[app->category].scroll +
                 ((y - top) / layout_row_height(app)) * layout_grid_columns(app) +
                 (x - 6) / layout_grid_cell_width(app);

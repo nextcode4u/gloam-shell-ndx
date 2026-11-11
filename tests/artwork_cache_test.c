@@ -161,6 +161,31 @@ int main(int argc, char **argv)
     artwork_disk_cache_configure(NULL, false);
     artwork_cache_clear();
     assert(artwork_cached_read(&image, first, false) && artwork_cache_disk_hits() == 0);
+    /* Shelf resolves neighbors without replacing the selected metadata. */
+    app.browser_style = BROWSER_SHELF;
+    app.show_covers = true;
+    app.entry_count = 3;
+    app.locations[app.category].selected = app.locations[app.category].scroll = 0;
+    for (int i = 0; i < 3; i++) {
+        app.entries[i].kind = ITEM_FILE;
+        snprintf(app.entries[i].path, PATH_CAP, "%s/roms/Shelf%d.demo", root, i);
+        snprintf(path, sizeof path, "%s/roms/Shelf%d.demo.jpg", root, i);
+        copy_file("tests/fixtures/cover.jpg", path);
+    }
+    app_reset_preview(&app);
+    app.selection_idle_frames = 8;
+    artwork_load(&app);
+    strcpy(app.title, "Selected title");
+    for (int i = 0; i < 3; i++)
+        artwork_shelf_tick(&app);
+    for (int i = 0; i < 3; i++)
+        assert(app.shelf_resolved[i] && app.shelf_artwork[i].ready);
+    assert(!strcmp(app.title, "Selected title"));
+    unsigned shelf_reads = app.artwork_reads;
+    artwork_shelf_tick(&app);
+    assert(app.artwork_reads == shelf_reads);
+    app_reset_preview(&app);
+    assert(!app.shelf_resolved[0] && !app.shelf_artwork[2].ready);
     puts("PASS: bounded prepared artwork LRU, negative cache, source invalidation, refresh and "
          "association fallback priority");
 }

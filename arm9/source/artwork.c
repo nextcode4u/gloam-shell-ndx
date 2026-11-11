@@ -37,7 +37,7 @@ bool artwork_decode_image(Artwork *artwork, const char *path)
     free(data);
     return decoded;
 }
-static bool load_nds_banner(App *app, const Entry *entry)
+static bool load_nds_banner(App *app, const Entry *entry, Artwork *artwork, bool metadata)
 {
     if (!icon_is_ds_title(entry->path))
         return false;
@@ -49,8 +49,10 @@ static bool load_nds_banner(App *app, const Entry *entry)
         fclose(f);
         return false;
     }
-    memcpy(app->code, header + 12, 4);
-    app->code[4] = 0;
+    if (metadata) {
+        memcpy(app->code, header + 12, 4);
+        app->code[4] = 0;
+    }
     uint32_t offset = read_le32(header + 0x68);
     fseek(f, 0, SEEK_END);
     long size = ftell(f);
@@ -63,36 +65,37 @@ static bool load_nds_banner(App *app, const Entry *entry)
     fclose(f);
     if (!ok)
         return false;
-    text_from_utf16le(app->title, sizeof app->title, data + 0x340, 128);
+    if (metadata)
+        text_from_utf16le(app->title, sizeof app->title, data + 0x340, 128);
     for (int y = 0; y < 32; y++)
         for (int x2 = 0; x2 < 32; x2++) {
             int i = (y / 8) * 4 + x2 / 8, byte = 0x20 + i * 32 + (y % 8) * 4 + (x2 % 8) / 2;
             unsigned idx = (data[byte] >> ((x2 & 1) * 4)) & 15;
-            app->artwork.pixels[y * 32 + x2] =
+            artwork->pixels[y * 32 + x2] =
                 idx ? (uint16_t)(data[0x220 + idx * 2] | (data[0x221 + idx * 2] << 8) | 0x8000)
                     : pack_rgb555(19, 24, 34);
         }
-    app->artwork.width = app->artwork.height = 32;
-    app->artwork.ready = true;
-    snprintf(app->artwork.source, sizeof app->artwork.source, "NDS banner");
+    artwork->width = artwork->height = 32;
+    artwork->ready = true;
+    snprintf(artwork->source, sizeof artwork->source, "NDS banner");
     return true;
 }
-static bool prepare_artwork(App *app, const char *path, bool embedded)
+static bool prepare_artwork(Artwork *artwork, bool *resolved, const char *path, bool embedded)
 {
-    if (artwork_cached_read(&app->artwork, path, embedded))
+    if (artwork_cached_read(artwork, path, embedded))
         return true;
     if (artwork_cache_pending()) {
-        app->artwork_resolved = false;
+        *resolved = false;
         return true;
     }
     return false;
 }
 
-void artwork_load(App *app)
+static void artwork_load_entry(App *app, const Entry *entry, Artwork *artwork, bool *resolved,
+                               bool metadata)
 {
-    app->artwork.ready = false;
-    app->artwork_resolved = true;
-    const Entry *entry = app_selected(app);
+    artwork->ready = false;
+    *resolved = true;
     if (!entry || !entry->path[0] || !app->storage_ready)
         return;
     if (entry->kind == ITEM_SYSTEM || entry->kind == ITEM_CATEGORY ||
@@ -102,27 +105,27 @@ void artwork_load(App *app)
     app->artwork_reads++;
     ItemPreferences preferences;
     if (item_preferences_load(app->root, entry->path, &preferences) && *preferences.cover &&
-        prepare_artwork(app, preferences.cover, false)) {
-        snprintf(app->artwork.source, sizeof app->artwork.source, "Assigned image");
+        prepare_artwork(artwork, resolved, preferences.cover, false)) {
+        snprintf(artwork->source, sizeof artwork->source, "Assigned image");
         return;
     }
     if (entry->kind == ITEM_FILE &&
         snprintf(path, sizeof path, "%s.png", entry->path) < (int)sizeof path &&
-        prepare_artwork(app, path, false)) {
-        snprintf(app->artwork.source, sizeof app->artwork.source, "Sidecar PNG");
+        prepare_artwork(artwork, resolved, path, false)) {
+        snprintf(artwork->source, sizeof artwork->source, "Sidecar PNG");
         return;
     }
     if (entry->kind == ITEM_FILE) {
         const char *suffixes[] = {".jpg", ".jpeg"};
         for (int i = 0; i < 2; i++)
             if (snprintf(path, sizeof path, "%s%s", entry->path, suffixes[i]) < (int)sizeof path &&
-                prepare_artwork(app, path, false)) {
-                snprintf(app->artwork.source, sizeof app->artwork.source, "Sidecar JPEG");
+                prepare_artwork(artwork, resolved, path, false)) {
+                snprintf(artwork->source, sizeof artwork->source, "Sidecar JPEG");
                 return;
             }
         if (!strcasecmp(path_extension(entry->path), "mp3") &&
-            prepare_artwork(app, entry->path, true)) {
-            snprintf(app->artwork.source, sizeof app->artwork.source, "Embedded album art");
+            prepare_artwork(artwork, resolved, entry->path, true)) {
+            snprintf(artwork->source, sizeof artwork->source, "Embedded album art");
             return;
         }
     }
@@ -135,8 +138,8 @@ void artwork_load(App *app)
     size_t len = strlen(path);
     if (len + 11 < sizeof path) {
         strcat(path, "/cover.png");
-        if (prepare_artwork(app, path, false)) {
-            snprintf(app->artwork.source, sizeof app->artwork.source, "Folder cover");
+        if (prepare_artwork(artwork, resolved, path, false)) {
+            snprintf(artwork->source, sizeof artwork->source, "Folder cover");
             return;
         }
     }
@@ -150,16 +153,46 @@ void artwork_load(App *app)
     }
     for (int i = 0; i < 2; i++)
         if (snprintf(path, sizeof path, "%s%s", folder, covers[i]) < (int)sizeof path &&
-            prepare_artwork(app, path, false)) {
-            snprintf(app->artwork.source, sizeof app->artwork.source, "Folder cover");
+            prepare_artwork(artwork, resolved, path, false)) {
+            snprintf(artwork->source, sizeof artwork->source, "Folder cover");
             return;
         }
     if (entry->kind == ITEM_FILE) {
         const char *cover = association_cover(app, entry->path);
-        if (cover && prepare_artwork(app, cover, false)) {
-            snprintf(app->artwork.source, sizeof app->artwork.source, "Association cover");
+        if (cover && prepare_artwork(artwork, resolved, cover, false)) {
+            snprintf(artwork->source, sizeof artwork->source, "Association cover");
             return;
         }
-        load_nds_banner(app, entry);
+        load_nds_banner(app, entry, artwork, metadata);
+    }
+}
+
+void artwork_load(App *app)
+{
+    artwork_load_entry(app, app_selected(app), &app->artwork, &app->artwork_resolved, true);
+}
+
+/* Prepare at most one shelf entry per tick, after the selected preview. The
+ * existing bounded decoder and four-image cache are shared with the top screen. */
+void artwork_shelf_tick(App *app)
+{
+    if (app->browser_style != BROWSER_SHELF || !app->show_covers ||
+        app->selection_idle_frames < 7 || (!app->artwork.ready && !app->artwork_resolved))
+        return;
+    const Location *location = &app->locations[app->category];
+    for (int cell = 0; cell < 3; cell++) {
+        int index = location->scroll + cell;
+        if (index >= app->entry_count)
+            break;
+        if (app->shelf_resolved[cell])
+            continue;
+        if (index == location->selected) {
+            app->shelf_artwork[cell] = app->artwork;
+            app->shelf_resolved[cell] = true;
+        } else {
+            artwork_load_entry(app, &app->entries[index], &app->shelf_artwork[cell],
+                               &app->shelf_resolved[cell], false);
+        }
+        return;
     }
 }

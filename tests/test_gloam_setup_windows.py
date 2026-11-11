@@ -937,6 +937,9 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         state = self.sd / '_nds/dsi-frontend/state.ini'
         self.assertIn('browser_style=3', state.read_text(encoding='utf-8'))
         self.assertIn('icon_size=1', state.read_text(encoding='utf-8'))
+        theme.write_text('[theme]\nversion=1\n[layout]\nview=shelf\n')
+        self.run_ps("$s=Read-GloamState $root; Save-GloamSettings $root (Get-GloamThemeSettings $root test $true) $s.Hash")
+        self.assertIn('browser_style=4', state.read_text(encoding='utf-8'))
         wav = self.sd / 'media/music/fixture.wav'
         wav.parent.mkdir(parents=True)
         with wave.open(str(wav), 'wb') as output:

@@ -467,7 +467,7 @@ function Test-GloamTheme([string]$Source) {
     if (-not $data.Contains('theme') -or $data['theme']['version'] -ne '1') { $errors.Add('Expected theme version 1.') }
     if ($data.Contains('colors')) { foreach ($key in $data['colors'].Keys) { if ($data['colors'][$key] -notmatch '^#[0-9A-Fa-f]{6}$') { $errors.Add("Invalid colour: $key") } } }
     if ($data.Contains('layout')) {
-        foreach ($pair in @(@('view',@('classic','extended','list','grid')),@('icon_size',@('small','large')))) {
+        foreach ($pair in @(@('view',@('classic','extended','list','grid','shelf')),@('icon_size',@('small','large')))) {
             if ($data['layout'].Contains($pair[0]) -and $data['layout'][$pair[0]] -notin $pair[1]) { $errors.Add("Invalid layout: $($pair[0])") }
         }
         foreach ($key in @('row_padding','large_grid_columns')) { if ($data['layout'].Contains($key)) {

@@ -4,7 +4,7 @@
 $GloamSettingRules = [ordered]@{
     settings_mode = @{ Default = 'simple'; Choices = @('simple','advanced') }
     simple_settings_lock = @{ Default = '0'; Choices = @('0','1') }
-    browser_style = @{ Default = '0'; Choices = @('0','1','2','3') }
+    browser_style = @{ Default = '0'; Choices = @('0','1','2','3','4') }
     icon_size = @{ Default = '0'; Choices = @('0','1') }
     sort_mode = @{ Default = '0'; Choices = @('0','1','2','3') }
     scroll_speed = @{ Default = '1'; Choices = @('0','1','2') }
@@ -174,7 +174,7 @@ function Get-GloamThemeSettings([string]$Root, [string]$Id, [bool]$UseLayout) {
         $data = Read-GloamIni $file
         if (-not $data.Contains('theme') -or $data['theme']['version'] -ne '1') { throw 'Unsupported theme package version.' }
         if ($UseLayout -and $data.Contains('layout')) {
-            $views = @('classic','extended','list','grid'); $icons = @('small','large')
+            $views = @('classic','extended','list','grid','shelf'); $icons = @('small','large')
             if ($data['layout']['view']) {
                 $index = [Array]::IndexOf($views, $data['layout']['view'])
                 if ($index -lt 0) { throw 'Unsupported theme browser layout.' }

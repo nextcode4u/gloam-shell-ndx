@@ -81,6 +81,29 @@ int main(int argc, char **argv)
         assert(top.before == 0xCAFE1234 && top.after == 0xCAFE1234);
         assert(bottom.before == 0xCAFE1234 && bottom.after == 0xCAFE1234);
     }
+    app.browser_style = BROWSER_SHELF;
+    app.locations[1].selected = 0;
+    browser_reflow(&app);
+    assert(layout_visible_rows(&app) == 3);
+    assert(grid_touch_index(&app, 249, 50) == -1);
+    assert(layout_list_bottom(&app) == UI_LIST_BOTTOM);
+    browser_direction(&app, 0, 1);
+    assert(app.locations[1].selected == 3 && app.locations[1].scroll == 3);
+    browser_direction(&app, -1, 0);
+    assert(app.locations[1].selected == 2 && app.locations[1].scroll == 0);
+    browser_direction(&app, 0, -1);
+    assert(app.locations[1].selected == 16 && app.locations[1].scroll == 15);
+    assert(grid_touch_index(&app, 170, 50) == -1); /* Empty last-page cell. */
+    for (int i = 0; i < 36; i++) {
+        app_tick(&app);
+        render_app(&app, top.pixels, bottom.pixels, "12:00");
+        assert(top.before == 0xCAFE1234 && top.after == 0xCAFE1234);
+        assert(bottom.before == 0xCAFE1234 && bottom.after == 0xCAFE1234);
+    }
+    assert(app_save(&app));
+    app_init(&restored, argv[1], true, true);
+    assert(restored.browser_style == BROWSER_SHELF);
+    app.browser_style = BROWSER_GRID;
     app.audio.mode = MUSIC_CUSTOM;
     app.audio.music_volume = 45;
     char path[PATH_CAP];

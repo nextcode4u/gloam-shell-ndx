@@ -199,6 +199,7 @@ typedef enum {
     BROWSER_EXTENDED,
     BROWSER_LIST,
     BROWSER_GRID,
+    BROWSER_SHELF,
     BROWSER_STYLE_COUNT
 } BrowserStyle;
 typedef enum { SORT_NAME_ASC, SORT_NAME_DESC, SORT_TYPE, SORT_MODIFIED, SORT_COUNT } SortMode;
@@ -374,6 +375,8 @@ typedef struct {
     unsigned frame_count;
     char message[160], title[128], code[8];
     Artwork artwork;
+    Artwork shelf_artwork[3];
+    bool shelf_resolved[3];
     bool artwork_resolved;
     unsigned artwork_reads;
 } App;

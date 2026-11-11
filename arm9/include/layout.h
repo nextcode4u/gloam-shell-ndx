@@ -18,12 +18,14 @@ static inline int layout_list_top(int category)
 
 static inline bool layout_is_grid(const App *app)
 {
-    return app->browser_style == BROWSER_GRID;
+    return app->browser_style == BROWSER_GRID || app->browser_style == BROWSER_SHELF;
 }
 
 /* Small icons sit beside longer names; large icons retain square tiles. */
 static inline int layout_grid_columns(const App *app)
 {
+    if (app->browser_style == BROWSER_SHELF)
+        return 3;
     unsigned columns = app->themes.active.large_grid_columns;
     return app->icon_size == ICON_LARGE && columns >= 2 && columns <= 4 ? (int)columns
            : app->icon_size == ICON_LARGE                               ? 4
@@ -44,6 +46,8 @@ static inline int layout_icon_size(const App *app)
 }
 static inline int layout_row_height(const App *app)
 {
+    if (app->browser_style == BROWSER_SHELF)
+        return UI_LIST_BOTTOM - layout_list_top(app->category);
     int base;
     if (app->browser_style == BROWSER_LIST)
         base = 16;

@@ -252,7 +252,7 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
                                             : "Hidden",
                       layout_has_icons(app) ? colors.accent : colors.muted, 6);
         if (app->panel == PANEL_QUICK && i == QUICK_BROWSER_STYLE) {
-            const char *views[] = {"Classic", "Extended", "List", "Grid"};
+            const char *views[] = {"Classic", "Extended", "List", "Grid", "Shelf"};
             draw_text(pixels, 186, row, views[app->browser_style], colors.accent, 8);
         }
     }
@@ -293,6 +293,55 @@ static void draw_browser_icon(const App *app, uint16_t *pixels, int index, int x
     }
     draw_theme_icon(&app->themes.active, pixels, x, y, size,
                     entry_file_type(&app->entries[index]).icon, color);
+}
+
+/* Flat covers leave room for a full-width selected name; no perspective or
+ * resampling work beyond the three already prepared thumbnails. */
+static void draw_shelf(const App *app, uint16_t *pixels, Palette colors)
+{
+    const Location *location = &app->locations[app->category];
+    int top = layout_list_top(app->category);
+    for (int cell = 0; cell < 3; cell++) {
+        int index = location->scroll + cell;
+        if (index >= app->entry_count)
+            break;
+        int x = 6 + cell * layout_grid_cell_width(app);
+        bool selected = index == location->selected;
+        const Artwork *art = &app->shelf_artwork[cell];
+        if (selected)
+            draw_rectangle(pixels, x + 2, top, 76, 98, colors.surface);
+        if (app->show_covers && art->ready) {
+            int width = 68, height = art->height * width / art->width;
+            if (height > 78) {
+                height = 78;
+                width = art->width * height / art->height;
+            }
+            if (width < 1)
+                width = 1;
+            if (height < 1)
+                height = 1;
+            int left = x + (80 - width) / 2, y = top + 4 + (78 - height) / 2;
+            for (int row = 0; row < height; row++)
+                for (int column = 0; column < width; column++) {
+                    uint16_t color = art->pixels[(row * art->height / height) * art->width +
+                                                 column * art->width / width];
+                    if (color & 0x8000)
+                        pixels[(y + row) * 256 + left + column] = color;
+                }
+        } else {
+            draw_browser_icon(app, pixels, index, x + 24, top + 27, 32,
+                              selected ? colors.accent : colors.muted);
+        }
+        draw_rectangle(pixels, x + 6, top + 84, 68, selected ? 2 : 1,
+                       selected ? colors.accent : colors.line);
+        char name[256];
+        browser_display_name(app, &app->entries[index], name);
+        draw_text_clipped(pixels, x + 5, top + 89, name, selected ? colors.text : colors.muted, 10);
+    }
+    char name[256];
+    browser_display_name(app, &app->entries[location->selected], name);
+    draw_text_scrolling(pixels, 12, 151, name, colors.text, 230, app->selection_idle_frames,
+                        !app->reduced_motion);
 }
 
 static void draw_grid(const App *app, uint16_t *pixels, Palette colors)
@@ -402,7 +451,9 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
                           colors.text, 31, 3);
         draw_text(bottom, 16, 84, "B back   L/R change tab", colors.muted, 38);
     } else {
-        if (layout_is_grid(app))
+        if (app->browser_style == BROWSER_SHELF)
+            draw_shelf(app, bottom, colors);
+        else if (layout_is_grid(app))
             draw_grid(app, bottom, colors);
         else {
             int sy = list_top + app->selection_y_fixed / 256;

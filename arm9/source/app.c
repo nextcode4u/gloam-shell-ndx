@@ -57,6 +57,10 @@ void app_reset_preview(App *app)
     app->selection_idle_frames = 0;
     app->artwork.ready = false;
     app->artwork_resolved = false;
+    for (int cell = 0; cell < 3; cell++) {
+        app->shelf_artwork[cell].ready = false;
+        app->shelf_resolved[cell] = false;
+    }
     app->title[0] = app->code[0] = 0;
 }
 
@@ -736,6 +740,8 @@ void app_tick(App *app)
     if (!app->settings.open && app->show_covers && !app->artwork.ready && !app->artwork_resolved &&
         app->selection_idle_frames >= 7)
         artwork_load(app);
+    if (!app->settings.open && app->panel == PANEL_NONE)
+        artwork_shelf_tick(app);
     const Entry *selected_entry = app_selected(app);
     if (app->internal_titles && selected_entry && *selected_entry->internal_title)
         path_copy(app->title, selected_entry->internal_title, sizeof app->title);
