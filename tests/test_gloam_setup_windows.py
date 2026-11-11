@@ -881,6 +881,19 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.assertEqual((private / 'state.ini').read_bytes(), original)
         self.assertEqual(save.read_bytes(), b'Authored save fixture')
 
+    def test_theme_inspection_previews_icons_and_blocks_unsafe_import(self):
+        source = self.root / 'theme-check'
+        shutil.copytree(ROOT / 'sdroot/_nds/dsi-frontend/themes/ember', source)
+        command = '$r=Test-GloamTheme ' + literal(win(source))
+        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 22 -or $r.Warnings.Count) { throw ($r | ConvertTo-Json) }')
+        (source / 'icons/folder.png').write_bytes(b'broken')
+        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 21 -or $r.Warnings.Count -ne 1) { throw "fallback missing" }')
+        manifest = source / 'theme.ini'
+        manifest.write_text(manifest.read_text().replace('directory=icons', 'directory=../outside'))
+        self.run_ps(command + '; if ($r.Valid) { throw "unsafe path accepted" }')
+        self.run_ps('Import-GloamTheme $root ' + literal(win(source)), success=False)
+        self.assertFalse((self.sd / '_nds/dsi-frontend/themes/theme-check').exists())
+
     def test_theme_selection_and_music_match_launcher_constraints(self):
         import wave
         theme = self.sd / '_nds/dsi-frontend/themes/test/theme.ini'

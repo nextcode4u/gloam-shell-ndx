@@ -576,7 +576,10 @@
               <Button x:Name="OpenThemes" Content="Open themes folder"/>
               <Button x:Name="ApplyTheme" Content="Apply selected theme" Background="#6B548E"/>
               <Button x:Name="ImportTheme" Content="Import theme folder..."/>
+              <Button x:Name="InspectTheme" Content="Preview external theme..."/>
             </WrapPanel>
+            <WrapPanel x:Name="ThemeIconPreview" Margin="0,8,0,8"/>
+            <TextBlock x:Name="ThemeReport" TextWrapping="Wrap" Margin="0,0,0,12"/>
             <CheckBox x:Name="ThemeUseLayout" Content="Use the theme's browser view and icon size" IsChecked="True"/>
             <TextBlock Text="Import expects a folder containing theme.ini. Existing themes are kept; rename the imported folder to install a second version." Style="{StaticResource Muted}"/>
           </StackPanel>

@@ -311,6 +311,9 @@ function Import-GloamApplication([string]$Root, [string]$Source) {
 }
 
 function Import-GloamTheme([string]$Root, [string]$Source) {
+    $report=Test-GloamTheme $Source
+    if (-not $report.Valid) { throw ($report.Errors -join "`n") }
+    foreach ($warning in $report.Warnings) { Write-Host $warning }
     $folder = Get-Item -LiteralPath $Source
     if (-not $folder.PSIsContainer -or -not (Test-Path -LiteralPath (Join-Path $Source 'theme.ini') -PathType Leaf)) { throw 'Choose a theme folder containing theme.ini.' }
     if ($folder.Name -notmatch '^[a-zA-Z0-9_-]{1,63}$') { throw 'Rename the theme folder using letters, digits, underscores or hyphens.' }
@@ -446,4 +449,59 @@ function Get-GloamAddonStatus($App, [string]$Root) {
         else { $bios = 'System BIOS missing' }
     }
     return [pscustomobject]@{ Installation = $installation; BiosStatus = $bios }
+}
+
+# Read-only desktop checks mirror the package's bounded paths and optional PNGs.
+function Test-GloamTheme([string]$Source) {
+    $root=Get-GloamRoot $Source
+    $errors=[Collections.Generic.List[string]]::new(); $warnings=[Collections.Generic.List[string]]::new()
+    $icons=[Collections.Generic.List[object]]::new()
+    $manifest=Get-GloamPath $root 'theme.ini'
+    if (-not [IO.File]::Exists($manifest) -or ([IO.FileInfo]::new($manifest)).Length -gt 4096) { throw 'Theme manifest is missing or exceeds 4 KiB.' }
+    $data=Read-GloamIni $manifest
+    $allowed=@{theme=@('version','name');colors=@('background','surface','line','text','muted','accent','ink');fonts=@('ui');audio=@('music','cursor','confirm','back');backgrounds=@('top','bottom','strength');layout=@('view','icon_size','row_padding','large_grid_columns');icons=@('directory')}
+    foreach ($section in $data.Keys) {
+        if (-not $allowed.ContainsKey($section)) { $errors.Add("Unknown section: $section"); continue }
+        foreach ($key in $data[$section].Keys) { if ($key -notin $allowed[$section]) { $errors.Add("Unknown key: $section/$key") } }
+    }
+    if (-not $data.Contains('theme') -or $data['theme']['version'] -ne '1') { $errors.Add('Expected theme version 1.') }
+    if ($data.Contains('colors')) { foreach ($key in $data['colors'].Keys) { if ($data['colors'][$key] -notmatch '^#[0-9A-Fa-f]{6}$') { $errors.Add("Invalid colour: $key") } } }
+    if ($data.Contains('layout')) {
+        foreach ($pair in @(@('view',@('classic','extended','list','grid')),@('icon_size',@('small','large')))) {
+            if ($data['layout'].Contains($pair[0]) -and $data['layout'][$pair[0]] -notin $pair[1]) { $errors.Add("Invalid layout: $($pair[0])") }
+        }
+        foreach ($key in @('row_padding','large_grid_columns')) { if ($data['layout'].Contains($key)) {
+            $value=0; $minimum=if ($key -eq 'row_padding') {0} else {2}; $maximum=if ($key -eq 'row_padding') {12} else {4}
+            if (-not [int]::TryParse($data['layout'][$key],[ref]$value) -or $value -lt $minimum -or $value -gt $maximum) { $errors.Add("Invalid layout: $key") }
+        } }
+    }
+    foreach ($section in @('fonts','audio','backgrounds')) { if ($data.Contains($section)) {
+        foreach ($key in $data[$section].Keys) {
+            $value=$data[$section][$key]
+            if ($section -eq 'backgrounds' -and $key -eq 'strength') { $strength=0; if (-not [int]::TryParse($value,[ref]$strength) -or $strength -lt 0 -or $strength -gt 35) { $errors.Add('Background strength must be 0-35.') }; continue }
+            if ($section -eq 'fonts' -and $value -eq 'builtin') { continue }
+            try { $path=Get-GloamPath $root $value; if (-not [IO.File]::Exists($path)) { if ($section -eq 'fonts') { $errors.Add("Missing font: $value") } else { $warnings.Add("Missing $section asset: $value (fallback)") } } }
+            catch { $errors.Add("Unsafe asset path: $section/$key") }
+        }
+    } }
+    if ($data.Contains('icons')) {
+        try {
+            $directory=Get-GloamPath $root $data['icons']['directory']
+            Add-Type -AssemblyName PresentationCore
+            foreach ($name in @('file','folder','game','application','audio','video','book','text','image','save','config','archive','shortcut','system','missing','settings','camera','sound','pictochat','download-play','system-menu','slot1')) {
+                $relative=$data['icons']['directory']+'/'+$name+'.png'
+                $path=Get-GloamPath $root $relative
+                if (-not [IO.File]::Exists($path)) { $warnings.Add("$name icon missing: built-in fallback"); continue }
+                try {
+                    if (([IO.FileInfo]::new($path)).Length -gt 65536) { throw 'larger than 64 KiB' }
+                    $stream=[IO.File]::OpenRead($path)
+                    try { $decoder=[Windows.Media.Imaging.PngBitmapDecoder]::new($stream,[Windows.Media.Imaging.BitmapCreateOptions]::PreservePixelFormat,[Windows.Media.Imaging.BitmapCacheOption]::OnLoad); $image=$decoder.Frames[0]; $image.Freeze() }
+                    finally { $stream.Dispose() }
+                    if ($image.PixelWidth -ne 32 -or $image.PixelHeight -ne 32) { throw 'must be 32 x 32 pixels' }
+                    $icons.Add([pscustomobject]@{Name=$name;Image=$image})
+                } catch { $warnings.Add("$name icon invalid: $($_.Exception.Message); built-in fallback") }
+            }
+        } catch { $errors.Add("Invalid icon directory: $($_.Exception.Message)") }
+    }
+    return [pscustomobject]@{Valid=($errors.Count -eq 0);Errors=$errors.ToArray();Warnings=$warnings.ToArray();Icons=$icons.ToArray();Source=$root}
 }

@@ -310,3 +310,13 @@ Cancellation waits for the current file/request, retains completed previews,
 and leaves SD artwork unchanged. Applying covers and other SD writes must finish
 normally; they do not expose this cancellation control. Failed preview retries
 clear the previous candidate and identification label.
+
+### Inspecting theme packs
+
+The Themes page previews a selected pack's 32×32 icons and reports missing or
+malformed icons as built-in fallbacks. **Preview external theme** inspects a
+folder without copying it. Imports reject unknown manifest fields, invalid
+layout values and paths escaping the package before writing files; existing
+packs are never overwritten. Missing optional images do not block import.
+This desktop check is not a substitute for Gloam's font, wallpaper/audio decoder
+and colour-contrast checks or viewing the pack on the console.

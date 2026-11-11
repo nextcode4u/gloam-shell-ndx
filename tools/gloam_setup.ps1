@@ -246,6 +246,25 @@ $ui.CopyContent.Add_Click({ Invoke-UiAction {
 $ui.SaveProfile.Add_Click({ Invoke-UiAction { Save-GloamProfile (Get-SelectedRoot) $ui.ProfileId.Text $ui.ProfileName.Text $ui.Extensions.Text $ui.Application.Text $ui.ContentFolder.Text ([bool]$ui.UseBootstrap.IsChecked) ([bool]$ui.UseHbargv.IsChecked) $ui.DsApplication.Text; Load-Sd; Write-Activity 'File handler saved. Restart Gloam to reload it.' } })
 $ui.SaveTab.Add_Click({ Invoke-UiAction { Save-GloamTab (Get-SelectedRoot) $ui.TabId.Text $ui.TabLabel.Text $ui.TabFolder.Text; Load-Sd; Write-Activity 'Folder tab saved. Restart Gloam to reload it.' } })
 $ui.SaveRoots.Add_Click({ Invoke-UiAction { Save-GloamRoots (Get-SelectedRoot) $ui.GamesRoot.Text $ui.AppsRoot.Text $ui.MediaRoot.Text; Load-Sd; Write-Activity 'Library folders saved.' } })
+function Show-ThemeReport([string]$Source) {
+    $report=Test-GloamTheme $Source
+    $ui.ThemeIconPreview.Children.Clear()
+    foreach ($item in $report.Icons) {
+        $image=[Windows.Controls.Image]::new(); $image.Source=$item.Image; $image.Width=32; $image.Height=32
+        $image.Margin=[Windows.Thickness]::new(4); $image.ToolTip=$item.Name
+        [Windows.Media.RenderOptions]::SetBitmapScalingMode($image,[Windows.Media.BitmapScalingMode]::NearestNeighbor)
+        $ui.ThemeIconPreview.Children.Add($image) | Out-Null
+    }
+    $summary=if ($report.Valid) { 'Manifest/path checks passed.' } else { 'Fix these errors before importing:' }
+    $ui.ThemeReport.Text=($summary+"`n"+($report.Errors -join "`n")+"`n"+($report.Warnings -join "`n")).Trim()+"`nFont/audio/background decoding and final appearance must also be checked in Gloam."
+}
+$ui.ThemeList.Add_SelectionChanged({ Invoke-UiAction {
+    if ($ui.ThemeList.SelectedItem) { Show-ThemeReport (Get-GloamPath (Get-SelectedRoot) ('_nds/dsi-frontend/themes/'+[string]$ui.ThemeList.SelectedItem)) }
+} })
+$ui.InspectTheme.Add_Click({ Invoke-UiAction {
+    $dialog=[Windows.Forms.FolderBrowserDialog]::new(); $dialog.Description='Choose a theme folder to inspect without copying it'
+    try { if ($dialog.ShowDialog() -eq 'OK') { Show-ThemeReport $dialog.SelectedPath } } finally { $dialog.Dispose() }
+} })
 $ui.ImportTheme.Add_Click({ Invoke-UiAction {
     $root = Get-SelectedRoot; $dialog = [Windows.Forms.FolderBrowserDialog]::new(); $dialog.Description = 'Choose a theme folder containing theme.ini'
     if ($dialog.ShowDialog() -eq 'OK') { Import-GloamTheme $root $dialog.SelectedPath; Load-Sd; Write-Activity 'Theme imported. Select it in Gloam settings.' }; $dialog.Dispose()
