@@ -1,6 +1,7 @@
 #ifndef GLOAM_UI_STRINGS_H
 #define GLOAM_UI_STRINGS_H
 #include <stdbool.h>
+#include <stdint.h>
 typedef enum {
     UI_HOME,
     UI_GAMES,
@@ -16,13 +17,16 @@ typedef enum {
     UI_EMPTY_FOLDER,
     UI_STRING_COUNT
 } UiString;
-#define UI_EXTRA_CAP 192
+#define UI_EXTRA_CAP 256
+#define UI_TEXT_CAP 32768
 typedef struct {
-    char key[48], value[256];
+    char key[48];
+    uint16_t offset;
 } UiTranslation;
 typedef struct {
     UiTranslation extra[UI_EXTRA_CAP];
-    unsigned extra_count;
+    unsigned extra_count, text_used;
+    char text[UI_TEXT_CAP];
     char values[UI_STRING_COUNT][96];
     bool loaded;
 } UiLanguage;

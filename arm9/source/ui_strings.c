@@ -30,7 +30,7 @@ const char *ui_translate(const UiLanguage *language, const char *key, const char
 {
     for (unsigned i = 0; i < language->extra_count; i++)
         if (!strcmp(language->extra[i].key, key))
-            return language->extra[i].value;
+            return language->text + language->extra[i].offset;
     return fallback;
 }
 static bool extra_key(const char *key)
@@ -111,9 +111,16 @@ void ui_language_load(UiLanguage *language, const char *root, bool enabled)
                 valid = false;
                 break;
             }
+            size_t length = strlen(value) + 1;
+            if (length > UI_TEXT_CAP - candidate->text_used) {
+                valid = false;
+                break;
+            }
             UiTranslation *entry = &candidate->extra[candidate->extra_count++];
             strcpy(entry->key, line);
-            strcpy(entry->value, value);
+            entry->offset = (uint16_t)candidate->text_used;
+            memcpy(candidate->text + candidate->text_used, value, length);
+            candidate->text_used += length;
             continue;
         }
         if (key == UI_STRING_COUNT || (key <= UI_FILES && strlen(value) >= 64) || seen[key] ||

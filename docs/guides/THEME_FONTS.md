@@ -37,3 +37,9 @@ theme packs compatible. Unsupported codepoints retain the current face's `?` gly
 Variable-width/role-specific metrics, PCF import, CJK/RTL scripts and full UI
 localization remain future work. They require a shared measurement/layout
 contract before replacing the current geometry guarantees.
+
+The Spanish catalog includes every settings label and help entry, plus common
+settings values. Other dialogs and runtime errors still fall back to English.
+Catalogs support up to 256 additional keys within the 32 KiB file limit; values
+share a bounded text pool rather than allocating a full help buffer per key.
+Personal theme names, paths and custom tab labels are never translated as values.

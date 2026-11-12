@@ -23,6 +23,7 @@ static void catalog(const char *root, const char *text)
 int main(int argc, char **argv)
 {
     assert(argc == 2 && path_prepare_preferences_directory(argv[1]));
+    assert(sizeof(UiLanguage) < 48000); /* More keys without larger fixed per-value buffers. */
     catalog(argv[1], "version=1\ngames=Jeux\nsettings=Réglages\n");
     app_init(&app, argv[1], true, true);
     assert(app.language.loaded && !strcmp(tabs_label(&app, CATEGORY_GAMES), "Jeux"));
@@ -36,6 +37,29 @@ int main(int argc, char **argv)
     assert(app.language.loaded && !strcmp(settings_option_text(&app, accent, false), "Color"));
     assert(!strcmp(settings_option_text(&app, accent, true), "Elige un color."));
     assert(!strcmp(ui_translate(&app.language, "dialog.unknown", "English"), "English"));
+    catalog(argv[1], "version=1\nvalue.off=No\nvalue.grid=Mosaico\n");
+    ui_language_load(&app.language, argv[1], true);
+    for (int page = 0; page < settings_section_count(&app); page++) {
+        for (int row = 0; row < settings_option_count(&app, page); row++) {
+            const SettingsOption *option = settings_option(&app, page, row);
+            char value[96];
+            if (!strcmp(option->label, "Auto-launch recent")) {
+                app.auto_launch_delay = 0;
+                settings_value(&app, option, value, sizeof value);
+                assert(!strcmp(value, "No"));
+            }
+            if (!strcmp(option->label, "Theme")) {
+                strcpy(app.themes.active.name, "Off");
+                settings_value(&app, option, value, sizeof value);
+                assert(!strcmp(value, "Off")); /* Never translate a personal name. */
+            }
+            if (!strcmp(option->label, "Browser view")) {
+                app.browser_style = BROWSER_GRID;
+                settings_value(&app, option, value, sizeof value);
+                assert(!strcmp(value, "Mosaico"));
+            }
+        }
+    }
     const char *catalogs[] = {"config/languages/template.ini", "config/languages/spanish.ini"};
     for (unsigned i = 0; i < 2; i++) {
         FILE *file = fopen(catalogs[i], "rb");
@@ -61,6 +85,21 @@ int main(int argc, char **argv)
         }
         settings_close(&app);
     }
+    char many[16000] = "version=1\n";
+    for (unsigned i = 0; i <= UI_EXTRA_CAP; i++) {
+        char record[64];
+        snprintf(record, sizeof record, "value.fixture_%u=Texto %u\n", i, i);
+        strcat(many, record);
+        if (i + 1 == UI_EXTRA_CAP) {
+            catalog(argv[1], many);
+            ui_language_load(&app.language, argv[1], true);
+            assert(app.language.loaded && app.language.extra_count == UI_EXTRA_CAP);
+            assert(!strcmp(ui_translate(&app.language, "value.fixture_255", "bad"), "Texto 255"));
+        }
+    }
+    catalog(argv[1], many);
+    ui_language_load(&app.language, argv[1], true);
+    assert(!app.language.loaded);
     const char *bad[] = {"version=1\ngames=First\ngames=Second\n", "version=2\ngames=Jeux\n",
                          "version=1\nunknown=No\n",
                          "version=1\nsetting.accent.label=A\nsetting.accent.label=B\n",

@@ -943,9 +943,94 @@ void settings_touch(App *app, int x, int y)
         app->settings.status[0] = 0;
     }
 }
+/* Translate only built-in values; personal paths, tab labels and theme names stay literal. */
+static const char *translated_value(const App *app, const char *value)
+{
+    static const struct {
+        const char *key, *english;
+    } values[] = {
+        {"value.on", "On"},
+        {"value.off", "Off"},
+        {"value.auto", "Auto"},
+        {"value.enabled", "Enabled"},
+        {"value.disabled", "Disabled"},
+        {"value.simple", "Simple"},
+        {"value.advanced", "Advanced"},
+        {"value.hidden", "Hidden"},
+        {"value.large", "Large"},
+        {"value.small", "Small"},
+        {"value.classic", "Classic"},
+        {"value.extended", "Extended"},
+        {"value.list", "List"},
+        {"value.grid", "Grid"},
+        {"value.shelf", "Shelf"},
+        {"value.index", "Index"},
+        {"value.theme", "Theme"},
+        {"value.custom", "Custom"},
+        {"value.hour12", "12 hour"},
+        {"value.hour24", "24 hour"},
+        {"value.name_asc", "Name A-Z"},
+        {"value.name_desc", "Name Z-A"},
+        {"value.type", "Type"},
+        {"value.newest", "Newest"},
+        {"value.known", "Known types"},
+        {"value.all_files", "All files"},
+        {"value.slow", "Slow"},
+        {"value.normal", "Normal"},
+        {"value.fast", "Fast"},
+        {"value.last_tab", "Last tab"},
+        {"value.customize", "Customize"},
+        {"value.open", "Open"},
+        {"value.unavailable", "Unavailable"},
+        {"value.refresh", "Refresh"},
+        {"value.unsaved", "Unsaved"},
+        {"value.saved", "Saved"},
+        {"value.development", "Development"},
+        {"value.apply", "Apply"},
+        {"value.confirm", "A confirms"},
+        {"value.review", "Review"},
+        {"value.write_archive", "Write archive"},
+        {"value.choose_archive", "Choose archive"},
+        {"value.write_report", "Write report"},
+        {"value.restore_theme", "Restore theme"},
+        {"value.internal", "Internal"},
+        {"value.filename", "Filename"},
+        {"value.japanese", "Japanese"},
+        {"value.english", "English"},
+        {"value.french", "French"},
+        {"value.german", "German"},
+        {"value.italian", "Italian"},
+        {"value.spanish", "Spanish"},
+        {"value.chinese", "Chinese"},
+        {"value.korean", "Korean"},
+        {"value.installer", "Open installer"},
+        {"value.select_title", "Select title"},
+        {"value.configure", "Configure"},
+        {"value.automatic", "Automatic"},
+        {"value.choose_wav", "Choose WAV"},
+        {"value.ready", "Ready"},
+        {"value.sd_unavailable", "SD unavailable"},
+        {"value.needs_dsi", "Needs DSi mode"},
+        {"value.installed", "Installed"},
+        {"value.missing", "Missing/invalid"},
+        {"value.not_scanned", "Not scanned"},
+        {"value.title_found", "Title found"},
+        {"value.boot_dependent", "Boot-dependent"},
+        {"value.dsi_mode", "DSi mode"},
+        {"value.ds_mode", "DS mode"},
+        {"value.dsi_sd", "DSi SD"},
+        {"value.pending", "Pending"},
+        {"value.host", "Host preview"},
+    };
+    for (unsigned i = 0; i < sizeof values / sizeof *values; i++)
+        if (!strcmp(value, values[i].english))
+            return ui_translate(&app->language, values[i].key, value);
+    return value;
+}
 void settings_value(const App *app, const SettingsOption *option, char *out, size_t capacity)
 {
     const char *value = "Pending";
+    bool translate = true;
     if (!option) {
         if (capacity)
             out[0] = 0;
@@ -957,9 +1042,10 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
         break;
     case OPT_AUTO_LAUNCH:
         if (app->auto_launch_delay)
-            snprintf(out, capacity, "%d seconds", app->auto_launch_delay);
+            snprintf(out, capacity, "%d %s", app->auto_launch_delay,
+                     ui_translate(&app->language, "value.seconds", "seconds"));
         else
-            path_copy(out, "Off", capacity);
+            path_copy(out, translated_value(app, "Off"), capacity);
         return;
     case OPT_ROUTE_DIRECT:
         value = app->storage_lost || !app->storage_ready ? "SD unavailable"
@@ -1052,14 +1138,14 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
         if (app->brightness >= 1)
             snprintf(out, capacity, "%d / 5", app->brightness);
         else
-            path_copy(out, "Unavailable", capacity);
+            path_copy(out, translated_value(app, "Unavailable"), capacity);
         return;
     case OPT_BATTERY:
         if (app->battery_level >= 0)
             snprintf(out, capacity, "%d/15%s", app->battery_level,
                      app->battery_charging ? " +AC" : "");
         else
-            path_copy(out, "Unavailable", capacity);
+            path_copy(out, translated_value(app, "Unavailable"), capacity);
         return;
     case OPT_SLEEP:
         value = "Automatic";
@@ -1071,6 +1157,7 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
     }
     case OPT_MUSIC_PATH:
         value = *app->audio.custom_path ? app->audio.custom_path : "Choose WAV";
+        translate = !*app->audio.custom_path;
         break;
     case OPT_MUSIC_VOLUME:
     case OPT_EFFECTS_VOLUME:
@@ -1083,6 +1170,7 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
         break;
     case OPT_AUDIO:
         value = *app->audio.status ? app->audio.status : "Ready";
+        translate = !*app->audio.status;
         break;
     case OPT_ACCENT: {
         value = *app->themes.active.id && !app->theme_accent_override
@@ -1140,6 +1228,7 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
     case OPT_STARTUP: {
         int tab = tabs_find(app, app->startup_tab);
         value = tab < 0 ? "Last tab" : tabs_label(app, tab);
+        translate = tab < 0;
         break;
     }
     case OPT_DASHBOARD:
@@ -1147,9 +1236,11 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
         break;
     case OPT_THEME:
         value = app->themes.active.name;
+        translate = false;
         break;
     case OPT_PROFILES:
-        snprintf(out, capacity, "%d profiles", app->association_count);
+        snprintf(out, capacity, "%d %s", app->association_count,
+                 ui_translate(&app->language, "value.profiles", "profiles"));
         return;
     case OPT_SYSTEM_MENU:
         value = app->dsi_mode ? "Open" : "Unavailable";
@@ -1173,7 +1264,8 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
         value = "Development";
         break;
     case OPT_TABS:
-        snprintf(out, capacity, "%d tabs", app->tab_count);
+        snprintf(out, capacity, "%d %s", app->tab_count,
+                 ui_translate(&app->language, "value.tabs", "tabs"));
         return;
     case OPT_TOOLCHAIN:
 #ifdef HOST_PREVIEW
@@ -1185,16 +1277,7 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
     default:
         break;
     }
-    static const char *common[] = {"On",       "Off",    "Auto",    "Enabled",
-                                   "Disabled", "Simple", "Advanced"};
-    static const char *keys[] = {"value.on",       "value.off",    "value.auto",    "value.enabled",
-                                 "value.disabled", "value.simple", "value.advanced"};
-    for (unsigned i = 0; i < sizeof common / sizeof *common; i++)
-        if (!strcmp(value, common[i])) {
-            value = ui_translate(&app->language, keys[i], value);
-            break;
-        }
-    path_copy(out, value, capacity);
+    path_copy(out, translate ? translated_value(app, value) : value, capacity);
 }
 void settings_format_clock(char out[12], int hour, int minute, bool twelve_hour)
 {
