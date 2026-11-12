@@ -17,7 +17,10 @@ static inline int layout_list_top(int category)
 }
 
 #define UI_SHELF_CARD_HEIGHT 84
-#define UI_SHELF_ICON_SIZE 48
+static inline int layout_shelf_icon_size(const App *app)
+{
+    return app->icon_size == ICON_LARGE ? 48 : 32;
+}
 
 static inline int layout_shelf_top(const App *app)
 {

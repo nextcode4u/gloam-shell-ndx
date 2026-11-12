@@ -383,9 +383,10 @@ static void draw_shelf(const App *app, uint16_t *pixels, Palette colors)
                         pixels[(y + row) * 256 + left + column] = color;
                 }
         } else {
-            draw_browser_icon(app, pixels, index, x + (62 - UI_SHELF_ICON_SIZE) / 2,
-                              top + (UI_SHELF_CARD_HEIGHT - UI_SHELF_ICON_SIZE) / 2,
-                              UI_SHELF_ICON_SIZE, selected ? colors.accent : colors.muted);
+            int size = layout_shelf_icon_size(app);
+            draw_browser_icon(app, pixels, index, x + (62 - size) / 2,
+                              top + (UI_SHELF_CARD_HEIGHT - size) / 2, size,
+                              selected ? colors.accent : colors.muted);
         }
         if (selected)
             draw_rectangle(pixels, x, base + 3, 62, 2, colors.accent);

@@ -299,9 +299,10 @@ neighbor to select it, then tap the selected item to open it. Home and custom
 folder tabs use the same layout. Reduced motion disables the horizontal slide.
 
 Jackets retain their size while artwork resolves. Missing covers and native
-banners use fixed 48-pixel browser icons, including animated banners. Covers
-retain their aspect ratio inside the jackets. Icon-size, row-padding and grid
-column settings apply to their other layouts.
+banners follow the icon-size setting: Small uses 32 pixels and Large uses 48,
+including animated banners. Cards stay the same size, and covers retain their
+aspect ratio inside the jackets. Row-padding and grid-column settings apply
+to their other layouts.
 
 Three path-keyed prepared images are retained across selection changes and
 invalidated on explicit refresh. One entry is prepared per tick using the

@@ -189,6 +189,7 @@ int main(int argc, char **argv)
                 int cell = location->selected - location->scroll;
                 assert(cell >= 0 && cell < layout_visible_rows(&app));
                 if (style == BROWSER_SHELF) {
+                    assert(layout_shelf_icon_size(&app) == (size == ICON_LARGE ? 48 : 32));
                     int shelf_top = layout_shelf_top(&app);
                     assert(shelf_top ==
                            56); /* Stable shelf position across folder and system tabs. */
