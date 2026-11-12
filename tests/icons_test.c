@@ -204,6 +204,9 @@ int main(int argc, char **argv)
                 }
                 top.before = top.after = bottom.before = bottom.after = 0x12345678;
                 render_app(&app, top.pixels, bottom.pixels, "12:00");
+                app.detail_tab = 1;
+                render_app(&app, top.pixels, bottom.pixels, "12:00");
+                app.detail_tab = 0;
                 assert(top.before == 0x12345678 && top.after == 0x12345678);
                 assert(bottom.before == 0x12345678 && bottom.after == 0x12345678);
             }

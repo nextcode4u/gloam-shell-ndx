@@ -2,6 +2,7 @@
 #include "app.h"
 #include "artwork.h"
 #include "association_editor.h"
+#include "associations.h"
 #include "browser.h"
 #include "cheats.h"
 #include "dashboard.h"
@@ -68,6 +69,100 @@ static void draw_library_index(const App *app, uint16_t *pixels, Palette colors)
               app->truncated || app->locations[app->category].batch ? "Current batch only"
                                                                     : "Left/right: groups",
               colors.muted, 22);
+}
+
+/* Facts use cached entries/metadata only: no file access in rendering. */
+static void draw_item_information(const App *app, uint16_t *pixels, Palette colors)
+{
+    const Entry *entry = app_selected(app);
+    int index = app->locations[app->category].selected;
+    char size[32] = "", summary[80] = "", facts[80] = "";
+    const char *type = entry ? entry_type(entry) : "No selection";
+    const char *storage = "SD card";
+    const char *title = entry ? entry->name : "Choose an item";
+    const char *hint = "A: open selection";
+    if (entry) {
+        draw_browser_icon(app, pixels, index, 12, 53, 32, colors.accent);
+        if (entry->kind == ITEM_FILE || entry->kind == ITEM_INSTALLED_TITLE) {
+            if (entry->size >= 1024 * 1024)
+                snprintf(size, sizeof size, "%lu.%lu MiB", (unsigned long)(entry->size / 1048576),
+                         (unsigned long)((entry->size % 1048576) * 10ULL / 1048576));
+            else if (entry->size >= 1024)
+                snprintf(size, sizeof size, "%lu KiB", (unsigned long)(entry->size / 1024));
+            else
+                snprintf(size, sizeof size, "%lu bytes", (unsigned long)entry->size);
+        }
+        if (entry->kind == ITEM_FILE) {
+            hint = "A: check and launch";
+            if (icon_is_ds_title(entry->path)) {
+                if (app->info_header_valid)
+                    type = app->info_unit == 0   ? "Nintendo DS"
+                           : app->info_unit == 2 ? "DSi enhanced"
+                           : app->info_unit == 3 ? "DSi only"
+                                                 : "Unknown DS header";
+                if (*app->info_title)
+                    title = app->info_title;
+                snprintf(facts, sizeof facts, "%s%s", *app->info_code ? "Game code: " : "",
+                         *app->info_code    ? app->info_code
+                         : app->info_loaded ? "Code unavailable"
+                                            : "Reading metadata...");
+            } else {
+                const Association *choices[ASSOCIATION_CAP];
+                int count = association_choices(app, entry->path, choices);
+                if (count == 1) {
+                    title = *choices[0]->name ? choices[0]->name : choices[0]->application;
+                    snprintf(facts, sizeof facts, "%s / %s",
+                             choices[0]->bootstrap || choices[0]->hbargv ? "nds-bootstrap"
+                                                                         : "Direct",
+                             choices[0]->use_argv || choices[0]->hbargv ? "argv" : "no argv");
+                } else
+                    snprintf(facts, sizeof facts, "%s",
+                             count > 1 ? "Choose app on launch" : "No file association");
+            }
+        } else if (entry->kind == ITEM_INSTALLED_TITLE && entry->target >= 0 &&
+                   (unsigned)entry->target < app->installed_catalog.count) {
+            const NativeTitle *native = &app->installed_catalog.titles[entry->target].title;
+            storage = "NAND";
+            snprintf(facts, sizeof facts, "ID %08lX%08lX", (unsigned long)native->high,
+                     (unsigned long)native->low);
+            hint = "A: launch from NAND";
+        } else if (entry->kind == ITEM_SYSTEM) {
+            storage = entry->target == 6 ? "Slot-1" : "NAND";
+            hint = entry->target == 5   ? "A: Nintendo Menu"
+                   : entry->target == 6 ? "A: launch card"
+                                        : "A: launch system app";
+            if (entry->target == 6 && *app->slot1.title)
+                title = app->slot1.title;
+        } else if (entry->kind == ITEM_DIRECTORY || entry->kind == ITEM_CATEGORY) {
+            unsigned files = 0, folders = 0;
+            for (int i = 0; i < app->entry_count; i++) {
+                files += app->entries[i].kind == ITEM_FILE;
+                folders += app->entries[i].kind == ITEM_DIRECTORY;
+            }
+            title = "Current browser batch";
+            snprintf(facts, sizeof facts, "%u files / %u folders", files, folders);
+        } else if (entry->kind == ITEM_INSTALLED_LIBRARY) {
+            storage = "NAND";
+            snprintf(facts, sizeof facts, "%u discovered titles", app->installed_catalog.count);
+        }
+    }
+    snprintf(summary, sizeof summary, "%s", size);
+    draw_text_scrolling(pixels, 52, 52, type, colors.accent, 114, app->selection_idle_frames,
+                        !app->reduced_motion);
+    draw_text(pixels, 52, 68, summary, colors.text, 16);
+    draw_text(pixels, 52, 84, storage, colors.muted, 16);
+    draw_text_scrolling(pixels, 12, 103, title, colors.text, 154, app->selection_idle_frames,
+                        !app->reduced_motion);
+    draw_text_scrolling(pixels, 12, 117, facts, colors.muted, 154, app->selection_idle_frames,
+                        !app->reduced_motion);
+    draw_text_scrolling(pixels, 12, 131, entry && *entry->path ? entry->path : storage,
+                        colors.muted, 154, app->selection_idle_frames, !app->reduced_motion);
+    draw_text(pixels, 12, 146, hint, colors.muted, 22);
+    draw_text(pixels, 12, 164,
+              app->browser_style == BROWSER_INDEX ? "Y: library index"
+              : app->show_covers                  ? "Y: artwork"
+                                                  : "Covers disabled",
+              colors.accent, 22);
 }
 
 static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, const char *clock)
@@ -168,24 +263,7 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
                             app->selection_idle_frames * (installed_library ? 3u : 1u),
                             !app->reduced_motion);
     } else {
-        draw_text(pixels, 12, 55, "ITEM INFORMATION", colors.accent, 24);
-        draw_text_wrapped(pixels, 12, 73,
-                          entry && entry->path[0] ? entry->path : "A opens the selected section.",
-                          colors.text, 22, 4);
-        draw_text(pixels, 12, 127, entry ? entry_type(entry) : "", colors.muted, 22);
-        const char *hint = !entry                                ? "Choose an item"
-                           : entry->kind == ITEM_INSTALLED_TITLE ? "A: launch from NAND"
-                           : entry->kind == ITEM_FILE            ? "A: check and launch"
-                           : entry->kind == ITEM_SYSTEM && entry->target != 5
-                               ? "System route pending"
-                           : entry->kind == ITEM_SYSTEM ? "A: Nintendo Menu"
-                                                        : "A: open selection";
-        draw_text(pixels, 12, 144, hint, colors.muted, 22);
-        draw_text(pixels, 12, 164,
-                  app->browser_style == BROWSER_INDEX ? "Y: library index"
-                  : app->show_covers                  ? "Y: artwork"
-                                                      : "Covers disabled",
-                  colors.accent, 22);
+        draw_item_information(app, pixels, colors);
     }
     for (int row = 0; row < TAB_VISIBLE_COUNT; row++) {
         int index = app->tab_scroll + row;

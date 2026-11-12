@@ -1,5 +1,6 @@
 /* Internal banner names are optional, lazy and bounded to the visible page. */
 #include "title_metadata.h"
+#include "browser.h"
 #include "icons.h"
 #include "layout.h"
 #include "text.h"
@@ -47,7 +48,34 @@ bool title_metadata_read(const char *path, int language, char title[128])
 }
 void title_metadata_tick(App *app)
 {
-    if (!app->storage_ready || !app->internal_titles || app->selection_idle_frames < 2)
+    if (!app->storage_ready || app->selection_idle_frames < 2)
+        return;
+    /* Selected details are independent of cover decoding and list-name settings. */
+    const Entry *selected = app_selected(app);
+    if (!app->info_loaded && (app->detail_tab || !app->show_covers) && selected &&
+        selected->kind == ITEM_FILE && icon_is_ds_title(selected->path)) {
+        app->info_loaded = true;
+        unsigned char header[0x160];
+        FILE *file = fopen(selected->path, "rb");
+        if (file) {
+            if (fread(header, 1, sizeof header, file) == sizeof header) {
+                app->info_header_valid = true;
+                app->info_unit = header[0x12];
+                bool printable = true;
+                for (int i = 0; i < 4; i++)
+                    if (header[12 + i] < 33 || header[12 + i] > 126)
+                        printable = false;
+                if (printable) {
+                    memcpy(app->info_code, header + 12, 4);
+                    app->info_code[4] = 0;
+                }
+            }
+            fclose(file);
+        }
+        title_metadata_read(selected->path, app->title_language, app->info_title);
+        return;
+    }
+    if (!app->internal_titles)
         return;
     const Location *location = &app->locations[app->category];
     int first = location->scroll, last = first + layout_visible_rows(app);

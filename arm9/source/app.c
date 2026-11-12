@@ -59,6 +59,8 @@ static void reset_selection_preview(App *app)
     app->artwork.ready = false;
     app->artwork_resolved = false;
     app->title[0] = app->code[0] = 0;
+    app->info_title[0] = app->info_code[0] = 0;
+    app->info_loaded = app->info_header_valid = false;
 }
 
 void app_reset_preview(App *app)

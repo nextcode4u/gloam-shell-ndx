@@ -47,6 +47,30 @@ int main(int argc, char **argv)
     app.internal_titles = false;
     browser_display_name(&app, &app.entries[0], display);
     assert(!strcmp(display, "Actual filename.nds"));
+    /* Details remain available with filename labels and covers disabled. */
+    app.detail_tab = 1;
+    app.show_covers = false;
+    app_reset_preview(&app);
+    app.selection_idle_frames = 2;
+    title_metadata_tick(&app);
+    assert(app.info_loaded && app.info_header_valid && app.info_unit == 0);
+    assert(!strcmp(app.info_code, "TST0") && !strcmp(app.info_title, "Jeu"));
+    data[0x12] = 3;
+    f = fopen(path, "wb");
+    assert(f && fwrite(data, 1, sizeof data, f) == sizeof data && !fclose(f));
+    title_metadata_tick(&app);
+    assert(app.info_unit == 0); /* Selection metadata is cached. */
+    app_reset_preview(&app);
+    assert(!app.info_loaded && !*app.info_title && !*app.info_code);
+    app.selection_idle_frames = 2;
+    title_metadata_tick(&app);
+    assert(app.info_header_valid && app.info_unit == 3);
+    f = fopen(path, "wb");
+    assert(f && fwrite(data, 1, 8, f) == 8 && !fclose(f));
+    app_reset_preview(&app);
+    app.selection_idle_frames = 2;
+    title_metadata_tick(&app);
+    assert(app.info_loaded && !app.info_header_valid && !*app.info_code && !*app.info_title);
     data[0x200] = 0xFF;
     f = fopen(path, "wb");
     assert(f && fwrite(data, 1, sizeof data, f) == sizeof data && !fclose(f));

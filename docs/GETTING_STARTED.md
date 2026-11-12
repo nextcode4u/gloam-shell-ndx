@@ -119,3 +119,14 @@ Groups count the current directory batch, not the entire SD card. Existing
 sorting stays intact. Common Latin-1 accented initials join their base letter;
 other scripts and punctuation appear under `*` (Other). Genre metadata is not
 required. Index honors the icon-size setting and theme row padding.
+
+### Item information
+
+Press **Y** to switch between the artwork/index and item information. Details
+show the icon, size, storage and a scrolling path. DS/DSi files also show their
+localized banner title, header type and game code when available; these are
+read lazily for the selected item, even when covers and internal list names
+are disabled. Installed titles show their NAND title ID. Associated files show
+the configured player and launch method, or indicate that an app choice is
+needed. Folder counts describe the current browser batch, not the unopened
+folder's contents. This view does not recursively scan directories.
