@@ -66,6 +66,34 @@ class WindowsInstallerMenuTests(unittest.TestCase):
         self.assertNotIn('Operation stopped:', result.stdout)
         return result.stdout
 
+    def test_locked_executable_survives_failed_update_and_retry_repairs_backup(self):
+        old = b'Working executable before update'
+        self.binary.parent.mkdir(parents=True)
+        self.binary.write_bytes(old)
+        backup = self.cache / 'previous-files' / hashlib.sha256(old).hexdigest() / self.binary.name
+        backup.parent.mkdir(parents=True)
+        backup.write_bytes(b'Interrupted backup')
+        def quote(path):
+            return "'" + windows_path(path).replace("'", "''") + "'"
+        wrapper = self.root / 'locked.ps1'
+        wrapper.write_text(
+            "$handle = [IO.File]::Open(" + quote(self.binary) +
+            ", [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)\n" +
+            "try { & " + quote(self.installer / 'download-addons.ps1') +
+            " -Offline -Update -Only demo -Target " + quote(self.target) +
+            " -Cache " + quote(self.cache) + " } finally { $handle.Dispose() }\nexit $LASTEXITCODE\n")
+        result = subprocess.run([POWERSHELL, '-NoProfile', '-ExecutionPolicy', 'Bypass',
+                                 '-File', windows_path(wrapper)], capture_output=True, timeout=45)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.binary.read_bytes(), old)
+        self.assertEqual(backup.read_bytes(), old)
+        self.assertEqual(list(self.binary.parent.iterdir()), [self.binary])
+        result = subprocess.run(self.ps + ['-Offline', '-Update', '-Only', 'demo',
+            '-Target', windows_path(self.target), '-Cache', windows_path(self.cache)],
+            capture_output=True, timeout=45)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.binary.read_bytes(), self.payload)
+
     def test_batch_continues_after_download_or_hash_failure_in_both_installers(self):
         apps = []
         for name in ('before', 'broken', 'after', 'dependent'):

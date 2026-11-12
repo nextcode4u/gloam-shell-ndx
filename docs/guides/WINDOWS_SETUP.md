@@ -345,3 +345,9 @@ manifests are recognized for migration. Replaced files receive setup backups.
 A missing or damaged receipt never authorizes replacing an unknown theme.
 Imported themes remain separate. Rename a customized pack if you want to keep
 it alongside a fresh bundled version. Frontend-only updates do not change themes.
+
+Download caches are published only after complete hash verification. Online retries
+replace corrupt cached downloads; offline runs report them without staging their
+contents. Executable updates prepare a replacement beside the destination and
+retain the previous executable if replacement fails. Recovery copies are checked
+before updating, so an interrupted backup is repaired on retry.

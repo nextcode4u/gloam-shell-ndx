@@ -253,6 +253,15 @@ function Test-Support($Apps, [string]$Folder, [string[]]$Names) {
     }
 }
 
+function Write-CompleteFile([string]$Path, [byte[]]$Data) {
+    $temporary = Join-Path ([IO.Path]::GetDirectoryName($Path)) ([IO.Path]::GetRandomFileName())
+    try {
+        [IO.File]::WriteAllBytes($temporary, $Data)
+        if ([IO.File]::Exists($Path)) { [IO.File]::Replace($temporary, $Path, [NullString]::Value) }
+        else { [IO.File]::Move($temporary, $Path) }
+    } finally { if ([IO.File]::Exists($temporary)) { [IO.File]::Delete($temporary) } }
+}
+
 function Get-Download($Item) {
     if ($Item.asset -cnotmatch '^[A-Za-z0-9_.-]+$' -or $Item.asset -in @('.', '..')) { throw 'Unsafe cache filename' }
     if ($Item.sha256 -cnotmatch '^[0-9a-f]{64}$') { throw 'Invalid download hash' }
@@ -267,8 +276,11 @@ function Get-Download($Item) {
     if (Test-Path -LiteralPath $path) {
         if ((Get-Item -Force -LiteralPath $path).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Cache entry is a link' }
         $bytes = [IO.File]::ReadAllBytes($path)
-    } else {
-        if ($Offline) { throw "Offline cache missing: $($Item.asset)" }
+        if ($bytes.Length -le $MaxDownload -and (Get-Digest $bytes) -eq $Item.sha256) { return ,$bytes }
+        if ($Offline) { throw "Download cache hash mismatch: $($Item.asset)" }
+        Write-Host "Replacing incomplete or corrupt cache: $($Item.asset)"
+    } elseif ($Offline) { throw "Offline cache missing: $($Item.asset)" }
+    if (-not $Offline) {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $request = [Net.WebRequest]::Create($Item.url)
         $request.Timeout = 60000
@@ -286,7 +298,7 @@ function Get-Download($Item) {
         } finally { $memory.Dispose(); $stream.Dispose(); $response.Dispose() }
         if ((Get-Digest $bytes) -ne $Item.sha256) { throw "Download hash mismatch: $($Item.asset)" }
         [IO.Directory]::CreateDirectory($Cache) | Out-Null
-        [IO.File]::WriteAllBytes($path, $bytes)
+        Write-CompleteFile $path $bytes
     }
     if ($bytes.Length -gt $MaxDownload -or (Get-Digest $bytes) -ne $Item.sha256) { throw "Download size/hash mismatch: $($Item.asset)" }
     return ,$bytes
@@ -592,7 +604,9 @@ try {
                 $previous = [IO.File]::ReadAllBytes($path)
                 $backup = Join-Path (Join-Path (Join-Path $Cache 'previous-files') (Get-Digest $previous)) ([IO.Path]::GetFileName($path))
                 [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($backup)) | Out-Null
-                if (-not (Test-Path -LiteralPath $backup)) { [IO.File]::WriteAllBytes($backup, $previous) }
+                if (-not [IO.File]::Exists($backup) -or (Get-Digest ([IO.File]::ReadAllBytes($backup))) -ne (Get-Digest $previous)) {
+                    Write-CompleteFile $backup $previous
+                }
             }
             $folder = [IO.Path]::GetDirectoryName($path)
             [IO.Directory]::CreateDirectory($folder) | Out-Null
@@ -601,9 +615,8 @@ try {
                 [IO.File]::WriteAllBytes($temporary, $data)
                 if (Test-Path -LiteralPath $path) {
                     if (-not $replace) { $skipped++; continue }
-                    [IO.File]::Delete($path)
-                }
-                [IO.File]::Move($temporary, $path)
+                    [IO.File]::Replace($temporary, $path, [NullString]::Value)
+                } else { [IO.File]::Move($temporary, $path) }
                 $installed++; $changed[$plan.Id] = $true
             } finally { if (Test-Path -LiteralPath $temporary) { [IO.File]::Delete($temporary) } }
         } catch [OperationCanceledException] { throw }

@@ -241,6 +241,21 @@ def application_files(app):
     return files
 
 
+def write_atomic(path, data):
+    """Publish a complete file, leaving the previous version intact on failure."""
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=path.parent, delete=False) as output:
+            temporary = Path(output.name)
+            output.write(data)
+            output.flush()
+            os.fsync(output.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
 def fetch(item, cache, offline):
     name = item["asset"]
     if not re.fullmatch(r"[A-Za-z0-9_.-]+", name) or name in {".", ".."}:
@@ -262,9 +277,14 @@ def fetch(item, cache, offline):
         raise ValueError("Download cache entry is a symlink")
     if path.exists():
         data = path.read_bytes()
+        if len(data) <= MAX_DOWNLOAD and digest(data) == item["sha256"]:
+            return data
+        if offline:
+            raise ValueError(f"Download cache hash mismatch: {name}")
+        print(f"Replacing incomplete or corrupt cache: {name}")
     elif offline:
         raise ValueError(f"Offline cache missing: {name}")
-    else:
+    if not offline:
         print(f"Downloading {item['asset']}...")
         request = urllib.request.Request(item["url"], headers={"User-Agent": "Gloam-addon-installer"})
         with urllib.request.urlopen(request, timeout=60) as response:
@@ -272,7 +292,7 @@ def fetch(item, cache, offline):
         if len(data) > MAX_DOWNLOAD or digest(data) != item["sha256"]:
             raise ValueError(f"Download size/hash mismatch: {name}")
         cache.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(data)
+        write_atomic(path, data)
     if len(data) > MAX_DOWNLOAD or digest(data) != item["sha256"]:
         raise ValueError(f"Download size/hash mismatch: {name}")
     return data
@@ -370,8 +390,8 @@ def stage(manifest, target, cache, only=None, noncommercial=False, overwrite=Fal
                 previous = path.read_bytes()
                 backup = Path(cache) / "previous-files" / digest(previous) / path.name
                 backup.parent.mkdir(parents=True, exist_ok=True)
-                if not backup.exists():
-                    backup.write_bytes(previous)
+                if not backup.exists() or digest(backup.read_bytes()) != digest(previous):
+                    write_atomic(backup, previous)
             path.parent.mkdir(parents=True, exist_ok=True)
             temporary = None
             try:

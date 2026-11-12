@@ -394,6 +394,48 @@ class DownloadAddonTests(unittest.TestCase):
         self.assertEqual((self.cache / 'demo.zip').read_bytes(), self.blob)
         self.assertEqual(fetch(item, self.cache, offline=True), new)
 
+    def test_corrupt_cache_is_repaired_online_and_preserved_when_offline(self):
+        item = self.app['files'][0]['download']
+        cached = self.cache / (item['sha256'] + '-' + item['asset'])
+        cached.write_bytes(b'Interrupted cache write')
+        with self.assertRaisesRegex(ValueError, 'cache hash mismatch'):
+            fetch(item, self.cache, offline=True)
+        with patch('urllib.request.urlopen', return_value=io.BytesIO(self.blob)):
+            self.assertEqual(fetch(item, self.cache, offline=False), self.blob)
+        self.assertEqual(cached.read_bytes(), self.blob)
+
+    def test_full_cache_disk_does_not_publish_partial_download(self):
+        item = self.app['files'][0]['download']
+        (self.cache / 'demo.zip').unlink()
+        with patch('urllib.request.urlopen', return_value=io.BytesIO(self.blob)), \
+             patch('tools.download_addons.os.fsync', side_effect=OSError(28, 'No space left')):
+            with self.assertRaises(OSError):
+                fetch(item, self.cache, offline=False)
+        self.assertEqual(list(self.cache.iterdir()), [])
+
+    def test_failed_replace_keeps_old_app_and_retry_repairs_incomplete_backup(self):
+        path = self.sd / self.name
+        path.parent.mkdir(parents=True)
+        old = b'Previous working executable'
+        path.write_bytes(old)
+        backup = self.cache / 'previous-files' / digest(old) / path.name
+        backup.parent.mkdir(parents=True)
+        backup.write_bytes(b'Interrupted backup')
+        replace = __import__('os').replace
+        def fail_app(source, target):
+            if target == path:
+                raise OSError(28, 'No space left')
+            return replace(source, target)
+        with patch('tools.download_addons.os.replace', side_effect=fail_app):
+            with self.assertRaisesRegex(ValueError, 'No space left'):
+                self.run_stage(update=True)
+        self.assertEqual(path.read_bytes(), old)
+        self.assertEqual(backup.read_bytes(), old)
+        self.assertEqual(list(path.parent.iterdir()), [path])
+        self.run_stage(update=True)
+        self.assertEqual(path.read_bytes(), self.binary)
+        self.assertEqual(backup.read_bytes(), old)
+
     def test_paired_payloads_are_selected_together_or_rejected(self):
         payload = copy.deepcopy(self.app)
         payload['id'] = 'payload'
