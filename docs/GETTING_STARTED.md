@@ -123,10 +123,12 @@ required. Index honors the icon-size setting and theme row padding.
 ### Item information
 
 Press **Y** to switch between the artwork/index and item information. Details
-show the icon, size, storage and a scrolling path. DS/DSi files also show their
-localized banner title, header type and game code when available; these are
+show the icon, size and storage without repeating the bottom-screen directory.
+DS/DSi files show their localized banner title, header type, game code and ROM
+revision when available; these are
 read lazily for the selected item, even when covers and internal list names
 are disabled. Installed titles show their NAND title ID. Associated files show
 the configured player and launch method, or indicate that an app choice is
-needed. Folder counts describe the current browser batch, not the unopened
+needed. Other files and folders show their cached modified date; items without
+a date show favorite status. Folder counts describe the current browser batch, not the unopened
 folder's contents. This view does not recursively scan directories.

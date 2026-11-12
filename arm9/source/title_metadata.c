@@ -61,6 +61,7 @@ void title_metadata_tick(App *app)
             if (fread(header, 1, sizeof header, file) == sizeof header) {
                 app->info_header_valid = true;
                 app->info_unit = header[0x12];
+                app->info_revision = header[0x1e];
                 bool printable = true;
                 for (int i = 0; i < 4; i++)
                     if (header[12 + i] < 33 || header[12 + i] > 126)

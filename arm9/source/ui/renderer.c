@@ -21,6 +21,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 typedef ThemePalette Palette;
 
@@ -76,13 +77,23 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
 {
     const Entry *entry = app_selected(app);
     int index = app->locations[app->category].selected;
-    char size[32] = "", summary[80] = "", facts[80] = "";
+    char size[32] = "", extra[48] = "", facts[80] = "";
     const char *type = entry ? entry_type(entry) : "No selection";
     const char *storage = "SD card";
     const char *title = entry ? entry->name : "Choose an item";
     const char *hint = "A: open selection";
     if (entry) {
         draw_browser_icon(app, pixels, index, 12, 53, 32, colors.accent);
+        /* Directory context already appears on the bottom screen. */
+        if ((entry->kind == ITEM_FILE || entry->kind == ITEM_DIRECTORY) && entry->modified > 0) {
+            time_t modified = (time_t)entry->modified;
+            struct tm date;
+            if ((int64_t)modified == entry->modified && localtime_r(&modified, &date))
+                strftime(extra, sizeof extra, "Modified: %Y-%m-%d", &date);
+        }
+        if (!*extra)
+            snprintf(extra, sizeof extra, "Favorite: %s",
+                     app_is_favorite(app, entry->path) ? "Yes" : "No");
         if (entry->kind == ITEM_FILE || entry->kind == ITEM_INSTALLED_TITLE) {
             if (entry->size >= 1024 * 1024)
                 snprintf(size, sizeof size, "%lu.%lu MiB", (unsigned long)(entry->size / 1048576),
@@ -95,11 +106,13 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
         if (entry->kind == ITEM_FILE) {
             hint = "A: check and launch";
             if (icon_is_ds_title(entry->path)) {
-                if (app->info_header_valid)
+                if (app->info_header_valid) {
+                    snprintf(extra, sizeof extra, "ROM revision: %u", app->info_revision);
                     type = app->info_unit == 0   ? "Nintendo DS"
                            : app->info_unit == 2 ? "DSi enhanced"
                            : app->info_unit == 3 ? "DSi only"
                                                  : "Unknown DS header";
+                }
                 if (*app->info_title)
                     title = app->info_title;
                 snprintf(facts, sizeof facts, "%s%s", *app->info_code ? "Game code: " : "",
@@ -146,17 +159,16 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
             snprintf(facts, sizeof facts, "%u discovered titles", app->installed_catalog.count);
         }
     }
-    snprintf(summary, sizeof summary, "%s", size);
     draw_text_scrolling(pixels, 52, 52, type, colors.accent, 114, app->selection_idle_frames,
                         !app->reduced_motion);
-    draw_text(pixels, 52, 68, summary, colors.text, 16);
+    draw_text(pixels, 52, 68, size, colors.text, 16);
     draw_text(pixels, 52, 84, storage, colors.muted, 16);
     draw_text_scrolling(pixels, 12, 103, title, colors.text, 154, app->selection_idle_frames,
                         !app->reduced_motion);
     draw_text_scrolling(pixels, 12, 117, facts, colors.muted, 154, app->selection_idle_frames,
                         !app->reduced_motion);
-    draw_text_scrolling(pixels, 12, 131, entry && *entry->path ? entry->path : storage,
-                        colors.muted, 154, app->selection_idle_frames, !app->reduced_motion);
+    draw_text_scrolling(pixels, 12, 131, extra, colors.muted, 154, app->selection_idle_frames,
+                        !app->reduced_motion);
     draw_text(pixels, 12, 146, hint, colors.muted, 22);
     draw_text(pixels, 12, 164,
               app->browser_style == BROWSER_INDEX ? "Y: library index"

@@ -56,6 +56,7 @@ int main(int argc, char **argv)
     assert(app.info_loaded && app.info_header_valid && app.info_unit == 0);
     assert(!strcmp(app.info_code, "TST0") && !strcmp(app.info_title, "Jeu"));
     data[0x12] = 3;
+    data[0x1e] = 7;
     f = fopen(path, "wb");
     assert(f && fwrite(data, 1, sizeof data, f) == sizeof data && !fclose(f));
     title_metadata_tick(&app);
@@ -64,7 +65,7 @@ int main(int argc, char **argv)
     assert(!app.info_loaded && !*app.info_title && !*app.info_code);
     app.selection_idle_frames = 2;
     title_metadata_tick(&app);
-    assert(app.info_header_valid && app.info_unit == 3);
+    assert(app.info_header_valid && app.info_unit == 3 && app.info_revision == 7);
     f = fopen(path, "wb");
     assert(f && fwrite(data, 1, 8, f) == 8 && !fclose(f));
     app_reset_preview(&app);

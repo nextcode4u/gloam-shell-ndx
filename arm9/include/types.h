@@ -378,7 +378,7 @@ typedef struct {
     char message[160], title[128], code[8];
     char info_title[128], info_code[5];
     bool info_loaded, info_header_valid;
-    unsigned char info_unit;
+    unsigned char info_unit, info_revision;
     Location folder_history[8];
     bool library_jump_held, library_index_dirty;
     uint16_t library_index_counts[LIBRARY_INDEX_GROUPS];
