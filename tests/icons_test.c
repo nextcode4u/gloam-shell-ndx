@@ -180,8 +180,7 @@ int main(int argc, char **argv)
                 app.icon_size = size;
                 app.browser_style = style;
                 browser_reflow(&app);
-                assert(layout_icon_size(&app) ==
-                       (style != BROWSER_INDEX && size == ICON_LARGE ? 32 : 16));
+                assert(layout_icon_size(&app) == (size == ICON_LARGE ? 32 : 16));
                 assert(layout_is_grid(&app) == (style == BROWSER_GRID || style == BROWSER_SHELF));
                 assert(layout_row_height(&app) >= layout_icon_size(&app) || style == BROWSER_LIST);
                 app_move(&app, app.entry_count - 1);
