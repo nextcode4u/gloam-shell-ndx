@@ -1761,11 +1761,11 @@
       ],
       "argv": "direct",
       "argv_evidence": "https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/newCode/source/main.s",
-      "argv_notes": "saveArgv validates the standard _arg record, copies argv[1] and loadRomFromArgv starts the ROM. Original jEnesisDS does not establish the Plus behavior. Native DSi SD handoff still needs testing; do not infer it from the BlocksDS toolchain used for the injected code.",
+      "argv_notes": "saveArgv accepts standard argv[1]. Direct Gloam launch did not load the ROM in testing. Official nds-bootstrap 2.17.0 homebrew routing (bootstrap=1) reached Sonic gameplay and wrote a save state, but subsequent cold launches failed in both DS and DSi modes. Keep PicoDriveTWL as the default; hardware compatibility remains unverified.",
       "redistribution": "download-only",
       "license": "No explicit Plus redistribution license; closed-source base terms unconfirmed",
       "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.",
-      "bios": "No external console BIOS needed for Genesis cartridge ROMs. Plus supports up to 7.5 MiB on DSi (4 MiB on DS debug hardware), with mapper support for ROMs above 4 MiB. Native console-SD compatibility is not yet validated in Gloam.",
+      "bios": "No external console BIOS needed for Genesis cartridge ROMs. Upstream advertises up to 7.5 MiB on DSi (4 MiB on DS debug hardware) and mapper support above 4 MiB; larger-ROM operation is not validated in Gloam.",
       "bios_evidence": "https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/README.md",
       "license_evidence": "https://github.com/DS-Homebrew/jEnesisDSPlus/tree/ca3bb43d14f8d78ccb6546d753817defaac25937",
       "permission_confirmed": false,
@@ -1799,7 +1799,9 @@
       },
       "source_coverage": "Patch and injected-code source only; the original jEnesisDS base source is unavailable.",
       "content_guidance": "roms/Genesis/: .md, .gen",
-      "bios_mode": "none"
+      "bios_mode": "none",
+      "experimental": true,
+      "compatibility_notes": "Experimental Gloam integration: cold launches are unreliable in the test environment, even through official nds-bootstrap. Saving 00-control.md produced 00-contro_1.jst, truncating the basename; similarly named ROMs may collide. Cold state restore, SRAM persistence, larger ROMs and physical DSi operation remain unverified. PicoDriveTWL remains the Genesis default."
     },
     {
       "id": "lodjurds",

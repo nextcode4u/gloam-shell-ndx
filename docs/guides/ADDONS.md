@@ -316,7 +316,7 @@ payload and DSP/S-DD1 variants are not silently substituted.
 - **[gbarunner3](https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/README.md):** Requires original 16 KiB GBA BIOS at /_gba/bios.bin. Fixed-offset relocation/patches prevent assuming a replacement BIOS is compatible.
 - **[gimlids](https://github.com/wavemotion-dave/GimliDS/blob/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740/README.md):** Requires KERNAL.ROM, BASIC.ROM, CHAR.ROM and 1541.ROM in /roms/bios or /roms/c64. MEGA65 Open ROMs are not a verified complete replacement set for GimliDS.
 - **[hachibitto](https://github.com/wavemotion-dave/Hachibitto/blob/a388a295945d3929ac41a6369e40ce1c0afefa7e/arm9/source/MSX_BIOS.c):** Stock binary embeds MSX/MSX2/MSX2+ and disk firmware. Optional Kanji font is user-supplied. C-BIOS is not a verified drop-in full replacement.
-- **[jenesisdsplus](https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/README.md):** No external console BIOS needed for Genesis cartridge ROMs. Plus supports up to 7.5 MiB on DSi (4 MiB on DS debug hardware), with mapper support for ROMs above 4 MiB. Native console-SD compatibility is not yet validated in Gloam.
+- **[jenesisdsplus](https://github.com/DS-Homebrew/jEnesisDSPlus/blob/ca3bb43d14f8d78ccb6546d753817defaac25937/README.md):** No external console BIOS needed for Genesis cartridge ROMs. Upstream advertises up to 7.5 MiB on DSi (4 MiB on DS debug hardware) and mapper support above 4 MiB; larger-ROM operation is not validated in Gloam.
 - **[lodjurds](https://github.com/FluBBaOfWard/LodjurDS/blob/1e8fe92f82bb0c8926e7fc6212139630f46e2e7b/README.md):** Requires a user-supplied Atari Lynx BIOS, selected inside LodjurDS. Upstream explicitly says it is needed to run games; not included.
 - **[microds](https://github.com/wavemotion-dave/MicroDS/blob/9a74db2c6aa58df1cfe530f52e723d2aa2e74e09/README.md):** Requires MC10.BIN or MC10.ROM; optional MCX.BIN/MCX.ROM. Put them in /roms/bios or beside emulator.
 - **[nesds](https://github.com/DS-Homebrew/NesDS/blob/928afd9ca3c846f06264dfb1be6a2edf44575b66/README.TXT):** NES cartridges need no external BIOS. FDS content uses user-supplied /disksys.rom by default; the emulator INI can override DisksysBios.
@@ -391,3 +391,21 @@ BIOS notes above.
 A download being available online is not a redistribution grant. No proprietary
 external BIOS or games are downloaded or bundled. Unsupported replacements are
 not placed under filenames that would make an emulator silently use them.
+
+### jEnesisDS Plus compatibility
+
+PicoDriveTWL remains the Genesis default. The downloader offers jEnesisDS Plus
+v0.8.1 as an **experimental, explicit selection**, with its compatibility warning
+in the installer. Its unchanged binary is downloaded from upstream, not bundled.
+
+Plus accepts standard argv, but direct launch from Gloam did not load the ROM in
+testing. An association using `argv=1` and `bootstrap=1` reached Sonic gameplay
+through official nds-bootstrap 2.17.0 and wrote a save state. Subsequent cold
+launches failed in both DS and DSi modes, so this is not a dependable replacement
+route yet; the failure has not been isolated to the emulator, backend or player.
+
+A `.md` save-state filename was truncated: `00-control.md` produced
+`00-contro_1.jst`. Titles differing only in the final basename character may
+therefore collide. Cold state restore, cartridge SRAM persistence, ROMs above
+4 MiB and physical DSi behavior remain unverified. Upstream's larger-ROM support
+is not a Gloam compatibility claim.

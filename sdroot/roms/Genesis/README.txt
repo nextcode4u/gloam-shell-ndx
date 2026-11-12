@@ -23,12 +23,12 @@ are preserved by default.
 Upstream: https://github.com/DS-Homebrew/PicoDriveTWL
 Release: https://github.com/DS-Homebrew/PicoDriveTWL/releases/tag/v2.1.0
 
-The .md extension is assigned to Genesis ROMs; Markdown documents may match
-this profile too. Use a per-file override for documents. jEnesisDS Plus v0.8.1
-is another normal-argv candidate with up to 7.5 MiB ROM support on DSi. It is
-download-only through the shared Python/PowerShell installer; its Gloam
-console-SD route remains unverified. Select it explicitly in the association
-editor if desired; the existing PicoDriveTWL default is unchanged.
+Folder rules assign .md files here to Genesis ROMs; Markdown documents belong
+in /media/books or need a per-file override. PicoDriveTWL remains the default.
+jEnesisDS Plus v0.8.1 is an experimental, explicit download option: official
+nds-bootstrap homebrew routing reached gameplay, but cold launches remain
+unreliable and .md save-state filenames can be truncated. It is not configured
+automatically. See the add-on guide for compatibility limits.
 
 Keep required companion files and saves together. Other emulator-supported
 formats may need its own browser or a per-file application choice. Changing an
