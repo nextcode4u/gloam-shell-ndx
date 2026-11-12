@@ -12,6 +12,11 @@ with both screens doing useful work.
   <img src="docs/images/settings.png" width="256" alt="Gloam theme and settings controls">
 </p>
 
+<p align="center">
+  <img src="docs/images/theme-variants.png" width="768" alt="Phosphor, Eclipse and Prism themes showing Gloam's two-screen browser">
+</p>
+
+Phosphor, Eclipse and Prism are three of the included [themes](docs/guides/THEME_PACKAGES.md).
 Screenshots show Gloam's renderer with the supplied themes and example content.
 
 ## Features
