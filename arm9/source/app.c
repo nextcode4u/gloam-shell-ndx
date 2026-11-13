@@ -667,7 +667,7 @@ void app_panel_activate(App *app)
             if (app_save(app)) {
                 app_show_message(app, "Preferences saved.");
             } else {
-                app_show_message(app, "Could not save preferences. Check SD card access.");
+                app_show_message(app, app->preferences_error);
             }
             break;
         }

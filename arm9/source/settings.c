@@ -573,9 +573,7 @@ void settings_close(App *app)
     app->settings.open = false;
     app_reset_preview(app);
     if (app->preferences_dirty && !app_save(app)) {
-        path_copy(app->message,
-                  "Preferences remain unsaved. Check SD access and try Save preferences again.",
-                  sizeof app->message);
+        path_copy(app->message, app->preferences_error, sizeof app->message);
         app_panel(app, PANEL_MESSAGE);
     }
 }
@@ -937,7 +935,7 @@ void settings_activate(App *app)
         break;
     case OPT_SAVE:
         path_copy(app->settings.status,
-                  app_save(app) ? "Preferences saved" : "Save failed: check SD access",
+                  app_save(app) ? "Preferences saved" : app->preferences_error,
                   sizeof app->settings.status);
         break;
     default:

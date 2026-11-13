@@ -293,3 +293,10 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     -o build/host/update-checker-test
 mkdir -p "$fixture/update-checker/_nds/dsi-frontend"
 ASAN_OPTIONS=detect_leaks=1 build/host/update-checker-test "$fixture/update-checker"
+
+cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
+    "${model_objects[@]}" tests/preferences_failure_test.c \
+    -Wl,--wrap=fopen,--wrap=fclose,--wrap=rename,--wrap=remove \
+    -o build/host/preferences-failure-test
+mkdir -p "$fixture/preferences-failure"
+ASAN_OPTIONS=detect_leaks=1 build/host/preferences-failure-test "$fixture/preferences-failure"

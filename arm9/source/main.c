@@ -673,18 +673,17 @@ int main(int argc, char **argv)
                 while (1)
                     swiWaitForVBlank();
             } else {
-                snprintf(app.message, sizeof app.message,
-                         "System-title request unavailable or preferences could not be saved. No "
-                         "reboot occurred.");
+                snprintf(app.message, sizeof app.message, "%s",
+                         *app.preferences_error
+                             ? app.preferences_error
+                             : "System-title request unavailable. No reboot occurred.");
                 app_panel(&app, PANEL_MESSAGE);
             }
         }
         if (app.system_menu_requested && boot_keys_released) {
             app.system_menu_requested = false;
             if (!app.storage_lost && !app_save(&app)) {
-                snprintf(
-                    app.message, sizeof app.message,
-                    "Could not save navigation before returning to DSi Menu. Check SD access.");
+                snprintf(app.message, sizeof app.message, "%s", app.preferences_error);
                 app_panel(&app, PANEL_MESSAGE);
             } else {
                 uint32_t request[8];
@@ -713,8 +712,7 @@ int main(int argc, char **argv)
             browser_scan_cancel(&app);
             installed_catalog_cancel(&app.installed_catalog);
             if (!app_save(&app)) {
-                snprintf(app.message, sizeof app.message,
-                         "Could not save navigation before launch. Check SD access.");
+                snprintf(app.message, sizeof app.message, "%s", app.preferences_error);
                 app_panel(&app, PANEL_MESSAGE);
             } else {
                 /* A request is not proof the launched application started. */

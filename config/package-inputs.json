@@ -1745,6 +1745,7 @@
     "tests/installed_titles_test.c",
     "tests/launch_test.c",
     "tests/model_test.c",
+    "tests/preferences_failure_test.c",
     "tests/picker_jobs_test.c",
     "tests/picker_test.c",
     "tests/presets_test.c",

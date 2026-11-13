@@ -335,6 +335,7 @@ typedef struct {
     bool action_enabled[ACTION_COUNT];
     int panel_selection, panel_scroll, accent_index, detail_tab;
     bool reduced_motion, preferences_dirty;
+    char preferences_error[160];
     ScrollSpeed scroll_speed;
     SortMode sort_mode;
     bool show_hidden, show_system, show_extensions, show_covers, filter_recognized, clock_12_hour;

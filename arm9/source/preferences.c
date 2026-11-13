@@ -5,9 +5,11 @@
 #include "system_routes.h"
 #include "tabs.h"
 #include "themes.h"
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 static void read_location(App *app, const char *line, bool reset_locations[TAB_CAP])
 {
@@ -230,20 +232,35 @@ void preferences_load(App *app)
     }
 }
 
+static bool save_failed(App *app, const char *operation, int error)
+{
+    if (!error)
+        error = EIO;
+    snprintf(app->preferences_error, sizeof app->preferences_error, "Save failed: %s. %s (%d).",
+             operation, strerror(error), error);
+    app->preferences_dirty = true;
+    errno = error;
+    return false;
+}
+
 bool app_save(App *app)
 {
-    if (!app->storage_ready || !path_prepare_preferences_directory(app->root))
-        return false;
+    app->preferences_error[0] = 0;
+    if (!app->storage_ready || app->storage_lost)
+        return save_failed(app, "SD unavailable", ENODEV);
+    if (!path_prepare_preferences_directory(app->root))
+        return save_failed(app, "prepare _nds/dsi-frontend", errno);
 
     char current[PATH_CAP], temporary[PATH_CAP], backup[PATH_CAP];
     if (!path_preferences_file(current, app->root, "state.ini") ||
         !path_preferences_file(temporary, app->root, "state.tmp") ||
         !path_preferences_file(backup, app->root, "state.bak"))
-        return false;
+        return save_failed(app, "settings path too long", ENAMETOOLONG);
 
     FILE *file = fopen(temporary, "w");
     if (!file)
-        return false;
+        return save_failed(app, "open state.tmp", errno);
+    errno = 0;
     fprintf(file,
             "version=1\ntheme=%d\ncategory=%d\nreduced_motion=%d\n"
             "scroll_speed=%d\nicon_size=%d\nbrowser_style=%d\ndetail=%d\n",
@@ -324,21 +341,33 @@ bool app_save(App *app)
 
     fprintf(file, "installed_open=%d\ninstalled_selection=%08lx\n", app->installed_open,
             (unsigned long)app->installed_selected_id);
-    bool written = !ferror(file);
-    if (fclose(file) != 0)
-        written = false;
-    if (!written) {
+    int write_error = ferror(file) ? (errno ? errno : EIO) : 0;
+    if (fclose(file) != 0 && !write_error)
+        write_error = errno ? errno : EIO;
+    if (write_error) {
         remove(temporary);
-        return false;
+        return save_failed(app, "write state.tmp", write_error);
     }
 
-    /* This is recoverable replacement, not a guarantee of power-loss atomicity on FAT. */
-    remove(backup);
-    bool had_current = rename(current, backup) == 0;
+    /* FAT rename cannot replace a destination. Never continue after a failed
+     * backup rotation, or delete a recovery copy when state.ini is absent. */
+    struct stat status;
+    bool had_current = stat(current, &status) == 0;
+    if (!had_current && errno != ENOENT)
+        return save_failed(app, "inspect state.ini", errno);
+    if (had_current) {
+        if (!S_ISREG(status.st_mode))
+            return save_failed(app, "state.ini is not a file", EINVAL);
+        if (remove(backup) != 0 && errno != ENOENT)
+            return save_failed(app, "remove old state.bak", errno);
+        if (rename(current, backup) != 0)
+            return save_failed(app, "back up state.ini", errno);
+    }
     if (rename(temporary, current) != 0) {
-        if (had_current)
-            rename(backup, current);
-        return false;
+        int error = errno;
+        if (had_current && rename(backup, current) != 0)
+            return save_failed(app, "install state.ini; old settings kept in state.bak", error);
+        return save_failed(app, "install state.ini", error);
     }
     app->preferences_dirty = false;
     return true;

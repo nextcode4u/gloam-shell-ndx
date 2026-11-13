@@ -60,3 +60,10 @@ does not support tearing down its Internet stack. SDK initialization/shutdown
 still relies on the ARM7 service responding; this is not a hard real-time bound.
 Cryptographic steps still consume CPU, and adding network libraries increases ROM size. Zero boot-time or frame-time cost is not
 claimed: real DSi timings, WPA2 connectivity and power use need hardware checks.
+
+Preference-save failures identify the operation and filesystem error on the
+console (for example, opening `state.tmp` or rotating `state.ini`). Failed backup
+rotation stops the save; failed installation attempts restore the previous
+state, and a lone `state.bak` recovery copy survives retries. A failed save still
+blocks launching rather than silently losing changes. These checks do not
+establish the cause of an individual SD write failure without its error details.
