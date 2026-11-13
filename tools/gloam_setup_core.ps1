@@ -536,7 +536,7 @@ function Test-GloamTheme([string]$Source) {
     $manifest=Get-GloamPath $root 'theme.ini'
     if (-not [IO.File]::Exists($manifest) -or ([IO.FileInfo]::new($manifest)).Length -gt 4096) { throw 'Theme manifest is missing or exceeds 4 KiB.' }
     $data=Read-GloamIni $manifest
-    $allowed=@{theme=@('version','name');colors=@('background','surface','line','text','muted','accent','ink');fonts=@('ui');audio=@('music','cursor','confirm','back');backgrounds=@('top','bottom','strength');layout=@('view','icon_size','row_padding','large_grid_columns');icons=@('directory');components=@('directory','border')}
+    $allowed=@{theme=@('version','name');colors=@('background','surface','line','text','muted','accent','ink','selection_text','tab_text');fonts=@('ui');audio=@('music','cursor','confirm','back');backgrounds=@('top','bottom','strength');layout=@('view','icon_size','row_padding','large_grid_columns','top_layout','chrome','content_opacity');icons=@('directory');components=@('directory','border')}
     foreach ($section in $data.Keys) {
         if (-not $allowed.ContainsKey($section)) { $errors.Add("Unknown section: $section"); continue }
         foreach ($key in $data[$section].Keys) { if ($key -notin $allowed[$section]) { $errors.Add("Unknown key: $section/$key") } }
@@ -544,18 +544,18 @@ function Test-GloamTheme([string]$Source) {
     if (-not $data.Contains('theme') -or $data['theme']['version'] -ne '1') { $errors.Add('Expected theme version 1.') }
     if ($data.Contains('colors')) { foreach ($key in $data['colors'].Keys) { if ($data['colors'][$key] -notmatch '^#[0-9A-Fa-f]{6}$') { $errors.Add("Invalid colour: $key") } } }
     if ($data.Contains('layout')) {
-        foreach ($pair in @(@('view',@('classic','extended','list','grid','shelf','index')),@('icon_size',@('small','large')))) {
+        foreach ($pair in @(@('view',@('classic','extended','list','grid','shelf','index')),@('icon_size',@('small','large')),@('top_layout',@('sidebar','sidebar_left','poster')),@('chrome',@('full','minimal')))) {
             if ($data['layout'].Contains($pair[0]) -and $data['layout'][$pair[0]] -notin $pair[1]) { $errors.Add("Invalid layout: $($pair[0])") }
         }
-        foreach ($key in @('row_padding','large_grid_columns')) { if ($data['layout'].Contains($key)) {
-            $value=0; $minimum=if ($key -eq 'row_padding') {0} else {2}; $maximum=if ($key -eq 'row_padding') {12} else {4}
+        foreach ($key in @('row_padding','large_grid_columns','content_opacity')) { if ($data['layout'].Contains($key)) {
+            $value=0; $minimum=if ($key -eq 'large_grid_columns') {2} else {0}; $maximum=if ($key -eq 'row_padding') {12} elseif ($key -eq 'content_opacity') {100} else {4}
             if (-not [int]::TryParse($data['layout'][$key],[ref]$value) -or $value -lt $minimum -or $value -gt $maximum) { $errors.Add("Invalid layout: $key") }
         } }
     }
     foreach ($section in @('fonts','audio','backgrounds')) { if ($data.Contains($section)) {
         foreach ($key in $data[$section].Keys) {
             $value=$data[$section][$key]
-            if ($section -eq 'backgrounds' -and $key -eq 'strength') { $strength=0; if (-not [int]::TryParse($value,[ref]$strength) -or $strength -lt 0 -or $strength -gt 35) { $errors.Add('Background strength must be 0-35.') }; continue }
+            if ($section -eq 'backgrounds' -and $key -eq 'strength') { $strength=0; if (-not [int]::TryParse($value,[ref]$strength) -or $strength -lt 0 -or $strength -gt 100) { $errors.Add('Background strength must be 0-100.') }; continue }
             if ($section -eq 'fonts' -and $value -eq 'builtin') { continue }
             try { $path=Get-GloamPath $root $value; if (-not [IO.File]::Exists($path)) { if ($section -eq 'fonts') { $errors.Add("Missing font: $value") } else { $warnings.Add("Missing $section asset: $value (fallback)") } } }
             catch { $errors.Add("Unsafe asset path: $section/$key") }

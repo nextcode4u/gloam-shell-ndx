@@ -128,14 +128,24 @@ int main(int argc, char **argv)
         /* Shared geometry must still fit with every personal view/size override. */
         for (int category = 0; category <= CATEGORY_SYSTEM; category++) {
             app_category(&app, category);
-            for (int view = 0; view < 4; view++)
+            for (int view = 0; view < BROWSER_STYLE_COUNT; view++)
                 for (int size = 0; size < 2; size++) {
                     app.browser_style = view;
                     app.icon_size = size;
                     browser_reflow(&app);
                     for (int frame = 0; frame < 16; frame++)
                         app_tick(&app);
-                    draw();
+                    for (unsigned composition = 0; composition < 3; composition++) {
+                        app.themes.active.top_layout = composition;
+                        for (int detail = 0; detail < 2; detail++) {
+                            app.detail_tab = detail;
+                            draw();
+                        }
+                        app.rail_focus = true;
+                        app.rail_selected = app.tab_count - 1;
+                        draw();
+                        app.rail_focus = false;
+                    }
                 }
         }
         app.advanced_settings = true;

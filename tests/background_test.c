@@ -29,6 +29,13 @@ int main(int argc, char **argv)
     assert(background != app.themes.active.palette.bg);
     themes_background_draw(&app.themes.active, 1, bottom.pixels);
     assert(bottom.pixels[0] == app.themes.active.palette.bg);
+    app.themes.active.content_opacity = 100;
+    themes_background_load(&app.themes.active, false);
+    themes_background_draw(&app.themes.active, 0, top.pixels);
+    assert(top.pixels[0] == background);
+    assert(top.pixels[4 * 256 + 6] == app.themes.active.palette.bg);
+    app.themes.active.content_opacity = 0;
+    themes_background_load(&app.themes.active, false);
     assert(!themes_background_set(&app, 1, "/outside/image.jpg"));
     assert(!themes_background_set(&app, 1, "tests/fixtures/nonexistent.jpg"));
     assert(app_save(&app));
@@ -59,7 +66,8 @@ int main(int argc, char **argv)
     fclose(file);
     assert(image_decode_background(top.pixels, data, bytes, 0x8421, 0));
     assert(top.pixels[0] == 0x8421);
-    assert(!image_decode_background(top.pixels, data, bytes, 0x8421, 36));
+    assert(image_decode_background(top.pixels, data, bytes, 0x8421, 100));
+    assert(!image_decode_background(top.pixels, data, bytes, 0x8421, 101));
     restored.advanced_settings = true;
     settings_open(&restored);
     restored.settings.selected = 10;

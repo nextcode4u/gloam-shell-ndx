@@ -117,3 +117,8 @@ counts, and Index skips cover decoding.
 Theme UI components are prepared in `theme_components.c`; `ui/theme_components.c`
 clips and draws nine-slice images. They share the theme preview/apply/cancel
 lifecycle with icons and never change layout or input bounds.
+
+Top-screen theme compositions live in `ui/renderer.c`: content and navigation
+use independent offsets for left/right rails; Poster has a separate artwork/tab
+composition and preserves the existing information and Index views. Wallpaper
+strength and the reading-surface opacity are preblended by `theme_backgrounds.c`.

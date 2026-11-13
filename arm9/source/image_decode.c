@@ -114,7 +114,7 @@ bool image_decode(Artwork *artwork, const unsigned char *data, size_t size)
 bool image_decode_background(uint16_t pixels[256 * 192], const unsigned char *data, size_t size,
                              uint16_t matte, unsigned strength)
 {
-    if (!pixels || strength > 35)
+    if (!pixels || strength > 100)
         return false;
     unsigned width, height;
     unsigned char *rgba = decode_rgba(data, size, &width, &height);

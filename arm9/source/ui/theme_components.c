@@ -48,6 +48,8 @@ void draw_theme_selection(const ThemePackage *package, uint16_t *pixels, int x, 
 }
 void draw_theme_chrome(const ThemePackage *package, uint16_t *pixels, int header_height)
 {
+    if (package->minimal_chrome)
+        return;
     draw_theme_component(package, pixels, THEME_HEADER, 4, 2, 248, header_height);
     draw_theme_component(package, pixels, THEME_FOOTER, 4, 176, 248, 16);
 }

@@ -149,6 +149,10 @@ static bool load(App *app, const char *id, ThemePackage *package)
                 path_copy(package->name, value, sizeof package->name);
             else
                 valid = false;
+        } else if (!strcmp(section, "[colors]") && !strcmp(key, "selection_text")) {
+            valid = color(value, &package->selection_text) && valid;
+        } else if (!strcmp(section, "[colors]") && !strcmp(key, "tab_text")) {
+            valid = color(value, &package->tab_text) && valid;
         } else if (!strcmp(section, "[colors]")) {
             static const char *names[] = {"background", "surface", "line", "text",
                                           "muted",      "accent",  "ink"};
@@ -186,6 +190,29 @@ static bool load(App *app, const char *id, ThemePackage *package)
                     package->default_icon_size = ICON_LARGE;
                 else
                     valid = false;
+            } else if (!strcmp(key, "top_layout")) {
+                if (!strcmp(value, "sidebar"))
+                    package->top_layout = 0;
+                else if (!strcmp(value, "sidebar_left"))
+                    package->top_layout = 1;
+                else if (!strcmp(value, "poster"))
+                    package->top_layout = 2;
+                else
+                    valid = false;
+            } else if (!strcmp(key, "chrome")) {
+                if (!strcmp(value, "minimal"))
+                    package->minimal_chrome = true;
+                else if (!strcmp(value, "full"))
+                    package->minimal_chrome = false;
+                else
+                    valid = false;
+            } else if (!strcmp(key, "content_opacity")) {
+                char *end;
+                unsigned long number = strtoul(value, &end, 10);
+                if (!*value || *end || number > 100)
+                    valid = false;
+                else
+                    package->content_opacity = number;
             } else if (!strcmp(key, "row_padding") || !strcmp(key, "large_grid_columns")) {
                 char *end;
                 unsigned long number = strtoul(value, &end, 10);
@@ -202,7 +229,7 @@ static bool load(App *app, const char *id, ThemePackage *package)
             if (!strcmp(key, "strength")) {
                 char *end;
                 unsigned long strength = strtoul(value, &end, 10);
-                if (!*value || *end || strength > 35)
+                if (!*value || *end || strength > 100)
                     valid = false;
                 else
                     package->background_strength = (unsigned)strength;

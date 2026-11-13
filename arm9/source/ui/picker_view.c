@@ -49,8 +49,8 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
         draw_theme_icon(&app->themes.active, bottom, 14, y + 3, 12, PLACEHOLDER_APPLICATION,
                         selected ? p.accent : p.muted);
         draw_text_scrolling(bottom, 36, y + 3, picker->entries[index].name,
-                            selected ? p.text : p.muted, 203, picker->idle_frames,
-                            selected && !app->reduced_motion);
+                            selected ? themes_selection_text(&app->themes.active) : p.muted, 203,
+                            picker->idle_frames, selected && !app->reduced_motion);
     }
     draw_text(bottom, 10, 176, "A launch  B / START cancel", p.muted, 33);
 }
@@ -141,7 +141,8 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
         const Entry *entry = &picker->entries[index];
         draw_theme_icon(&app->themes.active, bottom, 14, y + 3, 12, entry_file_type(entry).icon,
                         selected ? accent : muted);
-        draw_text_scrolling(bottom, 36, y + 3, entry->name, selected ? text : muted, 203,
+        draw_text_scrolling(bottom, 36, y + 3, entry->name,
+                            selected ? themes_selection_text(&app->themes.active) : muted, 203,
                             picker->idle_frames, selected && !app->reduced_motion);
     }
     if (!picker->count)

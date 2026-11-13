@@ -37,4 +37,13 @@ void themes_background_accept(void);
 void themes_background_cancel(void);
 void themes_background_draw(const ThemePackage *package, int screen, uint16_t *pixels);
 bool themes_background_set(App *app, int screen, const char *path);
+/* Zero means inherit, so personal accent changes still update default tab ink. */
+static inline uint16_t themes_selection_text(const ThemePackage *package)
+{
+    return package->selection_text ? package->selection_text : package->palette.text;
+}
+static inline uint16_t themes_tab_text(const ThemePackage *package)
+{
+    return package->tab_text ? package->tab_text : package->palette.ink;
+}
 #endif

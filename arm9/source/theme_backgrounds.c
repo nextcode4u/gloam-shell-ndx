@@ -11,7 +11,7 @@ typedef struct {
     uint16_t *pixels;
     char path[PATH_CAP];
     uint16_t matte;
-    unsigned strength;
+    unsigned strength, content_opacity;
     bool ready;
 } Background;
 static Background surfaces[2][2];
@@ -22,6 +22,7 @@ static bool load_surface(Background *background, const ThemePackage *package, in
     memset(background, 0, sizeof *background);
     background->matte = package->palette.bg;
     background->strength = package->background_strength;
+    background->content_opacity = package->content_opacity;
     path_copy(background->path, package->backgrounds[screen], PATH_CAP);
     if (!*background->path || !background->strength)
         return false;
@@ -39,6 +40,21 @@ static bool load_surface(Background *background, const ThemePackage *package, in
     background->ready = valid && background->pixels &&
                         image_decode_background(background->pixels, encoded, (size_t)bytes,
                                                 background->matte, background->strength);
+    /* Preblend the reading surface once, never in the frame loop. */
+    if (background->ready && package->content_opacity <= 100) {
+        unsigned alpha = package->content_opacity;
+        for (int y = 4; alpha && y < 188; y++)
+            for (int x = 6; x < 250; x++) {
+                uint16_t old = background->pixels[y * 256 + x];
+                unsigned color = 0x8000;
+                for (unsigned shift = 0; shift < 15; shift += 5)
+                    color |= ((((old >> shift) & 31) * (100 - alpha) +
+                               ((background->matte >> shift) & 31) * alpha) /
+                              100)
+                             << shift;
+                background->pixels[y * 256 + x] = color;
+            }
+    }
     free(encoded);
     if (!background->ready) {
         free(background->pixels);
@@ -77,7 +93,8 @@ void themes_background_draw(const ThemePackage *package, int screen, uint16_t *p
         const Background *background = &surfaces[bank][screen];
         if (background->ready && !strcmp(background->path, package->backgrounds[screen]) &&
             background->matte == package->palette.bg &&
-            background->strength == package->background_strength) {
+            background->strength == package->background_strength &&
+            background->content_opacity == package->content_opacity) {
             memcpy(pixels, background->pixels, 256 * 192 * sizeof *pixels);
             return;
         }

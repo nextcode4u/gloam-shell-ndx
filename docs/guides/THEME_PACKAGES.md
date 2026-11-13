@@ -66,8 +66,8 @@ A, or cancel with B. The packages are ready to copy; no build step is needed.
 | Nocturne | Indigo mountain silhouettes and lavender highlights. | Extended, small icons, 2px padding, external Latin-1 font, independent PNG wallpapers, original 8-second loop and three UI cues. |
 | Tide | Sea-glass paper and broad coastal bands. | Large Grid, three columns, 6px padding, external ASCII font, PNG top/JPEG bottom, original 8-second loop and three brighter UI cues. |
 | Phosphor | Near-black and soft terminal green. | Classic, small icons, zero padding, built-in font, no wallpapers/music, three quiet low-pitched cues. A lightweight baseline. |
-| Eclipse | Dark plum with a pale lunar halo. | Large Grid, two columns, maximum 12px padding, Latin-1 font, 512×512 PNG/JPEG wallpapers at maximum 35% strength, original 8-second loop. Exercises center cropping and spacious layout limits. |
-| Prism | Cool white with blue and lilac facets. | Large Grid, four columns, zero padding, bold ASCII font, native-size PNG/JPEG wallpapers at 35%, original 8-second loop. Exercises narrow labels, looping text and light-theme contrast. |
+| Eclipse | Dark plum with a pale lunar halo. | Large Grid, two columns, maximum 12px padding, Latin-1 font, 512×512 PNG/JPEG wallpapers at full strength with a reading scrim, original 8-second loop. Exercises center cropping and spacious layout limits. |
+| Prism | Cool white with blue and lilac facets. | Large Grid, four columns, zero padding, bold ASCII font, native-size PNG/JPEG wallpapers at 70%, original 8-second loop. Exercises narrow labels, looping text and light-theme contrast. |
 | Ember | Amber sunset and layered desert silhouettes. | Extended, large icons, 4px padding, Latin-1 font, PNG backgrounds at 25%, warm low-pitched cues and an original 8-second loop. |
 | Glacier | Ice-blue peaks against deep navy. | Large Grid, three columns, 4px padding, Latin-1 font, PNG backgrounds at 30%, clear UI tones and an original 8-second loop. |
 | Garnet | Black cherry with ruby chevrons. | List, small icons, 2px padding, Latin-1 font, PNG backgrounds at 25%, low UI tones and an original 8-second loop. Keeps the browser focused on names. |
@@ -199,8 +199,9 @@ strength=25
 
 Paths stay within the theme package. PNG/JPEG inputs are bounded to 512×512 and
 1 MiB compressed data each; images are center-cropped to 256×192 and blended
-with the package background color. Strength is 0–35 percent (default 25) so
-required text remains legible. Unsupported/missing optional images fall back
+with the package background color. Strength is 0–100 percent (default 25). Full strength preserves the artwork;
+authors must place text over calm areas or set `layout/content_opacity` to blend
+a reading surface over it. Unsupported/missing optional images fall back
 individually to the palette. No image decoding or filesystem access occurs in
 rendering. Active and preview pixel buffers are allocated only for supplied
 images, transferred on Apply and freed on Cancel/replacement.
@@ -224,6 +225,9 @@ view=grid
 icon_size=large
 row_padding=6
 large_grid_columns=3
+top_layout=poster
+chrome=minimal
+content_opacity=40
 ```
 
 All keys are optional. `view` accepts classic/extended/list/grid/shelf/index and `icon_size`
@@ -236,10 +240,46 @@ explicit icon/view choices independently of these apply-time defaults.
 touch/navigation use the resolved size. Large Grid accepts 2–4 columns and
 allocates its label width from the actual cell width. Small Grid keeps two
 columns to protect label readability. Invalid layout values reject the package
-without changing the active theme. Settings, tab rail, required navigation and
-font-cell bounds retain their native geometry. Arbitrary widget positions and
+without changing the active theme. Settings, required navigation and font-cell bounds retain their native geometry. Arbitrary widget positions and
 unbounded custom layout scripts are not supported. Optional component artwork
 changes the appearance of these regions while retaining their input geometry.
+
+### Screen composition
+
+These optional composition/color keys require the matching current `BOOT.NDS`.
+Older builds reject unknown manifest keys; update the binary along with these
+example theme packs. Packages without the new keys keep their previous behavior.
+
+`top_layout` accepts `sidebar` (the original right rail), `sidebar_left`, or
+`poster`. The left rail moves the artwork and information together without
+mirroring text or wallpaper. Poster uses a larger artwork area and a horizontal
+strip showing the focused tab and its neighbours. L/R still cycles all tabs;
+X enters tab selection, where Up/Down and A retain their usual behavior. Long
+labels continue to loop. Item information and Library Index temporarily use the
+full six-row right rail instead of squeezing their contents into the poster.
+
+`chrome=full` retains header/footer images and browser separators.
+`chrome=minimal` omits those component images and the browser heading/divider
+lines, leaving required headings, settings access and button hints visible.
+Dialogs retain their own separators. Selected rows/cards remain skinnable.
+
+`content_opacity=0..100` blends the palette background over the inner reading
+surface (x=6..249, y=4..187) of both wallpapers; 0 preserves the image, 100 makes
+that area opaque. The outer edge keeps its original strength. This is prepared
+when loading the theme, adds no image allocation and does no blending per frame.
+The default is 0, preserving existing packages. Personal wallpaper strength
+remains a separate user override.
+
+Optional `[colors] selection_text` sets focused browser-row, quick/action-menu,
+settings-label and picker-label text. `[colors] tab_text` sets active navigation
+text. Omitted values inherit `text` and `ink`, respectively. Secondary metadata,
+settings values and other dialog text retain their established palette roles;
+check these against the selected component artwork too. PNG colors are not
+recolored by palette or accent changes.
+
+Eclipse and Nocturne demonstrate Poster; Prism and Glacier demonstrate the left
+rail. Phosphor retains the original rail and terminal skin. These compositions
+work with all browser views and do not change bottom-screen touch targets.
 
 ## Theme icon packs
 

@@ -63,8 +63,8 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
         }
         const SettingsOption *item = settings_option(app, state->section, index);
         draw_text_scrolling(bottom, 14, y + 3, settings_option_text(app, item, false),
-                            selected ? palette.text : palette.muted, 126, elapsed,
-                            selected && !app->reduced_motion);
+                            selected ? themes_selection_text(&app->themes.active) : palette.muted,
+                            126, elapsed, selected && !app->reduced_motion);
         settings_value(app, item, value, sizeof value);
         draw_text_scrolling(bottom, 148, y + 3, value,
                             item->adjustable ? palette.accent : palette.muted, 91, elapsed,

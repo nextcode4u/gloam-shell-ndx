@@ -29,7 +29,9 @@ int main(int argc, char **argv)
     assert(path_join(manifest, root, "_nds/dsi-frontend/themes/copper/theme.ini"));
     FILE *layout = fopen(manifest, "a");
     assert(layout &&
-           fputs("\n[layout]\nview=grid\nicon_size=large\nrow_padding=6\nlarge_grid_columns=3\n",
+           fputs("\n[layout]\nview=grid\nicon_size=large\nrow_padding=6\nlarge_grid_columns=3\ntop_"
+                 "layout=sidebar_left\nchrome=minimal\ncontent_opacity=40\n[colors]\nselection_"
+                 "text=#ffffff\ntab_text=#000000\n",
                  layout) >= 0 &&
            !fclose(layout));
     ThemePackage original = app.themes.active;
@@ -40,6 +42,10 @@ int main(int argc, char **argv)
     assert(!strcmp(app.themes.candidate.id, "copper") && app.themes.candidate.external_font);
     assert(!memcmp(&original, &app.themes.active, sizeof original) && !app.preferences_dirty);
     assert(memcmp(&original.font, &app.themes.candidate.font, sizeof original.font));
+    assert(app.themes.candidate.top_layout == 1 && app.themes.candidate.minimal_chrome);
+    assert(app.themes.candidate.content_opacity == 40);
+    assert(themes_selection_text(&app.themes.candidate) == 0xffff);
+    assert(themes_tab_text(&app.themes.candidate) == 0x8000);
     const uint16_t *component = themes_component(&app.themes.candidate, THEME_ROW_SELECTED);
     assert(component && !themes_component(&original, THEME_ROW_SELECTED));
     uint16_t expected_component[32 * 32];
@@ -171,6 +177,17 @@ int main(int argc, char **argv)
     themes_move(&app, 3);
     assert(!app.themes.ready);
     themes_cancel(&app);
+    const char *bad_layout[] = {"top_layout=unknown", "chrome=off", "content_opacity=101",
+                                "content_opacity=-1"};
+    for (unsigned i = 0; i < sizeof bad_layout / sizeof *bad_layout; i++) {
+        char content[160];
+        snprintf(content, sizeof content, "[theme]\nversion=1\n[layout]\n%s\n", bad_layout[i]);
+        write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
+        themes_open(&app);
+        themes_move(&app, 3);
+        assert(!app.themes.ready);
+        themes_cancel(&app);
+    }
     const char *bad_components[] = {"directory=../escape", "border=13", "border=-1", "border=bad"};
     for (unsigned i = 0; i < sizeof bad_components / sizeof *bad_components; i++) {
         char content[160];

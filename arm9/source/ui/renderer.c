@@ -28,22 +28,22 @@ typedef ThemePalette Palette;
 static void draw_browser_icon(const App *app, uint16_t *pixels, int index, int x, int y, int size,
                               uint16_t color);
 
-static void draw_library_index(const App *app, uint16_t *pixels, Palette colors)
+static void draw_library_index(const App *app, uint16_t *pixels, Palette colors, int offset)
 {
     int active = browser_index_group(app, app->locations[app->category].selected);
     unsigned folders = app->entry_count ? app->library_index_counts[0] : 0;
     bool selected = active == 0 && folders;
     if (selected)
-        draw_rectangle(pixels, 12, 49, 154, 16, colors.accent);
+        draw_rectangle(pixels, offset + 12, 49, 154, 16, colors.accent);
     char label[40];
     snprintf(label, sizeof label, "Folders  %u", folders);
-    draw_text(pixels, 15, 51, label,
+    draw_text(pixels, offset + 15, 51, label,
               selected  ? colors.ink
               : folders ? colors.text
                         : colors.line,
               21);
     for (int group = 1; group < LIBRARY_INDEX_GROUPS; group++) {
-        int x = 12 + ((group - 1) % 7) * 22, y = 69 + ((group - 1) / 7) * 18;
+        int x = offset + 12 + ((group - 1) % 7) * 22, y = 69 + ((group - 1) / 7) * 18;
         unsigned count = app->entry_count ? app->library_index_counts[group] : 0;
         bool focused = count && group == active;
         if (focused)
@@ -65,15 +65,16 @@ static void draw_library_index(const App *app, uint16_t *pixels, Palette colors)
         snprintf(group_name, sizeof group_name, "%c", 'A' + active - 2);
     snprintf(label, sizeof label, "%s: %u", group_name,
              app->entry_count ? app->library_index_counts[active] : 0);
-    draw_text(pixels, 12, 148, app->scan_directory ? "Reading folder..." : label, colors.muted, 22);
-    draw_text(pixels, 12, 164,
+    draw_text(pixels, offset + 12, 148, app->scan_directory ? "Reading folder..." : label,
+              colors.muted, 22);
+    draw_text(pixels, offset + 12, 164,
               app->truncated || app->locations[app->category].batch ? "Current batch only"
                                                                     : "Left/right: groups",
               colors.muted, 22);
 }
 
 /* Facts use cached entries/metadata only: no file access in rendering. */
-static void draw_item_information(const App *app, uint16_t *pixels, Palette colors)
+static void draw_item_information(const App *app, uint16_t *pixels, Palette colors, int offset)
 {
     const Entry *entry = app_selected(app);
     int index = app->locations[app->category].selected;
@@ -83,7 +84,7 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
     const char *title = entry ? entry->name : "Choose an item";
     const char *hint = "A: open selection";
     if (entry) {
-        draw_browser_icon(app, pixels, index, 12, 53, 32, colors.accent);
+        draw_browser_icon(app, pixels, index, offset + 12, 53, 32, colors.accent);
         /* Directory context already appears on the bottom screen. */
         if ((entry->kind == ITEM_FILE || entry->kind == ITEM_DIRECTORY) && entry->modified > 0) {
             time_t modified = (time_t)entry->modified;
@@ -159,34 +160,94 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
             snprintf(facts, sizeof facts, "%u discovered titles", app->installed_catalog.count);
         }
     }
-    draw_text_scrolling(pixels, 52, 52, type, colors.accent, 114, app->selection_idle_frames,
-                        !app->reduced_motion);
-    draw_text(pixels, 52, 68, size, colors.text, 16);
-    draw_text(pixels, 52, 84, storage, colors.muted, 16);
-    draw_text_scrolling(pixels, 12, 103, title, colors.text, 154, app->selection_idle_frames,
-                        !app->reduced_motion);
-    draw_text_scrolling(pixels, 12, 117, facts, colors.muted, 154, app->selection_idle_frames,
-                        !app->reduced_motion);
-    draw_text_scrolling(pixels, 12, 131, extra, colors.muted, 154, app->selection_idle_frames,
-                        !app->reduced_motion);
-    draw_text(pixels, 12, 146, hint, colors.muted, 22);
-    draw_text(pixels, 12, 164,
+    draw_text_scrolling(pixels, offset + 52, 52, type, colors.accent, 114,
+                        app->selection_idle_frames, !app->reduced_motion);
+    draw_text(pixels, offset + 52, 68, size, colors.text, 16);
+    draw_text(pixels, offset + 52, 84, storage, colors.muted, 16);
+    draw_text_scrolling(pixels, offset + 12, 103, title, colors.text, 154,
+                        app->selection_idle_frames, !app->reduced_motion);
+    draw_text_scrolling(pixels, offset + 12, 117, facts, colors.muted, 154,
+                        app->selection_idle_frames, !app->reduced_motion);
+    draw_text_scrolling(pixels, offset + 12, 131, extra, colors.muted, 154,
+                        app->selection_idle_frames, !app->reduced_motion);
+    draw_text(pixels, offset + 12, 146, hint, colors.muted, 22);
+    draw_text(pixels, offset + 12, 164,
               app->browser_style == BROWSER_INDEX ? "Y: library index"
               : app->show_covers                  ? "Y: artwork"
                                                   : "Covers disabled",
               colors.accent, 22);
 }
 
+static void draw_poster(const App *app, uint16_t *pixels, Palette colors)
+{
+    const ThemePackage *theme = &app->themes.active;
+    const Entry *entry = app_selected(app);
+    int selected = app->locations[app->category].selected;
+    bool native = entry && (entry->kind == ITEM_SYSTEM || entry->kind == ITEM_INSTALLED_TITLE) &&
+                  icons_for_entry(app, selected);
+    if (!native && app->artwork.ready) {
+        int width = 108, height = app->artwork.height * 108 / app->artwork.width;
+        if (height > 104) {
+            height = 104;
+            width = app->artwork.width * 104 / app->artwork.height;
+        }
+        if (width < 1)
+            width = 1;
+        if (height < 1)
+            height = 1;
+        int x = 10 + (108 - width) / 2, y = 48 + (104 - height) / 2;
+        for (int yy = 0; yy < height; yy++)
+            for (int xx = 0; xx < width; xx++)
+                pixels[(y + yy) * 256 + x + xx] =
+                    app->artwork.pixels[(yy * app->artwork.height / height) * app->artwork.width +
+                                        xx * app->artwork.width / width];
+    } else {
+        draw_theme_component(theme, pixels, THEME_CARD, 10, 48, 108, 104);
+        if (native)
+            draw_browser_icon(app, pixels, selected, 24, 60, 80, colors.accent);
+        else
+            draw_theme_icon(theme, pixels, 24, 60, 80, entry_file_type(entry).icon, colors.accent);
+    }
+    draw_text_wrapped(pixels, 130, 53, entry ? entry_type(entry) : "Browse", colors.accent, 16, 2);
+    char size[32] = "";
+    if (entry && entry->size)
+        snprintf(size, sizeof size, "%lu KiB", (unsigned long)(entry->size / 1024));
+    draw_text(pixels, 130, 86, size, colors.text, 16);
+    draw_text(pixels, 130, 105, app->dsi_mode ? "Nintendo DSi" : "Nintendo DS", colors.muted, 16);
+    draw_text(pixels, 130, 131, "Y: details", colors.muted, 16);
+    int focus = app->rail_focus ? app->rail_selected : app->category;
+    for (int cell = 0; cell < 3; cell++) {
+        int index = focus + cell - 1;
+        if (index < 0 || index >= app->tab_count)
+            continue;
+        int x = 7 + cell * 82;
+        bool active = index == focus;
+        if (active && !draw_theme_component(theme, pixels, THEME_TAB_SELECTED, x, 155, 78, 18))
+            draw_rectangle(pixels, x, 155, 78, 18, colors.accent);
+        draw_text_scrolling(pixels, x + 4, 158, tabs_label(app, index),
+                            active ? themes_tab_text(theme) : colors.muted, 70,
+                            app->frame_count - app->tab_text_started_frame,
+                            active && !app->reduced_motion);
+    }
+}
+
 static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, const char *clock)
 {
+    const ThemePackage *theme = &app->themes.active;
+    int offset = theme->top_layout == 1 ? 78 : 0;
+    int rail = theme->top_layout == 1 ? -178 : 0;
+    bool poster = theme->top_layout == 2 && app->detail_tab == 0 && app->show_covers &&
+                  app->browser_style != BROWSER_INDEX;
     themes_background_draw(&app->themes.active, 0, pixels);
     draw_theme_chrome(&app->themes.active, pixels, 22);
     draw_text(pixels, 10, 7, app->recovery_mode ? "RECOVERY" : "GLOAM SHELL NDX", colors.text, 20);
     char tab_position[16];
     snprintf(tab_position, sizeof tab_position, "%d/%d", app->category + 1, app->tab_count);
     draw_text(pixels, 205, 7, tab_position, colors.muted, 6);
-    draw_rectangle(pixels, 10, 23, 236, 1, colors.line);
-    draw_rectangle(pixels, 174, 33, 1, 133, colors.line);
+    if (!theme->minimal_chrome)
+        draw_rectangle(pixels, 10, 23, 236, 1, colors.line);
+    if (!poster && !theme->minimal_chrome)
+        draw_rectangle(pixels, offset ? 78 : 174, 33, 1, 133, colors.line);
     const Entry *entry = app_selected(app);
     const char *name = entry                ? entry->name
                        : app->storage_ready ? "Nothing here yet"
@@ -194,17 +255,19 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     if (entry && entry->kind == ITEM_SYSTEM && entry->target == 6 && app->slot1.icon.ready &&
         *app->slot1.title)
         name = app->slot1.title;
-    draw_text_scrolling(pixels, 12, 31, name, colors.text, 154, app->selection_idle_frames,
-                        !app->reduced_motion);
-    if (app->browser_style == BROWSER_INDEX && app->detail_tab == 0) {
-        draw_library_index(app, pixels, colors);
+    draw_text_scrolling(pixels, offset + 12, 31, name, colors.text, poster ? 232 : 154,
+                        app->selection_idle_frames, !app->reduced_motion);
+    if (poster) {
+        draw_poster(app, pixels, colors);
+    } else if (app->browser_style == BROWSER_INDEX && app->detail_tab == 0) {
+        draw_library_index(app, pixels, colors, offset);
     } else if (app->detail_tab == 0 && app->show_covers) {
-        int x = 15, y = 53, w = 96, h = 104;
+        int x = offset + 15, y = 53, w = 96, h = 104;
         int selected = app->locations[app->category].selected;
         if (entry && (entry->kind == ITEM_SYSTEM || entry->kind == ITEM_INSTALLED_TITLE) &&
             icons_for_entry(app, selected)) {
-            draw_browser_icon(app, pixels, selected, 31, 73, 64, colors.accent);
-            draw_text(pixels, 24, 149,
+            draw_browser_icon(app, pixels, selected, offset + 31, 73, 64, colors.accent);
+            draw_text(pixels, offset + 24, 149,
                       entry->kind == ITEM_INSTALLED_TITLE           ? "NAND TITLE"
                       : entry->target == 6 && app->slot1.icon.ready ? "CARD ICON"
                                                                     : "SYSTEM ICON",
@@ -215,7 +278,7 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
             if (w == 32 && h == 32) {
                 w = h = 64;
             }
-            x = 15 + (96 - w) / 2;
+            x = offset + 15 + (96 - w) / 2;
             y = 53 + (104 - h) / 2;
             draw_rectangle(pixels, x + 3, y + 3, w, h, colors.line);
             for (int yy = 0; yy < h; yy++)
@@ -248,8 +311,8 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
         }
         /* Preserve the theme's readable font: type labels such as SYSTEM APP
          * wrap inside the metadata column instead of becoming SYSTE.. . */
-        draw_text_wrapped(pixels, 119, 59, entry ? entry_type(entry) : "BROWSE", colors.accent, 7,
-                          3);
+        draw_text_wrapped(pixels, offset + 119, 59, entry ? entry_type(entry) : "BROWSE",
+                          colors.accent, 7, 3);
         if (entry && (entry->kind == ITEM_FILE || entry->kind == ITEM_INSTALLED_TITLE) &&
             entry->size) {
             char b[24];
@@ -257,10 +320,10 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
                 snprintf(b, sizeof b, "%lu MB", (unsigned long)(entry->size / (1024 * 1024)));
             else
                 snprintf(b, sizeof b, "%lu KB", (unsigned long)(entry->size / 1024));
-            draw_text(pixels, 119, 97, b, colors.text, 7);
+            draw_text(pixels, offset + 119, 97, b, colors.text, 7);
         }
-        draw_text(pixels, 119, 115, app->dsi_mode ? "DSi" : "DS", colors.muted, 7);
-        draw_text(pixels, 119, 131,
+        draw_text(pixels, offset + 119, 115, app->dsi_mode ? "DSi" : "DS", colors.muted, 7);
+        draw_text(pixels, offset + 119, 131,
                   entry && app_is_favorite(app, entry->path) ? "STARRED"
                   : entry && entry->kind == ITEM_SYSTEM ? (entry->target == 6 ? "SLOT-1" : "NAND")
                   : entry && (entry->kind == ITEM_INSTALLED_TITLE ||
@@ -269,7 +332,7 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
                       : "SD CARD",
                   colors.muted, 8);
         bool installed_library = app->category == CATEGORY_SYSTEM && app->installed_open;
-        draw_text_scrolling(pixels, 12, 164,
+        draw_text_scrolling(pixels, offset + 12, 164,
                             installed_library    ? app->installed_catalog.status
                             : app->title[0]      ? app->title
                             : app->artwork.ready ? app->artwork.source
@@ -278,33 +341,35 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
                             app->selection_idle_frames * (installed_library ? 3u : 1u),
                             !app->reduced_motion);
     } else {
-        draw_item_information(app, pixels, colors);
+        draw_item_information(app, pixels, colors, offset);
     }
-    for (int row = 0; row < TAB_VISIBLE_COUNT; row++) {
+    for (int row = 0; !poster && row < TAB_VISIBLE_COUNT; row++) {
         int index = app->tab_scroll + row;
         if (index >= app->tab_count)
             break;
         int y = 38 + row * 20;
         bool active = index == app->category;
-        if (active && !draw_theme_component(&app->themes.active, pixels, THEME_TAB_SELECTED, 182,
-                                            y - 2, 65, 16))
-            draw_rectangle(pixels, 182, y - 2, 65, 16, colors.accent);
+        if (active && !draw_theme_component(&app->themes.active, pixels, THEME_TAB_SELECTED,
+                                            rail + 182, y - 2, 65, 16))
+            draw_rectangle(pixels, rail + 182, y - 2, 65, 16, colors.accent);
         if (app->rail_focus && index == app->rail_selected) {
-            draw_rectangle(pixels, 180, y - 4, 69, 1, colors.text);
-            draw_rectangle(pixels, 180, y + 15, 69, 1, colors.text);
-            draw_rectangle(pixels, 180, y - 4, 1, 20, colors.text);
-            draw_rectangle(pixels, 248, y - 4, 1, 20, colors.text);
+            draw_rectangle(pixels, rail + 180, y - 4, 69, 1, colors.text);
+            draw_rectangle(pixels, rail + 180, y + 15, 69, 1, colors.text);
+            draw_rectangle(pixels, rail + 180, y - 4, 1, 20, colors.text);
+            draw_rectangle(pixels, rail + 248, y - 4, 1, 20, colors.text);
         }
         bool focused = app->rail_focus ? index == app->rail_selected : active;
-        draw_text_scrolling(
-            pixels, 188, y, tabs_label(app, index), active ? colors.ink : colors.muted, 56,
-            app->frame_count - app->tab_text_started_frame, focused && !app->reduced_motion);
+        draw_text_scrolling(pixels, rail + 188, y, tabs_label(app, index),
+                            active ? themes_tab_text(theme) : colors.muted, 56,
+                            app->frame_count - app->tab_text_started_frame,
+                            focused && !app->reduced_motion);
     }
-    if (app->tab_scroll > 0)
-        draw_text(pixels, 209, 24, "^", colors.muted, 1);
-    if (app->tab_scroll + TAB_VISIBLE_COUNT < app->tab_count)
-        draw_text(pixels, 209, 158, "v", colors.muted, 1);
-    draw_rectangle(pixels, 10, 176, 236, 1, colors.line);
+    if (!poster && app->tab_scroll > 0)
+        draw_text(pixels, rail + 209, 24, "^", colors.muted, 1);
+    if (!poster && app->tab_scroll + TAB_VISIBLE_COUNT < app->tab_count)
+        draw_text(pixels, rail + 209, 158, "v", colors.muted, 1);
+    if (!theme->minimal_chrome)
+        draw_rectangle(pixels, 10, 176, 236, 1, colors.line);
     draw_text(pixels, 10, 179, clock, colors.muted, 11);
     draw_text(pixels, app->clock_12_hour ? 76 : 54, 179, ui_text(&app->language, UI_TAB_HINT),
               colors.muted, 15);
@@ -377,7 +442,10 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
             draw_rectangle(pixels, 10, row - 2, 236, 14, colors.line);
         bool enabled = app->panel == PANEL_QUICK || app->action_enabled[i];
         draw_text_clipped(pixels, 16, row, app->panel == PANEL_QUICK ? quick[i] : actions[i],
-                          enabled && i == app->panel_selection ? colors.text : colors.muted, 31);
+                          enabled && i == app->panel_selection
+                              ? themes_selection_text(&app->themes.active)
+                              : colors.muted,
+                          31);
         if (!enabled)
             draw_text(pixels, 239, row, "-", colors.muted, 1);
         if (app->panel == PANEL_QUICK && i == QUICK_ACCENT) {
@@ -597,7 +665,8 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
                                                 : location->path,
                             colors.muted, 231, app->selection_idle_frames, !app->reduced_motion);
     }
-    draw_rectangle(bottom, 10, list_top - 5, 236, 1, colors.line);
+    if (!app->themes.active.minimal_chrome)
+        draw_rectangle(bottom, 10, list_top - 5, 236, 1, colors.line);
     if (!app->entry_count) {
         draw_text_wrapped(bottom, 16, 65,
                           app->category == CATEGORY_SYSTEM && app->installed_open
@@ -636,7 +705,9 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
                 char display_name[256];
                 browser_display_name(app, entry, display_name);
                 draw_text_scrolling(bottom, text_x, text_y, display_name,
-                                    i == location->selected ? colors.text : colors.muted,
+                                    i == location->selected
+                                        ? themes_selection_text(&app->themes.active)
+                                        : colors.muted,
                                     234 - text_x, app->selection_idle_frames,
                                     i == location->selected && !app->reduced_motion);
                 if (extended) {

@@ -253,6 +253,10 @@ typedef struct {
     bool external_font;
     int default_view, default_icon_size;
     unsigned row_padding, large_grid_columns;
+    /* Screen composition is independent of the user-selected browser view. */
+    unsigned top_layout, content_opacity;
+    bool minimal_chrome;
+    uint16_t selection_text, tab_text;
     char backgrounds[2][PATH_CAP];
     char icon_directory[PATH_CAP], component_directory[PATH_CAP];
     unsigned component_border;

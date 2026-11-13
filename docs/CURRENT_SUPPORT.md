@@ -28,3 +28,7 @@ memory, sleep, SD removal, power controls, audio/microphone, cartridges and
 wireless on physical DSi hardware. Broader title and save/return coverage is also
 needed. Arbitrary dashboard widgets, 3D/coverflow and CJK/RTL fonts are
 potential future work, not supported package features.
+
+Theme packages support right/left navigation rails and an artwork-led Poster top
+screen, full-strength wallpapers, a preblended reading surface, optional minimal
+chrome and separate selected-label/tab text colors. See [theme packages](guides/THEME_PACKAGES.md).
