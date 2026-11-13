@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <time.h>
-#define GLOAM_VERSION "v0.1.0-preview.22"
+#define GLOAM_VERSION "v0.1.0-preview.23"
 #define UPDATE_RESPONSE_CAP (96 * 1024)
 #define UPDATE_TAG_CAP 48
 #define UPDATE_RELEASES_URL "https://github.com/nextcode4u/gloam-shell-ndx/releases"
