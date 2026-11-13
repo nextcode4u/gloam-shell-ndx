@@ -57,6 +57,7 @@ int main(int argc, char **argv)
     app.panel_age = 20;
     artwork_load(&app);
     if (profile) {
+        double ready = milliseconds();
         unsigned cycles = argc > 5 ? (unsigned)strtoul(argv[5], NULL, 10) : 0;
         if (cycles > 1000)
             return 2;
@@ -81,7 +82,7 @@ int main(int argc, char **argv)
                 heap_peak = heap_end;
 #endif
         }
-        double ready = milliseconds(), slowest = 0;
+        double render_started = milliseconds(), slowest = 0;
         for (int frame = 0; frame < 300; frame++) {
             double begin = milliseconds();
             render_app(&app, top, bottom, "22:30");
@@ -90,12 +91,14 @@ int main(int argc, char **argv)
                 slowest = elapsed;
             app.frame_count++;
         }
-        printf("{\"prepare_ms\":%.3f,\"render_mean_ms\":%.4f,\"render_max_ms\":%.4f,"
+        printf("{\"prepare_ms\":%.3f,\"stress_ms\":%.3f,\"render_mean_ms\":%.4f,\"render_max_ms\":%"
+               ".4f,"
                "\"app_state_bytes\":%zu,\"framebuffer_bytes\":%zu,\"visible_batch_items\":%d,"
                "\"cycles\":%u,\"heap_warm_bytes\":%zu,"
                "\"heap_end_bytes\":%zu,\"sampled_heap_peak_bytes\":%zu}\n",
-               ready - started, (milliseconds() - ready) / 300, slowest, sizeof app,
-               sizeof top + sizeof bottom, app.entry_count, cycles, heap_warm, heap_end, heap_peak);
+               ready - started, render_started - ready, (milliseconds() - render_started) / 300,
+               slowest, sizeof app, sizeof top + sizeof bottom, app.entry_count, cycles, heap_warm,
+               heap_end, heap_peak);
         return 0;
     }
     /* Rendering uses native SD paths; host fixture locations are private. */
