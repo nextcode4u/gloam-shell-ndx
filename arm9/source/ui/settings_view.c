@@ -14,7 +14,9 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
     if (!option)
         option = settings_option(app, 0, 0);
     themes_background_draw(&app->themes.active, 0, top);
+    draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
+    draw_theme_chrome(&app->themes.active, bottom, 22);
     draw_text(top, 10, 8,
               app->simple_settings_lock ? ui_translate(&app->language, "dialog.settings_locked",
                                                        "SIMPLE SETTINGS - LOCKED")
@@ -57,8 +59,7 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
         int y = SETTINGS_LIST_TOP + row * SETTINGS_ROW_HEIGHT;
         bool selected = index == state->selected;
         if (selected) {
-            draw_rectangle(bottom, 6, y, 244, SETTINGS_ROW_HEIGHT, palette.surface);
-            draw_rectangle(bottom, 6, y, 2, SETTINGS_ROW_HEIGHT, palette.accent);
+            draw_theme_selection(&app->themes.active, bottom, 6, y, 244, SETTINGS_ROW_HEIGHT);
         }
         const SettingsOption *item = settings_option(app, state->section, index);
         draw_text_scrolling(bottom, 14, y + 3, settings_option_text(app, item, false),

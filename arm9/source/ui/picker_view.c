@@ -10,7 +10,9 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
     const PickerState *picker = &app->picker;
     ThemePalette p = themes_palette(app);
     themes_background_draw(&app->themes.active, 0, top);
+    draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
+    draw_theme_chrome(&app->themes.active, bottom, 22);
     draw_text(top, 10, 8, "OPEN WITH", p.accent, 32);
     const char *name = strrchr(picker->target, '/');
     draw_text_scrolling(top, 10, 31, name ? name + 1 : picker->target, p.text, 231,
@@ -42,8 +44,7 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
         int y = PICKER_TOP + row * PICKER_ROW_HEIGHT;
         bool selected = index == picker->selected;
         if (selected) {
-            draw_rectangle(bottom, 6, y, 244, PICKER_ROW_HEIGHT, p.surface);
-            draw_rectangle(bottom, 6, y, 2, PICKER_ROW_HEIGHT, p.accent);
+            draw_theme_selection(&app->themes.active, bottom, 6, y, 244, PICKER_ROW_HEIGHT);
         }
         draw_theme_icon(&app->themes.active, bottom, 14, y + 3, 12, PLACEHOLDER_APPLICATION,
                         selected ? p.accent : p.muted);
@@ -65,7 +66,9 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
     uint16_t surface = palette.surface, text = palette.text;
     uint16_t muted = palette.muted, accent = palette.accent;
     themes_background_draw(&app->themes.active, 0, top);
+    draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
+    draw_theme_chrome(&app->themes.active, bottom, 22);
     draw_text(top, 10, 8,
               (picker->kind == PICKER_TOP_BACKGROUND || picker->kind == PICKER_BOTTOM_BACKGROUND)
                   ? "WALLPAPER"
@@ -133,8 +136,7 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
         int y = PICKER_TOP + row * PICKER_ROW_HEIGHT;
         bool selected = index == picker->selected;
         if (selected) {
-            draw_rectangle(bottom, 6, y, 244, PICKER_ROW_HEIGHT, surface);
-            draw_rectangle(bottom, 6, y, 2, PICKER_ROW_HEIGHT, accent);
+            draw_theme_selection(&app->themes.active, bottom, 6, y, 244, PICKER_ROW_HEIGHT);
         }
         const Entry *entry = &picker->entries[index];
         draw_theme_icon(&app->themes.active, bottom, 14, y + 3, 12, entry_file_type(entry).icon,

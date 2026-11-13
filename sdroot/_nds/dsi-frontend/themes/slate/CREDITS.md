@@ -1,4 +1,7 @@
 # Asset credits
 
 The original icons in `icons/` are dedicated to the public domain under CC0-1.0.
-Reproduce them with `tools/make_theme_icons.py`; they use Gloam’s shared symbol masks.
+Reproduce them with `tools/make_theme_icons.py`; the artwork is authored for each visual family.
+
+The modular UI images in `components/` are original CC0-1.0 artwork.
+Reproduce them with `tools/make_theme_components.py`.

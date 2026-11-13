@@ -180,6 +180,7 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
 static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, const char *clock)
 {
     themes_background_draw(&app->themes.active, 0, pixels);
+    draw_theme_chrome(&app->themes.active, pixels, 22);
     draw_text(pixels, 10, 7, app->recovery_mode ? "RECOVERY" : "GLOAM SHELL NDX", colors.text, 20);
     char tab_position[16];
     snprintf(tab_position, sizeof tab_position, "%d/%d", app->category + 1, app->tab_count);
@@ -223,9 +224,11 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
                         app->artwork.pixels[(yy * app->artwork.height / h) * app->artwork.width +
                                             xx * app->artwork.width / w];
         } else {
-            draw_rectangle(pixels, x + 3, y + 3, w, h, colors.line);
-            draw_rectangle(pixels, x, y, w, h, colors.surface);
-            draw_rectangle(pixels, x, y, 3, h, colors.accent);
+            if (!draw_theme_component(&app->themes.active, pixels, THEME_CARD, x, y, w, h)) {
+                draw_rectangle(pixels, x + 3, y + 3, w, h, colors.line);
+                draw_rectangle(pixels, x, y, w, h, colors.surface);
+                draw_rectangle(pixels, x, y, 3, h, colors.accent);
+            }
             EntryFileType type = entry_file_type(entry);
             draw_theme_icon(&app->themes.active, pixels, x + (w - 48) / 2, y + 12, 48, type.icon,
                             colors.accent);
@@ -283,7 +286,8 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
             break;
         int y = 38 + row * 20;
         bool active = index == app->category;
-        if (active)
+        if (active && !draw_theme_component(&app->themes.active, pixels, THEME_TAB_SELECTED, 182,
+                                            y - 2, 65, 16))
             draw_rectangle(pixels, 182, y - 2, 65, 16, colors.accent);
         if (app->rail_focus && index == app->rail_selected) {
             draw_rectangle(pixels, 180, y - 4, 69, 1, colors.text);
@@ -315,9 +319,11 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
     int y = layout_panel_top(app);
     int height = app->panel == PANEL_QUICK || app->panel == PANEL_ACTIONS ? 156 : 141;
     int footer = y + height - 20;
-    draw_rectangle(pixels, 4, y + 3, 248, height, draw_rgb555(5, 8, 13));
-    draw_rectangle(pixels, 4, y, 248, height, colors.surface);
-    draw_rectangle(pixels, 4, y, 248, 2, colors.accent);
+    if (!draw_theme_component(&app->themes.active, pixels, THEME_PANEL, 4, y, 248, height)) {
+        draw_rectangle(pixels, 4, y + 3, 248, height, draw_rgb555(5, 8, 13));
+        draw_rectangle(pixels, 4, y, 248, height, colors.surface);
+        draw_rectangle(pixels, 4, y, 248, 2, colors.accent);
+    }
     const char *title = app->panel == PANEL_QUICK     ? "QUICK CONTROLS"
                         : app->panel == PANEL_ACTIONS ? "ITEM ACTIONS"
                         : app->panel == PANEL_INFO    ? "ITEM DETAILS"
@@ -452,8 +458,12 @@ static void draw_shelf(const App *app, uint16_t *pixels, Palette colors)
         int x = 17 + cell * 80 + offset;
         bool selected = index == location->selected;
         const Artwork *art = artwork_shelf_for_entry(app, index);
-        draw_rectangle(pixels, x, top, 62, UI_SHELF_CARD_HEIGHT, colors.surface);
-        draw_rectangle(pixels, x, top, 62, 1, colors.line);
+        if (!draw_theme_component(&app->themes.active, pixels,
+                                  selected ? THEME_CARD_SELECTED : THEME_CARD, x, top, 62,
+                                  UI_SHELF_CARD_HEIGHT)) {
+            draw_rectangle(pixels, x, top, 62, UI_SHELF_CARD_HEIGHT, colors.surface);
+            draw_rectangle(pixels, x, top, 62, 1, colors.line);
+        }
         if (app->show_covers && art && art->ready && strcmp(art->source, "NDS banner")) {
             int width = 56, height = art->height * width / art->width;
             if (height > UI_SHELF_CARD_HEIGHT - 8) {
@@ -503,11 +513,12 @@ static void draw_grid(const App *app, uint16_t *pixels, Palette colors)
         int x = 6 + (cell % layout_grid_columns(app)) * layout_grid_cell_width(app);
         int y = layout_list_top(app->category) + (cell / layout_grid_columns(app)) * height;
         bool selected = index == location->selected;
-        if (selected) {
-            draw_rectangle(pixels, x, y, layout_grid_cell_width(app) - 1, height - 1,
-                           colors.surface);
-            draw_rectangle(pixels, x, y, 2, height - 1, colors.accent);
-        }
+        bool skinned = draw_theme_component(&app->themes.active, pixels,
+                                            selected ? THEME_CARD_SELECTED : THEME_CARD, x, y,
+                                            layout_grid_cell_width(app) - 1, height - 1);
+        if (selected && !skinned)
+            draw_theme_selection(&app->themes.active, pixels, x, y, layout_grid_cell_width(app) - 1,
+                                 height - 1);
         char name[256];
         browser_display_name(app, &app->entries[index], name);
         if (app->icon_size == ICON_SMALL) {
@@ -562,6 +573,7 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
     Palette colors = themes_palette(app);
     draw_top_screen(app, top, colors, clock);
     themes_background_draw(&app->themes.active, 1, bottom);
+    draw_theme_chrome(&app->themes.active, bottom, layout_has_path(app->category) ? 34 : 22);
     draw_text_scrolling(bottom, 10, 7,
                         app->category == CATEGORY_HOME && app->collection_open >= 0
                             ? app->collections.groups[app->collection_open].label
@@ -605,8 +617,7 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
             draw_grid(app, bottom, colors);
         else {
             int sy = list_top + app->selection_y_fixed / 256;
-            draw_rectangle(bottom, 6, sy, 244, row_height, colors.surface);
-            draw_rectangle(bottom, 6, sy, 2, row_height, colors.accent);
+            draw_theme_selection(&app->themes.active, bottom, 6, sy, 244, row_height);
             for (int row = 0; row < visible_rows; row++) {
                 int i = location->scroll + row;
                 if (i >= app->entry_count)

@@ -49,6 +49,7 @@ static void builtin(ThemePackage *package, int accent)
                        rgb(0xACB7C6), preset_accent(accent), rgb(0x0D1219)};
     font_builtin(&package->font);
     package->background_strength = 25;
+    package->component_border = 8;
     package->default_view = package->default_icon_size = -1;
     package->large_grid_columns = 4;
 }
@@ -128,7 +129,7 @@ static bool load(App *app, const char *id, ThemePackage *package)
         if (*key == '[') {
             if (strcmp(key, "[theme]") && strcmp(key, "[colors]") && strcmp(key, "[fonts]") &&
                 strcmp(key, "[audio]") && strcmp(key, "[backgrounds]") && strcmp(key, "[layout]") &&
-                strcmp(key, "[icons]"))
+                strcmp(key, "[icons]") && strcmp(key, "[components]"))
                 valid = false;
             path_copy(section, key, sizeof section);
             continue;
@@ -213,6 +214,19 @@ static bool load(App *app, const char *id, ThemePackage *package)
                 else
                     path_copy(package->backgrounds[screen], path, PATH_CAP);
             }
+        } else if (!strcmp(section, "[components]")) {
+            if (!strcmp(key, "border")) {
+                char *end;
+                unsigned long border = strtoul(value, &end, 10);
+                if (!*value || *end || border > 12)
+                    valid = false;
+                else
+                    package->component_border = (unsigned)border;
+            } else if (strcmp(key, "directory") || !*value || *value == '/' || strchr(value, ':') ||
+                       !path_resolve_sd(path, directory, value))
+                valid = false;
+            else
+                path_copy(package->component_directory, path, PATH_CAP);
         } else if (!strcmp(section, "[icons]")) {
             if (strcmp(key, "directory") || !*value || *value == '/' || strchr(value, ':') ||
                 !path_resolve_sd(path, directory, value))
@@ -280,7 +294,9 @@ void themes_init(App *app)
     font_use(&app->themes.active.font);
     themes_background_load(&app->themes.active, false);
     themes_icons_cancel();
+    themes_components_cancel();
     themes_icons_load(&app->themes.active, false);
+    themes_components_load(&app->themes.active, false);
 }
 static int compare_ids(const void *left, const void *right)
 {
@@ -296,9 +312,11 @@ static void preview(App *app)
               sizeof state->status);
     font_use(state->ready ? &state->candidate.font : &state->active.font);
     themes_icons_cancel();
+    themes_components_cancel();
     if (state->ready) {
         themes_background_load(&state->candidate, true);
         themes_icons_load(&state->candidate, true);
+        themes_components_load(&state->candidate, true);
     }
 }
 void themes_open(App *app)
@@ -349,6 +367,7 @@ void themes_cancel(App *app)
 {
     themes_background_cancel();
     themes_icons_cancel();
+    themes_components_cancel();
     app->themes.open = false;
     font_use(&app->themes.active.font);
 }
@@ -364,6 +383,7 @@ void themes_apply(App *app)
     app->themes.active = app->themes.candidate;
     themes_background_accept();
     themes_icons_accept();
+    themes_components_accept();
     path_copy(app->theme_id, app->themes.active.id, sizeof app->theme_id);
     app->theme_accent_override = false;
     if (app->themes.active.default_view >= 0)

@@ -9,7 +9,9 @@ void association_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
     const AssociationEditor *editor = &app->association_editor;
     ThemePalette p = themes_palette(app);
     themes_background_draw(&app->themes.active, 0, top);
+    draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
+    draw_theme_chrome(&app->themes.active, bottom, 22);
     draw_text(top, 10, 8, "FILE ASSOCIATIONS", p.accent, 32);
     const char *extension = editor->count ? editor->extensions[editor->selected] : "";
     char label[48];
@@ -48,8 +50,7 @@ void association_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
         int y = 41 + row * 18;
         bool selected = index == (editor->option >= 0 ? editor->option : editor->selected);
         if (selected) {
-            draw_rectangle(bottom, 6, y, 244, 18, p.surface);
-            draw_rectangle(bottom, 6, y, 2, 18, p.accent);
+            draw_theme_selection(&app->themes.active, bottom, 6, y, 244, 18);
         }
         draw_text_clipped(bottom, 14, y + 3,
                           editor->option >= 0 ? options[index] : editor->extensions[index], p.text,

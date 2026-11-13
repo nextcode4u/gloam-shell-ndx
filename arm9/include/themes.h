@@ -7,6 +7,20 @@ void themes_icons_load(const ThemePackage *package, bool preview);
 void themes_icons_accept(void);
 void themes_icons_cancel(void);
 const uint16_t *themes_icon(const ThemePackage *package, int index);
+typedef enum {
+    THEME_HEADER,
+    THEME_FOOTER,
+    THEME_PANEL,
+    THEME_ROW_SELECTED,
+    THEME_TAB_SELECTED,
+    THEME_CARD,
+    THEME_CARD_SELECTED,
+    THEME_COMPONENT_COUNT
+} ThemeComponent;
+void themes_components_load(const ThemePackage *package, bool preview);
+void themes_components_accept(void);
+void themes_components_cancel(void);
+const uint16_t *themes_component(const ThemePackage *package, ThemeComponent component);
 #define THEME_ACCENT_COUNT 16
 const char *themes_accent_name(int index);
 void themes_init(App *app);

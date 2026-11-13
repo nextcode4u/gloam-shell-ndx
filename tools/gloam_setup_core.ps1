@@ -536,7 +536,7 @@ function Test-GloamTheme([string]$Source) {
     $manifest=Get-GloamPath $root 'theme.ini'
     if (-not [IO.File]::Exists($manifest) -or ([IO.FileInfo]::new($manifest)).Length -gt 4096) { throw 'Theme manifest is missing or exceeds 4 KiB.' }
     $data=Read-GloamIni $manifest
-    $allowed=@{theme=@('version','name');colors=@('background','surface','line','text','muted','accent','ink');fonts=@('ui');audio=@('music','cursor','confirm','back');backgrounds=@('top','bottom','strength');layout=@('view','icon_size','row_padding','large_grid_columns');icons=@('directory')}
+    $allowed=@{theme=@('version','name');colors=@('background','surface','line','text','muted','accent','ink');fonts=@('ui');audio=@('music','cursor','confirm','back');backgrounds=@('top','bottom','strength');layout=@('view','icon_size','row_padding','large_grid_columns');icons=@('directory');components=@('directory','border')}
     foreach ($section in $data.Keys) {
         if (-not $allowed.ContainsKey($section)) { $errors.Add("Unknown section: $section"); continue }
         foreach ($key in $data[$section].Keys) { if ($key -notin $allowed[$section]) { $errors.Add("Unknown key: $section/$key") } }
@@ -561,25 +561,33 @@ function Test-GloamTheme([string]$Source) {
             catch { $errors.Add("Unsafe asset path: $section/$key") }
         }
     } }
-    if ($data.Contains('icons')) {
+    if ($data.Contains('components') -and $data['components'].Contains('border')) {
+        $border=0
+        if (-not [int]::TryParse($data['components']['border'],[ref]$border) -or $border -lt 0 -or $border -gt 12) { $errors.Add('Component border must be 0-12.') }
+    }
+    $imageSets=@{
+        icons=@('file','folder','game','application','audio','video','book','text','image','save','config','archive','shortcut','system','missing','settings','camera','sound','pictochat','download-play','system-menu','slot1')
+        components=@('header','footer','panel','row-selected','tab-selected','card','card-selected')
+    }
+    foreach ($section in @('icons','components')) { if ($data.Contains($section) -and $data[$section].Contains('directory')) {
         try {
-            $directory=Get-GloamPath $root $data['icons']['directory']
+            $directory=Get-GloamPath $root $data[$section]['directory']
             Add-Type -AssemblyName PresentationCore
-            foreach ($name in @('file','folder','game','application','audio','video','book','text','image','save','config','archive','shortcut','system','missing','settings','camera','sound','pictochat','download-play','system-menu','slot1')) {
-                $relative=$data['icons']['directory']+'/'+$name+'.png'
+            foreach ($name in $imageSets[$section]) {
+                $relative=$data[$section]['directory']+'/'+$name+'.png'
                 $path=Get-GloamPath $root $relative
-                if (-not [IO.File]::Exists($path)) { $warnings.Add("$name icon missing: built-in fallback"); continue }
+                if (-not [IO.File]::Exists($path)) { $warnings.Add("$section/$name missing: built-in fallback"); continue }
                 try {
                     if (([IO.FileInfo]::new($path)).Length -gt 65536) { throw 'larger than 64 KiB' }
                     $stream=[IO.File]::OpenRead($path)
                     try { $decoder=[Windows.Media.Imaging.PngBitmapDecoder]::new($stream,[Windows.Media.Imaging.BitmapCreateOptions]::PreservePixelFormat,[Windows.Media.Imaging.BitmapCacheOption]::OnLoad); $image=$decoder.Frames[0]; $image.Freeze() }
                     finally { $stream.Dispose() }
                     if ($image.PixelWidth -ne 32 -or $image.PixelHeight -ne 32) { throw 'must be 32 x 32 pixels' }
-                    $icons.Add([pscustomobject]@{Name=$name;Image=$image})
-                } catch { $warnings.Add("$name icon invalid: $($_.Exception.Message); built-in fallback") }
+                    $icons.Add([pscustomobject]@{Name=($section+'/'+$name);Image=$image})
+                } catch { $warnings.Add("$section/$name invalid: $($_.Exception.Message); built-in fallback") }
             }
-        } catch { $errors.Add("Invalid icon directory: $($_.Exception.Message)") }
-    }
+        } catch { $errors.Add("Invalid $section directory: $($_.Exception.Message)") }
+    } }
     return [pscustomobject]@{Valid=($errors.Count -eq 0);Errors=$errors.ToArray();Warnings=$warnings.ToArray();Icons=$icons.ToArray();Source=$root}
 }
 

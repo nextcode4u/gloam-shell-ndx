@@ -254,7 +254,8 @@ typedef struct {
     int default_view, default_icon_size;
     unsigned row_padding, large_grid_columns;
     char backgrounds[2][PATH_CAP];
-    char icon_directory[PATH_CAP];
+    char icon_directory[PATH_CAP], component_directory[PATH_CAP];
+    unsigned component_border;
     unsigned background_strength;
     char music[PATH_CAP], sounds[3][PATH_CAP];
 } ThemePackage;

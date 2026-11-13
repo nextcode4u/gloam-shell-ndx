@@ -1,6 +1,7 @@
 #ifndef FRONTEND_UI_DRAWING_H
 #define FRONTEND_UI_DRAWING_H
 #include "file_types.h"
+#include "themes.h"
 #include <stdbool.h>
 #include <stdint.h>
 uint16_t draw_rgb555(int r, int g, int b);
@@ -18,4 +19,9 @@ void draw_placeholder_icon(uint16_t *pixels, int x, int y, int size, Placeholder
                            uint16_t color);
 void draw_theme_icon(const ThemePackage *package, uint16_t *pixels, int x, int y, int size,
                      PlaceholderIcon icon, uint16_t color);
+bool draw_theme_component(const ThemePackage *package, uint16_t *pixels, ThemeComponent component,
+                          int x, int y, int width, int height);
+void draw_theme_selection(const ThemePackage *package, uint16_t *pixels, int x, int y, int width,
+                          int height);
+void draw_theme_chrome(const ThemePackage *package, uint16_t *pixels, int header_height);
 #endif

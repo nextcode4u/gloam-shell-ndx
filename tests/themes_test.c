@@ -40,6 +40,37 @@ int main(int argc, char **argv)
     assert(!strcmp(app.themes.candidate.id, "copper") && app.themes.candidate.external_font);
     assert(!memcmp(&original, &app.themes.active, sizeof original) && !app.preferences_dirty);
     assert(memcmp(&original.font, &app.themes.candidate.font, sizeof original.font));
+    const uint16_t *component = themes_component(&app.themes.candidate, THEME_ROW_SELECTED);
+    assert(component && !themes_component(&original, THEME_ROW_SELECTED));
+    uint16_t expected_component[32 * 32];
+    memcpy(expected_component, component, sizeof expected_component);
+    memset(top, 0, sizeof top);
+    assert(draw_theme_component(&app.themes.candidate, top, THEME_ROW_SELECTED, 0, 0, 32, 32));
+    for (unsigned y = 0; y < 32; y++)
+        for (unsigned x = 0; x < 32; x++)
+            assert(top[y * 256 + x] == expected_component[y * 32 + x]);
+    struct {
+        uint32_t before;
+        uint16_t pixels[256 * 192];
+        uint32_t after;
+    } guard;
+    for (unsigned border = 0; border <= 12; border++) {
+        app.themes.candidate.component_border = border;
+        for (int size = 1; size <= 65; size++) {
+            guard.before = guard.after = 0xC0FFEE;
+            memset(guard.pixels, 0, sizeof guard.pixels);
+            assert(draw_theme_component(&app.themes.candidate, guard.pixels, THEME_ROW_SELECTED,
+                                        -10, 180, size, size));
+            assert(draw_theme_component(&app.themes.candidate, guard.pixels, THEME_ROW_SELECTED, 0,
+                                        0, size, size));
+            assert(guard.before == 0xC0FFEE && guard.after == 0xC0FFEE);
+        }
+    }
+    app.themes.candidate.component_border = 8;
+    memset(top, 0, sizeof top);
+    assert(draw_theme_component(&app.themes.candidate, top, THEME_ROW_SELECTED, 0, 0, 32, 2));
+    assert(top[8] == expected_component[8]);
+    assert(top[256 + 8] == expected_component[31 * 32 + 8]);
     const uint16_t *folder = themes_icon(&app.themes.candidate, PLACEHOLDER_FOLDER);
     assert(folder && themes_icon(&app.themes.candidate, PLACEHOLDER_COUNT + 6));
     uint16_t expected[32 * 32];
@@ -55,18 +86,24 @@ int main(int argc, char **argv)
     themes_cancel(&app);
     assert(!app.themes.open && !*app.theme_id);
     assert(!themes_icon(&app.themes.candidate, PLACEHOLDER_FOLDER));
+    assert(!themes_component(&app.themes.candidate, THEME_ROW_SELECTED));
     assert(font_row('A', 3) == original.font.rows['A' - 32][3]);
     themes_open(&app);
     themes_move(&app, 1);
     themes_apply(&app);
     assert(!app.themes.open && !strcmp(app.theme_id, "copper") && app.preferences_dirty);
     assert(!memcmp(themes_icon(&app.themes.active, PLACEHOLDER_FOLDER), expected, sizeof expected));
+    assert(!memcmp(themes_component(&app.themes.active, THEME_ROW_SELECTED), expected_component,
+                   sizeof expected_component));
+    write_text(root, "_nds/dsi-frontend/themes/copper/components/row-selected.png", "broken PNG");
     /* A bad or absent symbol must not reject the package or poison other icons. */
     write_text(root, "_nds/dsi-frontend/themes/copper/icons/folder.png", "broken PNG");
     assert(path_join(manifest, root, "_nds/dsi-frontend/themes/copper/icons/file.png"));
     assert(!remove(manifest));
     themes_open(&app);
     assert(app.themes.ready);
+    assert(!themes_component(&app.themes.candidate, THEME_ROW_SELECTED));
+    assert(themes_component(&app.themes.candidate, THEME_HEADER));
     assert(!themes_icon(&app.themes.candidate, PLACEHOLDER_FOLDER));
     assert(!themes_icon(&app.themes.candidate, PLACEHOLDER_FILE));
     assert(themes_icon(&app.themes.candidate, PLACEHOLDER_AUDIO));
@@ -134,6 +171,17 @@ int main(int argc, char **argv)
     themes_move(&app, 3);
     assert(!app.themes.ready);
     themes_cancel(&app);
+    const char *bad_components[] = {"directory=../escape", "border=13", "border=-1", "border=bad"};
+    for (unsigned i = 0; i < sizeof bad_components / sizeof *bad_components; i++) {
+        char content[160];
+        snprintf(content, sizeof content, "[theme]\nversion=1\n[components]\n%s\n",
+                 bad_components[i]);
+        write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
+        themes_open(&app);
+        themes_move(&app, 3);
+        assert(!app.themes.ready);
+        themes_cancel(&app);
+    }
     puts("PASS: theme preview/apply/cancel, validated fonts/contrast, persistence and recovery "
          "isolation");
 }

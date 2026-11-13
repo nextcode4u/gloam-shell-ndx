@@ -7,7 +7,9 @@ void cheats_render(const App *app, uint16_t *top, uint16_t *bottom)
     const CheatState *state = app->cheats;
     ThemePalette p = themes_palette(app);
     themes_background_draw(&app->themes.active, 0, top);
+    draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
+    draw_theme_chrome(&app->themes.active, bottom, 22);
     draw_text(top, 10, 8, "TITLE CHEATS", p.accent, 32);
     int indices[CHEAT_ENTRY_CAP], count = cheats_visible(state, indices);
     if (count && state->selected < count) {
@@ -32,8 +34,7 @@ void cheats_render(const App *app, uint16_t *top, uint16_t *bottom)
         int visible = row + state->scroll, y = 41 + row * 18;
         const CheatEntry *entry = &state->entries[indices[visible]];
         if (visible == state->selected) {
-            draw_rectangle(bottom, 6, y, 244, 18, p.surface);
-            draw_rectangle(bottom, 6, y, 2, 18, p.accent);
+            draw_theme_selection(&app->themes.active, bottom, 6, y, 244, 18);
         }
         draw_text(bottom, 14, y + 3,
                   entry->folder ? (entry->expanded ? "-" : "+") : (entry->selected ? "[x]" : "[ ]"),

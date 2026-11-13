@@ -7,7 +7,7 @@ records the package ID in normal frontend state; the original package is not
 edited. Restart reloads that package. Missing/invalid packages use the built-in
 appearance and report the fallback, while retaining the requested ID for repair.
 
-The current package format supports palettes, fixed-cell fonts, per-screen backgrounds, icon packs and audio.
+The current package format supports palettes, fixed-cell fonts, per-screen backgrounds, icon packs, modular UI components and audio.
 Named on-console appearance snapshots are documented in [APPEARANCE_PRESETS.md](APPEARANCE_PRESETS.md). Bounded layout defaults/spacing/grid overrides are implemented (see below);
 variable font metrics and full UI localization remain further work. This version does not interpret AKMenu or
 TWiLight theme files directly. Required navigation keeps its shared geometry.
@@ -238,7 +238,8 @@ allocates its label width from the actual cell width. Small Grid keeps two
 columns to protect label readability. Invalid layout values reject the package
 without changing the active theme. Settings, tab rail, required navigation and
 font-cell bounds retain their native geometry. Arbitrary widget positions and
-unbounded custom layout scripts are not supported.
+unbounded custom layout scripts are not supported. Optional component artwork
+changes the appearance of these regions while retaining their input geometry.
 
 ## Theme icon packs
 
@@ -281,13 +282,73 @@ All eleven bundled themes include matching icon sets. Reproduce or check them:
 .venv/bin/python tools/make_theme_icons.py --check
 ```
 
-These original icon variants share Gloam's recognizable symbol family, with
-palette-specific colours and outline, round or angular badge treatments.
+The original icon artwork uses terminal outlines, rounded lunar shapes, folded
+paper and beveled retro forms. Icons are complete designs, not stock masks
+laid over decorative badges.
 The icons are CC0; each package includes a credit notice.
 
 **Compatibility:** these manifests require a build with `[icons]` support. Older
 builds reject unknown theme sections. Update `BOOT.NDS` with these theme packages;
 existing third-party themes without `[icons]` continue to use built-in symbols.
+
+## Modular UI artwork
+
+Themes can replace individual UI surfaces without changing touch targets or
+copying a whole screen image. The text, icons, scrolling and input behavior
+remain live. Each component is independent: mix your own header with the
+built-in selection style, or copy only a card treatment from another Gloam pack.
+
+```ini
+[components]
+directory=components
+border=8
+```
+
+Inside that package-local directory, supply any of these **32×32 PNGs**:
+
+| Filename | Used for |
+| --- | --- |
+| `header.png` | Browser and dialog headings on both screens. |
+| `footer.png` | Bottom control/status bands on both screens. |
+| `panel.png` | Quick-controls and item-action overlay surfaces. |
+| `row-selected.png` | Selected browser rows, settings, pickers and editors. |
+| `tab-selected.png` | The active top-screen tab and the theme preview's selection sample. |
+| `card.png` | Unselected Grid/Shelf cells and the top-screen cover placeholder. |
+| `card-selected.png` | Selected Grid/Shelf cell. |
+
+Images use **nine-slice scaling**: four corners stay at their authored size;
+the four edges stretch in one direction and the center stretches in both.
+`border` specifies the source corner width (0–12 pixels, default 8). Zero stretches
+the whole image. When a destination is too small for both corners, the corners
+shrink to fit. This keeps an outline or folded corner intact on a short row and
+a tall cover card. All output clips to the screen, including moving Shelf cards.
+Avoid words and icons inside these images: Gloam draws the live content over them.
+
+Each PNG is at most 64 KiB. Binary alpha and RGB555 follow the icon contract.
+Missing or invalid images fall back individually to the built-in drawing for
+that region. An unselected Grid cell without a component stays transparent.
+Paths cannot leave the theme package. A malformed manifest, including a border
+outside 0–12, rejects the preview; Apply/Cancel never mixes asset banks.
+
+Use palette `surface` behind normal text and `accent` behind tab text (`ink`).
+PNG colors are fixed and personal accent changes do not recolor them. The loader's
+palette checks cannot certify contrast inside arbitrary artwork; inspect both
+screens, small/large icons, every view and settings before sharing a pack.
+
+All eleven supplied packs include components. Phosphor uses open selection
+brackets, Eclipse uses rounded panels, Prism uses folded corners, and Copper
+uses beveled edges. Regenerate them with:
+
+```sh
+.venv/bin/python tools/make_theme_components.py
+.venv/bin/python tools/make_theme_components.py --check
+```
+
+Components decode only when loading or previewing a theme. Seven complete images
+use 14 KiB, or 28 KiB with a second preview bank. No scripts, filesystem reads or
+image decoding run in drawing. Recovery bypasses external components. The desktop
+setup tool previews and validates them along with icons. Older builds reject the
+new section: update `BOOT.NDS` together with these theme packs.
 
 ### Cover shelf
 
