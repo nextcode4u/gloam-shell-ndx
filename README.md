@@ -16,6 +16,9 @@ with both screens doing useful work.
   <img src="docs/images/theme-variants.png" width="768" alt="Phosphor, Eclipse and Prism themes showing Gloam's two-screen browser">
 </p>
 
+[Explore all eleven illustrated themes](docs/images/theme-personalities.png).
+
+
 Phosphor, Eclipse and Prism are three of the included [themes](docs/guides/THEME_PACKAGES.md).
 Screenshots show Gloam's renderer with the supplied themes and example content.
 

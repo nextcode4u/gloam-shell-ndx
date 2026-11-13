@@ -5,3 +5,6 @@ Reproduce them with `tools/make_theme_icons.py`; the artwork is authored for eac
 
 The modular UI images in `components/` are original CC0-1.0 artwork.
 Reproduce them with `tools/make_theme_components.py`.
+
+Scene: Rain-soaked city archive. Original CC0-1.0 pixel illustration by the Gloam project.
+Reproduce with `tools/make_theme_scenes.py`; no third-party theme artwork is included.

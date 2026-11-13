@@ -1,6 +1,6 @@
 # Nocturne
 
-Original geometric artwork and synthesized audio by the Gloam Shell NDX project.
+Original pixel artwork and synthesized audio by the Gloam Shell NDX project.
 Rebuild with `python tools/make_theme_samples.py` using the pinned Pillow version.
 These original theme assets may be used, modified and redistributed under CC0 1.0:
 https://creativecommons.org/publicdomain/zero/1.0/
@@ -12,3 +12,6 @@ Reproduce them with `tools/make_theme_icons.py`; the artwork is authored for eac
 
 The modular UI images in `components/` are original CC0-1.0 artwork.
 Reproduce them with `tools/make_theme_components.py`.
+
+Scene: Moonlit rooftops and a watchful cat. Original CC0-1.0 pixel illustration by the Gloam project.
+Reproduce with `tools/make_theme_scenes.py`; no third-party theme artwork is included.

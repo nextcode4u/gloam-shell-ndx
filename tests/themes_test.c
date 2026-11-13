@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     assert(app.themes.count == 4 && app.themes.ready);
     themes_move(&app, 1);
     assert(!strcmp(app.themes.candidate.id, "copper") && app.themes.candidate.external_font);
-    assert(!strcmp(app.themes.candidate.header, "GLOAM / COPPER"));
+    assert(!strcmp(app.themes.candidate.header, "COPPERWORKS"));
     assert(!memcmp(&original, &app.themes.active, sizeof original) && !app.preferences_dirty);
     assert(memcmp(&original.font, &app.themes.candidate.font, sizeof original.font));
     assert(app.themes.candidate.top_layout == 1 && app.themes.candidate.minimal_chrome);

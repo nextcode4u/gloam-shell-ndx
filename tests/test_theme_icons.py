@@ -6,6 +6,7 @@ import unittest
 from PIL import Image
 from tools.make_theme_icons import THEMES, assets
 from tools.make_theme_components import assets as component_assets, COMPONENTS
+from tools.make_theme_scenes import assets as scene_assets
 
 
 class ThemeIconTests(unittest.TestCase):
@@ -25,6 +26,15 @@ class ThemeIconTests(unittest.TestCase):
                     alpha = image.getchannel('A')
                     self.assertEqual(alpha.getextrema(), (0, 255))
                     self.assertTrue(image.getbbox())
+
+    def test_scene_backgrounds_are_distinct_and_reproducible(self):
+        generated = dict(scene_assets())
+        self.assertEqual(len(generated), 22)
+        self.assertEqual(len(set(generated.values())), 22)
+        for path, data in generated.items():
+            self.assertEqual(path.read_bytes(), data)
+            with Image.open(io.BytesIO(data)) as image:
+                self.assertEqual(image.size, (256, 192))
 
     def test_modular_components_are_reproducible_and_bounded(self):
         generated = dict(component_assets())

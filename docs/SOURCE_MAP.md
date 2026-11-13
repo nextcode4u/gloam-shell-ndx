@@ -127,3 +127,8 @@ Theme header labels and battery/disconnected-wireless sprites use prepared theme
 state. `theme_components.c` maps cached battery readings to artwork states;
 `ui/theme_components.c` draws those sprites. Gloam does not initialize a network
 connection or infer signal strength from the wireless LED.
+
+`tools/make_theme_scenes.py` owns eleven independent pixel-illustration functions.
+Scene layout in `ui/renderer.c` keeps art separate from the item inspector.
+`theme_backgrounds.c` retains only a 94-line unshaded strip for each loaded Scene
+package, alongside the ordinary shaded dialog background.

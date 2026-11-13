@@ -60,32 +60,32 @@ matte; they are content artwork rather than theme backgrounds.
 Choose these from START → Appearance → Theme. Preview with Up/Down, apply with
 A, or cancel with B. The packages are ready to copy; no build step is needed.
 
-| Theme | Direction | Defaults and features exercised |
+| Theme | Illustrated identity | Browser character |
 | --- | --- | --- |
-| Folio | Warm paper and graphite; a quiet reading interface. | List, small icons, no padding, built-in font, no wallpapers/music, three soft UI cues. |
-| Nocturne | Indigo mountain silhouettes and lavender highlights. | Extended, small icons, 2px padding, external Latin-1 font, independent PNG wallpapers, original 8-second loop and three UI cues. |
-| Tide | Sea-glass paper and broad coastal bands. | Large Grid, three columns, 6px padding, external ASCII font, PNG top/JPEG bottom, original 8-second loop and three brighter UI cues. |
-| Phosphor | Near-black and soft terminal green. | Classic, small icons, zero padding, built-in font, no wallpapers/music, three quiet low-pitched cues. A lightweight baseline. |
-| Eclipse | Dark plum with a pale lunar halo. | Large Grid, two columns, maximum 12px padding, Latin-1 font, 512×512 PNG/JPEG wallpapers at full strength with a reading scrim, original 8-second loop. Exercises center cropping and spacious layout limits. |
-| Prism | Cool white with blue and lilac facets. | Large Grid, four columns, zero padding, bold ASCII font, native-size PNG/JPEG wallpapers at 70%, original 8-second loop. Exercises narrow labels, looping text and light-theme contrast. |
-| Ember | Amber sunset and layered desert silhouettes. | Extended, large icons, 4px padding, Latin-1 font, PNG backgrounds at 25%, warm low-pitched cues and an original 8-second loop. |
-| Glacier | Ice-blue peaks against deep navy. | Large Grid, three columns, 4px padding, Latin-1 font, PNG backgrounds at 30%, clear UI tones and an original 8-second loop. |
-| Garnet | Black cherry with ruby chevrons. | List, small icons, 2px padding, Latin-1 font, PNG backgrounds at 25%, low UI tones and an original 8-second loop. Keeps the browser focused on names. |
+| Copper | Riveted clockwork workshop, meshing brass gears. | Warm metal faces and amber selection edges. |
+| Slate | Rain over a lit city archive. | Blue steel and restrained technical lines. |
+| Folio | Botanical field notebook with a pressed flower. | Warm paper, graphite and folded corners. |
+| Nocturne | Moonlit rooftops with a watchful cat. | Indigo surfaces and soft lunar corners. |
+| Tide | A lighthouse above a quiet coast. | Sea-glass colors and pale chart-like panels. |
+| Phosphor | Radar sweep and instrument grid. | Terminal green, bracket selections and compact rows. |
+| Eclipse | Ringed planet above an observatory. | Dark plum and wide, spacious grid tiles. |
+| Prism | Pastel arcade at closing time. | Bright cabinets, folded panels and dense grid tiles. |
+| Ember | A tent and campfire beneath pine trees. | Canvas-brown rows and warm amber highlights. |
+| Glacier | Polar research outpost beneath an aurora. | Ice-blue panels and larger grid tiles. |
+| Garnet | Rose window and candlelit gothic hall. | Burgundy surfaces and a text-first browser. |
 
-Nocturne and Tide share a 256×384 composition split into native-size
-screens. Text and controls are drawn by the launcher; they are not baked into
-the artwork. Folio, Nocturne and Tide add about 550 KiB in total. A music loop uses
-250 KiB of sample memory only while its theme's music is enabled; unused theme
-packages are not preloaded. Folio needs no wallpaper or music buffers.
+All eleven packs include original native-resolution illustrations. Their scene
+layouts expose the illustration above a separate live item inspector and tab
+strip. Icons, cover art, labels and status remain live; none are baked into the
+background. Ordinary dialogs keep a shaded reading surface. Personal view,
+audio and Reduced motion preferences still apply.
 
-Eclipse deliberately uses the maximum accepted image dimensions, not oversized
-or malformed files. Its outer image area is cropped; both screens retain a
-256×192 prepared background. Prism deliberately favors density: long titles
-need the selected-label marquee, and Reduced motion keeps those labels static.
-Use Eclipse's wider tiles or List view when complete names matter more than
-density. Theme packages cannot override Reduced motion or personal audio levels.
-These variants exercise supported boundaries, not a measured hardware memory or
-frame-time limit. All three have per-package credits and reproducible assets.
+The illustrations are CC0-1.0 and reproducible with
+`.venv/bin/python tools/make_theme_scenes.py`. No other launcher's theme artwork
+is redistributed. Existing music/font notices remain in each package.
+
+[View all eleven rendered themes](../images/theme-personalities.png).
+Regenerate with `.venv/bin/python tools/make_screenshots.py --theme-variants personality`.
 
 ![Phosphor, Eclipse and Prism rendered at native resolution](../images/theme-variants.png)
 
@@ -255,7 +255,7 @@ These optional composition/color keys require the matching current `BOOT.NDS`.
 Older builds reject unknown manifest keys; update the binary along with these
 example theme packs. Packages without the new keys keep their previous behavior.
 
-`top_layout` accepts `sidebar` (the original right rail), `sidebar_left`, or
+`top_layout` accepts `sidebar` (the original right rail), `sidebar_left`,
 `poster`, or `scene`. The left rail moves the artwork and information together without
 mirroring text or wallpaper. Poster uses a larger artwork area and a horizontal
 strip showing the focused tab and its neighbours. L/R still cycles all tabs;
@@ -308,8 +308,8 @@ settings values and other dialog text retain their established palette roles;
 check these against the selected component artwork too. PNG colors are not
 recolored by palette or accent changes.
 
-Eclipse and Nocturne demonstrate Poster; Prism and Glacier demonstrate the left
-rail. Phosphor retains the original rail and terminal skin. These compositions
+The bundled packs demonstrate Scene; right/left rails and Poster remain available
+for personal themes. These compositions
 work with all browser views and do not change bottom-screen touch targets.
 
 ## Theme icon packs
