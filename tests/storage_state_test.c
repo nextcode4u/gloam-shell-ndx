@@ -3,12 +3,15 @@
 #include "audio.h"
 #include "browser.h"
 #include "game_options.h"
+#include "installed_titles.h"
+#include "paths.h"
 #include "preferences.h"
 #include "renderer.h"
 #include "storage_state.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 static App app;
 static uint16_t top[256 * 192], bottom[256 * 192];
 int main(int argc, char **argv)
@@ -24,8 +27,18 @@ int main(int argc, char **argv)
     app.game_editor.open = true;
     app.game_editor.options.values[GAME_CPU] = 1;
     app.audio.reload_requested = false;
+    char folder[PATH_CAP];
+    assert(path_join(folder, argv[1], "title") && !mkdir(folder, 0777));
+    assert(path_join(folder, argv[1], "title/00030004") && !mkdir(folder, 0777));
+    installed_catalog_begin(&app.installed_catalog, argv[1], 1);
+    assert(app.installed_catalog.scanning && app.installed_catalog.directory);
+    app.installed_discovery_requested = true;
+    app.startup_countdown = 1;
+    app.startup_due = true;
     storage_observe(&app, false);
     assert(app.storage_lost && !app.storage_ready && !app.storage_card_present);
+    assert(!app.installed_catalog.scanning && !app.installed_catalog.directory);
+    assert(!app.installed_discovery_requested && !app.startup_countdown && !app.startup_due);
     assert(!app.launch_requested && !app.system_menu_requested && !app.settings.open);
     assert(app.preferences_dirty && app.game_editor.options.values[GAME_CPU] == 1);
     assert(app.audio.reload_requested && !app.artwork.ready);

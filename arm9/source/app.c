@@ -758,8 +758,9 @@ void app_tick(App *app)
     app->frame_count++;
     artwork_cache_update();
     startup_tick(app);
-    if (app->installed_catalog.scanning && installed_catalog_step(&app->installed_catalog) &&
-        app->category == CATEGORY_SYSTEM && app->installed_open)
+    if (!app->storage_lost && app->installed_catalog.scanning &&
+        installed_catalog_step(&app->installed_catalog) && app->category == CATEGORY_SYSTEM &&
+        app->installed_open)
         app_scan(app);
     if (app->storage_lost || app->cheats || app->game_editor.open || app->themes.open ||
         app->dashboard.open || (app->association_editor.open && !app->picker.open))
