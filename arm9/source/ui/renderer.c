@@ -304,7 +304,7 @@ static void draw_side_tabs(const App *app, uint16_t *pixels, Palette colors, int
         }
     }
     if (theme->tab_style == 1)
-        draw_text_scrolling(pixels, rail + 182, 144, tabs_label(app, focus), colors.text, 65,
+        draw_text_scrolling(pixels, rail + 188, 144, tabs_label(app, focus), colors.text, 56,
                             elapsed, !app->reduced_motion);
     if (start > 0)
         draw_text(pixels, rail + 209, 24, "^", colors.muted, 1);

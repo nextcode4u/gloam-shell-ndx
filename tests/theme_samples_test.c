@@ -213,6 +213,30 @@ int main(int argc, char **argv)
                             assert(app.rail_selected == focus && app.tab_count == TAB_CAP);
                         }
                     }
+        /* Tile captions use the sidebar text inset, including animated long
+         * names. No caption pixel may escape into the frame or main workspace. */
+        app.themes.active.tab_style = 1;
+        app.rail_selected = TAB_CAP - 1;
+        for (unsigned side = 0; side < 2; side++) {
+            app.themes.active.top_layout = side;
+            int caption_left = side ? 10 : 188;
+            for (int motion = 0; motion < 2; motion++) {
+                app.reduced_motion = motion;
+                for (unsigned frame = 0; frame < 900; frame += 120) {
+                    app.frame_count = app.tab_text_started_frame + frame;
+                    app.tabs[TAB_CAP - 1].label[0] = 0;
+                    draw();
+                    memcpy(stationary_rows, top.pixels, sizeof stationary_rows);
+                    strcpy(app.tabs[TAB_CAP - 1].label, "A very long custom library name");
+                    draw();
+                    for (int y = 144; y < 156; y++)
+                        for (int x = 0; x < 256; x++)
+                            if (x < caption_left || x >= caption_left + 56)
+                                assert(top.pixels[y * 256 + x] == stationary_rows[y * 256 + x]);
+                }
+            }
+        }
+        app.reduced_motion = false;
         app.tab_count = saved_count;
         app.rail_focus = false;
         for (int level = -1; level <= 16; level++) {
