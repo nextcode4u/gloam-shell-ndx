@@ -348,7 +348,8 @@ tab_gap=8
 - **Icons** use a horizontal dock for Scene/Poster, or a two-column tile selector
   in a sidebar. The focused tab's full name has its own scrolling caption.
   Scene omits its secondary file-type/size line to make room for that caption;
-  Y still opens complete item information.
+  Y still opens complete item information. Poster reserves the dock area by
+  reducing its artwork height, including the frame, while preserving aspect ratio.
 - **Numbered** prefix names with their one-based position. Three horizontal
   cells give names more space than five; selected long names scroll.
 - **Pager** shows one focused category with its position and navigation hints.

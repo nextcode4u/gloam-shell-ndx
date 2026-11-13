@@ -316,20 +316,23 @@ static void draw_poster(const App *app, uint16_t *pixels, Palette colors)
 {
     const ThemePackage *theme = &app->themes.active;
     const Entry *entry = app_selected(app);
+    /* Icon docks begin at y=144; include the two-pixel artwork frame
+     * when reserving space above them. Other tab styles begin at y=155. */
+    int artwork_height = theme->tab_style == 1 ? 92 : 104;
     int selected = app->locations[app->category].selected;
     bool native = entry && (entry->kind == ITEM_SYSTEM || entry->kind == ITEM_INSTALLED_TITLE) &&
                   icons_for_entry(app, selected);
     if (!native && app->artwork.ready) {
         int width = 108, height = app->artwork.height * 108 / app->artwork.width;
-        if (height > 104) {
-            height = 104;
-            width = app->artwork.width * 104 / app->artwork.height;
+        if (height > artwork_height) {
+            height = artwork_height;
+            width = app->artwork.width * artwork_height / app->artwork.height;
         }
         if (width < 1)
             width = 1;
         if (height < 1)
             height = 1;
-        int x = 10 + (108 - width) / 2, y = 48 + (104 - height) / 2;
+        int x = 10 + (108 - width) / 2, y = 48 + (artwork_height - height) / 2;
         draw_theme_component(theme, pixels, THEME_ARTWORK_FRAME, x - 2, y - 2, width + 4,
                              height + 4);
         for (int yy = 0; yy < height; yy++)
@@ -338,11 +341,13 @@ static void draw_poster(const App *app, uint16_t *pixels, Palette colors)
                     app->artwork.pixels[(yy * app->artwork.height / height) * app->artwork.width +
                                         xx * app->artwork.width / width];
     } else {
-        draw_theme_component(theme, pixels, THEME_CARD, 10, 48, 108, 104);
+        draw_theme_component(theme, pixels, THEME_CARD, 10, 48, 108, artwork_height);
         if (native)
-            draw_browser_icon(app, pixels, selected, 24, 60, 80, colors.accent);
+            draw_browser_icon(app, pixels, selected, 24, 48 + (artwork_height - 80) / 2, 80,
+                              colors.accent);
         else
-            draw_theme_icon(theme, pixels, 24, 60, 80, entry_file_type(entry).icon, colors.accent);
+            draw_theme_icon(theme, pixels, 24, 48 + (artwork_height - 80) / 2, 80,
+                            entry_file_type(entry).icon, colors.accent);
     }
     draw_text_wrapped(pixels, 130, 53, entry ? entry_type(entry) : "Browse", colors.accent, 16, 2);
     char size[32] = "";

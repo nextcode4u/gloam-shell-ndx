@@ -126,6 +126,28 @@ int main(int argc, char **argv)
             audio_free_clip(&app.audio.effects[sound]);
         }
         audio_free_clip(&app.audio.music);
+        /* Artwork, its frame and the placeholder card must stay out of the
+         * icon dock. Changing only the preview must leave every dock pixel intact. */
+        app_category(&app, CATEGORY_GAMES);
+        app.themes.active.top_layout = 2;
+        app.themes.active.tab_style = 1;
+        app.detail_tab = 0;
+        app.show_covers = true;
+        Artwork previous_artwork = app.artwork;
+        app.artwork.ready = false;
+        draw();
+        memcpy(stationary_rows, top.pixels, sizeof stationary_rows);
+        app.artwork.ready = true;
+        app.artwork.width = 96;
+        for (unsigned pixel = 0; pixel < 96 * 104; pixel++)
+            app.artwork.pixels[pixel] = 0x83e0;
+        for (int height = 16; height <= 104; height += 88) {
+            app.artwork.height = height;
+            draw();
+            assert(!memcmp(stationary_rows + 144 * 256, top.pixels + 144 * 256,
+                           32 * 256 * sizeof *top.pixels));
+        }
+        app.artwork = previous_artwork;
         /* Shared geometry must still fit with every personal view/size override. */
         for (int category = 0; category <= CATEGORY_SYSTEM; category++) {
             app_category(&app, category);
