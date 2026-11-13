@@ -952,11 +952,11 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         source = self.root / 'theme-check'
         shutil.copytree(ROOT / 'sdroot/_nds/dsi-frontend/themes/ember', source)
         command = '$r=Test-GloamTheme ' + literal(win(source))
-        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 40 -or $r.Warnings.Count) { throw ($r | ConvertTo-Json) }')
+        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 47 -or $r.Warnings.Count) { throw ($r | ConvertTo-Json) }')
         (source / 'icons/folder.png').write_bytes(b'broken')
-        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 39 -or $r.Warnings.Count -ne 1) { throw "fallback missing" }')
+        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 46 -or $r.Warnings.Count -ne 1) { throw "fallback missing" }')
         (source / 'components/card.png').write_bytes(b'broken')
-        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 38 -or $r.Warnings.Count -ne 2) { throw "component fallback missing" }')
+        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 45 -or $r.Warnings.Count -ne 2) { throw "component fallback missing" }')
         manifest = source / 'theme.ini'
         original = manifest.read_text()
         manifest.write_text(re.sub(r'^header=.*$', 'header=' + 'x' * 64, original, flags=re.M))
@@ -981,6 +981,14 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.run_ps(command + '; if ($r.Valid) { throw "unsafe path accepted" }')
         self.run_ps('Import-GloamTheme $root ' + literal(win(source)), success=False)
         self.assertFalse((self.sd / '_nds/dsi-frontend/themes/theme-check').exists())
+
+    def test_legacy_theme_without_navigation_icons_keeps_its_fallbacks(self):
+        source = self.root / 'legacy-theme'
+        shutil.copytree(ROOT / 'sdroot/_nds/dsi-frontend/themes/copper', source)
+        for icon in (source / 'icons').glob('tab-*.png'):
+            icon.unlink()
+        self.run_ps('$r=Test-GloamTheme ' + literal(win(source)) +
+                    '; if (-not $r.Valid -or $r.Icons.Count -ne 40 -or $r.Warnings.Count) { throw "legacy fallback failed" }')
 
     def test_theme_selection_and_music_match_launcher_constraints(self):
         import wave

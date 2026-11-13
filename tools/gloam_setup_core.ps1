@@ -578,7 +578,7 @@ function Test-GloamTheme([string]$Source) {
         if (-not [int]::TryParse($data['components']['border'],[ref]$border) -or $border -lt 0 -or $border -gt 12) { $errors.Add('Component border must be 0-12.') }
     }
     $imageSets=@{
-        icons=@('file','folder','game','application','audio','video','book','text','image','save','config','archive','shortcut','system','missing','settings','camera','sound','pictochat','download-play','system-menu','slot1')
+        icons=@('file','folder','game','application','audio','video','book','text','image','save','config','archive','shortcut','system','missing','settings','camera','sound','pictochat','download-play','system-menu','slot1','tab-home','tab-games','tab-apps','tab-media','tab-system','tab-files','tab-folder')
         components=@('header','footer','panel','row-selected','tab-selected','card','card-selected','row','icon-frame','artwork-frame','battery-empty','battery-low','battery-half','battery-high','battery-full','battery-charging','battery-unknown','wireless-idle')
     }
     foreach ($section in @('icons','components')) { if ($data.Contains($section) -and $data[$section].Contains('directory')) {
@@ -588,7 +588,7 @@ function Test-GloamTheme([string]$Source) {
             foreach ($name in $imageSets[$section]) {
                 $relative=$data[$section]['directory']+'/'+$name+'.png'
                 $path=Get-GloamPath $root $relative
-                if (-not [IO.File]::Exists($path)) { $warnings.Add("$section/$name missing: built-in fallback"); continue }
+                if (-not [IO.File]::Exists($path)) { if ($section -ne 'icons' -or -not $name.StartsWith('tab-')) { $warnings.Add("$section/$name missing: built-in fallback") }; continue }
                 try {
                     if (([IO.FileInfo]::new($path)).Length -gt 65536) { throw 'larger than 64 KiB' }
                     $stream=[IO.File]::OpenRead($path)

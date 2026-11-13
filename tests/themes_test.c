@@ -55,6 +55,17 @@ int main(int argc, char **argv)
     assert(app.themes.candidate.content_opacity == 40);
     assert(themes_selection_text(&app.themes.candidate) == 0xffff);
     assert(themes_tab_text(&app.themes.candidate) == 0x8000);
+    const uint16_t *tab_home = themes_icon(&app.themes.candidate, THEME_TAB_ICON_FIRST);
+    assert(tab_home && !themes_icon(&original, THEME_TAB_ICON_FIRST));
+    memset(top, 0, sizeof top);
+    assert(draw_theme_icon_asset(&app.themes.candidate, top, 4, 4, 16, THEME_TAB_ICON_FIRST));
+    for (int y = 0; y < 16; y++)
+        for (int x = 0; x < 16; x++) {
+            uint16_t pixel = tab_home[(y * 2) * 32 + x * 2];
+            assert(top[(y + 4) * 256 + x + 4] == ((pixel & 0x8000) ? pixel : 0));
+        }
+    assert(!draw_theme_icon_asset(&original, top, 4, 4, 16, THEME_TAB_ICON_FIRST));
+    assert(!draw_theme_icon_asset(&app.themes.candidate, top, 4, 4, 16, THEME_ICON_COUNT));
     const uint16_t *component = themes_component(&app.themes.candidate, THEME_ROW_SELECTED);
     assert(component && !themes_component(&original, THEME_ROW_SELECTED));
     uint16_t expected_component[32 * 32];

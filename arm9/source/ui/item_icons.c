@@ -29,8 +29,8 @@ static const uint16_t glyphs[PLACEHOLDER_COUNT][16] = {
                              0x2108, 0x2388, 0x2288, 0x2388, 0x3ff8, 0x0000, 0x0000},
     [PLACEHOLDER_SHORTCUT] = {0x0000, 0x3fc0, 0x2060, 0x2050, 0x2048, 0x2078, 0x2008, 0x2188,
                               0x23c8, 0x27e8, 0x2188, 0x2f88, 0x2008, 0x3ff8, 0x0000, 0x0000},
-    [PLACEHOLDER_SYSTEM] = {0x0000, 0x0180, 0x03c0, 0x1bd8, 0x1ff8, 0x0e70, 0x3c3c, 0x3c3c, 0x3c3c,
-                            0x3c3c, 0x0e70, 0x1ff8, 0x1bd8, 0x03c0, 0x0180, 0x0000},
+    [PLACEHOLDER_SYSTEM] = {0x03c0, 0x03c0, 0x3bdc, 0x3bdc, 0x3ffc, 0x0e70, 0xfc3f, 0xf81f, 0xf81f,
+                            0xfc3f, 0x0e70, 0x3ffc, 0x3bdc, 0x3bdc, 0x03c0, 0x03c0},
     [PLACEHOLDER_MISSING] = {0x0000, 0x3fc0, 0x2060, 0x2050, 0x2048, 0x2078, 0x2008, 0x2448, 0x2288,
                              0x2108, 0x2288, 0x2448, 0x2008, 0x3ff8, 0x0000, 0x0000},
 };
@@ -56,16 +56,14 @@ void draw_placeholder_icon(uint16_t *pixels, int x, int y, int size, Placeholder
 }
 
 /* Nearest-neighbour scaling keeps small pixel art crisp; clip every destination. */
-void draw_theme_icon(const ThemePackage *package, uint16_t *pixels, int x, int y, int size,
-                     PlaceholderIcon icon, uint16_t color)
+bool draw_theme_icon_asset(const ThemePackage *package, uint16_t *pixels, int x, int y, int size,
+                           int icon)
 {
     if (size <= 0 || size > 96)
-        return;
+        return false;
     const uint16_t *image = themes_icon(package, icon);
-    if (!image) {
-        draw_placeholder_icon(pixels, x, y, size, icon, color);
-        return;
-    }
+    if (!image)
+        return false;
     for (int row = 0; row < size; row++) {
         if (y + row < 0 || y + row >= 192)
             continue;
@@ -77,4 +75,12 @@ void draw_theme_icon(const ThemePackage *package, uint16_t *pixels, int x, int y
                 pixels[(y + row) * 256 + x + column] = pixel;
         }
     }
+    return true;
+}
+
+void draw_theme_icon(const ThemePackage *package, uint16_t *pixels, int x, int y, int size,
+                     PlaceholderIcon icon, uint16_t color)
+{
+    if (!draw_theme_icon_asset(package, pixels, x, y, size, icon))
+        draw_placeholder_icon(pixels, x, y, size, icon, color);
 }

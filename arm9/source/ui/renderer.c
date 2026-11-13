@@ -187,6 +187,14 @@ static PlaceholderIcon tab_icon(int index)
     return index >= 0 && index < CATEGORY_COUNT ? icons[index] : PLACEHOLDER_FOLDER;
 }
 
+static void draw_tab_icon(const ThemePackage *theme, uint16_t *pixels, int x, int y, int size,
+                          int index, uint16_t color)
+{
+    int asset = THEME_TAB_ICON_FIRST + (index < CATEGORY_COUNT ? index : CATEGORY_COUNT);
+    if (!draw_theme_icon_asset(theme, pixels, x, y, size, asset))
+        draw_theme_icon(theme, pixels, x, y, size, tab_icon(index), color);
+}
+
 static uint16_t draw_tab_highlight(const ThemePackage *theme, uint16_t *pixels, Palette colors,
                                    int x, int y, int width, int height)
 {
@@ -242,7 +250,7 @@ static void draw_context_tabs(const App *app, uint16_t *pixels, Palette colors)
         uint16_t color =
             active ? draw_tab_highlight(theme, pixels, colors, x, y, width, 18) : colors.muted;
         if (theme->tab_style == 1) {
-            draw_theme_icon(theme, pixels, x + (width - 16) / 2, y + 1, 16, tab_icon(index), color);
+            draw_tab_icon(theme, pixels, x + (width - 16) / 2, y + 1, 16, index, color);
         } else {
             int inset = 4;
             if (theme->tab_style == 2) {
@@ -267,7 +275,7 @@ static void draw_side_tabs(const App *app, uint16_t *pixels, Palette colors, int
     unsigned elapsed = app->frame_count - app->tab_text_started_frame;
     if (theme->tab_style == 3) {
         uint16_t color = draw_tab_highlight(theme, pixels, colors, rail + 182, 60, 65, 76);
-        draw_theme_icon(theme, pixels, rail + 202, 68, 24, tab_icon(focus), color);
+        draw_tab_icon(theme, pixels, rail + 202, 68, 24, focus, color);
         draw_text_scrolling(pixels, rail + 186, 101, tabs_label(app, focus), color, 57, elapsed,
                             !app->reduced_motion);
         char position[16];
@@ -286,7 +294,7 @@ static void draw_side_tabs(const App *app, uint16_t *pixels, Palette colors, int
             int x = rail + 181 + (row % 2) * 35, y = 38 + (row / 2) * 34;
             uint16_t color =
                 focused ? draw_tab_highlight(theme, pixels, colors, x, y, 32, 32) : colors.muted;
-            draw_theme_icon(theme, pixels, x + 6, y + 6, 20, tab_icon(index), color);
+            draw_tab_icon(theme, pixels, x + 6, y + 6, 20, index, color);
         } else {
             int y = 38 + row * 20;
             uint16_t color =

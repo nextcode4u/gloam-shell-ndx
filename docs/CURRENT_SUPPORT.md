@@ -29,6 +29,8 @@ wireless on physical DSi hardware. Broader title and save/return coverage is als
 needed. Arbitrary dashboard widgets, 3D/coverflow and CJK/RTL fonts are
 potential future work, not supported package features.
 
-Theme packages support right/left navigation rails and an artwork-led Poster top
-screen, full-strength wallpapers, a preblended reading surface, optional minimal
-chrome and separate selected-label/tab text colors. See [theme packages](guides/THEME_PACKAGES.md).
+Theme packages support right/left navigation rails, artwork-led Poster and
+illustrated Scene layouts. Navigation can use labels, numbered tabs, icon docks,
+icon tiles or a category pager, with independent tab artwork. Full-strength
+wallpapers, a preblended reading surface, optional minimal chrome and separate
+selected-label/tab text colors are supported. See [theme packages](guides/THEME_PACKAGES.md).

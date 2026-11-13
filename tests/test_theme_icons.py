@@ -7,12 +7,13 @@ from PIL import Image
 from tools.make_theme_icons import THEMES, assets
 from tools.make_theme_components import assets as component_assets, COMPONENTS
 from tools.make_theme_scenes import assets as scene_assets
+from tools.make_theme_navigation import TAB_NAMES
 
 
 class ThemeIconTests(unittest.TestCase):
     def test_shipped_packs(self):
         generated = dict(assets())
-        self.assertEqual(len(generated), 11 * 22)
+        self.assertEqual(len(generated), 11 * (22 + len(TAB_NAMES)))
         for manifest in THEMES.glob('*/theme.ini'):
             config = configparser.ConfigParser()
             config.read(manifest)
@@ -26,6 +27,20 @@ class ThemeIconTests(unittest.TestCase):
                     alpha = image.getchannel('A')
                     self.assertEqual(alpha.getextrema(), (0, 255))
                     self.assertTrue(image.getbbox())
+
+    def test_navigation_silhouettes_and_small_gears(self):
+        for kind in TAB_NAMES:
+            with Image.open(THEMES / 'copper/icons' / (kind + '.png')) as copper, \
+                 Image.open(THEMES / 'prism/icons' / (kind + '.png')) as prism:
+                self.assertNotEqual(copper.getchannel('A').tobytes(),
+                                    prism.getchannel('A').tobytes(), kind)
+        for manifest in THEMES.glob('*/theme.ini'):
+            for kind in ('system', 'settings', 'tab-system'):
+                with Image.open(manifest.parent / 'icons' / (kind + '.png')) as image:
+                    for size in (16, 20, 24, 32):
+                        alpha = image.resize((size, size), Image.Resampling.NEAREST).getchannel('A')
+                        self.assertEqual(alpha.getpixel((size // 2, size // 2)), 0)
+                        self.assertGreater(sum(value > 0 for value in alpha.get_flattened_data()), size * 3)
 
     def test_scene_backgrounds_are_distinct_and_reproducible(self):
         generated = dict(scene_assets())

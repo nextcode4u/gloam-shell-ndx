@@ -14,10 +14,11 @@ typedef struct {
 } IconBank;
 static IconBank banks[2];
 static const char *const names[THEME_ICON_COUNT] = {
-    "file",      "folder",        "game",        "application", "audio",  "video",
-    "book",      "text",          "image",       "save",        "config", "archive",
-    "shortcut",  "system",        "missing",     "settings",    "camera", "sound",
-    "pictochat", "download-play", "system-menu", "slot1"};
+    "file",      "folder",        "game",        "application", "audio",     "video",
+    "book",      "text",          "image",       "save",        "config",    "archive",
+    "shortcut",  "system",        "missing",     "settings",    "camera",    "sound",
+    "pictochat", "download-play", "system-menu", "slot1",       "tab-home",  "tab-games",
+    "tab-apps",  "tab-media",     "tab-system",  "tab-files",   "tab-folder"};
 
 static void clear_bank(IconBank *bank)
 {

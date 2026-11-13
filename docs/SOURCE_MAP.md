@@ -136,3 +136,7 @@ package, alongside the ordinary shaded dialog background.
 Tab presentation helpers in `ui/renderer.c` draw labels, icon docks/tiles, numbered
 selectors and pagers from the existing tab model. Theme parsing validates bounded
 style, highlight, gap and visible-count settings; rendering never changes navigation.
+
+`tools/make_theme_navigation.py` authors dedicated navigation icons at dock resolution.
+The optional tab PNGs share the bounded theme icon cache, with independent fallback
+to existing file-type symbols. `make_theme_icons.py` exports both asset families.

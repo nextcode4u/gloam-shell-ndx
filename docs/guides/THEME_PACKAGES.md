@@ -356,9 +356,12 @@ tab_gap=8
   In a sidebar it includes a larger category icon; horizontally it is a single
   wide selector between arrows.
 
-Dock/tile/pager icons use the theme's existing shortcut, game, application,
-audio, system and folder PNGs for Home, Games, Apps, Media, System and Files.
-Custom folder tabs use the folder icon. This does not replace native game banners.
+Dock/tile/pager icons have independent assets: `tab-home.png`, `tab-games.png`,
+`tab-apps.png`, `tab-media.png`, `tab-system.png`, `tab-files.png` and
+`tab-folder.png` (custom folder tabs), all in the existing icons directory.
+Omitting one falls back to the theme's existing shortcut, game, application,
+audio, system or folder icon. A malformed asset also falls back independently.
+Changing tab artwork does not replace browser file-type icons or native banners.
 Selection artwork applies only to `skin`; outline/underline keep ordinary text
 colors for contrast. Existing `tab_text` controls text on skinned selections.
 Authored PNG icons keep their own colors; `tab_text` does not recolor them.
@@ -394,6 +397,8 @@ Place any of these **32×32 PNGs**, at most **64 KiB each**, in that directory:
   `config.png`, `archive.png`, `shortcut.png`, `system.png`, `missing.png`.
 - System fallbacks: `settings.png`, `camera.png`, `sound.png`, `pictochat.png`,
   `download-play.png`, `system-menu.png`, `slot1.png`.
+- Navigation: `tab-home.png`, `tab-games.png`, `tab-apps.png`, `tab-media.png`,
+  `tab-system.png`, `tab-files.png`, `tab-folder.png`.
 
 Each image is optional. Missing, malformed or oversized images use the built-in
 symbol; they do not invalidate other images or the theme. The directory must
@@ -407,11 +412,17 @@ readable native system-app banners keep their animations. Cover images remain
 independent. Theme icons are static.
 
 Decoding happens on theme load/preview, never in the renderer. Each decoded
-image uses 2 KiB; all 22 use 44 KiB, or 88 KiB while previewing a second full
+image uses 2 KiB; all 29 use 58 KiB, or 116 KiB while previewing a second full
 pack. Cancel frees the preview and retains the applied icons. Applying a theme
 replaces its icon bank; no per-frame filesystem reads are added.
 
-All eleven bundled themes include matching icon sets. Reproduce or check them:
+All eleven bundled themes include matching icon sets. Dedicated navigation art
+is authored on a 16-pixel grid and stored at 32×32 with nearest-neighbour scaling,
+so it remains readable in the 16-pixel dock. Copper uses a workshop, handheld,
+wrench and record; Prism uses an arcade cabinet, joystick, blocks and headphones.
+System/Settings gears have distinct teeth and a transparent center.
+
+Reproduce or check them:
 
 ```sh
 .venv/bin/python tools/make_theme_icons.py
