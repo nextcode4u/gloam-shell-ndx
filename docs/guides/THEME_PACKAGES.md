@@ -331,6 +331,13 @@ The icons are CC0; each package includes a credit notice.
 builds reject unknown theme sections. Update `BOOT.NDS` with these theme packages;
 existing third-party themes without `[icons]` continue to use built-in symbols.
 
+## Header label
+
+Set `header=My library` in `[theme]` to replace the top-screen Gloam label.
+Omit it for `GLOAM SHELL NDX`, or leave it empty to hide that text. The limit
+is 63 UTF-8 bytes; longer visible text loops inside its reserved width unless
+Reduced motion is enabled. Recovery always displays `RECOVERY`.
+
 ## Modular UI artwork
 
 Themes can replace individual UI surfaces without changing touch targets or

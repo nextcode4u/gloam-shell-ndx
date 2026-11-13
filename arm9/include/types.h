@@ -248,6 +248,7 @@ typedef struct {
 } AudioState;
 typedef struct {
     char id[THEME_ID_CAP], name[THEME_ID_CAP];
+    char header[64];
     ThemePalette palette;
     FontPack font;
     bool external_font;

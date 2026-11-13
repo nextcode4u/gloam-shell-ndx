@@ -44,6 +44,7 @@ static void builtin(ThemePackage *package, int accent)
 {
     memset(package, 0, sizeof *package);
     path_copy(package->name, "Built-in", sizeof package->name);
+    path_copy(package->header, "GLOAM SHELL NDX", sizeof package->header);
     package->palette =
         (ThemePalette){rgb(0x0C1018), rgb(0x151B25),         rgb(0x2A323F), rgb(0xEDEBE1),
                        rgb(0xACB7C6), preset_accent(accent), rgb(0x0D1219)};
@@ -145,6 +146,8 @@ static bool load(App *app, const char *id, ThemePackage *package)
         if (!strcmp(section, "[theme]")) {
             if (!strcmp(key, "version"))
                 version = !strcmp(value, "1");
+            else if (!strcmp(key, "header") && strlen(value) < sizeof package->header)
+                path_copy(package->header, value, sizeof package->header);
             else if (!strcmp(key, "name") && *value && strlen(value) < sizeof package->name)
                 path_copy(package->name, value, sizeof package->name);
             else

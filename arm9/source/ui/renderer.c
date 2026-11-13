@@ -240,7 +240,8 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
                   app->browser_style != BROWSER_INDEX;
     themes_background_draw(&app->themes.active, 0, pixels);
     draw_theme_chrome(&app->themes.active, pixels, 22);
-    draw_text(pixels, 10, 7, app->recovery_mode ? "RECOVERY" : "GLOAM SHELL NDX", colors.text, 20);
+    draw_text_scrolling(pixels, 10, 7, app->recovery_mode ? "RECOVERY" : theme->header,
+                        colors.text, 138, app->frame_count, !app->reduced_motion);
     char tab_position[16];
     snprintf(tab_position, sizeof tab_position, "%d/%d", app->category + 1, app->tab_count);
     draw_text(pixels, 205, 7, tab_position, colors.muted, 6);
