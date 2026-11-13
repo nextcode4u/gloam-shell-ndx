@@ -961,9 +961,14 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         original = manifest.read_text()
         manifest.write_text(re.sub(r'^header=.*$', 'header=' + 'x' * 64, original, flags=re.M))
         self.run_ps(command + '; if ($r.Valid) { throw "oversized header accepted" }')
-        expanded = re.sub(r'^(top_layout|chrome|content_opacity)=.*\n', '', original, flags=re.M).replace('[layout]', '[layout]\ntop_layout=poster\nchrome=minimal\ncontent_opacity=40')
+        expanded = re.sub(r'^(top_layout|chrome|content_opacity|tab_style|tab_highlight|tab_visible|tab_gap)=.*\n', '', original, flags=re.M).replace('[layout]', '[layout]\ntop_layout=poster\nchrome=minimal\ncontent_opacity=40\ntab_style=icons\ntab_highlight=outline\ntab_visible=5\ntab_gap=8')
         manifest.write_text(expanded)
         self.run_ps(command + '; if (-not $r.Valid) { throw "expanded theme rejected" }')
+        for old, new in [('tab_style=icons', 'tab_style=unknown'),
+                         ('tab_highlight=outline', 'tab_highlight=unknown'),
+                         ('tab_visible=5', 'tab_visible=6'), ('tab_gap=8', 'tab_gap=9')]:
+            manifest.write_text(expanded.replace(old, new))
+            self.run_ps(command + '; if ($r.Valid) { throw "bad tab presentation accepted" }')
         manifest.write_text(expanded.replace('content_opacity=40', 'content_opacity=101'))
         self.run_ps(command + '; if ($r.Valid) { throw "bad opacity accepted" }')
         manifest.write_text(expanded.replace('top_layout=poster', 'top_layout=unknown'))

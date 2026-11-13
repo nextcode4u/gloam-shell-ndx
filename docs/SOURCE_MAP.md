@@ -132,3 +132,7 @@ connection or infer signal strength from the wireless LED.
 Scene layout in `ui/renderer.c` keeps art separate from the item inspector.
 `theme_backgrounds.c` retains only a 94-line unshaded strip for each loaded Scene
 package, alongside the ordinary shaded dialog background.
+
+Tab presentation helpers in `ui/renderer.c` draw labels, icon docks/tiles, numbered
+selectors and pagers from the existing tab model. Theme parsing validates bounded
+style, highlight, gap and visible-count settings; rendering never changes navigation.

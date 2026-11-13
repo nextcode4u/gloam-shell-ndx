@@ -275,7 +275,7 @@ labels continue to loop. Item information and Library Index temporarily use the
 full six-row right rail instead of squeezing their contents into the poster.
 
 Scene reserves y=24..117 for an illustration, with item information below it and
-three contextual tabs. Y opens the regular item inspector; Library Index keeps
+contextual navigation. Y opens the regular item inspector; Library Index keeps
 its index workspace. It uses the package's top background, including personal
 wallpaper strength, but preserves an unshaded copy of just that illustration
 strip. This costs **47 KiB per active/preview scene** in addition to normal
@@ -321,6 +321,51 @@ recolored by palette or accent changes.
 
 The bundled packs demonstrate Scene, both sidebar directions and Poster. These compositions
 work with all browser views and do not change bottom-screen touch targets.
+
+### Tab presentation
+
+Tab presentation is independent of `top_layout` and the bottom browser view.
+These keys require the matching current `BOOT.NDS`; older builds reject unknown
+keys. Omitted keys preserve label tabs with a skinned selection, three horizontal
+cells and a four-pixel gap.
+
+```ini
+[layout]
+tab_style=icons
+tab_highlight=outline
+tab_visible=5
+tab_gap=8
+```
+
+| Key | Values | Effect |
+| --- | --- | --- |
+| `tab_style` | `labels`, `icons`, `numbered`, `pager` | Changes navigation presentation, not the user's configured tabs. |
+| `tab_highlight` | `skin`, `underline`, `outline` | Uses `tab-selected.png` (accent fill fallback), a two-pixel underline, or a one-pixel outline. |
+| `tab_visible` | 3–5 | Number of horizontal label/icon/numbered cells. Sidebars show up to six; Pager shows one. |
+| `tab_gap` | 0–8 | Horizontal space between cells, in pixels. Does not affect sidebar geometry or Pager. |
+
+- **Labels** show a scrolling window of names.
+- **Icons** use a horizontal dock for Scene/Poster, or a two-column tile selector
+  in a sidebar. The focused tab's full name has its own scrolling caption.
+  Scene omits its secondary file-type/size line to make room for that caption;
+  Y still opens complete item information.
+- **Numbered** prefix names with their one-based position. Three horizontal
+  cells give names more space than five; selected long names scroll.
+- **Pager** shows one focused category with its position and navigation hints.
+  In a sidebar it includes a larger category icon; horizontally it is a single
+  wide selector between arrows.
+
+Dock/tile/pager icons use the theme's existing shortcut, game, application,
+audio, system and folder PNGs for Home, Games, Apps, Media, System and Files.
+Custom folder tabs use the folder icon. This does not replace native game banners.
+Selection artwork applies only to `skin`; outline/underline keep ordinary text
+colors for contrast. Existing `tab_text` controls text on skinned selections.
+
+All styles keep L/R cycling and X → Up/Down → A selection. Windows follow the
+focused tab, including custom tabs beyond the visible count. Reduced motion
+continues to stop marquees. These controls do not move touch targets: navigation
+is on the non-touch top screen. Item information and Library Index retain their
+sidebar workspace and use the same tab presentation there.
 
 ## Theme icon packs
 

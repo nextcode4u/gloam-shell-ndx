@@ -51,6 +51,8 @@ static void builtin(ThemePackage *package, int accent)
     font_builtin(&package->font);
     package->background_strength = 25;
     package->component_border = 8;
+    package->tab_gap = 4;
+    package->tab_visible = 3;
     package->scene_cover_x = 14;
     package->scene_cover_y = 34;
     package->scene_cover_width = 48;
@@ -208,6 +210,29 @@ static bool load(App *app, const char *id, ThemePackage *package)
                     package->top_layout = 3;
                 else
                     valid = false;
+            } else if (!strcmp(key, "tab_style") || !strcmp(key, "tab_highlight")) {
+                const char *styles[] = {"labels", "icons", "numbered", "pager"};
+                const char *highlights[] = {"skin", "underline", "outline"};
+                bool style = !strcmp(key, "tab_style"), matched = false;
+                for (unsigned i = 0; i < (style ? 4u : 3u); i++)
+                    if (!strcmp(value, style ? styles[i] : highlights[i])) {
+                        if (style)
+                            package->tab_style = i;
+                        else
+                            package->tab_highlight = i;
+                        matched = true;
+                    }
+                valid &= matched;
+            } else if (!strcmp(key, "tab_gap") || !strcmp(key, "tab_visible")) {
+                char *end;
+                unsigned long number = strtoul(value, &end, 10);
+                bool gap = !strcmp(key, "tab_gap");
+                if (!*value || *end || number > (gap ? 8u : 5u) || (!gap && number < 3))
+                    valid = false;
+                else if (gap)
+                    package->tab_gap = number;
+                else
+                    package->tab_visible = number;
             } else if (!strcmp(key, "chrome")) {
                 if (!strcmp(value, "minimal"))
                     package->minimal_chrome = true;

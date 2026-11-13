@@ -536,7 +536,7 @@ function Test-GloamTheme([string]$Source) {
     $manifest=Get-GloamPath $root 'theme.ini'
     if (-not [IO.File]::Exists($manifest) -or ([IO.FileInfo]::new($manifest)).Length -gt 4096) { throw 'Theme manifest is missing or exceeds 4 KiB.' }
     $data=Read-GloamIni $manifest
-    $allowed=@{theme=@('version','name','header');colors=@('background','surface','line','text','muted','accent','ink','selection_text','tab_text');fonts=@('ui');audio=@('music','cursor','confirm','back');backgrounds=@('top','bottom','strength');layout=@('view','icon_size','row_padding','large_grid_columns','top_layout','chrome','content_opacity','scene_cover_x','scene_cover_y','scene_cover_width','scene_cover_height');icons=@('directory');components=@('directory','border')}
+    $allowed=@{theme=@('version','name','header');colors=@('background','surface','line','text','muted','accent','ink','selection_text','tab_text');fonts=@('ui');audio=@('music','cursor','confirm','back');backgrounds=@('top','bottom','strength');layout=@('view','icon_size','row_padding','large_grid_columns','top_layout','chrome','content_opacity','scene_cover_x','scene_cover_y','scene_cover_width','scene_cover_height','tab_style','tab_highlight','tab_gap','tab_visible');icons=@('directory');components=@('directory','border')}
     foreach ($section in $data.Keys) {
         if (-not $allowed.ContainsKey($section)) { $errors.Add("Unknown section: $section"); continue }
         foreach ($key in $data[$section].Keys) { if ($key -notin $allowed[$section]) { $errors.Add("Unknown key: $section/$key") } }
@@ -545,9 +545,13 @@ function Test-GloamTheme([string]$Source) {
     if ($data.Contains('theme') -and $data['theme'].Contains('header') -and [Text.Encoding]::UTF8.GetByteCount($data['theme']['header']) -gt 63) { $errors.Add('Header must fit in 63 UTF-8 bytes.') }
     if ($data.Contains('colors')) { foreach ($key in $data['colors'].Keys) { if ($data['colors'][$key] -notmatch '^#[0-9A-Fa-f]{6}$') { $errors.Add("Invalid colour: $key") } } }
     if ($data.Contains('layout')) {
-        foreach ($pair in @(@('view',@('classic','extended','list','grid','shelf','index')),@('icon_size',@('small','large')),@('top_layout',@('sidebar','sidebar_left','poster','scene')),@('chrome',@('full','minimal')))) {
+        foreach ($pair in @(@('view',@('classic','extended','list','grid','shelf','index')),@('icon_size',@('small','large')),@('top_layout',@('sidebar','sidebar_left','poster','scene')),@('chrome',@('full','minimal')),@('tab_style',@('labels','icons','numbered','pager')),@('tab_highlight',@('skin','underline','outline')))) {
             if ($data['layout'].Contains($pair[0]) -and $data['layout'][$pair[0]] -notin $pair[1]) { $errors.Add("Invalid layout: $($pair[0])") }
         }
+        foreach ($key in @('tab_gap','tab_visible')) { if ($data['layout'].Contains($key)) {
+            $value=0; $minimum=if ($key -eq 'tab_gap') {0} else {3}; $maximum=if ($key -eq 'tab_gap') {8} else {5}
+            if (-not [int]::TryParse($data['layout'][$key],[ref]$value) -or $value -lt $minimum -or $value -gt $maximum) { $errors.Add("Invalid layout: $key") }
+        } }
         $rect=@{scene_cover_x=14;scene_cover_y=34;scene_cover_width=48;scene_cover_height=72}
         foreach ($key in @($rect.Keys)) { if ($data['layout'].Contains($key)) {
             $number=0

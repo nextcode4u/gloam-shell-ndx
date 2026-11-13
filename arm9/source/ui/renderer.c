@@ -178,23 +178,138 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
               colors.accent, 22);
 }
 
+/* Tab presentation is independent of navigation state and the browser layout. */
+static PlaceholderIcon tab_icon(int index)
+{
+    static const PlaceholderIcon icons[] = {PLACEHOLDER_SHORTCUT,    PLACEHOLDER_GAME,
+                                            PLACEHOLDER_APPLICATION, PLACEHOLDER_AUDIO,
+                                            PLACEHOLDER_SYSTEM,      PLACEHOLDER_FOLDER};
+    return index >= 0 && index < CATEGORY_COUNT ? icons[index] : PLACEHOLDER_FOLDER;
+}
+
+static uint16_t draw_tab_highlight(const ThemePackage *theme, uint16_t *pixels, Palette colors,
+                                   int x, int y, int width, int height)
+{
+    if (theme->tab_highlight == 1) {
+        draw_rectangle(pixels, x, y + height - 2, width, 2, colors.accent);
+    } else if (theme->tab_highlight == 2) {
+        draw_rectangle(pixels, x, y, width, 1, colors.accent);
+        draw_rectangle(pixels, x, y + height - 1, width, 1, colors.accent);
+        draw_rectangle(pixels, x, y, 1, height, colors.accent);
+        draw_rectangle(pixels, x + width - 1, y, 1, height, colors.accent);
+    } else {
+        if (!draw_theme_component(theme, pixels, THEME_TAB_SELECTED, x, y, width, height))
+            draw_rectangle(pixels, x, y, width, height, colors.accent);
+        return themes_tab_text(theme);
+    }
+    return colors.text;
+}
+
+static int tab_window_start(const App *app, int focus, int visible)
+{
+    int start = focus - visible / 2;
+    if (start > app->tab_count - visible)
+        start = app->tab_count - visible;
+    return start < 0 ? 0 : start;
+}
+
 static void draw_context_tabs(const App *app, uint16_t *pixels, Palette colors)
 {
     const ThemePackage *theme = &app->themes.active;
     int focus = app->rail_focus ? app->rail_selected : app->category;
-    for (int cell = 0; cell < 3; cell++) {
-        int index = focus + cell - 1;
-        if (index < 0 || index >= app->tab_count)
-            continue;
-        int x = 7 + cell * 82;
-        bool active = index == focus;
-        if (active && !draw_theme_component(theme, pixels, THEME_TAB_SELECTED, x, 155, 78, 18))
-            draw_rectangle(pixels, x, 155, 78, 18, colors.accent);
-        draw_text_scrolling(pixels, x + 4, 158, tabs_label(app, index),
-                            active ? themes_tab_text(theme) : colors.muted, 70,
-                            app->frame_count - app->tab_text_started_frame,
-                            active && !app->reduced_motion);
+    unsigned elapsed = app->frame_count - app->tab_text_started_frame;
+    if (theme->tab_style == 3) {
+        uint16_t color = draw_tab_highlight(theme, pixels, colors, 30, 155, 196, 18);
+        draw_text(pixels, 10, 158, "<", colors.accent, 1);
+        draw_text(pixels, 239, 158, ">", colors.accent, 1);
+        draw_text_scrolling(pixels, 38, 158, tabs_label(app, focus), color, 135, elapsed,
+                            !app->reduced_motion);
+        char position[16];
+        snprintf(position, sizeof position, "%d/%d", focus + 1, app->tab_count);
+        draw_text(pixels, 177, 158, position, color, 6);
+        return;
     }
+    int visible = theme->tab_visible, gap = theme->tab_gap;
+    int width = (242 - gap * (visible - 1)) / visible;
+    int start = tab_window_start(app, focus, visible);
+    for (int cell = 0; cell < visible; cell++) {
+        int index = start + cell;
+        if (index >= app->tab_count)
+            break;
+        int x = 7 + cell * (width + gap);
+        bool active = index == focus;
+        int y = theme->tab_style == 1 ? 144 : 155;
+        uint16_t color =
+            active ? draw_tab_highlight(theme, pixels, colors, x, y, width, 18) : colors.muted;
+        if (theme->tab_style == 1) {
+            draw_theme_icon(theme, pixels, x + (width - 16) / 2, y + 1, 16, tab_icon(index), color);
+        } else {
+            int inset = 4;
+            if (theme->tab_style == 2) {
+                char number[16];
+                snprintf(number, sizeof number, "%02d", index + 1);
+                draw_text(pixels, x + 3, 158, number, color, 2);
+                inset = 20;
+            }
+            draw_text_scrolling(pixels, x + inset, 158, tabs_label(app, index), color,
+                                width - inset - 4, elapsed, active && !app->reduced_motion);
+        }
+    }
+    if (theme->tab_style == 1)
+        draw_text_scrolling(pixels, 12, 164, tabs_label(app, focus), colors.text, 232, elapsed,
+                            !app->reduced_motion);
+}
+
+static void draw_side_tabs(const App *app, uint16_t *pixels, Palette colors, int rail)
+{
+    const ThemePackage *theme = &app->themes.active;
+    int focus = app->rail_focus ? app->rail_selected : app->category;
+    unsigned elapsed = app->frame_count - app->tab_text_started_frame;
+    if (theme->tab_style == 3) {
+        uint16_t color = draw_tab_highlight(theme, pixels, colors, rail + 182, 60, 65, 76);
+        draw_theme_icon(theme, pixels, rail + 202, 68, 24, tab_icon(focus), color);
+        draw_text_scrolling(pixels, rail + 186, 101, tabs_label(app, focus), color, 57, elapsed,
+                            !app->reduced_motion);
+        char position[16];
+        snprintf(position, sizeof position, "%d/%d", focus + 1, app->tab_count);
+        draw_text(pixels, rail + 193, 119, position, color, 7);
+        draw_text(pixels, rail + 188, 40, "< L/R >", colors.muted, 7);
+        return;
+    }
+    int start = tab_window_start(app, focus, TAB_VISIBLE_COUNT);
+    for (int row = 0; row < TAB_VISIBLE_COUNT; row++) {
+        int index = start + row;
+        if (index >= app->tab_count)
+            break;
+        bool focused = index == focus;
+        if (theme->tab_style == 1) {
+            int x = rail + 181 + (row % 2) * 35, y = 38 + (row / 2) * 34;
+            uint16_t color =
+                focused ? draw_tab_highlight(theme, pixels, colors, x, y, 32, 32) : colors.muted;
+            draw_theme_icon(theme, pixels, x + 6, y + 6, 20, tab_icon(index), color);
+        } else {
+            int y = 38 + row * 20;
+            uint16_t color =
+                focused ? draw_tab_highlight(theme, pixels, colors, rail + 182, y - 2, 65, 16)
+                        : colors.muted;
+            int inset = 188;
+            if (theme->tab_style == 2) {
+                char number[16];
+                snprintf(number, sizeof number, "%02d", index + 1);
+                draw_text(pixels, rail + 185, y, number, color, 2);
+                inset = 205;
+            }
+            draw_text_scrolling(pixels, rail + inset, y, tabs_label(app, index), color, 244 - inset,
+                                elapsed, focused && !app->reduced_motion);
+        }
+    }
+    if (theme->tab_style == 1)
+        draw_text_scrolling(pixels, rail + 182, 144, tabs_label(app, focus), colors.text, 65,
+                            elapsed, !app->reduced_motion);
+    if (start > 0)
+        draw_text(pixels, rail + 209, 24, "^", colors.muted, 1);
+    if (start + TAB_VISIBLE_COUNT < app->tab_count)
+        draw_text(pixels, rail + 209, 158, "v", colors.muted, 1);
 }
 
 static void draw_poster(const App *app, uint16_t *pixels, Palette colors)
@@ -284,8 +399,9 @@ static void draw_scene(const App *app, uint16_t *pixels, Palette colors, const c
                  (unsigned long)(entry->size / 1024));
     else
         snprintf(facts, sizeof facts, "%s / Y: details", entry ? entry_type(entry) : "Browse");
-    draw_text_scrolling(pixels, 12, 138, facts, colors.muted, 232, app->selection_idle_frames,
-                        !app->reduced_motion);
+    if (theme->tab_style != 1)
+        draw_text_scrolling(pixels, 12, 138, facts, colors.muted, 232, app->selection_idle_frames,
+                            !app->reduced_motion);
     draw_context_tabs(app, pixels, colors);
 }
 
@@ -410,31 +526,8 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     } else {
         draw_item_information(app, pixels, colors, offset);
     }
-    for (int row = 0; !poster && !scene && row < TAB_VISIBLE_COUNT; row++) {
-        int index = app->tab_scroll + row;
-        if (index >= app->tab_count)
-            break;
-        int y = 38 + row * 20;
-        bool active = index == app->category;
-        if (active && !draw_theme_component(&app->themes.active, pixels, THEME_TAB_SELECTED,
-                                            rail + 182, y - 2, 65, 16))
-            draw_rectangle(pixels, rail + 182, y - 2, 65, 16, colors.accent);
-        if (app->rail_focus && index == app->rail_selected) {
-            draw_rectangle(pixels, rail + 180, y - 4, 69, 1, colors.text);
-            draw_rectangle(pixels, rail + 180, y + 15, 69, 1, colors.text);
-            draw_rectangle(pixels, rail + 180, y - 4, 1, 20, colors.text);
-            draw_rectangle(pixels, rail + 248, y - 4, 1, 20, colors.text);
-        }
-        bool focused = app->rail_focus ? index == app->rail_selected : active;
-        draw_text_scrolling(pixels, rail + 188, y, tabs_label(app, index),
-                            active ? themes_tab_text(theme) : colors.muted, 56,
-                            app->frame_count - app->tab_text_started_frame,
-                            focused && !app->reduced_motion);
-    }
-    if (!poster && !scene && app->tab_scroll > 0)
-        draw_text(pixels, rail + 209, 24, "^", colors.muted, 1);
-    if (!poster && !scene && app->tab_scroll + TAB_VISIBLE_COUNT < app->tab_count)
-        draw_text(pixels, rail + 209, 158, "v", colors.muted, 1);
+    if (!poster && !scene)
+        draw_side_tabs(app, pixels, colors, rail);
     if (!theme->minimal_chrome)
         draw_rectangle(pixels, 10, 176, 236, 1, colors.line);
     draw_text(pixels, 10, 179, clock, colors.muted, 11);

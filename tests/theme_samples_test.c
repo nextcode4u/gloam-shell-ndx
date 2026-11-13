@@ -166,6 +166,33 @@ int main(int argc, char **argv)
                     }
                 }
         }
+        /* Exercise every tab presentation with long custom labels and both ends
+         * of a full tab collection; renderers must never change selection. */
+        int saved_count = app.tab_count;
+        app.tab_count = TAB_CAP;
+        for (int i = saved_count; i < TAB_CAP; i++)
+            snprintf(app.tabs[i].label, sizeof app.tabs[i].label, "Long custom library label %02d",
+                     i);
+        app.rail_focus = true;
+        app.detail_tab = 0;
+        app.browser_style = BROWSER_CLASSIC;
+        for (unsigned composition = 0; composition < 4; composition++)
+            for (unsigned style = 0; style < 4; style++)
+                for (unsigned highlight = 0; highlight < 3; highlight++)
+                    for (unsigned visible = 3; visible <= 5; visible++) {
+                        app.themes.active.top_layout = composition;
+                        app.themes.active.tab_style = style;
+                        app.themes.active.tab_highlight = highlight;
+                        app.themes.active.tab_visible = visible;
+                        app.themes.active.tab_gap = 8;
+                        for (int focus = 0; focus < TAB_CAP; focus += TAB_CAP - 1) {
+                            app.rail_selected = focus;
+                            draw();
+                            assert(app.rail_selected == focus && app.tab_count == TAB_CAP);
+                        }
+                    }
+        app.tab_count = saved_count;
+        app.rail_focus = false;
         for (int level = -1; level <= 16; level++) {
             app.battery_level = level;
             app.battery_charging = false;
