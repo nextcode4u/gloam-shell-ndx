@@ -1047,6 +1047,14 @@ static const char *translated_value(const App *app, const char *value)
         {"value.dsi_sd", "DSi SD"},
         {"value.pending", "Pending"},
         {"value.host", "Host preview"},
+        {"value.checking", "Checking releases..."},
+        {"value.update_available", "Update available"},
+        {"value.last_current", "Last check: up to date"},
+        {"value.check_unavailable", "Check unavailable; try later"},
+        {"value.up_to_date", "Up to date"},
+        {"value.queued", "Queued until idle"},
+        {"value.not_checked", "Not checked"},
+
     };
     for (unsigned i = 0; i < sizeof values / sizeof *values; i++)
         if (!strcmp(value, values[i].english))
@@ -1293,7 +1301,7 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
         value = app->updates.available ? app->updates.latest
                 : *app->updates.status ? app->updates.status
                                        : "Not checked";
-        translate = false;
+        translate = !app->updates.available;
         break;
     case OPT_ABOUT:
         value = "Development";

@@ -312,6 +312,7 @@ void app_panel(App *app, Panel p)
     app->panel_selection = 0;
     app->panel_scroll = 0;
     app->panel_age = 0;
+    app->selection_idle_frames = 0;
 }
 
 void app_panel_close(App *app)
@@ -582,6 +583,7 @@ void app_panel_move(App *app, int delta)
                 : app->panel == PANEL_ACTIONS ? ACTION_COUNT
                                               : 1;
     app->panel_selection = (app->panel_selection + delta + count) % count;
+    app->selection_idle_frames = 0;
     if (app->panel_selection < app->panel_scroll)
         app->panel_scroll = app->panel_selection;
     if (app->panel_selection >= app->panel_scroll + UI_PANEL_VISIBLE_ROWS)

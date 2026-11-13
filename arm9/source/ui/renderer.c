@@ -69,8 +69,9 @@ static void draw_library_index(const App *app, uint16_t *pixels, Palette colors,
     draw_text(pixels, offset + 12, 148, app->scan_directory ? "Reading folder..." : label,
               colors.muted, 22);
     draw_text(pixels, offset + 12, 164,
-              app->truncated || app->locations[app->category].batch ? "Current batch only"
-                                                                    : "Left/right: groups",
+              app->truncated || app->locations[app->category].batch
+                  ? ui_translate(&app->language, "dialog.current_batch", "Current batch only")
+                  : ui_translate(&app->language, "dialog.group_hint", "Left/right: groups"),
               colors.muted, 22);
 }
 
@@ -83,8 +84,9 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
     const char *type = entry ? entry_type(entry)
                              : ui_translate(&app->language, "dialog.no_selection", "No selection");
     const char *storage = "SD card";
-    const char *title = entry ? entry->name : "Choose an item";
-    const char *hint = "A: open selection";
+    const char *title =
+        entry ? entry->name : ui_translate(&app->language, "dialog.choose_item", "Choose an item");
+    const char *hint = ui_translate(&app->language, "dialog.open_selection", "A: open selection");
     if (entry) {
         draw_browser_icon(app, pixels, index, offset + 12, 53, 32, colors.accent);
         /* Directory context already appears on the bottom screen. */
@@ -107,7 +109,7 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
                 snprintf(size, sizeof size, "%lu bytes", (unsigned long)entry->size);
         }
         if (entry->kind == ITEM_FILE) {
-            hint = "A: check and launch";
+            hint = ui_translate(&app->language, "dialog.check_launch", "A: check and launch");
             if (icon_is_ds_title(entry->path)) {
                 if (app->info_header_valid) {
                     snprintf(extra, sizeof extra, "ROM revision: %u", app->info_revision);
@@ -133,7 +135,10 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
                              choices[0]->use_argv || choices[0]->hbargv ? "argv" : "no argv");
                 } else
                     snprintf(facts, sizeof facts, "%s",
-                             count > 1 ? "Choose app on launch" : "No file association");
+                             count > 1 ? ui_translate(&app->language, "dialog.choose_on_launch",
+                                                      "Choose app on launch")
+                                       : ui_translate(&app->language, "dialog.no_association",
+                                                      "No file association"));
             }
         } else if (entry->kind == ITEM_INSTALLED_TITLE && entry->target >= 0 &&
                    (unsigned)entry->target < app->installed_catalog.count) {
@@ -141,12 +146,14 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
             storage = "NAND";
             snprintf(facts, sizeof facts, "ID %08lX%08lX", (unsigned long)native->high,
                      (unsigned long)native->low);
-            hint = "A: launch from NAND";
+            hint = ui_translate(&app->language, "dialog.launch_nand", "A: launch from NAND");
         } else if (entry->kind == ITEM_SYSTEM) {
             storage = entry->target == 6 ? "Slot-1" : "NAND";
-            hint = entry->target == 5   ? "A: Nintendo Menu"
-                   : entry->target == 6 ? "A: launch card"
-                                        : "A: launch system app";
+            hint =
+                entry->target == 5 ? "A: Nintendo Menu"
+                : entry->target == 6
+                    ? ui_translate(&app->language, "dialog.launch_card", "A: launch card")
+                    : ui_translate(&app->language, "dialog.launch_system", "A: launch system app");
             if (entry->target == 6 && *app->slot1.title)
                 title = app->slot1.title;
         } else if (entry->kind == ITEM_DIRECTORY || entry->kind == ITEM_CATEGORY) {
@@ -174,9 +181,11 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
                         app->selection_idle_frames, !app->reduced_motion);
     draw_text(pixels, offset + 12, 146, hint, colors.muted, 22);
     draw_text(pixels, offset + 12, 164,
-              app->browser_style == BROWSER_INDEX ? "Y: library index"
-              : app->show_covers                  ? "Y: artwork"
-                                                  : "Covers disabled",
+              app->browser_style == BROWSER_INDEX
+                  ? ui_translate(&app->language, "dialog.library_index", "Y: library index")
+              : app->show_covers
+                  ? "Y: artwork"
+                  : ui_translate(&app->language, "dialog.covers_disabled", "Covers disabled"),
               colors.accent, 22);
 }
 
@@ -443,9 +452,11 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     if (!poster && !scene && !theme->minimal_chrome)
         draw_rectangle(pixels, offset ? 78 : 174, 33, 1, 133, colors.line);
     const Entry *entry = app_selected(app);
-    const char *name = entry                ? entry->name
-                       : app->storage_ready ? "Nothing here yet"
-                                            : "SD card unavailable";
+    const char *name =
+        entry ? entry->name
+        : app->storage_ready
+            ? ui_translate(&app->language, "dialog.nothing_here", "Nothing here yet")
+            : ui_translate(&app->language, "dialog.sd_unavailable", "SD card unavailable");
     if (entry && entry->kind == ITEM_SYSTEM && entry->target == 6 && app->slot1.icon.ready &&
         *app->slot1.title)
         name = app->slot1.title;
@@ -565,10 +576,14 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
         draw_rectangle(pixels, 4, y, 248, height, colors.surface);
         draw_rectangle(pixels, 4, y, 248, 2, colors.accent);
     }
-    const char *title = app->panel == PANEL_QUICK     ? "QUICK CONTROLS"
-                        : app->panel == PANEL_ACTIONS ? "ITEM ACTIONS"
-                        : app->panel == PANEL_INFO    ? "ITEM DETAILS"
-                                                      : "GLOAM SHELL NDX";
+    const char *title =
+        app->panel == PANEL_QUICK
+            ? ui_translate(&app->language, "dialog.quick_controls", "QUICK CONTROLS")
+        : app->panel == PANEL_ACTIONS
+            ? ui_translate(&app->language, "dialog.item_actions", "ITEM ACTIONS")
+        : app->panel == PANEL_INFO
+            ? ui_translate(&app->language, "dialog.item_details", "ITEM DETAILS")
+            : "GLOAM SHELL NDX";
     draw_text(pixels, 14, y + 9, title, colors.accent, 30);
     if (app->panel == PANEL_MESSAGE) {
         draw_text_wrapped(pixels, 14, y + 29, app->message, colors.text, 36, 7);
@@ -591,30 +606,39 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
         return;
     }
     const char *quick[] = {
-        "Accent",           "Reduced motion", "Scroll speed",        "Icon size",
-        "Browser view",     "Open dashboard", "System applications", "Return to DSi System Menu",
-        "Save preferences", "All settings"};
+        ui_translate(&app->language, "setting.accent.label", "Accent"),
+        ui_translate(&app->language, "setting.motion.label", "Reduced motion"),
+        ui_translate(&app->language, "setting.speed.label", "Scroll speed"),
+        ui_translate(&app->language, "setting.icons.label", "Icon size"),
+        ui_translate(&app->language, "setting.view.label", "Browser view"),
+        ui_translate(&app->language, "dialog.open_dashboard", "Open dashboard"),
+        ui_translate(&app->language, "dialog.system_apps", "System applications"),
+        ui_translate(&app->language, "dialog.return_menu", "Return to DSi System Menu"),
+        ui_translate(&app->language, "dialog.save_preferences", "Save preferences"),
+        ui_translate(&app->language, "dialog.all_settings", "All settings")};
     const Entry *entry = app_selected(app);
     const char *actions[] = {
         entry && (entry->kind == ITEM_DIRECTORY || entry->kind == ITEM_CATEGORY ||
                   entry->kind == ITEM_INSTALLED_LIBRARY)
             ? "Open"
             : "Launch",
-        entry && app_is_favorite(app, entry->path) ? "Remove favorite" : "Add favorite",
-        "Inspect item / path",
-        "Choose cover image",
-        "Clear cover assignment",
-        "Choose app for this file",
-        "Clear application choice",
-        "Edit file associations",
+        entry && app_is_favorite(app, entry->path)
+            ? ui_translate(&app->language, "dialog.remove_favorite", "Remove favorite")
+            : ui_translate(&app->language, "dialog.add_favorite", "Add favorite"),
+        ui_translate(&app->language, "dialog.inspect_item", "Inspect item / path"),
+        ui_translate(&app->language, "dialog.choose_cover", "Choose cover image"),
+        ui_translate(&app->language, "dialog.clear_cover", "Clear cover assignment"),
+        ui_translate(&app->language, "dialog.choose_handler", "Choose app for this file"),
+        ui_translate(&app->language, "dialog.clear_handler", "Clear application choice"),
+        ui_translate(&app->language, "dialog.edit_associations", "Edit file associations"),
         ui_translate(&app->language, "dialog.title_options", "Title options"),
-        "Title cheats",
-        "Locate missing target",
-        "Remove shortcut",
-        "Next folder batch",
-        "Previous folder batch",
-        "Choose browser icon",
-        "Clear browser icon"};
+        ui_translate(&app->language, "dialog.title_cheats", "Title cheats"),
+        ui_translate(&app->language, "dialog.locate_target", "Locate missing target"),
+        ui_translate(&app->language, "dialog.remove_shortcut", "Remove shortcut"),
+        ui_translate(&app->language, "dialog.next_batch", "Next folder batch"),
+        ui_translate(&app->language, "dialog.previous_batch", "Previous folder batch"),
+        ui_translate(&app->language, "dialog.choose_icon", "Choose browser icon"),
+        ui_translate(&app->language, "dialog.clear_icon", "Clear browser icon")};
     int count = app->panel == PANEL_QUICK ? QUICK_CONTROL_COUNT : ACTION_COUNT;
     for (int visible = 0; visible < UI_PANEL_VISIBLE_ROWS; visible++) {
         int i = app->panel_scroll + visible;
@@ -624,34 +648,55 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
         if (i == app->panel_selection)
             draw_rectangle(pixels, 10, row - 2, 236, 14, colors.line);
         bool enabled = app->panel == PANEL_QUICK || app->action_enabled[i];
-        draw_text_clipped(pixels, 16, row, app->panel == PANEL_QUICK ? quick[i] : actions[i],
-                          enabled && i == app->panel_selection
-                              ? themes_selection_text(&app->themes.active)
-                              : colors.muted,
-                          31);
+        bool selected = i == app->panel_selection;
+        bool has_value = app->panel == PANEL_QUICK && i <= QUICK_BROWSER_STYLE;
+        draw_text_scrolling(
+            pixels, 16, row, app->panel == PANEL_QUICK ? quick[i] : actions[i],
+            enabled && selected ? themes_selection_text(&app->themes.active) : colors.muted,
+            has_value ? 162 : 217, app->selection_idle_frames, selected && !app->reduced_motion);
         if (!enabled)
             draw_text(pixels, 239, row, "-", colors.muted, 1);
-        if (app->panel == PANEL_QUICK && i == QUICK_ACCENT) {
-            draw_text(pixels, 207, row,
-                      *app->themes.active.id && !app->theme_accent_override
-                          ? "Theme"
-                          : themes_accent_name(app->accent_index),
-                      colors.accent, 6);
-        }
-        if (app->panel == PANEL_QUICK && i == QUICK_REDUCED_MOTION)
-            draw_text(pixels, 219, row, app->reduced_motion ? "On" : "Off", colors.accent, 4);
-        if (app->panel == PANEL_QUICK && i == QUICK_SCROLL_SPEED) {
-            const char *speeds[] = {"Slow", "Normal", "Fast"};
-            draw_text(pixels, 200, row, speeds[app->scroll_speed], colors.accent, 6);
-        }
-        if (app->panel == PANEL_QUICK && i == QUICK_ICON_SIZE)
-            draw_text(pixels, 200, row,
-                      layout_has_icons(app) ? (app->icon_size == ICON_LARGE ? "Large" : "Small")
-                                            : "Hidden",
-                      layout_has_icons(app) ? colors.accent : colors.muted, 6);
-        if (app->panel == PANEL_QUICK && i == QUICK_BROWSER_STYLE) {
-            const char *views[] = {"Classic", "Extended", "List", "Grid", "Shelf", "Index"};
-            draw_text(pixels, 186, row, views[app->browser_style], colors.accent, 8);
+        if (has_value) {
+            const char *value = "";
+            switch (i) {
+            case QUICK_ACCENT:
+                value = *app->themes.active.id && !app->theme_accent_override
+                            ? ui_translate(&app->language, "value.theme", "Theme")
+                            : themes_accent_name(app->accent_index);
+                break;
+            case QUICK_REDUCED_MOTION:
+                value = app->reduced_motion ? ui_translate(&app->language, "value.on", "On")
+                                            : ui_translate(&app->language, "value.off", "Off");
+                break;
+            case QUICK_SCROLL_SPEED: {
+                const char *values[] = {ui_translate(&app->language, "value.slow", "Slow"),
+                                        ui_translate(&app->language, "value.normal", "Normal"),
+                                        ui_translate(&app->language, "value.fast", "Fast")};
+                value = values[app->scroll_speed];
+                break;
+            }
+            case QUICK_ICON_SIZE:
+                value = !layout_has_icons(app)
+                            ? ui_translate(&app->language, "value.hidden", "Hidden")
+                        : app->icon_size == ICON_LARGE
+                            ? ui_translate(&app->language, "value.large", "Large")
+                            : ui_translate(&app->language, "value.small", "Small");
+                break;
+            case QUICK_BROWSER_STYLE: {
+                const char *values[] = {ui_translate(&app->language, "value.classic", "Classic"),
+                                        ui_translate(&app->language, "value.extended", "Extended"),
+                                        ui_translate(&app->language, "value.list", "List"),
+                                        ui_translate(&app->language, "value.grid", "Grid"),
+                                        ui_translate(&app->language, "value.shelf", "Shelf"),
+                                        ui_translate(&app->language, "value.index", "Index")};
+                value = values[app->browser_style];
+                break;
+            }
+            }
+            draw_text_scrolling(pixels, 186, row, value,
+                                i == QUICK_ICON_SIZE && !layout_has_icons(app) ? colors.muted
+                                                                               : colors.accent,
+                                57, app->selection_idle_frames, selected && !app->reduced_motion);
         }
     }
     if (app->panel == PANEL_QUICK || app->panel == PANEL_ACTIONS) {
@@ -660,12 +705,13 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
         if (app->panel_scroll + UI_PANEL_VISIBLE_ROWS < count)
             draw_text(pixels, 232, footer, "v", colors.muted, 1);
     }
-    const char *hint = app->panel == PANEL_QUICK && app->panel_selection <= QUICK_BROWSER_STYLE
-                           ? "< > change  A next  B close"
-                           : "A select   B close";
+    const char *hint =
+        app->panel == PANEL_QUICK && app->panel_selection <= QUICK_BROWSER_STYLE
+            ? ui_translate(&app->language, "dialog.settings_adjust", "< > change  A next  B close")
+            : ui_translate(&app->language, "dialog.select_close", "A select   B close");
     if (app->panel == PANEL_QUICK && app->panel_selection == QUICK_ICON_SIZE &&
         !layout_has_icons(app))
-        hint = "Icons hidden in List view";
+        hint = ui_translate(&app->language, "dialog.icons_hidden", "Icons hidden in List view");
     draw_text(pixels, 14, footer, hint, colors.muted, 34);
 }
 static void draw_browser_icon(const App *app, uint16_t *pixels, int index, int x, int y, int size,
@@ -853,16 +899,21 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
     if (!app->themes.active.minimal_chrome)
         draw_rectangle(bottom, 10, list_top - 5, 236, 1, colors.line);
     if (!app->entry_count) {
-        draw_text_wrapped(bottom, 16, 65,
-                          app->category == CATEGORY_SYSTEM && app->installed_open
-                              ? (*app->installed_catalog.status ? app->installed_catalog.status
-                                                                : "Reading NAND titles...")
-                          : app->storage_ready
-                              ? (app->scan_directory    ? ui_text(&app->language, UI_READING_FOLDER)
-                                 : app->directory_error ? "Folder unavailable"
-                                                        : ui_text(&app->language, UI_EMPTY_FOLDER))
-                              : "SD card not mounted",
-                          colors.text, 31, 3);
+        draw_text_wrapped(
+            bottom, 16, 65,
+            app->category == CATEGORY_SYSTEM && app->installed_open
+                ? (*app->installed_catalog.status
+                       ? app->installed_catalog.status
+                       : ui_translate(&app->language, "dialog.nand_reading",
+                                      "Reading NAND titles..."))
+            : app->storage_ready
+                ? (app->scan_directory ? ui_text(&app->language, UI_READING_FOLDER)
+                   : app->directory_error
+                       ? ui_translate(&app->language, "dialog.folder_unavailable",
+                                      "Folder unavailable")
+                       : ui_text(&app->language, UI_EMPTY_FOLDER))
+                : ui_translate(&app->language, "dialog.sd_unmounted", "SD card not mounted"),
+            colors.text, 31, 3);
         draw_text(
             bottom, 16, 84,
             ui_translate(&app->language, "dialog.empty_navigation", "B back   L/R change tab"),
@@ -955,7 +1006,9 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
         draw_rectangle(bottom, 10, 142, 236, 30, colors.surface);
         draw_rectangle(bottom, 10, 142, 236, 1, colors.accent);
         draw_text(bottom, 16, 145, countdown, colors.accent, 32);
-        draw_text(bottom, 16, 158, "Any button cancels", colors.text, 32);
+        draw_text(bottom, 16, 158,
+                  ui_translate(&app->language, "dialog.cancel_any", "Any button cancels"),
+                  colors.text, 32);
     }
     draw_overlay(app, bottom, colors);
 }

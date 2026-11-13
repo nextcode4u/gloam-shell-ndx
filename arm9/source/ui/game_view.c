@@ -39,7 +39,14 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
         "need an explicit size. Existing saves are never resized.",
         "Opens nds-bootstrap's in-game menu. Return depends on backend/game compatibility; "
         "QUIT_PATH points to BOOT.NDS."};
-    draw_text_wrapped(top, 10, 77, help[editor->selected], p.text, 33, 7);
+    static const char *help_keys[] = {
+        "dialog.game_mode.help", "dialog.game_cpu.help",   "dialog.game_vram.help",
+        "dialog.game_dma.help",  "dialog.game_async.help", "dialog.game_language.help",
+        "dialog.game_slot.help", "dialog.game_size.help",  "dialog.game_hotkey.help"};
+    draw_text_wrapped(
+        top, 10, 77,
+        ui_translate(&app->language, help_keys[editor->selected], help[editor->selected]), p.text,
+        33, 7);
     draw_text(top, 10, 174,
               ui_translate(&app->language, "dialog.backend_experimental",
                            "Backend handoff: experimental"),
@@ -52,6 +59,10 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_text(bottom, 10, 24,
               ui_translate(&app->language, "dialog.change_reset", "< > change  Y reset"), p.muted,
               33);
+    static const char *label_keys[] = {
+        "dialog.game_mode_label", "dialog.game_cpu_label",   "dialog.game_vram_label",
+        "dialog.game_dma_label",  "dialog.game_async_label", "dialog.game_language_label",
+        "dialog.game_slot_label", "dialog.game_size_label",  "dialog.game_hotkey_label"};
     for (int row = 0; row < 7; row++) {
         int option = editor->scroll + row;
         if (option >= GAME_OPTION_COUNT)
@@ -60,7 +71,9 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
         if (option == editor->selected) {
             draw_theme_selection(&app->themes.active, bottom, 6, y, 244, 18);
         }
-        draw_text(bottom, 14, y + 3, game_option_label(option), p.text, 16);
+        draw_text(bottom, 14, y + 3,
+                  ui_translate(&app->language, label_keys[option], game_option_label(option)),
+                  p.text, 16);
         char value[48];
         game_option_value(&editor->options, option, value);
         if (!editor->defaults && editor->options.values[option] == GAME_INHERIT) {

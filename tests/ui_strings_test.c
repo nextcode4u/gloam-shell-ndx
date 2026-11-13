@@ -110,6 +110,20 @@ int main(int argc, char **argv)
             }
         }
         app.cheats = NULL;
+        for (int panel = PANEL_QUICK; panel <= PANEL_ACTIONS; panel++) {
+            app.panel = panel;
+            int count = panel == PANEL_QUICK ? QUICK_CONTROL_COUNT : ACTION_COUNT;
+            for (int row = 0; row < count; row++) {
+                app.panel_selection = row;
+                app.panel_scroll = row;
+                top.before = top.after = bottom.before = bottom.after = 0xA11CE;
+                render_app(&app, top.pixels, bottom.pixels, "12:00");
+                assert(top.before == 0xA11CE && top.after == 0xA11CE);
+                assert(bottom.before == 0xA11CE && bottom.after == 0xA11CE);
+            }
+        }
+        app.panel = PANEL_NONE;
+        assert(strcmp(ui_translate(&app.language, "dialog.game_slot.help", "missing"), "missing"));
         assert(strcmp(ui_translate(&app.language, "dialog.sd_removed", "missing"), "missing"));
     }
     char many[24000] = "version=1\n";
