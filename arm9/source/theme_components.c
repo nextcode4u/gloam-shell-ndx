@@ -12,11 +12,11 @@ typedef struct {
 } ComponentBank;
 static ComponentBank banks[2];
 static const char *const names[THEME_COMPONENT_COUNT] = {
-    "header",          "footer",        "panel",         "row-selected",
-    "tab-selected",    "card",          "card-selected", "row",
-    "icon-frame",      "artwork-frame", "battery-empty", "battery-low",
-    "battery-half",    "battery-high",  "battery-full",  "battery-charging",
-    "battery-unknown", "wireless-idle"};
+    "header",          "footer",        "panel",           "row-selected",
+    "tab-selected",    "card",          "card-selected",   "row",
+    "icon-frame",      "artwork-frame", "battery-empty",   "battery-low",
+    "battery-half",    "battery-high",  "battery-full",    "battery-charging",
+    "battery-unknown", "wireless-idle", "update-available"};
 
 static void clear_bank(ComponentBank *bank)
 {

@@ -72,6 +72,7 @@ static bool read_state_file(App *app, const char *filename)
     /* Older state files had the full settings UI; preserve that view on upgrade. */
     app->advanced_settings = true;
     app->simple_settings_lock = false;
+    app->updates.enabled = true;
     char active_tab[TAB_ID_CAP] = "";
     bool has_active_tab = false;
     bool reset_locations[TAB_CAP] = {false};
@@ -82,6 +83,8 @@ static bool read_state_file(App *app, const char *filename)
             app->advanced_settings = false;
         else if (!strcmp(line, "settings_mode=advanced"))
             app->advanced_settings = true;
+        else if (sscanf(line, "background_updates=%d", &value) == 1)
+            app->updates.enabled = value == 1;
         else if (sscanf(line, "simple_settings_lock=%d", &value) == 1)
             app->simple_settings_lock = value == 1;
         else if (!strncmp(line, "selected_path=", 14) && strlen(line + 14) < PATH_CAP &&
@@ -263,6 +266,7 @@ bool app_save(App *app)
             app->filter_recognized,
             app->recovery_mode ? app->recovery_preferences.clock_12_hour : app->clock_12_hour,
             app->startup_tab);
+    fprintf(file, "background_updates=%d\n", app->updates.enabled);
     fprintf(file, "settings_mode=%s\nsimple_settings_lock=%d\n",
             app->advanced_settings ? "advanced" : "simple", app->simple_settings_lock);
     char music_reference[PATH_CAP] = "";

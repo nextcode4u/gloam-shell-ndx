@@ -33,6 +33,24 @@ int main(int argc, char **argv)
     assert(themes_battery_component(15, false) == THEME_BATTERY_FULL);
     assert(themes_battery_component(0, true) == THEME_BATTERY_CHARGING);
     app_init(&app, root, true, true);
+    /* The notification replaces only the wireless slot; labels/battery keep their bounds. */
+    static uint16_t ordinary_status[256 * 192];
+    memset(top, 0, sizeof top);
+    draw_theme_status(&app, top);
+    memcpy(ordinary_status, top, sizeof top);
+    app.updates.available = true;
+    draw_theme_status(&app, top);
+    unsigned changed = 0;
+    for (int y = 0; y < 192; y++)
+        for (int x = 0; x < 256; x++) {
+            if (x < 176 || x >= 192 || y < 4 || y >= 20)
+                assert(top[y * 256 + x] == ordinary_status[y * 256 + x]);
+            else
+                changed += top[y * 256 + x] != ordinary_status[y * 256 + x];
+        }
+    assert(changed > 0);
+    app.updates.available = false;
+
     char manifest[PATH_CAP];
     assert(path_join(manifest, root, "_nds/dsi-frontend/themes/copper/theme.ini"));
     FILE *layout = fopen(manifest, "a");

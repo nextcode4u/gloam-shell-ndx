@@ -60,6 +60,10 @@ jobs:
           tag = os.environ['RELEASE_TAG']
           if not re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+-(preview|rc)\.[0-9]+', tag):
               raise SystemExit('Use a new preview/rc version tag')
+          version = re.search(r'#define GLOAM_VERSION "([^"\n]+)"',
+                              Path('arm9/include/update_checker.h').read_text())
+          if not version or version[1] != tag:
+              raise SystemExit('Bump GLOAM_VERSION to the release tag before building the release.')
           source = os.environ['SOURCE_COMMIT']
           notes = Path('dist/prerelease-notes.md')
           notes.write_text(

@@ -125,8 +125,8 @@ strength and the reading-surface opacity are preblended by `theme_backgrounds.c`
 
 Theme header labels and battery/disconnected-wireless sprites use prepared theme
 state. `theme_components.c` maps cached battery readings to artwork states;
-`ui/theme_components.c` draws those sprites. Gloam does not initialize a network
-connection or infer signal strength from the wireless LED.
+`ui/theme_components.c` draws those sprites. The update checker temporarily owns a network connection; idle artwork does not
+infer signal strength or radio power from the wireless LED.
 
 `tools/make_theme_scenes.py` owns eleven independent pixel-illustration functions.
 Scene layout in `ui/renderer.c` keeps art separate from the item inspector.
@@ -140,3 +140,11 @@ style, highlight, gap and visible-count settings; rendering never changes naviga
 `tools/make_theme_navigation.py` authors dedicated navigation icons at dock resolution.
 The optional tab PNGs share the bounded theme icon cache, with independent fallback
 to existing file-type symbols. `make_theme_icons.py` exports both asset families.
+
+Release checks use `update_checker.c` for bounded HTTP/JSON parsing, numeric
+version ordering, daily cache and scheduling gates. `update_transport.c` owns
+nonblocking DNS/TCP/TLS operations and yields through a platform callback.
+`main.c` owns delayed Wi-Fi initialization, the cooperative worker, cancellation
+and radio disconnection before a launch or application-state reset.
+The initialized SDK stack is retained: its 1.25.0 Internet teardown is unsupported. Rendering only reads
+`UpdateState`. `update-available.png` is an optional status component.

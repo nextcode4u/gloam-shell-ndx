@@ -31,3 +31,9 @@ selects the UI; `simple_settings_lock=1` forces Simple mode and hides its mode
 switch. The lock defaults to `0` and can only be changed in the config, not the
 settings UI. See [setup and locking](../docs/GETTING_STARTED.md#simple-and-advanced-settings)
 for defaults, upgrade behavior and editing instructions.
+
+`background_updates=1` in the frontend's SD `state.ini` enables delayed release
+checks; `0` disables them. This is a normal setting, separate from the Simple
+settings lock. The disposable update cache is not configuration and is not
+exported. The HTTPS trust bundle ships in the SD template as `update-ca.pem`;
+keep it alongside the frontend's other support files.

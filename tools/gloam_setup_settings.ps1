@@ -18,6 +18,7 @@ $GloamSettingRules = [ordered]@{
     internal_titles = @{ Default = '0'; Choices = @('0','1') }
     title_language = @{ Default = '1'; Choices = @('0','1','2','3','4','5','6','7') }
     reduced_motion = @{ Default = '0'; Choices = @('0','1') }
+    background_updates = @{ Default = '1'; Choices = @('0','1') }
     clock_12_hour = @{ Default = '0'; Choices = @('0','1') }
     music_path = @{ Default = ''; Pattern = '^(|sd:/[^\r\n\x00]+)$' }
     music_mode = @{ Default = '0'; Choices = @('0','1','2') }

@@ -87,8 +87,21 @@ void draw_theme_status(const App *app, uint16_t *pixels)
         else if (app->battery_level > 0)
             draw_rectangle(pixels, 156, 9, (app->battery_level * 10 + 14) / 15, 5, color);
     }
-    /* Gloam does not establish a network connection. Do not invent signal bars
-     * from the wireless LED, saved credentials or another title's state. */
+    /* Replace the idle wireless slot with the update notice, preserving header bounds. */
+    if (app->updates.available) {
+        if (!status_sprite(package, pixels, THEME_UPDATE_AVAILABLE, 176)) {
+            uint16_t ink = package->palette.accent;
+            draw_rectangle(pixels, 182, 8, 3, 9, ink);
+            for (int row = 0; row < 5; row++)
+                draw_rectangle(pixels, 183 - row, 6 + row, 1 + row * 2, 1, ink);
+            draw_rectangle(pixels, 178, 18, 11, 1, ink);
+        }
+        return;
+    }
+    if (app->updates.connected) {
+        draw_text(pixels, 176, 6, "W", package->palette.accent, 1);
+        return;
+    }
     if (!status_sprite(package, pixels, THEME_WIRELESS_IDLE, 176)) {
         draw_text(pixels, 176, 6, "W", package->palette.muted, 1);
         draw_rectangle(pixels, 184, 14, 6, 1, package->palette.muted);

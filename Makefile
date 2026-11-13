@@ -1,4 +1,7 @@
 BLOCKSDS ?= /opt/blocksds/core
+BLOCKSDSEXT ?= /opt/blocksds/external
+LIBS := -ldswifi9 -lnds9 -lmbedtls -lmbedx509 -lmbedcrypto
+LIBDIRS := $(BLOCKSDS)/libs/dswifi $(BLOCKSDSEXT)/mbedtls
 NAME := gloam-shell-ndx
 GAME_TITLE := Gloam Shell NDX
 GAME_SUBTITLE := DSi SD frontend
@@ -39,7 +42,8 @@ $(ARM7_CONFIG):
 
 ARM7_FLAGS := -g -Os -mthumb -mcpu=arm7tdmi -ffunction-sections -fdata-sections \
     -specs=$(BLOCKSDS)/sys/crts/ds_arm7.specs -I$(BLOCKSDS)/libs/libnds/include -Ithird_party/libnds -Icommon/include \
-    -DFRONTEND_MELONDS_SD_COMPAT=$(MELONDS_SD_COMPAT)
+    -DFRONTEND_MELONDS_SD_COMPAT=$(MELONDS_SD_COMPAT) -DUSE_DSWIFI \
+    -I$(BLOCKSDS)/libs/dswifi/include
 
 build/arm7/main.o: arm7/source/main.c common/include/hardware_protocol.h Makefile $(ARM7_CONFIG)
 	@mkdir -p $(@D)
@@ -52,7 +56,8 @@ build/arm7/sdmmc.twl.c.o: third_party/libnds/sdmmc_compat.twl.c third_party/libn
 $(ARM7ELF): build/arm7/main.o build/arm7/sdmmc.twl.c.o
 	$(ARM_NONE_EABI_PATH)arm-none-eabi-gcc -mthumb -mcpu=arm7tdmi \
 		-specs=$(BLOCKSDS)/sys/crts/ds_arm7.specs \
-		-L$(BLOCKSDS)/libs/libnds/lib -o $@ $^ -lnds7 -lc
+		-L$(BLOCKSDS)/libs/libnds/lib -L$(BLOCKSDS)/libs/dswifi/lib \
+        -o $@ $^ -Wl,--start-group -ldswifi7 -lnds7 -lc -Wl,--end-group
 
 LOADER_INPUTS := $(shell find third_party/nds-bootloader -type f)
 build/homebrew-loader/load.bin: $(LOADER_INPUTS) tools/build_homebrew_loader.py

@@ -85,6 +85,7 @@ void app_init_mode(App *app, const char *root, bool storage, bool dsi, bool reco
     app->audio.effects_volume = 70;
     app->audio.effects_enabled = true;
     app->show_extensions = true;
+    app->updates.enabled = true;
     app->hide_save_folders = app->hide_bios_folders = true;
     app->title_language = 1;
     app->wallpaper_strength = -1;

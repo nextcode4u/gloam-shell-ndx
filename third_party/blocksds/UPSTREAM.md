@@ -27,11 +27,27 @@ and https://codeberg.org/blocksds/dswifi/src/commit/84d91e8c517bd7d15d38aff03964
 All four retained notice files match those SDK-selected source revisions byte-for-byte.
 Use the actual helper build's SDK/submodule revisions for corresponding-source
 publication. A link-list entry alone does not establish that every library
-object was linked. Gloam's current custom ARM7 build does not define
-USE_MAXMOD/USE_DSWIFI and links only libnds7/libc; do not describe these optional
-helper libraries as active Gloam services.
+object was linked. Gloam also links DSWifi for delayed release checks. Its ARM7
+installs the Wi-Fi FIFO service, but ARM9 initializes the radio only when a check
+is due.
+Maxmod remains a helper dependency, not Gloam's audio service.
 
 BlocksDS SDK v1.25.0 resolves to commit
 `da93ad5cda6f3aea01769959b3ef7b3c5dd93673` (verified against the public tag
 during this audit). Its submodule selections, rather than current library
 branches, identify the SDK dependency versions used by a pinned build.
+
+The HTTPS client links the BlocksDS `blocksds-mbedtls` package **3.6.4-2**
+(Mbed TLS 3.6.4). `mbedtls-LICENSE` is the complete dual Apache-2.0 OR
+GPL-2.0-or-later notice copied from that package; it accompanies releases.
+Upstream source: https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-3.6.4
+BlocksDS packaging: https://codeberg.org/blocksds/packages
+This is an external SDK dependency, installed with `wf-pacman`; retain the
+selected package version when reproducing a release.
+
+`sdroot/_nds/dsi-frontend/update-ca.pem` contains the public USERTrust ECC
+and RSA Certification Authority trust anchors, exported from the system
+Mozilla CA collection. They authenticate GitHub's Sectigo certificate chain;
+no private keys are included. Certificate changes are reviewed source changes,
+never downloaded from an unauthenticated endpoint. The bundle SHA-256 is
+`642666485d6100976d906ca94909fa4aca4b9f6f3e21139a8a075c67112e421b`.

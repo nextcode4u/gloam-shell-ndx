@@ -3,6 +3,8 @@
 ## Requirements
 
 - BlocksDS **1.25.0 or later**, with Wonderful Toolchain and ARM tools on PATH.
+- BlocksDS Mbed TLS **3.6.4-2** (`wf-pacman -Sy blocksds-mbedtls`), under
+  `BLOCKSDSEXT` (default `/opt/blocksds/external`).
 - GNU Make, Git and Python **3.11+**.
 - For checks/asset authoring: a host C compiler, Bash and the Python dependencies
   in `requirements-dev.txt`. Pillow is not needed for a normal frontend build.
@@ -173,3 +175,14 @@ static App/framebuffer sizes. These are host CPU/filesystem measurements, not
 DSi boot times or total peak RAM (decoded assets, heap, stacks and SDK allocations
 are additional). Compare runs on the same machine/build; physical-console
 profiling is still required. The tool accepts no existing SD-card target.
+
+## Release-check identity
+
+Before preparing a release, set `GLOAM_VERSION` in
+`arm9/include/update_checker.h` to the intended tag and rebuild. The prerelease
+workflow rejects a mismatched tag so an installed release does not advertise
+itself as an update. Source packages retain the same identity for rebuilds.
+
+For existing installations updated using only BOOT.NDS, also install
+`/_nds/dsi-frontend/update-ca.pem` from the SD package to enable HTTPS checks.
+Without that trust bundle, checks fail quietly and browsing still works.

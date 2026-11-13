@@ -487,6 +487,7 @@ Inside that package-local directory, supply any of these **32×32 PNGs**:
 | `battery-empty.png`, `battery-low.png`, `battery-half.png`, `battery-high.png`, `battery-full.png` | Battery level sprites. |
 | `battery-charging.png`, `battery-unknown.png` | Charging or unavailable battery reading. |
 | `wireless-idle.png` | No active connection established by Gloam. |
+| `update-available.png` | Optional update notification; replaces the wireless slot while a newer release is known. |
 | `row-selected.png` | Selected browser rows, settings, pickers and editors. |
 | `tab-selected.png` | The active top-screen tab and the theme preview's selection sample. |
 | `card.png` | Unselected Grid/Shelf cells and the top-screen cover placeholder. |
@@ -522,7 +523,7 @@ uses beveled edges. Regenerate them with:
 ```
 
 Components decode only when loading or previewing a theme. Eighteen complete images
-use 36 KiB, or 72 KiB with a second preview bank. No scripts, filesystem reads or
+use 38 KiB, or 76 KiB with a second preview bank. No scripts, filesystem reads or
 image decoding run in drawing. Recovery bypasses external components. The desktop
 setup tool previews and validates them along with icons. Older builds reject the
 new section: update `BOOT.NDS` together with these theme packs.
@@ -560,3 +561,9 @@ Groups count the current directory batch, not the entire SD card. Existing
 sorting stays intact. Common Latin-1 accented initials join their base letter;
 other scripts and punctuation appear under `*` (Other). Genre metadata is not
 required. Index honors the icon-size setting and theme row padding.
+
+The update notification has a built-in accent-colored arrow when its optional
+32×32 PNG is absent. It uses the same 16×16 status bounds as wireless artwork,
+so enabling it does not shorten the header or move tabs. While the checker is
+connected, a small accent-colored W indicates an active connection; it does not
+claim a signal-strength reading.

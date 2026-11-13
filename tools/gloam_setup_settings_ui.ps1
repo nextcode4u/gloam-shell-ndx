@@ -11,7 +11,7 @@ $settingCombos = @(
     @{ Control='SettingAutoLaunch'; Key='auto_launch_delay'; Labels=@('Off','3 seconds','5 seconds','10 seconds'); Values=@('0','3','5','10') }
 )
 $settingChecks = [ordered]@{ SimpleLock='simple_settings_lock'; SettingCovers='show_covers'; SettingMotion='reduced_motion';
-    SettingClock='clock_12_hour'; SettingHideSaves='hide_save_folders'; SettingHideBios='hide_bios_folders';
+    SettingUpdates='background_updates'; SettingClock='clock_12_hour'; SettingHideSaves='hide_save_folders'; SettingHideBios='hide_bios_folders';
     SettingHidden='show_hidden'; SettingSystem='show_system'; SettingExtensions='show_extensions';
     SettingKnown='filter_recognized'; SettingTitles='internal_titles'; SettingSounds='theme_sounds' }
 $script:SettingsSnapshot = $null; $script:LoadingSettings = $false; $script:SettingsDirty = $false

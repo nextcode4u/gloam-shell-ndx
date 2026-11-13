@@ -34,3 +34,29 @@ illustrated Scene layouts. Navigation can use labels, numbered tabs, icon docks,
 icon tiles or a category pager, with independent tab artwork. Full-strength
 wallpapers, a preblended reading surface, optional minimal chrome and separate
 selected-label/tab text colors are supported. See [theme packages](guides/THEME_PACKAGES.md).
+
+### Background release notices
+
+Gloam can check the latest published GitHub release (including previews) using
+the console's saved Wi-Fi configuration. Checks are enabled by default and
+can be disabled in Settings. They start only in DSi mode, at least 30 seconds
+after startup and after two seconds without selection movement. No network
+connection is initialized during startup or in recovery mode. A successful
+check is cached for 24 hours; offline failures are quiet and get no automatic
+retry in the same session. Settings can queue another check.
+
+A status-bar arrow means a newer version is available. Settings shows its tag;
+use the PC setup tool or the project's GitHub Releases page to update. Nothing
+is automatically installed or launched. Missing trust certificates, incorrect
+console dates, network errors and oversized/unsupported responses fail closed.
+The cache is disposable `_nds/dsi-frontend/update-cache.txt`.
+
+The transport uses nonblocking sockets, a 96 KiB response ceiling and 512-byte
+read steps, yielding between TLS handshake steps. Network waiting is bounded
+by a 45-second deadline after SDK initialization; the radio disconnects and
+TLS/response buffers are released afterward and before launching a title.
+The SDK network context remains allocated for reuse because BlocksDS 1.25.0
+does not support tearing down its Internet stack. SDK initialization/shutdown
+still relies on the ARM7 service responding; this is not a hard real-time bound.
+Cryptographic steps still consume CPU, and adding network libraries increases ROM size. Zero boot-time or frame-time cost is not
+claimed: real DSi timings, WPA2 connectivity and power use need hardware checks.

@@ -30,6 +30,8 @@
 #endif
 
 enum {
+    OPT_BACKGROUND_UPDATES,
+    OPT_CHECK_UPDATES,
     OPT_SETTINGS_MODE,
     OPT_AUTO_LAUNCH,
     OPT_CONFIG_EXPORT,
@@ -101,6 +103,8 @@ enum {
 };
 
 static const char *option_keys[] = {
+    [OPT_BACKGROUND_UPDATES] = "background_updates",
+    [OPT_CHECK_UPDATES] = "check_updates",
     [OPT_SETTINGS_MODE] = "settings_mode",
     [OPT_AUTO_LAUNCH] = "auto_launch",
     [OPT_CONFIG_EXPORT] = "config_export",
@@ -346,6 +350,14 @@ static const SettingsOption system_options[] = {
      false, OPT_SLEEP},
 };
 static const SettingsOption maintenance[] = {
+    {"Background updates",
+     "Check published Gloam releases after startup using saved Wi-Fi. Once daily; no automatic "
+     "downloads. Turning off cancels the check.",
+     true, OPT_BACKGROUND_UPDATES},
+    {"Check for updates",
+     "Queue a release check when idle. An arrow in the status bar means a newer version. Update "
+     "using the PC setup tool or GitHub Releases; settings and saves stay untouched.",
+     false, OPT_CHECK_UPDATES},
     {"Refresh metadata",
      "Reload themes, associations and this folder; discard prepared artwork thumbnails. Keep "
      "the selected path when it remains visible.",
@@ -475,7 +487,9 @@ static const int simple_browser[] = {OPT_SORT,      OPT_EXTENSIONS, OPT_HIDE_SAV
                                      OPT_HIDE_BIOS, OPT_SPEED,      OPT_TITLE_SOURCE};
 static const int simple_audio[] = {OPT_MUSIC_MODE, OPT_MUSIC_PATH, OPT_MUSIC_VOLUME, OPT_EFFECTS,
                                    OPT_EFFECTS_VOLUME};
-static const int simple_console[] = {OPT_BATTERY, OPT_SYSTEM, OPT_SYSTEM_MENU, OPT_SAVE, OPT_ABOUT};
+static const int simple_console[] = {
+    OPT_BATTERY, OPT_SYSTEM, OPT_SYSTEM_MENU, OPT_CHECK_UPDATES, OPT_BACKGROUND_UPDATES,
+    OPT_SAVE,    OPT_ABOUT};
 static const struct {
     const char *name;
     const int *ids;
@@ -604,6 +618,9 @@ void settings_adjust(App *app, int direction)
     app->settings.text_started_frame = app->frame_count;
     bool refresh = false;
     switch (option->id) {
+    case OPT_BACKGROUND_UPDATES:
+        app->updates.enabled = !app->updates.enabled;
+        break;
     case OPT_SETTINGS_MODE:
         if (app->simple_settings_lock)
             return;
@@ -758,6 +775,17 @@ void settings_activate(App *app)
         return;
     }
     switch (option->id) {
+    case OPT_CHECK_UPDATES:
+        if (!app->updates.enabled) {
+            path_copy(app->settings.status, "Enable Background updates first",
+                      sizeof app->settings.status);
+        } else if (!app->updates.busy) {
+            app->updates.requested = true;
+            path_copy(app->updates.status, "Queued until idle", sizeof app->updates.status);
+            snprintf(app->settings.status, sizeof app->settings.status,
+                     "Installed: %s. Releases on GitHub / PC setup.", GLOAM_VERSION);
+        }
+        break;
     case OPT_RESET_CONFIGURATION: {
         if (app->recovery_mode || !app->storage_ready || app->storage_lost) {
             app->settings.reset_confirm = false;
@@ -1259,6 +1287,15 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
         break;
     case OPT_SAVE:
         value = app->preferences_dirty ? "Unsaved" : "Saved";
+        break;
+    case OPT_BACKGROUND_UPDATES:
+        value = app->updates.enabled ? "On" : "Off";
+        break;
+    case OPT_CHECK_UPDATES:
+        value = app->updates.available ? app->updates.latest
+                : *app->updates.status ? app->updates.status
+                                       : "Not checked";
+        translate = false;
         break;
     case OPT_ABOUT:
         value = "Development";

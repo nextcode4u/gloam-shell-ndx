@@ -27,6 +27,7 @@ typedef enum {
     THEME_BATTERY_CHARGING,
     THEME_BATTERY_UNKNOWN,
     THEME_WIRELESS_IDLE,
+    THEME_UPDATE_AVAILABLE,
     THEME_COMPONENT_COUNT
 } ThemeComponent;
 ThemeComponent themes_battery_component(int level, bool charging);

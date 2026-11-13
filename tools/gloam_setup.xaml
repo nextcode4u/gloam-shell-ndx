@@ -493,6 +493,7 @@
               <WrapPanel>
                 <CheckBox x:Name="SettingCovers" Content="Show covers"/>
                 <CheckBox x:Name="SettingMotion" Content="Reduced motion"/>
+                <CheckBox x:Name="SettingUpdates" Content="Background release checks"/>
                 <CheckBox x:Name="SettingClock" Content="12-hour clock"/>
               </WrapPanel>
               <TextBlock Text="Browsing" FontSize="18" FontWeight="SemiBold" Margin="0,12,0,10"/>

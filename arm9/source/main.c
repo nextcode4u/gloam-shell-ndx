@@ -26,6 +26,8 @@
 #include "storage_state.h"
 #include "system_routes.h"
 #include "themes.h"
+#include "update_transport.h"
+#include <dswifi9.h>
 
 #include <blocksds_version.h>
 #include <errno.h>
@@ -48,6 +50,92 @@ static uint16_t top[256 * 192] __attribute__((aligned(32)));
 static uint16_t bottom[256 * 192] __attribute__((aligned(32)));
 static int music_channel = -1, effect_channel = -1;
 static int previous_music_volume = -1, previous_effect_volume = -1;
+
+/* No network allocation or radio initialization occurs on the boot path. */
+static bool update_cancel;
+static unsigned update_started;
+static time_t update_started_time;
+static bool update_network_initialized, update_network_attempted;
+static cothread_t update_thread = -1;
+static bool update_wait(void)
+{
+    do {
+        cothread_yield();
+        if (update_cancel || !app.updates.enabled || app.storage_lost ||
+            app.frame_count - update_started >= 45 * 60 || time(NULL) - update_started_time >= 45)
+            return false;
+    } while (app.selection_idle_frames < 30);
+    return true;
+}
+
+static int update_worker(void *unused)
+{
+    (void)unused;
+    char tag[UPDATE_TAG_CAP] = "", ca[PATH_CAP];
+    if (!update_network_attempted) {
+        update_network_attempted = true;
+        update_network_initialized = Wifi_InitDefault(INIT_ONLY | WIFI_ATTEMPT_DSI_MODE);
+    }
+    bool initialized = update_network_initialized;
+    if (initialized && update_wait()) {
+        Wifi_AutoConnect();
+        while (update_wait()) {
+            int status = Wifi_AssocStatus();
+            if (status == ASSOCSTATUS_CANNOTCONNECT)
+                break;
+            if (status != ASSOCSTATUS_ASSOCIATED)
+                continue;
+            app.updates.connected = true;
+            struct in_addr dns;
+            Wifi_GetIPInfo(NULL, NULL, &dns, NULL);
+            if (path_join(ca, app.root, "_nds/dsi-frontend/update-ca.pem"))
+                if (!update_fetch(ca, dns.s_addr, update_wait, tag))
+                    tag[0] = 0;
+            break;
+        }
+    }
+    if (initialized) {
+        Wifi_DisconnectAP();
+        Wifi_DisableWifi();
+        swiWaitForVBlank();
+        swiWaitForVBlank();
+        /* SDK 1.25.0 wifi_lwip_deinit deliberately crashes. Keep the initialized
+         * stack for reuse; only the radio and this request are shut down. */
+    }
+    if (!update_cancel && app.storage_ready && !app.storage_lost)
+        update_complete(&app.updates, app.root, *tag ? tag : NULL, time(NULL));
+    else
+        app.updates.busy = app.updates.connected = false;
+    /* Detached workers are reclaimed by the SDK scheduler. Deleting another
+     * thread here can invalidate its saved next-thread pointer in SDK 1.25. */
+    update_thread = -1;
+    return 0;
+}
+static void stop_update_checker(void)
+{
+    update_cancel = true;
+    while (update_thread >= 0)
+        cothread_yield();
+}
+static void update_checker_tick(void)
+{
+    if (update_thread >= 0)
+        return;
+    if (app.recovery_mode || !app.dsi_mode || !app.storage_ready || app.storage_lost ||
+        !app.updates.enabled || app.frame_count < 1800)
+        return;
+    if (!app.updates.cache_loaded)
+        update_cache_load(&app.updates, app.root);
+    if (!update_should_start(&app.updates, app.frame_count, app.selection_idle_frames,
+                             !app.launch_requested && !app.startup_due, time(NULL)))
+        return;
+    update_cancel = false;
+    update_started = app.frame_count;
+    update_started_time = time(NULL);
+    update_thread = cothread_create(update_worker, NULL, 24 * 1024, COTHREAD_DETACHED);
+    if (update_thread < 0)
+        update_complete(&app.updates, app.root, NULL, time(NULL));
+}
 
 static unsigned artwork_clock(void)
 {
@@ -206,6 +294,9 @@ int main(int argc, char **argv)
     (void)argc;
     (void)argv;
     defaultExceptionHandler();
+    /* Cooperative UI/network workers both wait for this IRQ. BIOS-only waits
+     * did not require an explicit enabled VBlank source. */
+    irqEnable(IRQ_VBLANK);
     videoSetMode(MODE_5_2D);
     videoSetModeSub(MODE_5_2D);
     vramSetBankA(VRAM_A_MAIN_BG);
@@ -487,6 +578,7 @@ int main(int argc, char **argv)
             }
         }
         if (app.configuration_reload_requested) {
+            stop_update_checker();
             stop_launcher_audio();
             for (int i = 0; i < 3; i++)
                 audio_free_clip(&app.audio.effects[i]);
@@ -572,6 +664,7 @@ int main(int argc, char **argv)
             } else if (app_save(&app) && system_title_request(request, native)) {
                 unsigned char autoload[0x400];
                 system_title_autoload(autoload, native);
+                stop_update_checker();
                 stop_launcher_audio();
                 memcpy((void *)0x02000300, request, sizeof request);
                 memcpy((void *)0x02000800, autoload, sizeof autoload);
@@ -603,6 +696,7 @@ int main(int argc, char **argv)
                     system_catalog_scan(&app.system_catalog, "nand:/");
                 unsigned char autoload[0x400];
                 system_title_autoload(autoload, &app.system_catalog.launcher);
+                stop_update_checker();
                 stop_launcher_audio();
                 memcpy((void *)0x02000300, request, sizeof request);
                 memcpy((void *)0x02000800, autoload, sizeof autoload);
@@ -625,6 +719,7 @@ int main(int argc, char **argv)
             } else {
                 /* A request is not proof the launched application started. */
                 dashboard_record_request(&app, app.launch.content);
+                stop_update_checker();
                 stop_launcher_audio();
                 bool prepared = bootstrap_commit(app.root, &app.launch, app.message);
                 if (!prepared) {
@@ -642,6 +737,7 @@ int main(int argc, char **argv)
             }
         }
         update_console_status();
+        update_checker_tick();
         slot1_tick(&app, &slot1_probe, &slot1_operations);
         update_launcher_audio();
         app_tick(&app);
@@ -656,6 +752,7 @@ int main(int argc, char **argv)
         swiWaitForVBlank();
         dmaCopy(top, bgGetGfxPtr(mainbg), sizeof top);
         dmaCopy(bottom, bgGetGfxPtr(subbg), sizeof bottom);
+        cothread_yield();
     }
     return 0;
 }

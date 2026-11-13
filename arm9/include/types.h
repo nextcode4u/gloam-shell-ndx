@@ -2,6 +2,7 @@
 #define FRONTEND_TYPES_H
 #include "font_pack.h"
 #include "ui_strings.h"
+#include "update_checker.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -308,6 +309,7 @@ typedef struct {
     int tab_count, tab_scroll;
     bool rail_focus, configuration_reload_requested, startup_cancelled, startup_due;
     bool advanced_settings, simple_settings_lock;
+    UpdateState updates;
     int auto_launch_delay;
     unsigned startup_countdown;
     int rail_selected, rail_saved_scroll;
