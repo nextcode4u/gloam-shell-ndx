@@ -74,9 +74,20 @@ A, or cancel with B. The packages are ready to copy; no build step is needed.
 | Glacier | Polar research outpost beneath an aurora. | Ice-blue panels and larger grid tiles. |
 | Garnet | Rose window and candlelit gothic hall. | Burgundy surfaces and a text-first browser. |
 
-All eleven packs include original native-resolution illustrations. Their scene
-layouts expose the illustration above a separate live item inspector and tab
-strip. Icons, cover art, labels and status remain live; none are baked into the
+All eleven packs include original native-resolution illustrations, with four
+screen compositions chosen to suit their character:
+
+- **Scene — Copper, Nocturne, Tide and Garnet:** illustration above a compact
+  inspector and horizontal tabs. Tide uses a larger thumbnail; Garnet a portrait
+  framed thumbnail beside its rose window.
+- **Poster — Eclipse, Prism and Ember:** large artwork beside title details,
+  with horizontal tabs below.
+- **Left sidebar — Folio and Glacier:** navigation on the left, artwork and
+  information on the right.
+- **Right sidebar — Slate and Phosphor:** artwork and information on the left,
+  with a persistent tab list on the right.
+
+Icons, cover art, labels and status remain live; none are baked into the
 background. Ordinary dialogs keep a shaded reading surface. Personal view,
 audio and Reduced motion preferences still apply.
 
@@ -308,8 +319,7 @@ settings values and other dialog text retain their established palette roles;
 check these against the selected component artwork too. PNG colors are not
 recolored by palette or accent changes.
 
-The bundled packs demonstrate Scene; right/left rails and Poster remain available
-for personal themes. These compositions
+The bundled packs demonstrate Scene, both sidebar directions and Poster. These compositions
 work with all browser views and do not change bottom-screen touch targets.
 
 ## Theme icon packs
