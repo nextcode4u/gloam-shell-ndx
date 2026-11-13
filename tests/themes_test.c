@@ -24,6 +24,14 @@ int main(int argc, char **argv)
 {
     assert(argc == 2);
     const char *root = argv[1];
+    assert(themes_battery_component(-1, false) == THEME_BATTERY_UNKNOWN);
+    assert(themes_battery_component(16, false) == THEME_BATTERY_UNKNOWN);
+    assert(themes_battery_component(0, false) == THEME_BATTERY_EMPTY);
+    assert(themes_battery_component(1, false) == THEME_BATTERY_LOW);
+    assert(themes_battery_component(7, false) == THEME_BATTERY_HALF);
+    assert(themes_battery_component(11, false) == THEME_BATTERY_HIGH);
+    assert(themes_battery_component(15, false) == THEME_BATTERY_FULL);
+    assert(themes_battery_component(0, true) == THEME_BATTERY_CHARGING);
     app_init(&app, root, true, true);
     char manifest[PATH_CAP];
     assert(path_join(manifest, root, "_nds/dsi-frontend/themes/copper/theme.ini"));
@@ -40,6 +48,7 @@ int main(int argc, char **argv)
     assert(app.themes.count == 4 && app.themes.ready);
     themes_move(&app, 1);
     assert(!strcmp(app.themes.candidate.id, "copper") && app.themes.candidate.external_font);
+    assert(!strcmp(app.themes.candidate.header, "GLOAM / COPPER"));
     assert(!memcmp(&original, &app.themes.active, sizeof original) && !app.preferences_dirty);
     assert(memcmp(&original.font, &app.themes.candidate.font, sizeof original.font));
     assert(app.themes.candidate.top_layout == 1 && app.themes.candidate.minimal_chrome);
@@ -186,6 +195,16 @@ int main(int argc, char **argv)
         themes_open(&app);
         themes_move(&app, 3);
         assert(!app.themes.ready);
+        themes_cancel(&app);
+    }
+    const char *headers[] = {"", "My library"};
+    for (unsigned i = 0; i < 2; i++) {
+        char content[160];
+        snprintf(content, sizeof content, "[theme]\nversion=1\nheader=%s\n", headers[i]);
+        write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
+        themes_open(&app);
+        themes_move(&app, 3);
+        assert(app.themes.ready && !strcmp(app.themes.candidate.header, headers[i]));
         themes_cancel(&app);
     }
     const char *bad_components[] = {"directory=../escape", "border=13", "border=-1", "border=bad"};

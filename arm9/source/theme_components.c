@@ -12,7 +12,11 @@ typedef struct {
 } ComponentBank;
 static ComponentBank banks[2];
 static const char *const names[THEME_COMPONENT_COUNT] = {
-    "header", "footer", "panel", "row-selected", "tab-selected", "card", "card-selected"};
+    "header",          "footer",        "panel",         "row-selected",
+    "tab-selected",    "card",          "card-selected", "row",
+    "icon-frame",      "artwork-frame", "battery-empty", "battery-low",
+    "battery-half",    "battery-high",  "battery-full",  "battery-charging",
+    "battery-unknown", "wireless-idle"};
 
 static void clear_bank(ComponentBank *bank)
 {
@@ -57,4 +61,21 @@ const uint16_t *themes_component(const ThemePackage *package, ThemeComponent com
         if (!strcmp(package->component_directory, banks[i].directory))
             return banks[i].images[component];
     return NULL;
+}
+
+ThemeComponent themes_battery_component(int level, bool charging)
+{
+    if (charging)
+        return THEME_BATTERY_CHARGING;
+    if (level < 0 || level > 15)
+        return THEME_BATTERY_UNKNOWN;
+    if (level == 0)
+        return THEME_BATTERY_EMPTY;
+    if (level <= 3)
+        return THEME_BATTERY_LOW;
+    if (level <= 7)
+        return THEME_BATTERY_HALF;
+    if (level <= 11)
+        return THEME_BATTERY_HIGH;
+    return THEME_BATTERY_FULL;
 }

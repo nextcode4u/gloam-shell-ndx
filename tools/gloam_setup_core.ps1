@@ -568,7 +568,7 @@ function Test-GloamTheme([string]$Source) {
     }
     $imageSets=@{
         icons=@('file','folder','game','application','audio','video','book','text','image','save','config','archive','shortcut','system','missing','settings','camera','sound','pictochat','download-play','system-menu','slot1')
-        components=@('header','footer','panel','row-selected','tab-selected','card','card-selected')
+        components=@('header','footer','panel','row-selected','tab-selected','card','card-selected','row','icon-frame','artwork-frame','battery-empty','battery-low','battery-half','battery-high','battery-full','battery-charging','battery-unknown','wireless-idle')
     }
     foreach ($section in @('icons','components')) { if ($data.Contains($section) -and $data[$section].Contains('directory')) {
         try {

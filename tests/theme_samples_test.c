@@ -148,6 +148,13 @@ int main(int argc, char **argv)
                     }
                 }
         }
+        for (int level = -1; level <= 16; level++) {
+            app.battery_level = level;
+            app.battery_charging = false;
+            draw();
+            app.battery_charging = true;
+            draw();
+        }
         app.advanced_settings = true;
         settings_open(&app);
         for (int section = 0; section < SETTINGS_SECTION_COUNT; section++) {

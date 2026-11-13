@@ -331,12 +331,28 @@ The icons are CC0; each package includes a credit notice.
 builds reject unknown theme sections. Update `BOOT.NDS` with these theme packages;
 existing third-party themes without `[icons]` continue to use built-in symbols.
 
-## Header label
+## Header and console status
 
-Set `header=My library` in `[theme]` to replace the top-screen Gloam label.
-Omit it for `GLOAM SHELL NDX`, or leave it empty to hide that text. The limit
-is 63 UTF-8 bytes; longer visible text loops inside its reserved width unless
-Reduced motion is enabled. Recovery always displays `RECOVERY`.
+```ini
+[theme]
+version=1
+name=My theme
+header=My library
+```
+
+`header` replaces the top-screen Gloam label. Omit it for `GLOAM SHELL NDX`, or
+use an empty value to hide that text. The limit is 63 UTF-8 bytes; long labels
+loop within their reserved width, while Reduced motion keeps them static.
+Recovery always displays `RECOVERY`. Battery, wireless and tab position retain
+reserved space on the right, independently of the header text.
+
+Battery sprites reflect the raw hardware levels, grouped into empty/low/half/high/
+full, with separate charging and unknown states. They are not a percentage or a
+runtime estimate. Gloam currently does not establish a Wi-Fi connection:
+`wireless-idle.png` means **not connected by Gloam**, not radio power-off or a
+hardware switch reading. It never claims signal strength from an LED or saved
+credentials. Missing status sprites use built-in readable symbols. Status art is
+shown on the main browser header; dialog titles retain their existing space.
 
 ## Modular UI artwork
 
@@ -358,12 +374,19 @@ Inside that package-local directory, supply any of these **32×32 PNGs**:
 | `header.png` | Browser and dialog headings on both screens. |
 | `footer.png` | Bottom control/status bands on both screens. |
 | `panel.png` | Quick-controls and item-action overlay surfaces. |
+| `row.png` | Ordinary browser rows; drawn beneath the moving selection. |
+| `icon-frame.png` | Transparent bezel around native/associated browser icons. |
+| `artwork-frame.png` | Transparent frame around resolved top-screen artwork. |
+| `battery-empty.png`, `battery-low.png`, `battery-half.png`, `battery-high.png`, `battery-full.png` | Battery level sprites. |
+| `battery-charging.png`, `battery-unknown.png` | Charging or unavailable battery reading. |
+| `wireless-idle.png` | No active connection established by Gloam. |
 | `row-selected.png` | Selected browser rows, settings, pickers and editors. |
 | `tab-selected.png` | The active top-screen tab and the theme preview's selection sample. |
 | `card.png` | Unselected Grid/Shelf cells and the top-screen cover placeholder. |
 | `card-selected.png` | Selected Grid/Shelf cell. |
 
-Images use **nine-slice scaling**: four corners stay at their authored size;
+Status sprites scale as a whole from 32×32 to 16×16; keep their design bold enough
+to read at that size. Other images use **nine-slice scaling**: four corners stay at their authored size;
 the four edges stretch in one direction and the center stretches in both.
 `border` specifies the source corner width (0–12 pixels, default 8). Zero stretches
 the whole image. When a destination is too small for both corners, the corners
@@ -391,8 +414,8 @@ uses beveled edges. Regenerate them with:
 .venv/bin/python tools/make_theme_components.py --check
 ```
 
-Components decode only when loading or previewing a theme. Seven complete images
-use 14 KiB, or 28 KiB with a second preview bank. No scripts, filesystem reads or
+Components decode only when loading or previewing a theme. Eighteen complete images
+use 36 KiB, or 72 KiB with a second preview bank. No scripts, filesystem reads or
 image decoding run in drawing. Recovery bypasses external components. The desktop
 setup tool previews and validates them along with icons. Older builds reject the
 new section: update `BOOT.NDS` together with these theme packs.

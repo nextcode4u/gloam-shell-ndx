@@ -15,8 +15,20 @@ typedef enum {
     THEME_TAB_SELECTED,
     THEME_CARD,
     THEME_CARD_SELECTED,
+    THEME_ROW,
+    THEME_ICON_FRAME,
+    THEME_ARTWORK_FRAME,
+    THEME_BATTERY_EMPTY,
+    THEME_BATTERY_LOW,
+    THEME_BATTERY_HALF,
+    THEME_BATTERY_HIGH,
+    THEME_BATTERY_FULL,
+    THEME_BATTERY_CHARGING,
+    THEME_BATTERY_UNKNOWN,
+    THEME_WIRELESS_IDLE,
     THEME_COMPONENT_COUNT
 } ThemeComponent;
+ThemeComponent themes_battery_component(int level, bool charging);
 void themes_components_load(const ThemePackage *package, bool preview);
 void themes_components_accept(void);
 void themes_components_cancel(void);

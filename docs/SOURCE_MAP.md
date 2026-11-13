@@ -122,3 +122,8 @@ Top-screen theme compositions live in `ui/renderer.c`: content and navigation
 use independent offsets for left/right rails; Poster has a separate artwork/tab
 composition and preserves the existing information and Index views. Wallpaper
 strength and the reading-surface opacity are preblended by `theme_backgrounds.c`.
+
+Theme header labels and battery/disconnected-wireless sprites use prepared theme
+state. `theme_components.c` maps cached battery readings to artwork states;
+`ui/theme_components.c` draws those sprites. Gloam does not initialize a network
+connection or infer signal strength from the wireless LED.

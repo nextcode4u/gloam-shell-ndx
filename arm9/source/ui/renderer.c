@@ -196,6 +196,8 @@ static void draw_poster(const App *app, uint16_t *pixels, Palette colors)
         if (height < 1)
             height = 1;
         int x = 10 + (108 - width) / 2, y = 48 + (104 - height) / 2;
+        draw_theme_component(theme, pixels, THEME_ARTWORK_FRAME, x - 2, y - 2, width + 4,
+                             height + 4);
         for (int yy = 0; yy < height; yy++)
             for (int xx = 0; xx < width; xx++)
                 pixels[(y + yy) * 256 + x + xx] =
@@ -240,8 +242,9 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
                   app->browser_style != BROWSER_INDEX;
     themes_background_draw(&app->themes.active, 0, pixels);
     draw_theme_chrome(&app->themes.active, pixels, 22);
-    draw_text_scrolling(pixels, 10, 7, app->recovery_mode ? "RECOVERY" : theme->header,
-                        colors.text, 138, app->frame_count, !app->reduced_motion);
+    draw_text_scrolling(pixels, 10, 7, app->recovery_mode ? "RECOVERY" : theme->header, colors.text,
+                        138, app->frame_count, !app->reduced_motion);
+    draw_theme_status(app, pixels);
     char tab_position[16];
     snprintf(tab_position, sizeof tab_position, "%d/%d", app->category + 1, app->tab_count);
     draw_text(pixels, 205, 7, tab_position, colors.muted, 6);
@@ -281,7 +284,9 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
             }
             x = offset + 15 + (96 - w) / 2;
             y = 53 + (104 - h) / 2;
-            draw_rectangle(pixels, x + 3, y + 3, w, h, colors.line);
+            if (!draw_theme_component(theme, pixels, THEME_ARTWORK_FRAME, x - 2, y - 2, w + 4,
+                                      h + 4))
+                draw_rectangle(pixels, x + 3, y + 3, w, h, colors.line);
             for (int yy = 0; yy < h; yy++)
                 for (int xx = 0; xx < w; xx++)
                     pixels[(y + yy) * 256 + x + xx] =
@@ -489,6 +494,8 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
 static void draw_browser_icon(const App *app, uint16_t *pixels, int index, int x, int y, int size,
                               uint16_t color)
 {
+    draw_theme_component(&app->themes.active, pixels, THEME_ICON_FRAME, x - 2, y - 2, size + 4,
+                         size + 4);
     const BrowserIcon *icon = icons_for_entry(app, index);
     if (icon) {
         const uint16_t *image = icon->pixels;
@@ -687,6 +694,10 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
             draw_grid(app, bottom, colors);
         else {
             int sy = list_top + app->selection_y_fixed / 256;
+            for (int row = 0; row < visible_rows && location->scroll + row < app->entry_count;
+                 row++)
+                draw_theme_component(&app->themes.active, bottom, THEME_ROW, 6,
+                                     list_top + row * row_height, 244, row_height);
             draw_theme_selection(&app->themes.active, bottom, 6, sy, 244, row_height);
             for (int row = 0; row < visible_rows; row++) {
                 int i = location->scroll + row;

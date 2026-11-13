@@ -53,3 +53,44 @@ void draw_theme_chrome(const ThemePackage *package, uint16_t *pixels, int header
     draw_theme_component(package, pixels, THEME_HEADER, 4, 2, 248, header_height);
     draw_theme_component(package, pixels, THEME_FOOTER, 4, 176, 248, 16);
 }
+
+/* Status artwork scales as a whole sprite, never as a nine-slice panel. */
+static bool status_sprite(const ThemePackage *package, uint16_t *pixels, ThemeComponent component,
+                          int x)
+{
+    const uint16_t *image = themes_component(package, component);
+    if (!image)
+        return false;
+    for (int y = 0; y < 16; y++)
+        for (int xx = 0; xx < 16; xx++) {
+            uint16_t color = image[y * 2 * 32 + xx * 2];
+            if (color & 0x8000)
+                pixels[(y + 4) * 256 + x + xx] = color;
+        }
+    return true;
+}
+void draw_theme_status(const App *app, uint16_t *pixels)
+{
+    const ThemePackage *package = &app->themes.active;
+    ThemeComponent battery = themes_battery_component(app->battery_level, app->battery_charging);
+    if (!status_sprite(package, pixels, battery, 154)) {
+        uint16_t color = battery == THEME_BATTERY_EMPTY || battery == THEME_BATTERY_LOW
+                             ? package->palette.accent
+                             : package->palette.muted;
+        draw_rectangle(pixels, 154, 7, 14, 9, color);
+        draw_rectangle(pixels, 156, 9, 10, 5, package->palette.bg);
+        draw_rectangle(pixels, 168, 10, 2, 3, color);
+        if (battery == THEME_BATTERY_UNKNOWN)
+            draw_text(pixels, 158, 6, "?", color, 1);
+        else if (app->battery_charging)
+            draw_text(pixels, 158, 6, "+", color, 1);
+        else if (app->battery_level > 0)
+            draw_rectangle(pixels, 156, 9, (app->battery_level * 10 + 14) / 15, 5, color);
+    }
+    /* Gloam does not establish a network connection. Do not invent signal bars
+     * from the wireless LED, saved credentials or another title's state. */
+    if (!status_sprite(package, pixels, THEME_WIRELESS_IDLE, 176)) {
+        draw_text(pixels, 176, 6, "W", package->palette.muted, 1);
+        draw_rectangle(pixels, 184, 14, 6, 1, package->palette.muted);
+    }
+}
