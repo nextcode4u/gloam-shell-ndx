@@ -13,4 +13,16 @@ void path_default_category(char output[PATH_CAP], const char *root, int category
 bool path_resolve_sd(char output[PATH_CAP], const char *root, const char *value);
 bool path_preferences_file(char output[PATH_CAP], const char *root, const char *filename);
 bool path_prepare_preferences_directory(const char *root);
+typedef enum {
+    FILE_COMMIT_OK,
+    FILE_COMMIT_INSPECT,
+    FILE_COMMIT_REMOVE_BACKUP,
+    FILE_COMMIT_BACKUP,
+    FILE_COMMIT_INSTALL,
+    FILE_COMMIT_RESTORE
+} FileCommitResult;
+/* Commit a fully written, closed temporary file using FAT-safe rename rules.
+ * Preserve errno on failure and retain a lone backup across retries.
+ * This is recoverable replacement, not power-loss atomicity. */
+FileCommitResult path_commit_file(const char *temporary, const char *current, const char *backup);
 #endif

@@ -61,13 +61,8 @@ bool diagnostics_record_launch(const App *app, LaunchReportStage stage, const ch
         remove(temporary);
         return false;
     }
-    remove(backup);
-    bool existed = rename(path, backup) == 0;
-    if (rename(temporary, path)) {
-        if (existed)
-            rename(backup, path);
+    if (path_commit_file(temporary, path, backup) != FILE_COMMIT_OK)
         return false;
-    }
     return true;
 }
 
@@ -129,12 +124,7 @@ bool diagnostics_export(const App *app)
         remove(temporary);
         return false;
     }
-    remove(backup);
-    bool existed = rename(path, backup) == 0;
-    if (rename(temporary, path)) {
-        if (existed)
-            rename(backup, path);
+    if (path_commit_file(temporary, path, backup) != FILE_COMMIT_OK)
         return false;
-    }
     return true;
 }

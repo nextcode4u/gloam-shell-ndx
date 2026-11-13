@@ -14,13 +14,8 @@ static const int section_capacity[] = {5, TAB_CAP - CATEGORY_COUNT, FAVORITE_CAP
 
 static bool replace_file(const char *current, const char *temporary, const char *backup)
 {
-    remove(backup);
-    bool existed = rename(current, backup) == 0;
-    if (rename(temporary, current)) {
-        if (existed)
-            rename(backup, current);
+    if (path_commit_file(temporary, current, backup) != FILE_COMMIT_OK)
         return false;
-    }
     return true;
 }
 static bool paths(const App *app, const char *stem, char current[PATH_CAP],

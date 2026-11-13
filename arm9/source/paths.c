@@ -108,3 +108,32 @@ bool path_prepare_preferences_directory(const char *root)
         return false;
     return path_join(directory, root, FRONTEND_DATA_DIRECTORY) && ensure_directory(directory);
 }
+
+FileCommitResult path_commit_file(const char *temporary, const char *current, const char *backup)
+{
+    if (!strcmp(temporary, current) || !strcmp(temporary, backup) || !strcmp(current, backup)) {
+        errno = EINVAL;
+        return FILE_COMMIT_INSPECT;
+    }
+    struct stat status;
+    bool exists = stat(current, &status) == 0;
+    if (!exists && errno != ENOENT)
+        return FILE_COMMIT_INSPECT;
+    if (exists) {
+        if (!S_ISREG(status.st_mode)) {
+            errno = EINVAL;
+            return FILE_COMMIT_INSPECT;
+        }
+        if (remove(backup) && errno != ENOENT)
+            return FILE_COMMIT_REMOVE_BACKUP;
+        if (rename(current, backup))
+            return FILE_COMMIT_BACKUP;
+    }
+    if (rename(temporary, current)) {
+        int error = errno;
+        bool restored = !exists || !rename(backup, current);
+        errno = error;
+        return restored ? FILE_COMMIT_INSTALL : FILE_COMMIT_RESTORE;
+    }
+    return FILE_COMMIT_OK;
+}

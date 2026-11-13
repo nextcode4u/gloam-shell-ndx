@@ -44,6 +44,10 @@ functions enforce `simple_settings_lock` for controller navigation and rendering
 while existing state files without a mode retain Advanced. Hidden technical
 values are preserved rather than reset.
 
+`paths.c` also owns the shared FAT-safe file replacement routine used by settings,
+per-game options, cheats, item overrides, dashboard records and exports. It stops
+on backup-rotation errors and preserves recovery copies across failed retries.
+
 Configuration import and reset retain rollback data before changing settings.
 Do not replace them with recursive deletion of frontend folders: installed
 assets and game saves are outside the reset scope.

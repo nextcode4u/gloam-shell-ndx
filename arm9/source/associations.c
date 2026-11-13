@@ -436,13 +436,8 @@ static bool write_user(App *app, const char *extension, const char *application,
         remove(temporary);
         return false;
     }
-    remove(backup);
-    bool existed = rename(current, backup) == 0;
-    if (rename(temporary, current)) {
-        if (existed)
-            rename(backup, current);
+    if (path_commit_file(temporary, current, backup) != FILE_COMMIT_OK)
         return false;
-    }
     associations_load(app);
     return true;
 }

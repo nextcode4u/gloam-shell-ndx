@@ -300,13 +300,8 @@ static bool export_to(const char *base, const char *output, RecordList *list)
     char backup[PATH_CAP];
     if (snprintf(backup, sizeof backup, "%s.bak", output) >= (int)sizeof backup)
         return false;
-    remove(backup);
-    bool existed = rename(output, backup) == 0;
-    if (rename(temporary, output)) {
-        if (existed)
-            rename(backup, output);
+    if (path_commit_file(temporary, output, backup) != FILE_COMMIT_OK)
         return false;
-    }
     return true;
 }
 bool configuration_inspect(const char *path, unsigned *count, char error[160])

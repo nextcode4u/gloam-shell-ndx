@@ -132,13 +132,8 @@ bool game_options_write(const char *root, const char *path, const GameOptions *o
         remove(temporary);
         return false;
     }
-    remove(backup);
-    bool had_current = rename(current, backup) == 0;
-    if (rename(temporary, current)) {
-        if (had_current)
-            rename(backup, current);
+    if (path_commit_file(temporary, current, backup) != FILE_COMMIT_OK)
         return false;
-    }
     return true;
 }
 void game_options_effective(const char *root, const char *path, GameOptions *options)

@@ -113,12 +113,7 @@ bool item_preferences_save(const char *root, const char *content, const ItemPref
         remove(temporary);
         return false;
     }
-    remove(backup);
-    bool had_current = rename(path, backup) == 0;
-    if (rename(temporary, path)) {
-        if (had_current)
-            rename(backup, path);
+    if (path_commit_file(temporary, path, backup) != FILE_COMMIT_OK)
         return false;
-    }
     return true;
 }

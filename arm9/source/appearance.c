@@ -60,13 +60,8 @@ bool appearance_save(App *app, int slot)
         remove(temporary);
         return false;
     }
-    remove(backup);
-    bool existed = rename(current, backup) == 0;
-    if (rename(temporary, current)) {
-        if (existed)
-            rename(backup, current);
+    if (path_commit_file(temporary, current, backup) != FILE_COMMIT_OK)
         return false;
-    }
     return true;
 }
 static bool read_preset(App *app, const char *path)

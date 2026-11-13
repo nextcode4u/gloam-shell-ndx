@@ -116,6 +116,8 @@ int main(int argc, char **argv)
     expect(backup, "original\n");
     assert(app_save(&app)); /* Repeated saves with FAT rename behavior. */
     expect(backup, "version=1\n");
+    assert(path_commit_file(current, current, backup) == FILE_COMMIT_INSPECT);
+    expect(current, "version=1\n");
     puts("PASS: FAT save rotation, read-only/full-disk errors, rollback and recovery-copy "
          "preservation");
 }

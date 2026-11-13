@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 
 static void read_location(App *app, const char *line, bool reset_locations[TAB_CAP])
 {
@@ -349,26 +348,15 @@ bool app_save(App *app)
         return save_failed(app, "write state.tmp", write_error);
     }
 
-    /* FAT rename cannot replace a destination. Never continue after a failed
-     * backup rotation, or delete a recovery copy when state.ini is absent. */
-    struct stat status;
-    bool had_current = stat(current, &status) == 0;
-    if (!had_current && errno != ENOENT)
-        return save_failed(app, "inspect state.ini", errno);
-    if (had_current) {
-        if (!S_ISREG(status.st_mode))
-            return save_failed(app, "state.ini is not a file", EINVAL);
-        if (remove(backup) != 0 && errno != ENOENT)
-            return save_failed(app, "remove old state.bak", errno);
-        if (rename(current, backup) != 0)
-            return save_failed(app, "back up state.ini", errno);
-    }
-    if (rename(temporary, current) != 0) {
-        int error = errno;
-        if (had_current && rename(backup, current) != 0)
-            return save_failed(app, "install state.ini; old settings kept in state.bak", error);
-        return save_failed(app, "install state.ini", error);
-    }
+    FileCommitResult result = path_commit_file(temporary, current, backup);
+    static const char *operations[] = {"",
+                                       "inspect state.ini",
+                                       "remove old state.bak",
+                                       "back up state.ini",
+                                       "install state.ini",
+                                       "install state.ini; old settings kept in state.bak"};
+    if (result != FILE_COMMIT_OK)
+        return save_failed(app, operations[result], errno);
     app->preferences_dirty = false;
     return true;
 }

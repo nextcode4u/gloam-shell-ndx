@@ -357,12 +357,7 @@ bool cheats_save(const CheatState *state, const char *root)
         remove(temporary);
         return false;
     }
-    remove(backup);
-    bool had_current = rename(current, backup) == 0;
-    if (rename(temporary, current)) {
-        if (had_current)
-            rename(backup, current);
+    if (path_commit_file(temporary, current, backup) != FILE_COMMIT_OK)
         return false;
-    }
     return true;
 }
