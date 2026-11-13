@@ -1,8 +1,20 @@
 #include "update_checker.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
+int __real_rename(const char *, const char *);
+int __wrap_rename(const char *from, const char *to)
+{
+    if (!access(to, F_OK)) {
+        errno = EEXIST; /* FatFs refuses to replace an existing file. */
+        return -1;
+    }
+    return __real_rename(from, to);
+}
 
 static char response[UPDATE_RESPONSE_CAP];
 static bool parse(const char *json, char tag[UPDATE_TAG_CAP])
@@ -71,6 +83,10 @@ int main(int argc, char **argv)
     assert(restored.available && restored.checked_at == 100000 && !restored.busy);
     update_complete(&restored, argv[1], GLOAM_VERSION, 100003);
     assert(!restored.available);
+    UpdateState second_restart = {.enabled = true};
+    update_cache_load(&second_restart, argv[1]);
+    assert(second_restart.checked_at == 100003 && !second_restart.available);
+    assert(!strcmp(second_restart.latest, GLOAM_VERSION));
     restored.enabled = false;
     restored.requested = true;
     assert(!update_should_start(&restored, 2000, 200, true, 100004));

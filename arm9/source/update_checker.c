@@ -249,9 +249,10 @@ void update_complete(UpdateState *state, const char *root, const char *tag, time
     state->checked_at = now;
     snprintf(state->status, sizeof state->status, "%s",
              state->available ? "Update available" : "Up to date");
-    char path[PATH_CAP], temporary[PATH_CAP];
+    char path[PATH_CAP], temporary[PATH_CAP], backup[PATH_CAP];
     if (!path_join(path, root, "_nds/dsi-frontend/update-cache.txt") ||
-        !path_join(temporary, root, "_nds/dsi-frontend/update-cache.tmp"))
+        !path_join(temporary, root, "_nds/dsi-frontend/update-cache.tmp") ||
+        !path_join(backup, root, "_nds/dsi-frontend/update-cache.bak"))
         return;
     FILE *f = fopen(temporary, "w");
     if (!f)
@@ -260,5 +261,5 @@ void update_complete(UpdateState *state, const char *root, const char *tag, time
     if (fclose(f))
         written = false;
     if (written)
-        rename(temporary, path);
+        path_commit_file(temporary, path, backup);
 }

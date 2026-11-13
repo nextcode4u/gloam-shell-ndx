@@ -290,7 +290,7 @@ ASAN_OPTIONS=detect_leaks=1 build/host/collections-test "$fixture/collections"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     arm9/source/update_checker.c arm9/source/paths.c tests/update_checker_test.c \
-    -o build/host/update-checker-test
+    -Wl,--wrap=rename -o build/host/update-checker-test
 mkdir -p "$fixture/update-checker/_nds/dsi-frontend"
 ASAN_OPTIONS=detect_leaks=1 build/host/update-checker-test "$fixture/update-checker"
 
