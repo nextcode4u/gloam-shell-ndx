@@ -5,6 +5,10 @@
 #include "preferences.h"
 #include "renderer.h"
 #include "settings.h"
+#include "themes.h"
+#ifdef __GLIBC__
+#include <malloc.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,6 +57,30 @@ int main(int argc, char **argv)
     app.panel_age = 20;
     artwork_load(&app);
     if (profile) {
+        unsigned cycles = argc > 5 ? (unsigned)strtoul(argv[5], NULL, 10) : 0;
+        if (cycles > 1000)
+            return 2;
+        size_t heap_warm = 0, heap_end = 0, heap_peak = 0;
+        for (unsigned cycle = 0; cycle < cycles; cycle++) {
+            themes_open(&app);
+            themes_move(&app, (int)(cycle % (unsigned)app.themes.count) - app.themes.selected);
+            themes_apply(&app);
+            for (unsigned step = 0; step < 32; step++) {
+                if (app.entry_count)
+                    app_move(&app, (int)(((cycle * 32 + step) * 17) % (unsigned)app.entry_count) -
+                                       app.locations[app.category].selected);
+                for (unsigned frame = 0; frame < 8; frame++)
+                    app_tick(&app);
+                render_app(&app, top, bottom, "22:30");
+            }
+#ifdef __GLIBC__
+            heap_end = mallinfo2().uordblks;
+            if (cycle == 11)
+                heap_warm = heap_end;
+            if (heap_end > heap_peak)
+                heap_peak = heap_end;
+#endif
+        }
         double ready = milliseconds(), slowest = 0;
         for (int frame = 0; frame < 300; frame++) {
             double begin = milliseconds();
@@ -63,9 +91,11 @@ int main(int argc, char **argv)
             app.frame_count++;
         }
         printf("{\"prepare_ms\":%.3f,\"render_mean_ms\":%.4f,\"render_max_ms\":%.4f,"
-               "\"app_state_bytes\":%zu,\"framebuffer_bytes\":%zu,\"visible_batch_items\":%d}\n",
+               "\"app_state_bytes\":%zu,\"framebuffer_bytes\":%zu,\"visible_batch_items\":%d,"
+               "\"cycles\":%u,\"heap_warm_bytes\":%zu,"
+               "\"heap_end_bytes\":%zu,\"sampled_heap_peak_bytes\":%zu}\n",
                ready - started, (milliseconds() - ready) / 300, slowest, sizeof app,
-               sizeof top + sizeof bottom, app.entry_count);
+               sizeof top + sizeof bottom, app.entry_count, cycles, heap_warm, heap_end, heap_peak);
         return 0;
     }
     /* Rendering uses native SD paths; host fixture locations are private. */

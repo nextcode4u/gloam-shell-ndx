@@ -186,3 +186,10 @@ itself as an update. Source packages retain the same identity for rebuilds.
 For existing installations updated using only BOOT.NDS, also install
 `/_nds/dsi-frontend/update-ca.pem` from the SD package to enable HTTPS checks.
 Without that trust bundle, checks fail quietly and browsing still works.
+
+For mixed suffixes, sidecar images and nested folders, use
+`python3 tools/profile_frontend.py --items 10000 --mixed --cycles 36`.
+Cycles exercise repeated theme changes and selection movement. On glibc hosts,
+heap samples report retained allocations after warm-up, at the end and the
+largest sampled value; these exclude transient peaks between samples and are
+not DS memory measurements.
