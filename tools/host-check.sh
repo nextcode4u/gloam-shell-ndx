@@ -231,7 +231,7 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
 mkdir "$fixture/dsiware"
 ASAN_OPTIONS=detect_leaks=1 build/host/dsiware-test "$fixture/dsiware"
 if command -v fsck.fat >/dev/null; then
-    for volume in "$fixture/dsiware"/volume-*.pub; do
+    for volume in "$fixture/dsiware"/volume-*.prv; do
         fsck.fat -n "$volume" >> build/host/dsiware-fsck.log
     done
 fi

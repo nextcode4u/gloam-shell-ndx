@@ -24,6 +24,50 @@ static uint16_t crc16(const unsigned char *p, unsigned bytes)
     }
     return crc;
 }
+static unsigned get16(const unsigned char *p)
+{
+    return p[0] | ((unsigned)p[1] << 8);
+}
+static unsigned get32(const unsigned char *p)
+{
+    return get16(p) | (get16(p + 2) << 16);
+}
+static void verify_volume(const char *path, unsigned bytes)
+{
+    unsigned char boot[512], first[512], second[512];
+    FILE *file = fopen(path, "rb");
+    assert(file && fread(boot, 1, sizeof boot, file) == sizeof boot);
+    unsigned sectors = get16(boot + 19);
+    if (!sectors)
+        sectors = get32(boot + 32);
+    unsigned fat = get16(boot + 22), roots = (get16(boot + 17) * 32 + 511) / 512;
+    unsigned data_start = get16(boot + 14) + boot[16] * fat + roots;
+    assert(sectors * 512 == bytes && get16(boot + 11) == 512 && boot[16] == 2);
+    assert(boot[13] && !(boot[13] & (boot[13] - 1)) && data_start < sectors);
+    unsigned clusters = (sectors - data_start) / boot[13];
+    assert(clusters && clusters < 4085 && ((clusters + 2) * 3 + 1) / 2 <= fat * 512);
+    for (unsigned sector = 0; sector < fat; sector++) {
+        assert(!fseek(file, (1 + sector) * 512, SEEK_SET));
+        assert(fread(first, 1, 512, file) == 512);
+        assert(!fseek(file, (1 + fat + sector) * 512, SEEK_SET));
+        assert(fread(second, 1, 512, file) == 512 && !memcmp(first, second, 512));
+        for (unsigned i = 0; i < 512; i++)
+            assert(first[i] == (!sector && i < 3 ? (i ? 0xFF : 0xF8) : 0));
+    }
+    assert(!fseek(file, (1 + 2 * fat) * 512, SEEK_SET));
+    for (unsigned i = 0; i < roots * 512; i++)
+        assert(fgetc(file) == 0);
+    assert(!fclose(file));
+    /* Data at both ends of a private volume survives a repeated prepare. */
+    file = fopen(path, "r+b");
+    assert(file && !fseek(file, data_start * 512, SEEK_SET) && fputc(0xA7, file) == 0xA7);
+    assert(!fseek(file, bytes - 1, SEEK_SET) && fputc(0x42, file) == 0x42 && !fclose(file));
+    char error[160] = "";
+    assert(dsiware_create_save(path, bytes, error));
+    file = fopen(path, "rb");
+    assert(file && !fseek(file, data_start * 512, SEEK_SET) && fgetc(file) == 0xA7);
+    assert(!fseek(file, bytes - 1, SEEK_SET) && fgetc(file) == 0x42 && !fclose(file));
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -117,14 +161,14 @@ int main(int argc, char **argv)
     plan.options.values[GAME_MODE] = 1;
     put32(binary + 0x238, 12345);
     assert(!dsiware_prepare(&app, target, binary, &plan, error));
-    const unsigned sizes[] = {4096, 65536, 524288, 1048576, 16777216, 33554432};
-    for (unsigned i = 0; i < sizeof sizes / sizeof *sizes; i++) {
+    for (unsigned bytes = 4096; bytes <= 33554432; bytes *= 2) {
         char name[32];
-        snprintf(name, sizeof name, "volume-%u.pub", sizes[i]);
+        snprintf(name, sizeof name, "volume-%u.prv", bytes);
         assert(path_join(path, root, name));
-        assert(dsiware_create_save(path, sizes[i], error));
+        assert(dsiware_create_save(path, bytes, error));
         struct stat status;
-        assert(!stat(path, &status) && (uint64_t)status.st_size == sizes[i]);
+        assert(!stat(path, &status) && (uint64_t)status.st_size == bytes);
+        verify_volume(path, bytes);
     }
     puts("PASS: DSiWare header-derived public/private FAT12 volumes, short-path configuration, "
          "size/no-resize policy, independent slots and route constraints");
