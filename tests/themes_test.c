@@ -186,8 +186,9 @@ int main(int argc, char **argv)
     themes_move(&app, 3);
     assert(!app.themes.ready);
     themes_cancel(&app);
-    const char *bad_layout[] = {"top_layout=unknown", "chrome=off", "content_opacity=101",
-                                "content_opacity=-1"};
+    const char *bad_layout[] = {"top_layout=unknown", "chrome=off",        "content_opacity=101",
+                                "content_opacity=-1", "scene_cover_x=240", "scene_cover_height=91",
+                                "scene_cover_y=0"};
     for (unsigned i = 0; i < sizeof bad_layout / sizeof *bad_layout; i++) {
         char content[160];
         snprintf(content, sizeof content, "[theme]\nversion=1\n[layout]\n%s\n", bad_layout[i]);

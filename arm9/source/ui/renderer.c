@@ -178,6 +178,25 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
               colors.accent, 22);
 }
 
+static void draw_context_tabs(const App *app, uint16_t *pixels, Palette colors)
+{
+    const ThemePackage *theme = &app->themes.active;
+    int focus = app->rail_focus ? app->rail_selected : app->category;
+    for (int cell = 0; cell < 3; cell++) {
+        int index = focus + cell - 1;
+        if (index < 0 || index >= app->tab_count)
+            continue;
+        int x = 7 + cell * 82;
+        bool active = index == focus;
+        if (active && !draw_theme_component(theme, pixels, THEME_TAB_SELECTED, x, 155, 78, 18))
+            draw_rectangle(pixels, x, 155, 78, 18, colors.accent);
+        draw_text_scrolling(pixels, x + 4, 158, tabs_label(app, index),
+                            active ? themes_tab_text(theme) : colors.muted, 70,
+                            app->frame_count - app->tab_text_started_frame,
+                            active && !app->reduced_motion);
+    }
+}
+
 static void draw_poster(const App *app, uint16_t *pixels, Palette colors)
 {
     const ThemePackage *theme = &app->themes.active;
@@ -217,20 +236,57 @@ static void draw_poster(const App *app, uint16_t *pixels, Palette colors)
     draw_text(pixels, 130, 86, size, colors.text, 16);
     draw_text(pixels, 130, 105, app->dsi_mode ? "Nintendo DSi" : "Nintendo DS", colors.muted, 16);
     draw_text(pixels, 130, 131, "Y: details", colors.muted, 16);
-    int focus = app->rail_focus ? app->rail_selected : app->category;
-    for (int cell = 0; cell < 3; cell++) {
-        int index = focus + cell - 1;
-        if (index < 0 || index >= app->tab_count)
-            continue;
-        int x = 7 + cell * 82;
-        bool active = index == focus;
-        if (active && !draw_theme_component(theme, pixels, THEME_TAB_SELECTED, x, 155, 78, 18))
-            draw_rectangle(pixels, x, 155, 78, 18, colors.accent);
-        draw_text_scrolling(pixels, x + 4, 158, tabs_label(app, index),
-                            active ? themes_tab_text(theme) : colors.muted, 70,
-                            app->frame_count - app->tab_text_started_frame,
-                            active && !app->reduced_motion);
+    draw_context_tabs(app, pixels, colors);
+}
+
+/* Theme illustration remains visible above a compact, live item inspector. */
+static void draw_scene(const App *app, uint16_t *pixels, Palette colors, const char *name)
+{
+    const ThemePackage *theme = &app->themes.active;
+    const Entry *entry = app_selected(app);
+    themes_background_scene_draw(theme, pixels);
+    int box_x = theme->scene_cover_x, box_y = theme->scene_cover_y;
+    int box_width = theme->scene_cover_width, box_height = theme->scene_cover_height;
+    if (entry && app->show_covers) {
+        if (app->artwork.ready) {
+            int width = box_width, height = app->artwork.height * width / app->artwork.width;
+            if (height > box_height) {
+                height = box_height;
+                width = app->artwork.width * height / app->artwork.height;
+            }
+            if (width < 1)
+                width = 1;
+            if (height < 1)
+                height = 1;
+            int x = box_x + (box_width - width) / 2, y = box_y + (box_height - height) / 2;
+            draw_theme_component(theme, pixels, THEME_ARTWORK_FRAME, x - 2, y - 2, width + 4,
+                                 height + 4);
+            for (int yy = 0; yy < height; yy++)
+                for (int xx = 0; xx < width; xx++)
+                    pixels[(y + yy) * 256 + x + xx] =
+                        app->artwork
+                            .pixels[(yy * app->artwork.height / height) * app->artwork.width +
+                                    xx * app->artwork.width / width];
+        } else {
+            int size = box_width < box_height ? box_width : box_height;
+            int x = box_x + (box_width - size) / 2, y = box_y + (box_height - size) / 2;
+            draw_theme_component(theme, pixels, THEME_CARD, x - 2, y - 2, size + 4, size + 4);
+            draw_browser_icon(app, pixels, app->locations[app->category].selected, x, y, size,
+                              colors.accent);
+        }
     }
+    draw_rectangle(pixels, 6, 119, 244, 34, colors.bg);
+    draw_text_scrolling(pixels, 12, 121, name, colors.text, 232, app->selection_idle_frames,
+                        !app->reduced_motion);
+    char facts[80];
+    if (entry && entry->size)
+        snprintf(facts, sizeof facts, "%s / %lu KiB", entry_type(entry),
+                 (unsigned long)(entry->size / 1024));
+    else
+        snprintf(facts, sizeof facts, "%s / Y: details", entry ? entry_type(entry) : "Browse");
+    draw_text_scrolling(pixels, 12, 138, facts, colors.muted, 232, app->selection_idle_frames,
+                        !app->reduced_motion);
+    draw_context_tabs(app, pixels, colors);
 }
 
 static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, const char *clock)
@@ -238,6 +294,8 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     const ThemePackage *theme = &app->themes.active;
     int offset = theme->top_layout == 1 ? 78 : 0;
     int rail = theme->top_layout == 1 ? -178 : 0;
+    bool scene =
+        theme->top_layout == 3 && app->detail_tab == 0 && app->browser_style != BROWSER_INDEX;
     bool poster = theme->top_layout == 2 && app->detail_tab == 0 && app->show_covers &&
                   app->browser_style != BROWSER_INDEX;
     themes_background_draw(&app->themes.active, 0, pixels);
@@ -250,7 +308,7 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     draw_text(pixels, 205, 7, tab_position, colors.muted, 6);
     if (!theme->minimal_chrome)
         draw_rectangle(pixels, 10, 23, 236, 1, colors.line);
-    if (!poster && !theme->minimal_chrome)
+    if (!poster && !scene && !theme->minimal_chrome)
         draw_rectangle(pixels, offset ? 78 : 174, 33, 1, 133, colors.line);
     const Entry *entry = app_selected(app);
     const char *name = entry                ? entry->name
@@ -259,9 +317,12 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     if (entry && entry->kind == ITEM_SYSTEM && entry->target == 6 && app->slot1.icon.ready &&
         *app->slot1.title)
         name = app->slot1.title;
-    draw_text_scrolling(pixels, offset + 12, 31, name, colors.text, poster ? 232 : 154,
-                        app->selection_idle_frames, !app->reduced_motion);
-    if (poster) {
+    if (!scene)
+        draw_text_scrolling(pixels, offset + 12, 31, name, colors.text, poster ? 232 : 154,
+                            app->selection_idle_frames, !app->reduced_motion);
+    if (scene) {
+        draw_scene(app, pixels, colors, name);
+    } else if (poster) {
         draw_poster(app, pixels, colors);
     } else if (app->browser_style == BROWSER_INDEX && app->detail_tab == 0) {
         draw_library_index(app, pixels, colors, offset);
@@ -349,7 +410,7 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     } else {
         draw_item_information(app, pixels, colors, offset);
     }
-    for (int row = 0; !poster && row < TAB_VISIBLE_COUNT; row++) {
+    for (int row = 0; !poster && !scene && row < TAB_VISIBLE_COUNT; row++) {
         int index = app->tab_scroll + row;
         if (index >= app->tab_count)
             break;
@@ -370,9 +431,9 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
                             app->frame_count - app->tab_text_started_frame,
                             focused && !app->reduced_motion);
     }
-    if (!poster && app->tab_scroll > 0)
+    if (!poster && !scene && app->tab_scroll > 0)
         draw_text(pixels, rail + 209, 24, "^", colors.muted, 1);
-    if (!poster && app->tab_scroll + TAB_VISIBLE_COUNT < app->tab_count)
+    if (!poster && !scene && app->tab_scroll + TAB_VISIBLE_COUNT < app->tab_count)
         draw_text(pixels, rail + 209, 158, "v", colors.muted, 1);
     if (!theme->minimal_chrome)
         draw_rectangle(pixels, 10, 176, 236, 1, colors.line);

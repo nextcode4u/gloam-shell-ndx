@@ -8,7 +8,7 @@
 #include <string.h>
 
 typedef struct {
-    uint16_t *pixels;
+    uint16_t *pixels, *scene;
     char path[PATH_CAP];
     uint16_t matte;
     unsigned strength, content_opacity;
@@ -19,6 +19,7 @@ static Background surfaces[2][2];
 static bool load_surface(Background *background, const ThemePackage *package, int screen)
 {
     free(background->pixels);
+    free(background->scene);
     memset(background, 0, sizeof *background);
     background->matte = package->palette.bg;
     background->strength = package->background_strength;
@@ -40,6 +41,14 @@ static bool load_surface(Background *background, const ThemePackage *package, in
     background->ready = valid && background->pixels &&
                         image_decode_background(background->pixels, encoded, (size_t)bytes,
                                                 background->matte, background->strength);
+    /* Preserve only the exposed 94-line illustration strip. Dialogs keep the
+     * normal preblended reading surface; the browser can reveal this strip. */
+    if (background->ready && screen == 0 && package->top_layout == 3) {
+        background->scene = malloc(256 * 94 * sizeof *background->scene);
+        if (background->scene)
+            memcpy(background->scene, background->pixels + 256 * 24,
+                   256 * 94 * sizeof *background->scene);
+    }
     /* Preblend the reading surface once, never in the frame loop. */
     if (background->ready && package->content_opacity <= 100) {
         unsigned alpha = package->content_opacity;
@@ -70,6 +79,7 @@ void themes_background_load(const ThemePackage *package, bool preview)
 static void move_surface(Background *destination, Background *source)
 {
     free(destination->pixels);
+    free(destination->scene);
     *destination = *source;
     memset(source, 0, sizeof *source);
 }
@@ -82,6 +92,7 @@ void themes_background_cancel(void)
 {
     for (int screen = 0; screen < 2; screen++) {
         free(surfaces[1][screen].pixels);
+        free(surfaces[1][screen].scene);
         memset(&surfaces[1][screen], 0, sizeof surfaces[1][screen]);
     }
 }
@@ -102,6 +113,21 @@ void themes_background_draw(const ThemePackage *package, int screen, uint16_t *p
     for (int i = 0; i < 256 * 192; i++)
         pixels[i] = package->palette.bg;
 }
+void themes_background_scene_draw(const ThemePackage *package, uint16_t *pixels)
+{
+    for (int bank = 1; bank >= 0; bank--) {
+        const Background *background = &surfaces[bank][0];
+        if (background->ready && background->scene &&
+            !strcmp(background->path, package->backgrounds[0]) &&
+            background->matte == package->palette.bg &&
+            background->strength == package->background_strength &&
+            background->content_opacity == package->content_opacity) {
+            memcpy(pixels + 256 * 24, background->scene, 256 * 94 * sizeof *pixels);
+            return;
+        }
+    }
+}
+
 bool themes_background_set(App *app, int screen, const char *path)
 {
     if (app->recovery_mode || !app->storage_ready || screen < 0 || screen > 1 ||

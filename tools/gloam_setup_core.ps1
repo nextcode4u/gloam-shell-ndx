@@ -536,7 +536,7 @@ function Test-GloamTheme([string]$Source) {
     $manifest=Get-GloamPath $root 'theme.ini'
     if (-not [IO.File]::Exists($manifest) -or ([IO.FileInfo]::new($manifest)).Length -gt 4096) { throw 'Theme manifest is missing or exceeds 4 KiB.' }
     $data=Read-GloamIni $manifest
-    $allowed=@{theme=@('version','name','header');colors=@('background','surface','line','text','muted','accent','ink','selection_text','tab_text');fonts=@('ui');audio=@('music','cursor','confirm','back');backgrounds=@('top','bottom','strength');layout=@('view','icon_size','row_padding','large_grid_columns','top_layout','chrome','content_opacity');icons=@('directory');components=@('directory','border')}
+    $allowed=@{theme=@('version','name','header');colors=@('background','surface','line','text','muted','accent','ink','selection_text','tab_text');fonts=@('ui');audio=@('music','cursor','confirm','back');backgrounds=@('top','bottom','strength');layout=@('view','icon_size','row_padding','large_grid_columns','top_layout','chrome','content_opacity','scene_cover_x','scene_cover_y','scene_cover_width','scene_cover_height');icons=@('directory');components=@('directory','border')}
     foreach ($section in $data.Keys) {
         if (-not $allowed.ContainsKey($section)) { $errors.Add("Unknown section: $section"); continue }
         foreach ($key in $data[$section].Keys) { if ($key -notin $allowed[$section]) { $errors.Add("Unknown key: $section/$key") } }
@@ -545,9 +545,16 @@ function Test-GloamTheme([string]$Source) {
     if ($data.Contains('theme') -and $data['theme'].Contains('header') -and [Text.Encoding]::UTF8.GetByteCount($data['theme']['header']) -gt 63) { $errors.Add('Header must fit in 63 UTF-8 bytes.') }
     if ($data.Contains('colors')) { foreach ($key in $data['colors'].Keys) { if ($data['colors'][$key] -notmatch '^#[0-9A-Fa-f]{6}$') { $errors.Add("Invalid colour: $key") } } }
     if ($data.Contains('layout')) {
-        foreach ($pair in @(@('view',@('classic','extended','list','grid','shelf','index')),@('icon_size',@('small','large')),@('top_layout',@('sidebar','sidebar_left','poster')),@('chrome',@('full','minimal')))) {
+        foreach ($pair in @(@('view',@('classic','extended','list','grid','shelf','index')),@('icon_size',@('small','large')),@('top_layout',@('sidebar','sidebar_left','poster','scene')),@('chrome',@('full','minimal')))) {
             if ($data['layout'].Contains($pair[0]) -and $data['layout'][$pair[0]] -notin $pair[1]) { $errors.Add("Invalid layout: $($pair[0])") }
         }
+        $rect=@{scene_cover_x=14;scene_cover_y=34;scene_cover_width=48;scene_cover_height=72}
+        foreach ($key in @($rect.Keys)) { if ($data['layout'].Contains($key)) {
+            $number=0
+            if (-not [int]::TryParse($data['layout'][$key],[ref]$number) -or $number -lt 0 -or $number -gt 256) { $errors.Add("Invalid scene rectangle: $key") }
+            else { $rect[$key]=$number }
+        } }
+        if ($rect.scene_cover_x -lt 2 -or $rect.scene_cover_y -lt 26 -or $rect.scene_cover_width -lt 8 -or $rect.scene_cover_width -gt 96 -or $rect.scene_cover_height -lt 8 -or $rect.scene_cover_height -gt 90 -or ($rect.scene_cover_x+$rect.scene_cover_width) -gt 254 -or ($rect.scene_cover_y+$rect.scene_cover_height) -gt 116) { $errors.Add('Scene cover must stay inside the illustration strip with a two-pixel frame margin.') }
         foreach ($key in @('row_padding','large_grid_columns','content_opacity')) { if ($data['layout'].Contains($key)) {
             $value=0; $minimum=if ($key -eq 'large_grid_columns') {2} else {0}; $maximum=if ($key -eq 'row_padding') {12} elseif ($key -eq 'content_opacity') {100} else {4}
             if (-not [int]::TryParse($data['layout'][$key],[ref]$value) -or $value -lt $minimum -or $value -gt $maximum) { $errors.Add("Invalid layout: $key") }

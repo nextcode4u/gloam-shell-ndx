@@ -81,7 +81,7 @@ int main(int argc, char **argv)
             bool varied = false;
             for (int pixel = 1; pixel < 256 * 192; pixel++)
                 varied |= top.pixels[pixel] != top.pixels[0];
-            assert(varied == (theme != 0 && theme != 3)); /* Both PNG and JPEG actually decoded. */
+            assert(varied == (*app.themes.active.backgrounds[screen] != 0));
         }
         ThemePalette original_palette = app.themes.active.palette;
         uint16_t resolved[THEME_ACCENT_COUNT];
@@ -149,8 +149,12 @@ int main(int argc, char **argv)
                     }
                     for (int frame = 0; frame < 16; frame++)
                         app_tick(&app);
-                    for (unsigned composition = 0; composition < 3; composition++) {
+                    for (unsigned composition = 0; composition < 4; composition++) {
                         app.themes.active.top_layout = composition;
+                        app.themes.active.scene_cover_x = composition == 3 ? 158 : 14;
+                        app.themes.active.scene_cover_y = composition == 3 ? 26 : 34;
+                        app.themes.active.scene_cover_width = composition == 3 ? 96 : 48;
+                        app.themes.active.scene_cover_height = composition == 3 ? 90 : 72;
                         for (int detail = 0; detail < 2; detail++) {
                             app.detail_tab = detail;
                             draw();

@@ -51,6 +51,10 @@ static void builtin(ThemePackage *package, int accent)
     font_builtin(&package->font);
     package->background_strength = 25;
     package->component_border = 8;
+    package->scene_cover_x = 14;
+    package->scene_cover_y = 34;
+    package->scene_cover_width = 48;
+    package->scene_cover_height = 72;
     package->default_view = package->default_icon_size = -1;
     package->large_grid_columns = 4;
 }
@@ -200,6 +204,8 @@ static bool load(App *app, const char *id, ThemePackage *package)
                     package->top_layout = 1;
                 else if (!strcmp(value, "poster"))
                     package->top_layout = 2;
+                else if (!strcmp(value, "scene"))
+                    package->top_layout = 3;
                 else
                     valid = false;
             } else if (!strcmp(key, "chrome")) {
@@ -209,6 +215,20 @@ static bool load(App *app, const char *id, ThemePackage *package)
                     package->minimal_chrome = false;
                 else
                     valid = false;
+            } else if (!strcmp(key, "scene_cover_x") || !strcmp(key, "scene_cover_y") ||
+                       !strcmp(key, "scene_cover_width") || !strcmp(key, "scene_cover_height")) {
+                char *end;
+                unsigned long number = strtoul(value, &end, 10);
+                if (!*value || *end || number > 256)
+                    valid = false;
+                else if (!strcmp(key, "scene_cover_x"))
+                    package->scene_cover_x = number;
+                else if (!strcmp(key, "scene_cover_y"))
+                    package->scene_cover_y = number;
+                else if (!strcmp(key, "scene_cover_width"))
+                    package->scene_cover_width = number;
+                else
+                    package->scene_cover_height = number;
             } else if (!strcmp(key, "content_opacity")) {
                 char *end;
                 unsigned long number = strtoul(value, &end, 10);
@@ -277,7 +297,12 @@ static bool load(App *app, const char *id, ThemePackage *package)
         } else
             valid = false;
     }
-    valid = valid && version && !ferror(file) && readable(package->palette);
+    valid = valid && version && !ferror(file) && readable(package->palette) &&
+            package->scene_cover_x >= 2 && package->scene_cover_y >= 26 &&
+            package->scene_cover_width >= 8 && package->scene_cover_width <= 96 &&
+            package->scene_cover_height >= 8 && package->scene_cover_height <= 90 &&
+            package->scene_cover_x + package->scene_cover_width <= 254 &&
+            package->scene_cover_y + package->scene_cover_height <= 116;
     fclose(file);
     if (!valid)
         return false;

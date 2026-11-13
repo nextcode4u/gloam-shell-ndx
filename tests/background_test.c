@@ -30,10 +30,19 @@ int main(int argc, char **argv)
     themes_background_draw(&app.themes.active, 1, bottom.pixels);
     assert(bottom.pixels[0] == app.themes.active.palette.bg);
     app.themes.active.content_opacity = 100;
+    app.themes.active.top_layout = 3;
     themes_background_load(&app.themes.active, false);
     themes_background_draw(&app.themes.active, 0, top.pixels);
     assert(top.pixels[0] == background);
     assert(top.pixels[4 * 256 + 6] == app.themes.active.palette.bg);
+    themes_background_scene_draw(&app.themes.active, top.pixels);
+    bool illustration_visible = false;
+    for (int y = 24; y < 118; y++)
+        for (int x = 6; x < 250; x++)
+            illustration_visible |= top.pixels[y * 256 + x] != app.themes.active.palette.bg;
+    assert(illustration_visible);
+    assert(top.pixels[120 * 256 + 6] == app.themes.active.palette.bg);
+    app.themes.active.top_layout = 0;
     app.themes.active.content_opacity = 0;
     themes_background_load(&app.themes.active, false);
     assert(!themes_background_set(&app, 1, "/outside/image.jpg"));

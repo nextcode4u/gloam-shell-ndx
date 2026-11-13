@@ -256,12 +256,38 @@ Older builds reject unknown manifest keys; update the binary along with these
 example theme packs. Packages without the new keys keep their previous behavior.
 
 `top_layout` accepts `sidebar` (the original right rail), `sidebar_left`, or
-`poster`. The left rail moves the artwork and information together without
+`poster`, or `scene`. The left rail moves the artwork and information together without
 mirroring text or wallpaper. Poster uses a larger artwork area and a horizontal
 strip showing the focused tab and its neighbours. L/R still cycles all tabs;
 X enters tab selection, where Up/Down and A retain their usual behavior. Long
 labels continue to loop. Item information and Library Index temporarily use the
 full six-row right rail instead of squeezing their contents into the poster.
+
+Scene reserves y=24..117 for an illustration, with item information below it and
+three contextual tabs. Y opens the regular item inspector; Library Index keeps
+its index workspace. It uses the package's top background, including personal
+wallpaper strength, but preserves an unshaded copy of just that illustration
+strip. This costs **47 KiB per active/preview scene** in addition to normal
+background buffers. Loading prepares both surfaces; drawing only copies pixels.
+Missing images or allocation failure fall back to the normal prepared background.
+
+Authors can place the cover around their subject:
+
+```ini
+[layout]
+top_layout=scene
+scene_cover_x=14
+scene_cover_y=34
+scene_cover_width=48
+scene_cover_height=72
+content_opacity=82
+```
+
+The cover fits this box without changing aspect ratio. Width is 8–96 pixels,
+height 8–90; the complete box must stay within x=2..253 and y=26..115, reserving
+two pixels for its frame. Invalid boxes reject the package. Show covers still
+controls the live thumbnail; backgrounds remain independent. Coordinates do
+not relocate touch targets or the item inspector.
 
 `chrome=full` retains header/footer images and browser separators.
 `chrome=minimal` omits those component images and the browser heading/divider

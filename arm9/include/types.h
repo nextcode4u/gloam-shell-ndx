@@ -256,6 +256,7 @@ typedef struct {
     unsigned row_padding, large_grid_columns;
     /* Screen composition is independent of the user-selected browser view. */
     unsigned top_layout, content_opacity;
+    unsigned scene_cover_x, scene_cover_y, scene_cover_width, scene_cover_height;
     bool minimal_chrome;
     uint16_t selection_text, tab_text;
     char backgrounds[2][PATH_CAP];

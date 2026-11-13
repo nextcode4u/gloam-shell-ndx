@@ -2,6 +2,7 @@
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -958,9 +959,9 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 38 -or $r.Warnings.Count -ne 2) { throw "component fallback missing" }')
         manifest = source / 'theme.ini'
         original = manifest.read_text()
-        manifest.write_text(original.replace('header=Ember', 'header=' + 'x' * 64))
+        manifest.write_text(re.sub(r'^header=.*$', 'header=' + 'x' * 64, original, flags=re.M))
         self.run_ps(command + '; if ($r.Valid) { throw "oversized header accepted" }')
-        expanded = original.replace('[layout]', '[layout]\ntop_layout=poster\nchrome=minimal\ncontent_opacity=40').replace('strength=30', 'strength=100')
+        expanded = re.sub(r'^(top_layout|chrome|content_opacity)=.*\n', '', original, flags=re.M).replace('[layout]', '[layout]\ntop_layout=poster\nchrome=minimal\ncontent_opacity=40')
         manifest.write_text(expanded)
         self.run_ps(command + '; if (-not $r.Valid) { throw "expanded theme rejected" }')
         manifest.write_text(expanded.replace('content_opacity=40', 'content_opacity=101'))
