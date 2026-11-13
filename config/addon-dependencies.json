@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "reviewed": "2026-11-09",
+  "reviewed": "2026-11-13",
   "default_policy": "bundle approved entries with confirmed coverage; --noncommercial adds permitted no-profit packages; unconfirmed entries are direct-download only",
   "application_directory": "_nds/dsi-frontend/plugins/apps",
   "applications": [
@@ -3646,18 +3646,18 @@
     },
     {
       "id": "wasabids",
-      "repository": "https://github.com/FluBBaOfWard/WasabiDS",
-      "version": "v0.2.6",
-      "commit": "b074708a4c0b670e9f3e7d520a776f2bad2695c1",
-      "release": "https://github.com/FluBBaOfWard/WasabiDS/releases/tag/v0.2.6",
+      "repository": "https://github.com/nextcode4u/WasabiDS",
+      "version": "v0.2.6-audio-init.1",
+      "commit": "37b146e79fb7725d37d1e50d65b80653b42141c3",
+      "release": "https://github.com/nextcode4u/WasabiDS/releases/tag/v0.2.6-audio-init.1",
       "release_assets": [
         {
-          "name": "WasabiDS.zip",
-          "url": "https://github.com/FluBBaOfWard/WasabiDS/releases/download/v0.2.6/WasabiDS.zip"
+          "name": "WasabiDS-v0.2.6-audio-init.1.zip",
+          "url": "https://github.com/nextcode4u/WasabiDS/releases/download/v0.2.6-audio-init.1/WasabiDS-v0.2.6-audio-init.1.zip"
         }
       ],
       "argv": "direct",
-      "argv_evidence": "https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/source/Main.c",
+      "argv_evidence": "https://github.com/nextcode4u/WasabiDS/blob/37b146e79fb7725d37d1e50d65b80653b42141c3/source/Main.c",
       "redistribution": "download-only",
       "license": "Project-wide redistribution grant not found",
       "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.",
@@ -3668,30 +3668,30 @@
       "license_findings": "No project-wide grant found at this release; several source headers reserve rights. Submodule licenses do not automatically license the main program. Seek explicit redistribution terms before bundling.",
       "package": {
         "source": {
-          "asset": "wasabids-source.tar.gz",
-          "url": "https://codeload.github.com/FluBBaOfWard/WasabiDS/tar.gz/b074708a4c0b670e9f3e7d520a776f2bad2695c1",
-          "sha256": "f5c171f34f8e8da14facaf0302c6222d8242e08368106d115a7d7ac558d60d22"
+          "asset": "wasabids-v0.2.6-audio-init.1-source.tar.gz",
+          "url": "https://github.com/nextcode4u/WasabiDS/releases/download/v0.2.6-audio-init.1/WasabiDS-v0.2.6-audio-init.1-source.tar.gz",
+          "sha256": "30fcb0008dbedd1625c87be6ed04fdfd671285043a6f0f0d4ad7360012a89cb7"
         },
         "files": [
           {
             "download": {
-              "asset": "wasabids-WasabiDS.zip",
-              "url": "https://github.com/FluBBaOfWard/WasabiDS/releases/download/v0.2.6/WasabiDS.zip",
-              "sha256": "f71597264d895c13d8f8c7e6c688c05b42c4b58ffd497b234d89318a34e23e48"
+              "asset": "wasabids-v0.2.6-audio-init.1.zip",
+              "url": "https://github.com/nextcode4u/WasabiDS/releases/download/v0.2.6-audio-init.1/WasabiDS-v0.2.6-audio-init.1.zip",
+              "sha256": "d5d1677294b3c3522f15c6f7dddfe55370d04e010ca842ac9c960dea4958667e"
             },
             "format": "zip",
             "member": "WasabiDS.nds",
             "destination": "_nds/dsi-frontend/plugins/apps/WasabiDS.nds",
-            "sha256": "378f07b54c50538613d77de2dbcc3531d3dafb7bfa35c57bc2adc92afc25db5e"
+            "sha256": "fc881e7c9bebf7c9e9016aa774d5027a0bfba5f36dcb7b98ba005da4b12cadba"
           }
         ],
         "notices": [
           {
-            "member": "WasabiDS-b074708a4c0b670e9f3e7d520a776f2bad2695c1/README.md",
+            "member": "WasabiDS/README.md",
             "destination": "README.md"
           },
           {
-            "member": "WasabiDS-b074708a4c0b670e9f3e7d520a776f2bad2695c1/readme.txt",
+            "member": "WasabiDS/readme.txt",
             "destination": "readme.txt"
           }
         ],
@@ -3772,19 +3772,30 @@
         "runtime_notices": [
           {
             "download": {
-              "asset": "wasabids-WasabiDS.zip",
-              "url": "https://github.com/FluBBaOfWard/WasabiDS/releases/download/v0.2.6/WasabiDS.zip",
-              "sha256": "f71597264d895c13d8f8c7e6c688c05b42c4b58ffd497b234d89318a34e23e48"
+              "asset": "wasabids-v0.2.6-audio-init.1.zip",
+              "url": "https://github.com/nextcode4u/WasabiDS/releases/download/v0.2.6-audio-init.1/WasabiDS-v0.2.6-audio-init.1.zip",
+              "sha256": "d5d1677294b3c3522f15c6f7dddfe55370d04e010ca842ac9c960dea4958667e"
             },
             "format": "zip",
             "member": "README.md",
             "destination": "release/README.md"
+          },
+          {
+            "download": {
+              "asset": "wasabids-v0.2.6-audio-init.1.zip",
+              "url": "https://github.com/nextcode4u/WasabiDS/releases/download/v0.2.6-audio-init.1/WasabiDS-v0.2.6-audio-init.1.zip",
+              "sha256": "d5d1677294b3c3522f15c6f7dddfe55370d04e010ca842ac9c960dea4958667e"
+            },
+            "format": "zip",
+            "member": "AUDIO-INIT-FIX.md",
+            "destination": "release/AUDIO-INIT-FIX.md"
           }
         ]
       },
-      "source_coverage": "Published project source plus source submodules at their recorded commits.",
+      "source_coverage": "Fork release source archive includes all four recursive submodules; their unchanged revisions are also recorded below. Original upstream notices and attribution are retained.",
       "content_guidance": "roms/Watara Supervision/: .sv cartridges",
-      "bios_mode": "none"
+      "bios_mode": "none",
+      "argv_notes": "Temporary nextcode4u fork of FluBBaOfWard/WasabiDS v0.2.6: initializes the emulated machine and initial ROM before opening the Maxmod audio stream, fixing a startup data abort. Direct argv loading is retained. Reassess upstream after it includes the fix; physical DSi, full gameplay and audio-quality validation remain pending."
     }
   ],
   "common_notices": [

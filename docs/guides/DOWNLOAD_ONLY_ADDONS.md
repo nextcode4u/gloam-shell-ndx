@@ -21,7 +21,7 @@ permission is inferred from availability, age or the absence of an explicit ban.
 | nitroswan | v0.7.7 | Direct download; not bundled. |
 | s8ds | v1.1.8 | Direct download; not bundled. |
 | tuna-vids | v1.2-clut | Direct download; not bundled. |
-| wasabids | v0.2.6 | Direct download; not bundled. |
+| wasabids | v0.2.6-audio-init.1 | Temporary startup-fix fork; direct download, not bundled. |
 
 DS994a and PicoDriveTWL retain their noncommercial conditions: the downloader requires
 `--noncommercial` / `-Noncommercial`. DS994a's embedded speech samples have no separately

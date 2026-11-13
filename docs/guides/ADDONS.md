@@ -250,7 +250,9 @@ it does not mean that just declaring argc/argv was counted as support.
 | [stellads 8.4a](https://github.com/wavemotion-dave/StellaDS/releases/tag/8.4a) | [direct](https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/arm9/source/main.cpp) | Bundled when pinned; GPL-2.0-or-later + BSD notices |
 | [sugards 1.6](https://github.com/wavemotion-dave/SugarDS/releases/tag/1.6) | [direct](https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/arm9/source/SugarDS.c) | Direct upstream download; GPL-2.0-or-later code; separately copyrighted firmware |
 | [tuna-vids v1.2-clut](https://github.com/DS-Homebrew/tuna-vids/releases/tag/v1.2-clut) | [direct](https://github.com/DS-Homebrew/tuna-vids/blob/6781a1a7ac723cb1274de6bd8734b21a9fbbebc5/arm9/source/main.c) | Direct upstream download; GPL-2.0-or-later ARM9 + Helix RPSL/RCSL ARM7 |
-| [wasabids v0.2.6](https://github.com/FluBBaOfWard/WasabiDS/releases/tag/v0.2.6) | [direct](https://github.com/FluBBaOfWard/WasabiDS/blob/b074708a4c0b670e9f3e7d520a776f2bad2695c1/source/Main.c) | Direct upstream download; Project-wide redistribution grant not found |
+| [wasabids v0.2.6-audio-init.1](https://github.com/nextcode4u/WasabiDS/releases/tag/v0.2.6-audio-init.1) | [direct](https://github.com/nextcode4u/WasabiDS/blob/37b146e79fb7725d37d1e50d65b80653b42141c3/source/Main.c) | Direct upstream download; Project-wide redistribution grant not found |
+
+WasabiDS temporarily uses the [nextcode4u startup-fix fork](https://github.com/nextcode4u/WasabiDS/releases/tag/v0.2.6-audio-init.1) of FluBBaOfWard’s emulator. It starts the audio stream after machine initialization and initial ROM loading to avoid the upstream v0.2.6 startup abort. The installer retains Gloam’s existing plugin path. Reassess the upstream release once it includes this fix; the fork remains download-only.
 
 Shared extension setup is described in [folder-aware associations](EMULATORS.md#shared-extensions-and-folder-rules).
 The reader overlay includes the two DSLibris profiles and the paired PicoDriveTWL
