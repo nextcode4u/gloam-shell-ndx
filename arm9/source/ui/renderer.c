@@ -350,7 +350,7 @@ static void draw_poster(const App *app, uint16_t *pixels, Palette colors)
                                         xx * app->artwork.width / width];
     } else {
         draw_theme_component(theme, pixels, THEME_CARD, 10, 48, 108, artwork_height);
-        if (native)
+        if (icons_for_entry(app, selected))
             draw_browser_icon(app, pixels, selected, 24, 48 + (artwork_height - 80) / 2, 80,
                               colors.accent);
         else

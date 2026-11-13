@@ -78,6 +78,41 @@ static void select_entry(const char *name)
     app_move(&app, find_entry(name) - app.locations[app.category].selected);
     settle();
 }
+/* Poster must use the same prepared banner/association icon as the browser,
+ * while retaining an explicitly loaded cover's priority. */
+static void check_poster_preview(const char *name, uint16_t expected)
+{
+    select_entry(name);
+    unsigned previous_layout = app.themes.active.top_layout;
+    unsigned previous_tabs = app.themes.active.tab_style;
+    int previous_view = app.browser_style;
+    Artwork previous_artwork = app.artwork;
+    app.themes.active.top_layout = 2;
+    app.browser_style = BROWSER_CLASSIC;
+    app.show_covers = true;
+    app.artwork.ready = false;
+    unsigned reads = app.icon_reads;
+    for (unsigned style = 0; style < 4; style++) {
+        app.themes.active.tab_style = style;
+        render_app(&app, top.pixels, bottom.pixels, "12:00");
+        int y = style == 1 ? 54 : 60;
+        assert(top.pixels[y * 256 + 27] == expected);
+        assert(app.icon_reads == reads);
+    }
+    app.artwork.ready = true;
+    app.artwork.width = 96;
+    app.artwork.height = 104;
+    for (unsigned pixel = 0; pixel < 96 * 104; pixel++)
+        app.artwork.pixels[pixel] = 0xffff;
+    render_app(&app, top.pixels, bottom.pixels, "12:00");
+    assert(top.pixels[80 * 256 + 64] == 0xffff);
+    assert(app.icon_reads == reads);
+    app.artwork = previous_artwork;
+    app.themes.active.top_layout = previous_layout;
+    app.themes.active.tab_style = previous_tabs;
+    app.browser_style = previous_view;
+}
+
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -140,6 +175,9 @@ int main(int argc, char **argv)
     assert(icons_for_entry(&app, find_entry("Native.app")));
     select_entry("Native.srl");
     assert(icons_for_entry(&app, find_entry("Native.srl")));
+    check_poster_preview("Native.dsi", 0x8000 | (31 << 10));
+    check_poster_preview("Game.SFC", 0x801f);
+    check_poster_preview("Shortcut.argv", 0x801f);
     select_entry("Oversized.argv");
     assert(!icons_for_entry(&app, find_entry("Oversized.argv")));
     select_entry("Bad.nds");
