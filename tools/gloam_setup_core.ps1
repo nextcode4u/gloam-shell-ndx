@@ -56,6 +56,8 @@ function Write-GloamFile([string]$Root, [string]$Relative, [byte[]]$Data, [bool]
     try {
         [IO.File]::WriteAllBytes($temporary, $Data)
         if (Test-Path -LiteralPath $path) {
+            # Recheck after staging: another writer may have created the file.
+            if (-not $Replace) { return $false }
             $backupRelative = '_nds/dsi-frontend/setup-backups/' + [Guid]::NewGuid().ToString('N') + '/' + $Relative
             $backup = Get-GloamPath $Root $backupRelative
             [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($backup)) | Out-Null

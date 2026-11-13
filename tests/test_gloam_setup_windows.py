@@ -69,6 +69,25 @@ class GloamSetupTests(unittest.TestCase):
         self.assertEqual(result.returncode == 0, success, output)
         return output
 
+    def test_install_preserves_file_created_during_staging(self):
+        self.run_ps(r"""
+$target = Get-GloamPath $root 'roms/new.txt'
+[IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target)) | Out-Null
+$script:pathChecks = 0
+function Test-Path {
+    param([string]$LiteralPath, [string]$PathType)
+    if ($LiteralPath -eq $target) {
+        $script:pathChecks++
+        if ($script:pathChecks -eq 3) { [IO.File]::WriteAllText($target, 'Created by another writer') }
+    }
+    Microsoft.PowerShell.Management\Test-Path @PSBoundParameters
+}
+$result = Write-GloamFile $root 'roms/new.txt' ([Text.Encoding]::UTF8.GetBytes('Installer default')) $false
+if ($result) { throw 'Install claimed to replace a newly appeared file' }
+if ([IO.File]::ReadAllText($target) -cne 'Created by another writer') { throw 'Existing file was overwritten' }
+if (@(Get-ChildItem ([IO.Path]::GetDirectoryName($target)) -Filter '*.tmp').Count) { throw 'Staging file leaked' }
+""")
+
     def test_addon_details_check_bios_without_requiring_installation(self):
         output = self.run_ps(r"""
 $app = [pscustomobject]@{ id='example'; content_guidance='roms/Example: .rom'; bios='User supplies BIOS'; support_requirements=@(
