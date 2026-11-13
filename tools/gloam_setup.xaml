@@ -86,8 +86,15 @@
       </Style.Triggers>
     </Style>
     <Style TargetType="CheckBox">
+      <!-- Native checkbox themes can override Window.Foreground (black on stock Windows). -->
+      <Setter Property="Foreground" Value="#E7E9F0"/>
       <Setter Property="Margin" Value="0,8,16,10"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Style.Triggers>
+        <Trigger Property="IsEnabled" Value="False">
+          <Setter Property="Foreground" Value="#B4C0D2"/>
+        </Trigger>
+      </Style.Triggers>
     </Style>
     <Style TargetType="TextBlock">
       <Setter Property="TextWrapping" Value="Wrap"/>

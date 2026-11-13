@@ -824,6 +824,24 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         package.write_bytes(b'Changed archive')
         self.run_ps(code, success=False)
 
+    def test_checkbox_labels_have_explicit_readable_colors(self):
+        xaml = literal(win(self.installer / 'gloam-setup.xaml'))
+        self.run_ps('Add-Type -AssemblyName PresentationFramework; '
+                    + '$window = [Windows.Markup.XamlReader]::Parse([IO.File]::ReadAllText(' + xaml + ')); '
+                    + "$window.FindName('PageSetup').Visibility = 'Collapsed'; "
+                    + "$window.FindName('PageSettings').Visibility = 'Visible'; "
+                    + 'function Check-Labels($node) { '
+                    + 'if ($node -is [Windows.Controls.CheckBox] -and $node.Content) { '
+                    + 'foreach ($enabled in @($true,$false)) { $node.IsEnabled=$enabled; '
+                    + 'foreach ($checked in @($true,$false)) { $node.IsChecked=$checked; $node.UpdateLayout(); '
+                    + '$expected = if ($enabled) { "#FFE7E9F0" } else { "#FFB4C0D2" }; '
+                    + 'if ($node.Foreground.ToString() -ne $expected) { throw "Unreadable checkbox: $($node.Name)" } '
+                    + '} }; $node.IsEnabled=$true }; '
+                    + 'foreach ($child in [Windows.LogicalTreeHelper]::GetChildren($node)) { '
+                    + 'if ($child -is [Windows.DependencyObject]) { Check-Labels $child } } }; '
+                    + 'try { $window.Show(); $window.UpdateLayout(); Check-Labels $window } '
+                    + 'finally { $window.Close() }')
+
     def test_disabled_dropdown_keeps_display_name_and_text_field_value(self):
         xaml = literal(win(self.installer / 'gloam-setup.xaml'))
         self.run_ps('Add-Type -AssemblyName PresentationFramework; '
