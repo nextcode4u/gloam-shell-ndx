@@ -242,8 +242,11 @@ static bool make_save(const LaunchPlan *plan, char error[160])
         return false;
     }
     struct stat status;
-    if (!stat(plan->save, &status))
+    if (!stat(plan->save, &status) || errno != ENOENT) {
+        snprintf(error, 160,
+                 "Cannot confirm the save is absent. Existing saves were left untouched.");
         return false;
+    }
     char directory[PATH_CAP], temporary[PATH_CAP];
     path_copy(directory, plan->save, PATH_CAP);
     char *slash = strrchr(directory, '/');
@@ -277,7 +280,8 @@ static bool make_save(const LaunchPlan *plan, char error[160])
     }
     if (fclose(file))
         written = false;
-    if (!written || !stat(plan->save, &status) || rename(temporary, plan->save)) {
+    if (!written || !stat(plan->save, &status) || errno != ENOENT ||
+        rename(temporary, plan->save)) {
         remove(temporary);
         snprintf(error, 160, "Could not finish the new save. Existing saves were not changed.");
         return false;

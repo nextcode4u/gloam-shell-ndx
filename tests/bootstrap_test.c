@@ -7,9 +7,21 @@
 #include "paths.h"
 #include "renderer.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+static const char *probe_save;
+static unsigned probe_checks, fail_check;
+int __real_stat(const char *, struct stat *);
+int __wrap_stat(const char *path, struct stat *status)
+{
+    if (probe_save && !strcmp(path, probe_save) && ++probe_checks == fail_check) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_stat(path, status);
+}
 static App app;
 static LaunchPlan plan;
 static uint16_t top[256 * 192], bottom[256 * 192];
@@ -84,6 +96,15 @@ int main(int argc, char **argv)
                       "comment\n[NDS-BOOTSTRAP]\nNDS_PATH=old\nSAV_PATH=old.sav\nAPP_PATH=stale."
                       "app\nDONOR5_NDS_PATH=sd:/donor.nds\nDEBUG=1\n[OTHER]\nNDS_PATH=other\n";
     write_file(ini, old, strlen(old));
+    /* Neither the initial nor final absence check may treat I/O errors as ENOENT. */
+    for (unsigned failure = 2; failure <= 3; failure++) {
+        probe_save = plan.save;
+        probe_checks = 0;
+        fail_check = failure;
+        assert(!bootstrap_commit(root, &plan, error));
+        probe_save = NULL;
+        assert(stat(plan.save, &status) && errno == ENOENT);
+    }
     assert(bootstrap_commit(root, &plan, error));
     assert(!stat(plan.save, &status) && status.st_size == 8192);
     FILE *save = fopen(plan.save, "rb");

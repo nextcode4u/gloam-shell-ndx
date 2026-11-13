@@ -143,7 +143,7 @@ python3 tools/make_artwork_test_fixtures.py "$fixture/album-art"
 ASAN_OPTIONS=detect_leaks=1 build/host/album-art-test "$fixture/album-art"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" "${ui_objects[@]}" tests/bootstrap_test.c -o build/host/bootstrap-test
+    "${model_objects[@]}" "${ui_objects[@]}" tests/bootstrap_test.c -Wl,--wrap=stat -o build/host/bootstrap-test
 mkdir "$fixture/bootstrap"
 ASAN_OPTIONS=detect_leaks=1 build/host/bootstrap-test "$fixture/bootstrap"
 
