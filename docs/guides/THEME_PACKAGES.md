@@ -360,6 +360,10 @@ audio, system and folder PNGs for Home, Games, Apps, Media, System and Files.
 Custom folder tabs use the folder icon. This does not replace native game banners.
 Selection artwork applies only to `skin`; outline/underline keep ordinary text
 colors for contrast. Existing `tab_text` controls text on skinned selections.
+Authored PNG icons keep their own colors; `tab_text` does not recolor them.
+Prefer outline/underline when an icon shares the selection fill color, otherwise
+its silhouette can disappear into the highlight. Check the System gear as well
+as folders, and the sidebar Pager used by the item inspector.
 
 All styles keep L/R cycling and X → Up/Down → A selection. Windows follow the
 focused tab, including custom tabs beyond the visible count. Reduced motion
