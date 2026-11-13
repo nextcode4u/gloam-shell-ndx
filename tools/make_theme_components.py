@@ -41,6 +41,12 @@ def component_image(name, style, colors):
         draw.line([(1,28),(1,1),(28,1)],fill=accent)
         draw.line([(3,30),(30,30),(30,3)],fill=bg,width=2)
         return image
+    if name == 'row':
+        # Quiet recessed face: avoid stacking several outlines under selection.
+        draw.rounded_rectangle((1,1,30,30), radius=4 if style == 'lunar' else 1,
+                               fill=surface)
+        draw.line((4,30,28,30),fill=bg)
+        return image
     selected = name in ('row-selected', 'card-selected')
     fill = accent if name == 'tab-selected' else surface
     edge = accent if selected or name == 'panel' else line
@@ -69,7 +75,8 @@ def component_image(name, style, colors):
             draw.line((1,30,30,30),fill=accent,width=2)
     else:
         draw.rounded_rectangle((0,0,31,31),radius=3,fill=fill,outline=edge)
-        draw.line([(2,28),(2,2),(28,2)],fill=accent if selected else line)
+        if name != 'row-selected':
+            draw.line([(2,28),(2,2),(28,2)],fill=accent if selected else line)
         draw.line([(3,30),(30,30),(30,3)],fill=bg,width=2)
     if name in ('row', 'row-selected') and style in ('lunar', 'retro'):
         # A shallow lit face and inset shadow remain legible at native row sizes.
