@@ -14,6 +14,7 @@
 #include <string.h>
 
 static App app, restored;
+static uint16_t stationary_rows[256 * 192];
 static struct {
     uint32_t before;
     uint16_t pixels[256 * 192];
@@ -133,6 +134,19 @@ int main(int argc, char **argv)
                     app.browser_style = view;
                     app.icon_size = size;
                     browser_reflow(&app);
+                    if (!layout_is_grid(&app)) {
+                        int text_height = view == BROWSER_EXTENDED ? 26 : 12;
+                        assert(layout_row_height(&app) >= text_height + 8);
+                        if (layout_has_icons(&app))
+                            assert(layout_row_height(&app) >= layout_icon_size(&app) + 8);
+                        draw();
+                        memcpy(stationary_rows, bottom.pixels, sizeof stationary_rows);
+                        int previous_position = app.selection_y_fixed;
+                        app.selection_y_fixed += layout_row_height(&app) * 128;
+                        draw();
+                        assert(!memcmp(stationary_rows, bottom.pixels, sizeof stationary_rows));
+                        app.selection_y_fixed = previous_position;
+                    }
                     for (int frame = 0; frame < 16; frame++)
                         app_tick(&app);
                     for (unsigned composition = 0; composition < 3; composition++) {

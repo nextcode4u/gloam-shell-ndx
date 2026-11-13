@@ -693,7 +693,11 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
         else if (layout_is_grid(app))
             draw_grid(app, bottom, colors);
         else {
-            int sy = list_top + app->selection_y_fixed / 256;
+            /* A moving ornamental border can cross the stationary label in
+             * another row. Keep framed selections anchored to their content. */
+            int sy = themes_component(&app->themes.active, THEME_ROW_SELECTED)
+                         ? list_top + (location->selected - location->scroll) * row_height
+                         : list_top + app->selection_y_fixed / 256;
             for (int row = 0; row < visible_rows && location->scroll + row < app->entry_count;
                  row++)
                 draw_theme_component(&app->themes.active, bottom, THEME_ROW, 6,

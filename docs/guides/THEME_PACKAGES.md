@@ -236,6 +236,11 @@ Appearance choices can override them afterward and remain saved across restart.
 Preview/cancel does not change browser preferences. Named presets retain their
 explicit icon/view choices independently of these apply-time defaults.
 
+Framed browser rows reserve at least four pixels above and below their text or
+icon content. Their selection frame stays anchored to the selected row, avoiding
+a moving border crossing neighbouring labels. Built-in flat highlights retain
+their slide animation.
+
 `row_padding` adds 0–12 pixels to the shared row/cell height; both drawing and
 touch/navigation use the resolved size. Large Grid accepts 2–4 columns and
 allocates its label width from the actual cell width. Small Grid keeps two

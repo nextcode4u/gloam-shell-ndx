@@ -1,5 +1,6 @@
 #ifndef FRONTEND_LAYOUT_H
 #define FRONTEND_LAYOUT_H
+#include "themes.h"
 #include "types.h"
 
 /* Shared by rendering, scrolling and touch input so their row bounds agree. */
@@ -69,6 +70,16 @@ static inline int layout_row_height(const App *app)
         base = app->icon_size == ICON_LARGE ? 40 : 28;
     else
         base = app->icon_size == ICON_LARGE ? 36 : 18;
+    /* Framed rows need space around both text lines and the icon bezel. Keep
+     * this in shared geometry so touch, scrolling and drawing agree. */
+    if (!layout_is_grid(app) && (themes_component(&app->themes.active, THEME_ROW) ||
+                                 themes_component(&app->themes.active, THEME_ROW_SELECTED))) {
+        int content = app->browser_style == BROWSER_EXTENDED ? 26 : 12;
+        if (layout_has_icons(app) && layout_icon_size(app) > content)
+            content = layout_icon_size(app);
+        if (base < content + 8)
+            base = content + 8;
+    }
     unsigned padding = app->themes.active.row_padding;
     return base + (padding <= 12 ? (int)padding : 0);
 }
