@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 int __real_rename(const char *, const char *);
@@ -99,6 +100,40 @@ int main(int argc, char **argv)
     UpdateState invalid_cache = {0};
     update_cache_load(&invalid_cache, argv[1]);
     assert(invalid_cache.cache_loaded && !invalid_cache.available && !invalid_cache.checked_at);
+    const char *invalid[] = {"",
+                             "v999.0.0\n",
+                             "bad\n100000\n",
+                             "v999.0.0\n0\n",
+                             "v999.0.0\n-1\n",
+                             "v999.0.0\n4102444801\n",
+                             "v999.0.0\n100000 trailing\n"};
+    for (unsigned i = 0; i < sizeof invalid / sizeof *invalid; i++) {
+        file = fopen(cache, "w");
+        assert(file && fputs(invalid[i], file) >= 0 && !fclose(file));
+        UpdateState malformed = {.enabled = true};
+        update_cache_load(&malformed, argv[1]);
+        assert(malformed.cache_loaded && !malformed.available && !malformed.checked_at);
+        assert(update_should_start(&malformed, 1800, 120, true, 100004));
+    }
+    for (unsigned i = 0; i < 50; i++) {
+        restored.enabled = restored.requested = true;
+        assert(update_should_start(&restored, 2000, 200, true, 100004));
+        restored.requested = true;
+        assert(!update_should_start(&restored, 2000, 200, true, 100004));
+        update_complete(&restored, argv[1], NULL, 100004);
+        assert(!restored.busy && !restored.connected);
+    }
+    char trust[1024];
+    snprintf(trust, sizeof trust, "%s/trust.pem", argv[1]);
+    assert(!update_trust_available(trust));
+    assert(!update_trust_available(argv[1]));
+    file = fopen(trust, "wb");
+    assert(file && !fclose(file) && !update_trust_available(trust));
+    file = fopen(trust, "wb");
+    assert(file && fputs("Preflight only; TLS must reject invalid PEM", file) >= 0 &&
+           !fclose(file));
+    assert(update_trust_available(trust));
+    assert(!truncate(trust, UPDATE_TRUST_CAP + 1) && !update_trust_available(trust));
     puts("PASS: bounded release parsing, numeric version ordering, startup/idle gates, daily "
          "cache, cancellation state and stale notice preservation");
 }

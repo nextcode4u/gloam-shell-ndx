@@ -72,6 +72,12 @@ static int update_worker(void *unused)
 {
     (void)unused;
     char tag[UPDATE_TAG_CAP] = "", ca[PATH_CAP];
+    if (!path_join(ca, app.root, "_nds/dsi-frontend/update-ca.pem") ||
+        !update_trust_available(ca)) {
+        update_complete(&app.updates, app.root, NULL, time(NULL));
+        update_thread = -1;
+        return 0;
+    }
     if (!update_network_attempted) {
         update_network_attempted = true;
         update_network_initialized = Wifi_InitDefault(INIT_ONLY | WIFI_ATTEMPT_DSI_MODE);
@@ -88,9 +94,8 @@ static int update_worker(void *unused)
             app.updates.connected = true;
             struct in_addr dns;
             Wifi_GetIPInfo(NULL, NULL, &dns, NULL);
-            if (path_join(ca, app.root, "_nds/dsi-frontend/update-ca.pem"))
-                if (!update_fetch(ca, dns.s_addr, update_wait, tag))
-                    tag[0] = 0;
+            if (!update_fetch(ca, dns.s_addr, update_wait, tag))
+                tag[0] = 0;
             break;
         }
     }

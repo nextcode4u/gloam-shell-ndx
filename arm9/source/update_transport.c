@@ -97,8 +97,7 @@ bool update_fetch(const char *ca_file, uint32_t dns, bool (*wait)(void), char ta
 {
     bool success = false;
     tag[0] = 0;
-    uint32_t address = resolve(dns, wait);
-    if (!address)
+    if (!update_trust_available(ca_file))
         return false;
     char *response = malloc(UPDATE_RESPONSE_CAP);
     if (!response)
@@ -116,6 +115,9 @@ bool update_fetch(const char *ca_file, uint32_t dns, bool (*wait)(void), char ta
     mbedtls_entropy_init(&entropy);
     mbedtls_ctr_drbg_init(&random);
     if (!wait() || mbedtls_x509_crt_parse_file(&ca, ca_file) != 0)
+        goto done;
+    uint32_t address = resolve(dns, wait);
+    if (!address)
         goto done;
     if (!wait() || mbedtls_ctr_drbg_seed(&random, mbedtls_entropy_func, &entropy,
                                          (const unsigned char *)"Gloam updates", 13))

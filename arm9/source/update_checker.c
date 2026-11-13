@@ -5,6 +5,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+
+bool update_trust_available(const char *path)
+{
+    struct stat info;
+    if (stat(path, &info) || !S_ISREG(info.st_mode) || info.st_size <= 0 ||
+        info.st_size > UPDATE_TRUST_CAP)
+        return false;
+    FILE *file = fopen(path, "rb");
+    if (!file)
+        return false;
+    return fclose(file) == 0;
+}
 
 /* Only our published numeric version forms are accepted, not arbitrary URLs or text. */
 static bool number(const char **text, unsigned *out)

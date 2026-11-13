@@ -49,7 +49,9 @@ A status-bar arrow means a newer version is available. Settings shows its tag;
 use the PC setup tool or the project's GitHub Releases page to update. Nothing
 is automatically installed or launched. Missing trust certificates, incorrect
 console dates, network errors and oversized/unsupported responses fail closed.
-The cache is disposable `_nds/dsi-frontend/update-cache.txt`.
+The cache is disposable `_nds/dsi-frontend/update-cache.txt`. Missing, empty or
+oversized trust bundles fail before radio initialization; PEM bundles are limited
+to 64 KiB, and TLS still validates their contents before resolving the server.
 
 The transport uses nonblocking sockets, a 96 KiB response ceiling and 512-byte
 read steps, yielding between TLS handshake steps. Network waiting is bounded
