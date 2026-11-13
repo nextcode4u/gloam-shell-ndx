@@ -367,6 +367,11 @@ continues to stop marquees. These controls do not move touch targets: navigation
 is on the non-touch top screen. Item information and Library Index retain their
 sidebar workspace and use the same tab presentation there.
 
+Copper and Prism demonstrate icon docks; Glacier demonstrates icon tiles.
+Nocturne and Eclipse demonstrate Pager. Folio, Phosphor and Ember demonstrate
+numbered tabs. Slate, Tide and Garnet retain labels with outline/underline
+selection treatments.
+
 ## Theme icon packs
 
 Optional package-local icons replace the generic symbols used in browser rows,
