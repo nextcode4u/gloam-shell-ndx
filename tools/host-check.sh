@@ -300,3 +300,8 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     -o build/host/preferences-failure-test
 mkdir -p "$fixture/preferences-failure"
 ASAN_OPTIONS=detect_leaks=1 build/host/preferences-failure-test "$fixture/preferences-failure"
+
+cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
+    "${model_objects[@]}" "${ui_objects[@]}" tests/parser_mutation_test.c -o build/host/parser-mutation-test
+mkdir "$fixture/parser-mutation"
+ASAN_OPTIONS=detect_leaks=1 build/host/parser-mutation-test "$fixture/parser-mutation"
