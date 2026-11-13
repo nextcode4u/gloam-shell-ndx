@@ -39,7 +39,8 @@ localization remain future work. They require a shared measurement/layout
 contract before replacing the current geometry guarantees.
 
 The Spanish catalog includes every settings label and help entry, plus common
-settings values. Other dialogs and runtime errors still fall back to English.
-Catalogs support up to 256 additional keys within the 32 KiB file limit; values
-share a bounded text pool rather than allocating a full help buffer per key.
+settings values. Overlay headings and controls cover themes, associations, game options, cheats,
+Home sections and SD removal. Untranslated help and runtime diagnostics retain English.
+Catalogs support up to 384 additional keys within the 32 KiB file limit; values
+share a 24 KiB text pool rather than allocating a full help buffer per key.
 Personal theme names, paths and custom tab labels are never translated as values.

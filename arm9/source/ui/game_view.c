@@ -1,6 +1,7 @@
 #include "drawing.h"
 #include "game_options.h"
 #include "themes.h"
+#include "ui_strings.h"
 #include <stdio.h>
 #include <string.h>
 void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
@@ -11,7 +12,11 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
-    draw_text(top, 10, 8, editor->defaults ? "GAME DEFAULTS" : "TITLE OPTIONS", p.accent, 32);
+    draw_text(top, 10, 8,
+              editor->defaults
+                  ? ui_translate(&app->language, "dialog.game_defaults_title", "GAME DEFAULTS")
+                  : ui_translate(&app->language, "dialog.title_options_title", "TITLE OPTIONS"),
+              p.accent, 32);
     const char *name = strrchr(editor->path, '/');
     draw_text_wrapped(top, 10, 30,
                       editor->defaults ? "Applies to nds-bootstrap launches"
@@ -35,9 +40,18 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
         "Opens nds-bootstrap's in-game menu. Return depends on backend/game compatibility; "
         "QUIT_PATH points to BOOT.NDS."};
     draw_text_wrapped(top, 10, 77, help[editor->selected], p.text, 33, 7);
-    draw_text(top, 10, 174, "Backend handoff: experimental", p.muted, 33);
-    draw_text(bottom, 10, 7, editor->defaults ? "Game defaults" : "Title options", p.text, 32);
-    draw_text(bottom, 10, 24, "< > change  Y reset", p.muted, 33);
+    draw_text(top, 10, 174,
+              ui_translate(&app->language, "dialog.backend_experimental",
+                           "Backend handoff: experimental"),
+              p.muted, 33);
+    draw_text(bottom, 10, 7,
+              editor->defaults
+                  ? ui_translate(&app->language, "dialog.game_defaults", "Game defaults")
+                  : ui_translate(&app->language, "dialog.title_options", "Title options"),
+              p.text, 32);
+    draw_text(bottom, 10, 24,
+              ui_translate(&app->language, "dialog.change_reset", "< > change  Y reset"), p.muted,
+              33);
     for (int row = 0; row < 7; row++) {
         int option = editor->scroll + row;
         if (option >= GAME_OPTION_COUNT)
@@ -57,5 +71,7 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
         draw_text_clipped(bottom, 132, y + 3, value, p.accent, 16);
     }
     draw_text_clipped(bottom, 10, 170, editor->status, p.muted, 33);
-    draw_text(bottom, 10, 182, "B / START save and back", p.muted, 33);
+    draw_text(bottom, 10, 182,
+              ui_translate(&app->language, "dialog.save_back", "B / START save and back"), p.muted,
+              33);
 }

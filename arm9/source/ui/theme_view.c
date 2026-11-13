@@ -1,3 +1,4 @@
+#include "ui_strings.h"
 /* Preview uses the candidate snapshot; no asset reads or preference writes. */
 #include "drawing.h"
 #include "themes.h"
@@ -11,7 +12,8 @@ void themes_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(package, top, 22);
     themes_background_draw(package, 1, bottom);
     draw_theme_chrome(package, bottom, 22);
-    draw_text(top, 10, 8, "THEME PREVIEW", palette.accent, 30);
+    draw_text(top, 10, 8, ui_translate(&app->language, "dialog.theme_preview", "THEME PREVIEW"),
+              palette.accent, 30);
     if (package->top_layout == 3) {
         themes_background_scene_draw(package, top);
         draw_theme_component(package, top, THEME_CARD, 14, 44, 48, 48);
@@ -30,11 +32,18 @@ void themes_render(const App *app, uint16_t *top, uint16_t *bottom)
     }
     if (!draw_theme_component(package, top, THEME_TAB_SELECTED, 10, 153, 82, 22))
         draw_rectangle(top, 10, 153, 82, 22, palette.accent);
-    draw_text(top, 21, 158, "Selected", themes_tab_text(package), 11);
-    draw_text(top, 105, 158, package->external_font ? "Theme font" : "Built-in font", palette.muted,
-              20);
-    draw_text(bottom, 10, 7, "Choose theme", palette.text, 30);
-    draw_text(bottom, 10, 24, "Up/down preview; A applies", palette.muted, 33);
+    draw_text(top, 21, 158, ui_translate(&app->language, "dialog.selected", "Selected"),
+              themes_tab_text(package), 11);
+    draw_text(top, 105, 158,
+              package->external_font
+                  ? ui_translate(&app->language, "dialog.theme_font", "Theme font")
+                  : ui_translate(&app->language, "dialog.builtin_font", "Built-in font"),
+              palette.muted, 20);
+    draw_text(bottom, 10, 7, ui_translate(&app->language, "dialog.choose_theme", "Choose theme"),
+              palette.text, 30);
+    draw_text(bottom, 10, 24,
+              ui_translate(&app->language, "dialog.preview_hint", "Up/down preview; A applies"),
+              palette.muted, 33);
     for (int row = 0; row < 7; row++) {
         int index = state->scroll + row;
         if (index >= state->count)
@@ -43,8 +52,10 @@ void themes_render(const App *app, uint16_t *top, uint16_t *bottom)
         if (index == state->selected) {
             draw_theme_selection(package, bottom, 6, y, 244, 18);
         }
-        draw_text_clipped(bottom, 14, y + 3, index ? state->ids[index] : "Built-in", palette.text,
-                          31);
+        draw_text_clipped(bottom, 14, y + 3,
+                          index ? state->ids[index]
+                                : ui_translate(&app->language, "dialog.builtin", "Built-in"),
+                          palette.text, 31);
     }
     draw_text_wrapped(bottom, 10, 168, state->status, palette.muted, 33, 2);
 }

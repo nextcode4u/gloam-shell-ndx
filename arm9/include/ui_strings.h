@@ -17,8 +17,8 @@ typedef enum {
     UI_EMPTY_FOLDER,
     UI_STRING_COUNT
 } UiString;
-#define UI_EXTRA_CAP 256
-#define UI_TEXT_CAP 32768
+#define UI_EXTRA_CAP 384
+#define UI_TEXT_CAP 24576
 typedef struct {
     char key[48];
     uint16_t offset;

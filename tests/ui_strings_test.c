@@ -1,8 +1,15 @@
 #include "app.h"
+#include "association_editor.h"
+#include "cheats.h"
+#include "dashboard.h"
+#include "game_options.h"
 #include "paths.h"
+#include "picker.h"
 #include "renderer.h"
 #include "settings.h"
+#include "storage_state.h"
 #include "tabs.h"
+#include "themes.h"
 #include "ui_strings.h"
 #include <assert.h>
 #include <stdio.h>
@@ -84,8 +91,28 @@ int main(int argc, char **argv)
             }
         }
         settings_close(&app);
+        static CheatState cheat;
+        void (*dialogs[])(const App *, uint16_t *, uint16_t *) = {association_editor_render,
+                                                                  cheats_render,
+                                                                  dashboard_render,
+                                                                  game_editor_render,
+                                                                  picker_render,
+                                                                  storage_render,
+                                                                  themes_render};
+        app.cheats = &cheat;
+        for (int layout = 0; layout < 4; layout++) {
+            app.themes.active.top_layout = layout;
+            for (unsigned dialog = 0; dialog < sizeof dialogs / sizeof *dialogs; dialog++) {
+                top.before = top.after = bottom.before = bottom.after = 0xA11CE;
+                dialogs[dialog](&app, top.pixels, bottom.pixels);
+                assert(top.before == 0xA11CE && top.after == 0xA11CE);
+                assert(bottom.before == 0xA11CE && bottom.after == 0xA11CE);
+            }
+        }
+        app.cheats = NULL;
+        assert(strcmp(ui_translate(&app.language, "dialog.sd_removed", "missing"), "missing"));
     }
-    char many[16000] = "version=1\n";
+    char many[24000] = "version=1\n";
     for (unsigned i = 0; i <= UI_EXTRA_CAP; i++) {
         char record[64];
         snprintf(record, sizeof record, "value.fixture_%u=Texto %u\n", i, i);
@@ -95,6 +122,8 @@ int main(int argc, char **argv)
             ui_language_load(&app.language, argv[1], true);
             assert(app.language.loaded && app.language.extra_count == UI_EXTRA_CAP);
             assert(!strcmp(ui_translate(&app.language, "value.fixture_255", "bad"), "Texto 255"));
+            assert(!strcmp(ui_translate(&app.language, "value.fixture_0", "bad"), "Texto 0"));
+            assert(!strcmp(ui_translate(&app.language, "value.fixture_383", "bad"), "Texto 383"));
         }
     }
     catalog(argv[1], many);

@@ -28,10 +28,22 @@ const char *ui_text(const UiLanguage *language, UiString key)
 }
 const char *ui_translate(const UiLanguage *language, const char *key, const char *fallback)
 {
-    for (unsigned i = 0; i < language->extra_count; i++)
-        if (!strcmp(language->extra[i].key, key))
-            return language->text + language->extra[i].offset;
+    unsigned low = 0, high = language->extra_count;
+    while (low < high) {
+        unsigned middle = low + (high - low) / 2;
+        int order = strcmp(language->extra[middle].key, key);
+        if (!order)
+            return language->text + language->extra[middle].offset;
+        if (order < 0)
+            low = middle + 1;
+        else
+            high = middle;
+    }
     return fallback;
+}
+static int translation_compare(const void *left, const void *right)
+{
+    return strcmp(((const UiTranslation *)left)->key, ((const UiTranslation *)right)->key);
 }
 static bool extra_key(const char *key)
 {
@@ -134,6 +146,8 @@ void ui_language_load(UiLanguage *language, const char *root, bool enabled)
     valid &= version && !ferror(file);
     fclose(file);
     if (valid) {
+        qsort(candidate->extra, candidate->extra_count, sizeof candidate->extra[0],
+              translation_compare);
         candidate->loaded = true;
         *language = *candidate;
     }

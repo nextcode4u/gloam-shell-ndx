@@ -15,6 +15,7 @@
 #include "storage_state.h"
 #include "tabs.h"
 #include "themes.h"
+#include "ui_strings.h"
 
 #include "drawing.h"
 #include "paths.h"
@@ -79,7 +80,8 @@ static void draw_item_information(const App *app, uint16_t *pixels, Palette colo
     const Entry *entry = app_selected(app);
     int index = app->locations[app->category].selected;
     char size[32] = "", extra[48] = "", facts[80] = "";
-    const char *type = entry ? entry_type(entry) : "No selection";
+    const char *type = entry ? entry_type(entry)
+                             : ui_translate(&app->language, "dialog.no_selection", "No selection");
     const char *storage = "SD card";
     const char *title = entry ? entry->name : "Choose an item";
     const char *hint = "A: open selection";
@@ -363,7 +365,8 @@ static void draw_poster(const App *app, uint16_t *pixels, Palette colors)
         snprintf(size, sizeof size, "%lu KiB", (unsigned long)(entry->size / 1024));
     draw_text(pixels, 130, 86, size, colors.text, 16);
     draw_text(pixels, 130, 105, app->dsi_mode ? "Nintendo DSi" : "Nintendo DS", colors.muted, 16);
-    draw_text(pixels, 130, 131, "Y: details", colors.muted, 16);
+    draw_text(pixels, 130, 131, ui_translate(&app->language, "dialog.details_hint", "Y: details"),
+              colors.muted, 16);
     draw_context_tabs(app, pixels, colors);
 }
 
@@ -569,15 +572,22 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
     draw_text(pixels, 14, y + 9, title, colors.accent, 30);
     if (app->panel == PANEL_MESSAGE) {
         draw_text_wrapped(pixels, 14, y + 29, app->message, colors.text, 36, 7);
-        draw_text(pixels, 14, footer, "A / B  close", colors.muted, 30);
+        draw_text(pixels, 14, footer,
+                  ui_translate(&app->language, "dialog.close_hint", "A / B  close"), colors.muted,
+                  30);
         return;
     }
     if (app->panel == PANEL_INFO) {
         const Entry *entry = app_selected(app);
-        draw_text_wrapped(pixels, 14, y + 29, entry ? entry->path : "No selection", colors.text, 36,
-                          5);
+        draw_text_wrapped(pixels, 14, y + 29,
+                          entry
+                              ? entry->path
+                              : ui_translate(&app->language, "dialog.no_selection", "No selection"),
+                          colors.text, 36, 5);
         draw_text(pixels, 14, y + 99, entry ? entry_type(entry) : "", colors.accent, 36);
-        draw_text(pixels, 14, footer, "A / B  close", colors.muted, 30);
+        draw_text(pixels, 14, footer,
+                  ui_translate(&app->language, "dialog.close_hint", "A / B  close"), colors.muted,
+                  30);
         return;
     }
     const char *quick[] = {
@@ -597,7 +607,7 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
         "Choose app for this file",
         "Clear application choice",
         "Edit file associations",
-        "Title options",
+        ui_translate(&app->language, "dialog.title_options", "Title options"),
         "Title cheats",
         "Locate missing target",
         "Remove shortcut",
@@ -853,7 +863,10 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
                                                         : ui_text(&app->language, UI_EMPTY_FOLDER))
                               : "SD card not mounted",
                           colors.text, 31, 3);
-        draw_text(bottom, 16, 84, "B back   L/R change tab", colors.muted, 38);
+        draw_text(
+            bottom, 16, 84,
+            ui_translate(&app->language, "dialog.empty_navigation", "B back   L/R change tab"),
+            colors.muted, 38);
     } else {
         if (app->browser_style == BROWSER_SHELF)
             draw_shelf(app, bottom, colors);

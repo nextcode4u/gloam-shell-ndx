@@ -1,3 +1,4 @@
+#include "ui_strings.h"
 /* Dedicated two-screen picker view; all file access belongs to picker.c. */
 #include "drawing.h"
 #include "picker.h"
@@ -13,11 +14,14 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
-    draw_text(top, 10, 8, "OPEN WITH", p.accent, 32);
+    draw_text(top, 10, 8, ui_translate(&app->language, "dialog.open_with", "OPEN WITH"), p.accent,
+              32);
     const char *name = strrchr(picker->target, '/');
     draw_text_scrolling(top, 10, 31, name ? name + 1 : picker->target, p.text, 231,
                         picker->idle_frames, !app->reduced_motion);
-    draw_text(top, 10, 57, "Selected application", p.muted, 32);
+    draw_text(top, 10, 57,
+              ui_translate(&app->language, "dialog.selected_application", "Selected application"),
+              p.muted, 32);
     if (picker->count && picker->selected < picker->count) {
         const Entry *entry = &picker->entries[picker->selected];
         draw_text_scrolling(top, 10, 77, entry->name, p.accent, 231, picker->idle_frames,
@@ -25,7 +29,9 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
         draw_text_scrolling(top, 10, 98, entry->path, p.text, 231, picker->idle_frames,
                             !app->reduced_motion);
         const Association *profile = &app->associations[entry->target];
-        draw_text(top, 10, 120, "Preferred folder", p.muted, 32);
+        draw_text(top, 10, 120,
+                  ui_translate(&app->language, "dialog.preferred_folder", "Preferred folder"),
+                  p.muted, 32);
         draw_text_scrolling(top, 10, 135,
                             *profile->content_root ? profile->content_root : "Any folder", p.text,
                             231, picker->idle_frames, !app->reduced_motion);
@@ -35,8 +41,13 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
                           ? picker->status
                           : "Several apps handle this file. Your choice applies to this launch.",
                       p.muted, 33, 3);
-    draw_text(bottom, 10, 7, "Choose application", p.text, 32);
-    draw_text(bottom, 10, 24, "Folder rules could not select one", p.muted, 33);
+    draw_text(bottom, 10, 7,
+              ui_translate(&app->language, "dialog.choose_application", "Choose application"),
+              p.text, 32);
+    draw_text(bottom, 10, 24,
+              ui_translate(&app->language, "dialog.ambiguous_folder",
+                           "Folder rules could not select one"),
+              p.muted, 33);
     for (int row = 0; row < PICKER_VISIBLE_ROWS; row++) {
         int index = picker->scroll + row;
         if (index >= picker->count)
@@ -52,7 +63,9 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
                             selected ? themes_selection_text(&app->themes.active) : p.muted, 203,
                             picker->idle_frames, selected && !app->reduced_motion);
     }
-    draw_text(bottom, 10, 176, "A launch  B / START cancel", p.muted, 33);
+    draw_text(bottom, 10, 176,
+              ui_translate(&app->language, "dialog.launch_cancel", "A launch  B / START cancel"),
+              p.muted, 33);
 }
 
 void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
@@ -123,8 +136,9 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
               : picker->kind == PICKER_CONFIGURATION ? "Choose configuration"
               : picker->kind == PICKER_REPAIR        ? "Locate replacement"
               : picker->kind == PICKER_AUDIO         ? "Choose music"
-              : picker->kind == PICKER_COVER         ? "Choose cover"
-                                                     : "Choose application",
+              : picker->kind == PICKER_COVER
+                  ? "Choose cover"
+                  : ui_translate(&app->language, "dialog.choose_application", "Choose application"),
               text, 30);
     draw_text(bottom, 210, 7, "< >", muted, 5);
     draw_text_scrolling(bottom, 10, 24, picker->path, muted, 231, picker->idle_frames,
