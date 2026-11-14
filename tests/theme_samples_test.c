@@ -7,6 +7,7 @@
 #include "preferences.h"
 #include "renderer.h"
 #include "settings.h"
+#include "theme_composition.h"
 #include "themes.h"
 #include <assert.h>
 #include <stdio.h>
@@ -69,7 +70,7 @@ static void banner_preview_surface(void)
         app.entries[0].kind = kind == 3   ? ITEM_INSTALLED_TITLE
                               : kind == 4 ? ITEM_SYSTEM
                                           : ITEM_FILE;
-        for (unsigned layout = 0; layout < 4; layout++) {
+        for (unsigned layout = 0; layout < TOP_LAYOUT_COUNT; layout++) {
             app.themes.active.top_layout = layout;
             app.artwork.ready = false;
             draw();
@@ -88,6 +89,49 @@ static void banner_preview_surface(void)
             }
         }
     }
+}
+
+static bool overlaps(ThemeBox a, ThemeBox b)
+{
+    return a.width && b.width && a.x < b.x + b.width && b.x < a.x + a.width &&
+           a.y < b.y + b.height && b.y < a.y + a.height;
+}
+
+static void composition_bounds(void)
+{
+    app_category(&app, CATEGORY_GAMES);
+    app.browser_style = BROWSER_CLASSIC;
+    app.detail_tab = 0;
+    app.show_covers = true;
+    for (unsigned layout = TOP_SPOTLIGHT; layout < TOP_LAYOUT_COUNT; layout++)
+        for (unsigned position = 0; position < 3; position++)
+            for (unsigned style = 0; style < 4; style++) {
+                app.themes.active.top_layout = layout;
+                app.themes.active.tabs_position = position;
+                app.themes.active.tab_style = style;
+                ThemeComposition c = theme_composition(&app.themes.active);
+                ThemeBox dock = {0, c.tabs_y, 256, c.tabs_height};
+                ThemeBox frame = {c.artwork.x - 2, c.artwork.y - 2, c.artwork.width + 4,
+                                  c.artwork.height + 4};
+                assert(frame.x >= 0 && frame.x + frame.width <= 256);
+                assert(frame.y >= 25 && frame.y + frame.height <= 176);
+                assert(!overlaps(frame, dock) && !overlaps(c.title, dock));
+                assert(!overlaps(frame, c.title) && !overlaps(c.information, dock));
+                assert(!overlaps(frame, c.information));
+                app.artwork.ready = false;
+                draw();
+                memcpy(stationary_rows, top.pixels, sizeof stationary_rows);
+                app.artwork.ready = true;
+                strcpy(app.artwork.source, "Sidecar PNG");
+                app.artwork.width = 96;
+                for (int height = 16; height <= 104; height += 88) {
+                    app.artwork.height = height;
+                    draw();
+                    assert(!memcmp(stationary_rows + c.tabs_y * 256, top.pixels + c.tabs_y * 256,
+                                   c.tabs_height * 256 * sizeof *top.pixels));
+                }
+            }
+    app.themes.active.tabs_position = 0;
 }
 
 static int luminance(uint16_t color)
@@ -221,7 +265,7 @@ int main(int argc, char **argv)
                     }
                     for (int frame = 0; frame < 16; frame++)
                         app_tick(&app);
-                    for (unsigned composition = 0; composition < 4; composition++) {
+                    for (unsigned composition = 0; composition < TOP_LAYOUT_COUNT; composition++) {
                         app.themes.active.top_layout = composition;
                         app.themes.active.scene_cover_x = composition == 3 ? 158 : 14;
                         app.themes.active.scene_cover_y = composition == 3 ? 26 : 34;
@@ -248,7 +292,7 @@ int main(int argc, char **argv)
         app.rail_focus = true;
         app.detail_tab = 0;
         app.browser_style = BROWSER_CLASSIC;
-        for (unsigned composition = 0; composition < 4; composition++)
+        for (unsigned composition = 0; composition < TOP_LAYOUT_COUNT; composition++)
             for (unsigned style = 0; style < 4; style++)
                 for (unsigned highlight = 0; highlight < 3; highlight++)
                     for (unsigned visible = 3; visible <= 5; visible++) {
@@ -304,6 +348,7 @@ int main(int argc, char **argv)
         }
         settings_close(&app);
         banner_preview_surface();
+        composition_bounds();
     }
     puts("PASS: shipped themes preview/cancel/apply/restart, Latin-1 font, PNG/JPEG wallpapers, "
          "audio and all browser sizes/views/settings framebuffer bounds");

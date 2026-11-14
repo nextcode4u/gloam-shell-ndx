@@ -14,6 +14,7 @@
 #include "settings.h"
 #include "storage_state.h"
 #include "tabs.h"
+#include "theme_composition.h"
 #include "themes.h"
 #include "ui_strings.h"
 
@@ -232,20 +233,20 @@ static int tab_window_start(const App *app, int focus, int visible)
     return start < 0 ? 0 : start;
 }
 
-static void draw_context_tabs(const App *app, uint16_t *pixels, Palette colors)
+static void draw_context_tabs_at(const App *app, uint16_t *pixels, Palette colors, int y)
 {
     const ThemePackage *theme = &app->themes.active;
     int focus = app->rail_focus ? app->rail_selected : app->category;
     unsigned elapsed = app->frame_count - app->tab_text_started_frame;
     if (theme->tab_style == 3) {
-        uint16_t color = draw_tab_highlight(theme, pixels, colors, 30, 155, 196, 18);
-        draw_text(pixels, 10, 158, "<", colors.accent, 1);
-        draw_text(pixels, 239, 158, ">", colors.accent, 1);
-        draw_text_scrolling(pixels, 38, 158, tabs_label(app, focus), color, 135, elapsed,
+        uint16_t color = draw_tab_highlight(theme, pixels, colors, 30, y, 196, 18);
+        draw_text(pixels, 10, y + 3, "<", colors.accent, 1);
+        draw_text(pixels, 239, y + 3, ">", colors.accent, 1);
+        draw_text_scrolling(pixels, 38, y + 3, tabs_label(app, focus), color, 135, elapsed,
                             !app->reduced_motion);
         char position[16];
         snprintf(position, sizeof position, "%d/%d", focus + 1, app->tab_count);
-        draw_text(pixels, 177, 158, position, color, 6);
+        draw_text(pixels, 177, y + 3, position, color, 6);
         return;
     }
     int visible = theme->tab_visible, gap = theme->tab_gap;
@@ -257,7 +258,6 @@ static void draw_context_tabs(const App *app, uint16_t *pixels, Palette colors)
             break;
         int x = 7 + cell * (width + gap);
         bool active = index == focus;
-        int y = theme->tab_style == 1 ? 144 : 155;
         uint16_t color =
             active ? draw_tab_highlight(theme, pixels, colors, x, y, width, 18) : colors.muted;
         if (theme->tab_style == 1) {
@@ -267,16 +267,21 @@ static void draw_context_tabs(const App *app, uint16_t *pixels, Palette colors)
             if (theme->tab_style == 2) {
                 char number[16];
                 snprintf(number, sizeof number, "%02d", index + 1);
-                draw_text(pixels, x + 3, 158, number, color, 2);
+                draw_text(pixels, x + 3, y + 3, number, color, 2);
                 inset = 20;
             }
-            draw_text_scrolling(pixels, x + inset, 158, tabs_label(app, index), color,
+            draw_text_scrolling(pixels, x + inset, y + 3, tabs_label(app, index), color,
                                 width - inset - 4, elapsed, active && !app->reduced_motion);
         }
     }
     if (theme->tab_style == 1)
-        draw_text_scrolling(pixels, 12, 164, tabs_label(app, focus), colors.text, 232, elapsed,
+        draw_text_scrolling(pixels, 12, y + 20, tabs_label(app, focus), colors.text, 232, elapsed,
                             !app->reduced_motion);
+}
+
+static void draw_context_tabs(const App *app, uint16_t *pixels, Palette colors)
+{
+    draw_context_tabs_at(app, pixels, colors, app->themes.active.tab_style == 1 ? 144 : 155);
 }
 
 static void draw_side_tabs(const App *app, uint16_t *pixels, Palette colors, int rail)
@@ -437,6 +442,69 @@ static void draw_scene(const App *app, uint16_t *pixels, Palette colors, const c
     draw_context_tabs(app, pixels, colors);
 }
 
+/* Every region comes from the shared composition bounds. Native banners keep
+ * their card surface even after asynchronous artwork resolution. */
+static void draw_composition(const App *app, uint16_t *pixels, Palette colors, const char *name)
+{
+    const ThemePackage *theme = &app->themes.active;
+    ThemeComposition composition = theme_composition(theme);
+    ThemeBox box = composition.artwork, title = composition.title;
+    const Entry *entry = app_selected(app);
+    int selected = app->locations[app->category].selected;
+    bool native = entry && (entry->kind == ITEM_SYSTEM || entry->kind == ITEM_INSTALLED_TITLE) &&
+                  icons_for_entry(app, selected);
+    if (!native && preview_has_cover(app)) {
+        int width = box.width, height = app->artwork.height * width / app->artwork.width;
+        if (height > box.height) {
+            height = box.height;
+            width = app->artwork.width * height / app->artwork.height;
+        }
+        if (width < 1)
+            width = 1;
+        if (height < 1)
+            height = 1;
+        int x = box.x + (box.width - width) / 2, y = box.y + (box.height - height) / 2;
+        draw_theme_component(theme, pixels, THEME_ARTWORK_FRAME, x - 2, y - 2, width + 4,
+                             height + 4);
+        for (int yy = 0; yy < height; yy++)
+            for (int xx = 0; xx < width; xx++)
+                pixels[(y + yy) * 256 + x + xx] =
+                    app->artwork.pixels[(yy * app->artwork.height / height) * app->artwork.width +
+                                        xx * app->artwork.width / width];
+    } else {
+        if (!draw_theme_component(theme, pixels, THEME_CARD, box.x, box.y, box.width, box.height))
+            draw_rectangle(pixels, box.x, box.y, box.width, box.height, colors.surface);
+        int size = (box.width < box.height ? box.width : box.height) - 12;
+        if (size > 80)
+            size = 80;
+        int x = box.x + (box.width - size) / 2, y = box.y + (box.height - size) / 2;
+        draw_browser_icon(app, pixels, selected, x, y, size, colors.accent);
+    }
+    draw_heading_scrolling(theme, pixels, title.x, title.y + 2, name, colors.text, title.width,
+                           app->selection_idle_frames, !app->reduced_motion);
+    ThemeBox info = composition.information;
+    if (info.width) {
+        draw_text_wrapped(pixels, info.x, info.y, entry ? entry_type(entry) : "Browse",
+                          colors.accent, info.width / FONT_WIDTH, 2);
+        char size[32] = "";
+        if (entry && entry->size)
+            snprintf(size, sizeof size, "%lu KiB", (unsigned long)(entry->size / 1024));
+        if (info.height >= 42)
+            draw_text(pixels, info.x, info.y + 30, size, colors.text, info.width / FONT_WIDTH);
+        if (info.height >= 60)
+            draw_text(pixels, info.x, info.y + 48,
+                      entry && (entry->kind == ITEM_INSTALLED_TITLE || entry->kind == ITEM_SYSTEM)
+                          ? "System title"
+                          : "SD card",
+                      colors.muted, info.width / FONT_WIDTH);
+        if (info.height >= 78)
+            draw_text(pixels, info.x, info.y + 66,
+                      ui_translate(&app->language, "dialog.details_hint", "Y: details"),
+                      colors.muted, info.width / FONT_WIDTH);
+    }
+    draw_context_tabs_at(app, pixels, colors, composition.tabs_y);
+}
+
 static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, const char *clock)
 {
     const ThemePackage *theme = &app->themes.active;
@@ -446,6 +514,8 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
         theme->top_layout == 3 && app->detail_tab == 0 && app->browser_style != BROWSER_INDEX;
     bool poster = theme->top_layout == 2 && app->detail_tab == 0 && app->show_covers &&
                   app->browser_style != BROWSER_INDEX;
+    bool composed = theme->top_layout >= TOP_SPOTLIGHT && app->detail_tab == 0 &&
+                    app->show_covers && app->browser_style != BROWSER_INDEX;
     themes_background_draw(&app->themes.active, 0, pixels);
     draw_theme_chrome(&app->themes.active, pixels, 22);
     draw_heading_scrolling(theme, pixels, 10, 7, app->recovery_mode ? "RECOVERY" : theme->header,
@@ -456,7 +526,7 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     draw_text(pixels, 205, 7, tab_position, colors.muted, 6);
     if (!theme->minimal_chrome)
         draw_rectangle(pixels, 10, 23, 236, 1, colors.line);
-    if (!poster && !scene && !theme->minimal_chrome)
+    if (!poster && !scene && !composed && !theme->minimal_chrome)
         draw_rectangle(pixels, offset ? 78 : 174, 33, 1, 133, colors.line);
     const Entry *entry = app_selected(app);
     const char *name =
@@ -467,11 +537,13 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     if (entry && entry->kind == ITEM_SYSTEM && entry->target == 6 && app->slot1.icon.ready &&
         *app->slot1.title)
         name = app->slot1.title;
-    if (!scene)
+    if (!scene && !composed)
         draw_heading_scrolling(theme, pixels, offset + 12, 31, name, colors.text,
                                poster ? 232 : 154, app->selection_idle_frames,
                                !app->reduced_motion);
-    if (scene) {
+    if (composed) {
+        draw_composition(app, pixels, colors, name);
+    } else if (scene) {
         draw_scene(app, pixels, colors, name);
     } else if (poster) {
         draw_poster(app, pixels, colors);
@@ -565,7 +637,7 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     } else {
         draw_item_information(app, pixels, colors, offset);
     }
-    if (!poster && !scene)
+    if (!poster && !scene && !composed)
         draw_side_tabs(app, pixels, colors, rail);
     if (!theme->minimal_chrome)
         draw_rectangle(pixels, 10, 176, 236, 1, colors.line);

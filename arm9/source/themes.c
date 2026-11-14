@@ -4,6 +4,7 @@
 #include "audio.h"
 #include "browser.h"
 #include "paths.h"
+#include "theme_composition.h"
 #include <ctype.h>
 #include <dirent.h>
 #include <stdio.h>
@@ -205,14 +206,22 @@ static bool load(App *app, const char *id, ThemePackage *package)
                 else
                     valid = false;
             } else if (!strcmp(key, "top_layout")) {
-                if (!strcmp(value, "sidebar"))
-                    package->top_layout = 0;
-                else if (!strcmp(value, "sidebar_left"))
-                    package->top_layout = 1;
-                else if (!strcmp(value, "poster"))
-                    package->top_layout = 2;
-                else if (!strcmp(value, "scene"))
-                    package->top_layout = 3;
+                const char *layouts[] = {"sidebar",   "sidebar_left", "poster", "scene",
+                                         "spotlight", "gallery",      "journal"};
+                bool matched = false;
+                for (unsigned i = 0; i < TOP_LAYOUT_COUNT; i++)
+                    if (!strcmp(value, layouts[i])) {
+                        package->top_layout = i;
+                        needs_v2 |= i >= TOP_SPOTLIGHT;
+                        matched = true;
+                    }
+                valid &= matched;
+            } else if (!strcmp(key, "tabs_position")) {
+                needs_v2 = true;
+                if (!strcmp(value, "top"))
+                    package->tabs_position = 1;
+                else if (!strcmp(value, "bottom"))
+                    package->tabs_position = 2;
                 else
                     valid = false;
             } else if (!strcmp(key, "tab_style") || !strcmp(key, "tab_highlight")) {
@@ -341,10 +350,11 @@ static bool load(App *app, const char *id, ThemePackage *package)
             valid = false;
     }
     valid = valid && version && (!needs_v2 || package->format_version == 2) && !ferror(file) &&
-            readable(package->palette) && package->scene_cover_x >= 2 &&
-            package->scene_cover_y >= 26 && package->scene_cover_width >= 8 &&
-            package->scene_cover_width <= 96 && package->scene_cover_height >= 8 &&
-            package->scene_cover_height <= 90 &&
+            readable(package->palette) &&
+            (!package->tabs_position || package->top_layout >= TOP_SPOTLIGHT) &&
+            package->scene_cover_x >= 2 && package->scene_cover_y >= 26 &&
+            package->scene_cover_width >= 8 && package->scene_cover_width <= 96 &&
+            package->scene_cover_height >= 8 && package->scene_cover_height <= 90 &&
             package->scene_cover_x + package->scene_cover_width <= 254 &&
             package->scene_cover_y + package->scene_cover_height <= 116;
     fclose(file);

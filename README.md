@@ -29,7 +29,8 @@ Each theme includes previews, installation instructions and asset credits.
 
 - Two-screen browser with Classic, Extended, List, Grid, Cover Shelf and Library Index views, small/large
   icons, looping text and configurable folder tabs.
-- Themes with palettes, bitmap fonts, backgrounds, music and UI sounds; personal
+- Themes with palettes, proportional body/heading fonts, translucent components,
+  independent screen opacity, layout presets, backgrounds, music and UI sounds; personal
   appearance presets and on-console controls.
 - Covers and custom icons for games, folders and associated files, with lazy
   artwork loading and a disposable thumbnail cache.

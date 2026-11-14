@@ -1,7 +1,8 @@
 # Theme packages
 
 Version 2 adds independent top/bottom reading-surface opacity, optional
-translucent components and proportional body/heading fonts. It requires a
+translucent components, proportional body/heading fonts and three additional
+composition presets. It requires a
 frontend built with version-2 support; Gloam 1.0.0 rejects these packages.
 Existing `version=1` themes retain their behavior. New packs declare
 `[theme] version=2`; no conversion of older packs is necessary.
@@ -161,10 +162,11 @@ The original fixed-cell pack format remains supported:
 Each row contains seven two-bit coverage values, low bits first. The top two
 bits must be zero. Every printable glyph except space must have visible ink.
 The complete file is exactly 2,296 bytes; truncation and trailing data are errors.
-Measurement and drawing use the same fixed seven-pixel advance and twelve-pixel
-line height. Font replacement therefore cannot change row, column, touch or
-footer geometry. UTF-8 drawing and Latin-1 fallback/format-v2 packs are supported; see TEXT_AND_TITLES.md. Other scripts still use `?`. This is not full
-UI localization or PCF compatibility.
+These legacy faces use a seven-pixel advance and twelve-pixel line height.
+DSFONT03 instead measures proportional advances, while the body retains the same
+line height and browser touch geometry. See [theme fonts](THEME_FONTS.md) for
+heading roles and the binary format, and [text and titles](TEXT_AND_TITLES.md)
+for UTF-8, built-in script fallbacks and localization limits.
 
 Theme authors can run:
 
@@ -282,7 +284,8 @@ Older builds reject unknown manifest keys; update the binary along with these
 example theme packs. Packages without the new keys keep their previous behavior.
 
 `top_layout` accepts `sidebar` (the original right rail), `sidebar_left`,
-`poster`, or `scene`. The left rail moves the artwork and information together without
+`poster`, or `scene`; version 2 also accepts [Spotlight, Gallery and
+Journal](#version-2-composition-presets). The left rail moves the artwork and information together without
 mirroring text or wallpaper. Poster uses a larger artwork area and a horizontal
 strip showing the focused tab and its neighbours. L/R still cycles all tabs;
 X enters tab selection, where Up/Down and A retain their usual behavior. Long
@@ -601,3 +604,26 @@ claim a signal-strength reading.
 Place `splash.gsp` inside the theme folder to supply a startup splash. No INI key
 is needed. Users can disable it or select their own override. See
 [startup splashes](STARTUP_SPLASHES.md) for the builder, playback behavior and format limits.
+
+## Version 2 composition presets
+
+Version 2 adds three bounded top-screen compositions. Each accepts
+`tabs_position=top` or `tabs_position=bottom`, with the existing `tab_style`,
+`tab_visible`, `tab_gap` and highlight controls. Omit the position to use the
+preset's default. These fields do not move the bottom browser or its touch areas.
+
+| `top_layout` | Composition | Default navigation |
+| --- | --- | --- |
+| `spotlight` | Wide heading above a centered artwork card; illustration surrounds it. | Bottom |
+| `gallery` | Heading above artwork at left and item facts at right. | Top |
+| `journal` | Small portrait artwork beside a heading and a column of item facts. | Bottom |
+
+Artwork keeps its aspect ratio. Native banners use the themed card, including
+while cover metadata resolves. The renderer reserves heading, frame and navigation
+bounds for both 12–16-pixel heading faces and every tab style. Showing item details,
+turning covers off or using Library index switches to the existing inspector/index
+with its side navigation. L/R and X navigation keep their usual behavior.
+
+`tabs_position` applies only to these three presets; it rejects incompatible
+combinations rather than silently ignoring them. Existing `sidebar`,
+`sidebar_left`, `poster` and `scene` retain their original compositions.

@@ -158,3 +158,8 @@ nonblocking DNS/TCP/TLS operations and yields through a platform callback.
 and radio disconnection before a launch or application-state reset.
 The initialized SDK stack is retained: its 1.25.0 Internet teardown is unsupported. Rendering only reads
 `UpdateState`. `update-available.png` is an optional status component.
+
+`theme_composition.h` owns the bounded Spotlight, Gallery and Journal regions,
+including heading clearance and configurable top/bottom navigation. Drawing and
+geometry regression checks share those regions; browser touch geometry stays in
+`layout.h`.

@@ -216,6 +216,10 @@ int main(int argc, char **argv)
     assert(!app.themes.ready);
     themes_cancel(&app);
     const char *bad_layout[] = {"top_layout=unknown",
+                                "top_layout=spotlight",
+                                "top_layout=gallery",
+                                "top_layout=journal",
+                                "tabs_position=top",
                                 "chrome=off",
                                 "content_opacity=101",
                                 "top_content_opacity=50",
@@ -233,6 +237,31 @@ int main(int argc, char **argv)
     for (unsigned i = 0; i < sizeof bad_layout / sizeof *bad_layout; i++) {
         char content[160];
         snprintf(content, sizeof content, "[theme]\nversion=1\n[layout]\n%s\n", bad_layout[i]);
+        write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
+        themes_open(&app);
+        themes_move(&app, 3);
+        assert(!app.themes.ready);
+        themes_cancel(&app);
+    }
+    const char *compositions[] = {"spotlight", "gallery", "journal"};
+    for (unsigned i = 0; i < 3; i++) {
+        char content[160];
+        snprintf(content, sizeof content,
+                 "[theme]\nversion=2\n[layout]\n"
+                 "tabs_position=top\ntop_layout=%s\n",
+                 compositions[i]);
+        write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
+        themes_open(&app);
+        themes_move(&app, 3);
+        assert(app.themes.ready && app.themes.candidate.top_layout == 4 + i);
+        assert(app.themes.candidate.tabs_position == 1);
+        themes_cancel(&app);
+    }
+    const char *bad_positions[] = {"tabs_position=top\ntop_layout=scene",
+                                   "tabs_position=left\ntop_layout=journal"};
+    for (unsigned i = 0; i < 2; i++) {
+        char content[160];
+        snprintf(content, sizeof content, "[theme]\nversion=2\n[layout]\n%s\n", bad_positions[i]);
         write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
         themes_open(&app);
         themes_move(&app, 3);
