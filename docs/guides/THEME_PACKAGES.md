@@ -233,6 +233,30 @@ Personal wallpaper references persist across theme changes. Recovery bypasses
 all external wallpaper reads and blocks changes to normal wallpaper settings.
 Refresh metadata also reloads prepared backgrounds.
 
+Format-2 packages can replace the flat reading mat with separate image assets:
+
+```ini
+[backgrounds]
+top_surface=backgrounds/paper-top.png
+bottom_surface=backgrounds/paper-bottom.png
+```
+
+These are exact **256×192 RGBA PNGs**, at most 256 KiB each. Author them at screen
+coordinates: transparent pixels reveal the wallpaper, partially transparent pixels
+blend over it, and opaque pixels cover it. They are not cropped or stretched.
+The screen's content opacity multiplies PNG alpha; use 100 for the authored
+coverage (or omit content opacity entirely). Wallpaper strength controls only
+the underlying illustration. A personal wallpaper retains the theme's surface.
+Missing or invalid surfaces use the existing flat mat instead. The Scene layout
+still reveals the original illustration in its exposed strip.
+
+Surfaces are composited at theme load into the existing background buffers;
+no additional framebuffer, retained alpha plane or per-frame blending is needed.
+They also appear behind settings and file pickers, so keep their text regions
+quiet. Moving selection highlights use `components/row-selected.png`; they are
+independent of these fixed reading surfaces. This extension requires a build
+with reading-surface assets; older builds reject the new keys.
+
 The drawing/font path supports Latin-1 packs and UTF-8-aware pixel measurement.
 See [TEXT_AND_TITLES.md](TEXT_AND_TITLES.md) for the shared fallback scripts.
 

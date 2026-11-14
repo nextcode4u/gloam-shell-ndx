@@ -9,5 +9,8 @@ bool image_decode_component(uint16_t pixels[32 * 32], uint8_t coverage[256],
 bool image_decode(Artwork *artwork, const unsigned char *data, size_t size);
 bool image_decode_background(uint16_t pixels[256 * 192], const unsigned char *data, size_t size,
                              uint16_t matte, unsigned strength);
+/* Exact-size RGBA PNG, composited once onto a prepared background. */
+bool image_decode_surface(uint16_t pixels[256 * 192], const unsigned char *data, size_t size,
+                          unsigned opacity);
 bool embedded_album_art(Artwork *artwork, const char *path);
 #endif

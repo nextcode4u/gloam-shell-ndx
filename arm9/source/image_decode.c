@@ -149,6 +149,36 @@ bool image_decode(Artwork *artwork, const unsigned char *data, size_t size)
     return true;
 }
 
+bool image_decode_surface(uint16_t pixels[256 * 192], const unsigned char *data, size_t size,
+                          unsigned opacity)
+{
+    static const unsigned char dimensions[] = {0, 0, 1, 0, 0, 0, 0, 192};
+    if (!pixels || !data || size < 24 || size > 256 * 1024 || opacity > 100 ||
+        memcmp(data, "\x89PNG\r\n\x1a\n", 8) || memcmp(data + 16, dimensions, sizeof dimensions))
+        return false;
+    unsigned width, height;
+    unsigned char *rgba = decode_rgba(data, size, &width, &height);
+    if (!rgba)
+        return false;
+    for (unsigned i = 0; i < 256 * 192; i++) {
+        const unsigned char *pixel = rgba + i * 4;
+        unsigned alpha = pixel[3] * opacity;
+        if (!alpha)
+            continue;
+        unsigned color = 0x8000;
+        for (unsigned channel = 0; channel < 3; channel++) {
+            unsigned shift = channel * 5;
+            color |= (((pixel[channel] >> 3) * alpha +
+                       ((pixels[i] >> shift) & 31) * (25500 - alpha) + 12750) /
+                      25500)
+                     << shift;
+        }
+        pixels[i] = color;
+    }
+    stbi_image_free(rgba);
+    return true;
+}
+
 bool image_decode_background(uint16_t pixels[256 * 192], const unsigned char *data, size_t size,
                              uint16_t matte, unsigned strength)
 {

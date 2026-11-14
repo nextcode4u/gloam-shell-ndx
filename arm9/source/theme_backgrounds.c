@@ -9,12 +9,37 @@
 
 typedef struct {
     uint16_t *pixels, *scene;
-    char path[PATH_CAP];
+    char path[PATH_CAP], surface_path[PATH_CAP];
     uint16_t matte;
     unsigned strength, content_opacity;
-    bool ready;
+    bool ready, wallpaper_ready;
 } Background;
 static Background surfaces[2][2];
+
+static bool decode_file(Background *background, bool surface)
+{
+    const char *path = surface ? background->surface_path : background->path;
+    if (!*path || (!surface && !background->strength))
+        return false;
+    FILE *file = fopen(path, "rb");
+    if (!file)
+        return false;
+    bool valid = !fseek(file, 0, SEEK_END);
+    long bytes = valid ? ftell(file) : -1;
+    long limit = surface ? 256 * 1024 : 1024 * 1024;
+    unsigned char *encoded = bytes > 0 && bytes <= limit ? malloc((size_t)bytes) : NULL;
+    valid = encoded && !fseek(file, 0, SEEK_SET) &&
+            fread(encoded, 1, (size_t)bytes, file) == (size_t)bytes;
+    fclose(file);
+    if (valid) {
+        unsigned opacity = background->content_opacity <= 100 ? background->content_opacity : 100;
+        valid = surface ? image_decode_surface(background->pixels, encoded, (size_t)bytes, opacity)
+                        : image_decode_background(background->pixels, encoded, (size_t)bytes,
+                                                  background->matte, background->strength);
+    }
+    free(encoded);
+    return valid;
+}
 
 static bool load_surface(Background *background, const ThemePackage *package, int screen)
 {
@@ -25,22 +50,16 @@ static bool load_surface(Background *background, const ThemePackage *package, in
     background->strength = package->background_strength;
     background->content_opacity = themes_content_opacity(package, screen);
     path_copy(background->path, package->backgrounds[screen], PATH_CAP);
-    if (!*background->path || !background->strength)
+    path_copy(background->surface_path, package->reading_surfaces[screen], PATH_CAP);
+    if ((!*background->path || !background->strength) && !*background->surface_path)
         return false;
-    FILE *file = fopen(background->path, "rb");
-    if (!file)
+    background->pixels = malloc(256 * 192 * sizeof *background->pixels);
+    if (!background->pixels)
         return false;
-    bool valid = !fseek(file, 0, SEEK_END);
-    long bytes = valid ? ftell(file) : -1;
-    unsigned char *encoded = bytes > 0 && bytes <= 1024 * 1024 ? malloc((size_t)bytes) : NULL;
-    valid = encoded && !fseek(file, 0, SEEK_SET) &&
-            fread(encoded, 1, (size_t)bytes, file) == (size_t)bytes;
-    fclose(file);
-    if (valid)
-        background->pixels = malloc(256 * 192 * sizeof *background->pixels);
-    background->ready = valid && background->pixels &&
-                        image_decode_background(background->pixels, encoded, (size_t)bytes,
-                                                background->matte, background->strength);
+    for (int i = 0; i < 256 * 192; i++)
+        background->pixels[i] = background->matte;
+    background->wallpaper_ready = decode_file(background, false);
+    background->ready = background->wallpaper_ready;
     /* Preserve only the exposed 94-line illustration strip. Dialogs keep the
      * normal preblended reading surface; the browser can reveal this strip. */
     if (background->ready && screen == 0 && package->top_layout == 3) {
@@ -49,8 +68,12 @@ static bool load_surface(Background *background, const ThemePackage *package, in
             memcpy(background->scene, background->pixels + 256 * 24,
                    256 * 94 * sizeof *background->scene);
     }
-    /* Preblend the reading surface once, never in the frame loop. */
-    if (background->ready && background->content_opacity <= 100) {
+    /* An authored surface replaces the flat reading mat. Missing/malformed assets
+     * retain the old mat, including its independent screen opacity. No extra
+     * framebuffer or alpha plane is retained after this load. */
+    bool authored_surface = decode_file(background, true);
+    background->ready |= authored_surface;
+    if (!authored_surface && background->ready && background->content_opacity <= 100) {
         unsigned alpha = background->content_opacity;
         for (int y = 4; alpha && y < 188; y++)
             for (int x = 6; x < 250; x++) {
@@ -64,7 +87,6 @@ static bool load_surface(Background *background, const ThemePackage *package, in
                 background->pixels[y * 256 + x] = color;
             }
     }
-    free(encoded);
     if (!background->ready) {
         free(background->pixels);
         background->pixels = NULL;
@@ -105,6 +127,7 @@ void themes_background_draw(const ThemePackage *package, int screen, uint16_t *p
     for (int bank = 0; bank < 2; bank++) {
         const Background *background = &surfaces[bank][screen];
         if (background->ready && !strcmp(background->path, package->backgrounds[screen]) &&
+            !strcmp(background->surface_path, package->reading_surfaces[screen]) &&
             background->matte == package->palette.bg &&
             background->strength == package->background_strength &&
             background->content_opacity == themes_content_opacity(package, screen)) {
@@ -121,6 +144,7 @@ void themes_background_scene_draw(const ThemePackage *package, uint16_t *pixels)
         const Background *background = &surfaces[bank][0];
         if (background->ready && background->scene &&
             !strcmp(background->path, package->backgrounds[0]) &&
+            !strcmp(background->surface_path, package->reading_surfaces[0]) &&
             background->matte == package->palette.bg &&
             background->strength == package->background_strength &&
             background->content_opacity == themes_content_opacity(package, 0)) {
@@ -143,10 +167,15 @@ bool themes_background_set(App *app, int screen, const char *path)
     path_copy(candidate->backgrounds[screen], path, PATH_CAP);
     if (!candidate->background_strength)
         candidate->background_strength = 25;
-    bool loaded = load_surface(&surfaces[1][screen], candidate, screen);
+    bool loaded = load_surface(&surfaces[1][screen], candidate, screen) &&
+                  surfaces[1][screen].wallpaper_ready;
     free(candidate);
-    if (!loaded)
+    if (!loaded) {
+        free(surfaces[1][screen].pixels);
+        free(surfaces[1][screen].scene);
+        memset(&surfaces[1][screen], 0, sizeof surfaces[1][screen]);
         return false;
+    }
     move_surface(&surfaces[0][screen], &surfaces[1][screen]);
     path_copy(app->themes.active.backgrounds[screen], path, PATH_CAP);
     if (!app->themes.active.background_strength) {

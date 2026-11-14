@@ -195,6 +195,19 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/background_test.c -o build/host/background-test
 mkdir -p "$fixture/background/media"
 cp tests/fixtures/cover.jpg "$fixture/background/media/cover.jpg"
+python3 - "$fixture/background/surface.png" <<'PY'
+import struct, sys, zlib
+from pathlib import Path
+
+def chunk(kind, data):
+    return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
+
+# Red stripes: transparent, one-third, two-thirds and fully opaque.
+row = b'\0' + b''.join(bytes((255, 0, 0, (x // 64) * 85)) for x in range(256))
+Path(sys.argv[1]).write_bytes(b'\x89PNG\r\n\x1a\n' +
+    chunk(b'IHDR', struct.pack('>IIBBBBB', 256, 192, 8, 6, 0, 0, 0)) +
+    chunk(b'IDAT', zlib.compress(row * 192)) + chunk(b'IEND', b''))
+PY
 ASAN_OPTIONS=detect_leaks=1 build/host/background-test "$fixture/background"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \

@@ -312,6 +312,26 @@ int main(int argc, char **argv)
         }
     assert(different > 0);
     themes_cancel(&app);
+    write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini",
+               "[theme]\nversion=2\n[backgrounds]\ntop_surface=paper-top.png\n"
+               "bottom_surface=paper-bottom.png\n");
+    themes_open(&app);
+    themes_move(&app, 3);
+    assert(app.themes.ready);
+    assert(strstr(app.themes.candidate.reading_surfaces[0], "/paper-top.png"));
+    assert(strstr(app.themes.candidate.reading_surfaces[1], "/paper-bottom.png"));
+    themes_cancel(&app);
+    const char *bad_surfaces[] = {"../escape.png", "/escape.png", "sd:/escape.png"};
+    for (unsigned i = 0; i < 3; i++) {
+        char content[160];
+        snprintf(content, sizeof content, "[theme]\nversion=2\n[backgrounds]\ntop_surface=%s\n",
+                 bad_surfaces[i]);
+        write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
+        themes_open(&app);
+        themes_move(&app, 3);
+        assert(!app.themes.ready);
+        themes_cancel(&app);
+    }
     puts("PASS: theme preview/apply/cancel, validated fonts/contrast, persistence and recovery "
          "isolation");
 }

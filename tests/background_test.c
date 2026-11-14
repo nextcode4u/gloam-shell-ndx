@@ -8,6 +8,7 @@
 #include "themes.h"
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 static App app, restored, recovery;
 static struct {
@@ -15,6 +16,60 @@ static struct {
     uint16_t pixels[256 * 192];
     unsigned after;
 } top, bottom;
+
+static void reading_surfaces(const char *root)
+{
+    char path[PATH_CAP];
+    assert(path_join(path, root, "surface.png"));
+    FILE *file = fopen(path, "rb");
+    assert(file);
+    unsigned char data[8192];
+    size_t bytes = fread(data, 1, sizeof data, file);
+    fclose(file);
+    for (int i = 0; i < 256 * 192; i++)
+        top.pixels[i] = 0xfc00;
+    assert(image_decode_surface(top.pixels, data, bytes, 100));
+    assert(top.pixels[32] == 0xfc00);
+    assert(top.pixels[96] == (0x8000 | 10 | (21 << 10)));
+    assert(top.pixels[160] == (0x8000 | 21 | (10 << 10)));
+    assert(top.pixels[224] == 0x801f);
+    memcpy(bottom.pixels, top.pixels, sizeof top.pixels);
+    assert(!image_decode_surface(top.pixels, data, bytes - 20, 100));
+    assert(!image_decode_surface(top.pixels, data, bytes, 101));
+    data[19] = 1; /* Wrong width; must not crop an overlay into the wrong bounds. */
+    assert(!image_decode_surface(top.pixels, data, bytes, 100));
+    assert(!memcmp(top.pixels, bottom.pixels, sizeof top.pixels));
+
+    ThemePackage *package = malloc(sizeof *package);
+    assert(package);
+    *package = app.themes.active;
+    strcpy(package->reading_surfaces[0], path);
+    package->backgrounds[0][0] = 0; /* A paper surface also works without a wallpaper. */
+    package->screen_opacity[0] = 100;
+    themes_background_load(package, true);
+    themes_background_draw(package, 0, top.pixels);
+    assert(top.pixels[32] == package->palette.bg && top.pixels[224] == 0x801f);
+    /* Same wallpaper/palette must not select a preview with a different surface. */
+    package->reading_surfaces[0][0] = 0;
+    themes_background_draw(package, 0, bottom.pixels);
+    for (int i = 0; i < 256 * 192; i++)
+        assert(bottom.pixels[i] == package->palette.bg);
+    strcpy(package->reading_surfaces[0], path);
+    package->screen_opacity[0] = 0;
+    themes_background_load(package, true);
+    themes_background_draw(package, 0, top.pixels);
+    for (int i = 0; i < 256 * 192; i++)
+        assert(top.pixels[i] == package->palette.bg);
+    package->screen_opacity[0] = 100;
+    assert(path_join(package->backgrounds[0], root, "media/cover.jpg"));
+    package->background_strength = 100;
+    strcpy(package->reading_surfaces[0], "/nonexistent-surface.png");
+    themes_background_load(package, true);
+    themes_background_draw(package, 0, top.pixels);
+    assert(top.pixels[32 * 256 + 32] == package->palette.bg); /* Legacy mat fallback. */
+    themes_background_cancel();
+    free(package);
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -77,6 +132,7 @@ int main(int argc, char **argv)
     assert(top.pixels[0] == 0x8421);
     assert(image_decode_background(top.pixels, data, bytes, 0x8421, 100));
     assert(!image_decode_background(top.pixels, data, bytes, 0x8421, 101));
+    reading_surfaces(argv[1]);
     restored.advanced_settings = true;
     settings_open(&restored);
     restored.settings.selected = 10;

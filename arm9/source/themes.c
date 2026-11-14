@@ -301,12 +301,19 @@ static bool load(App *app, const char *id, ThemePackage *package)
                 else
                     package->background_strength = (unsigned)strength;
             } else {
-                int screen = !strcmp(key, "top") ? 0 : !strcmp(key, "bottom") ? 1 : -1;
+                bool surface = !strcmp(key, "top_surface") || !strcmp(key, "bottom_surface");
+                int screen = (!strcmp(key, "top") || !strcmp(key, "top_surface"))         ? 0
+                             : (!strcmp(key, "bottom") || !strcmp(key, "bottom_surface")) ? 1
+                                                                                          : -1;
+                if (surface)
+                    needs_v2 = true;
                 if (screen < 0 || !*value || *value == '/' || strchr(value, ':') ||
                     !path_resolve_sd(path, directory, value))
                     valid = false;
                 else
-                    path_copy(package->backgrounds[screen], path, PATH_CAP);
+                    path_copy(surface ? package->reading_surfaces[screen]
+                                      : package->backgrounds[screen],
+                              path, PATH_CAP);
             }
         } else if (!strcmp(section, "[components]")) {
             if (!strcmp(key, "alpha")) {

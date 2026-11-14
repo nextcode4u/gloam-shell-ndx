@@ -102,7 +102,8 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
             memcpy(top + (y + row) * 256 + x, picker->preview.pixels + row * picker->preview.width,
                    picker->preview.width * sizeof *top);
     } else {
-        draw_rectangle(top, 10, 54, 96, 104, surface);
+        if (!draw_theme_component(&app->themes.active, top, THEME_CARD, 10, 54, 96, 104))
+            draw_rectangle(top, 10, 54, 96, 104, surface);
         PlaceholderIcon icon =
             picker->kind == PICKER_AUDIO           ? PLACEHOLDER_AUDIO
             : picker->kind == PICKER_CONFIGURATION ? PLACEHOLDER_CONFIG
