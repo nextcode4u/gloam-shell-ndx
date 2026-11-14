@@ -4,6 +4,7 @@
 #include "audio.h"
 #include "browser.h"
 #include "paths.h"
+#include "theme_assets.h"
 #include "theme_composition.h"
 #include <ctype.h>
 #include <dirent.h>
@@ -139,7 +140,8 @@ static bool load(App *app, const char *id, ThemePackage *package)
         if (*key == '[') {
             if (strcmp(key, "[theme]") && strcmp(key, "[colors]") && strcmp(key, "[fonts]") &&
                 strcmp(key, "[audio]") && strcmp(key, "[backgrounds]") && strcmp(key, "[layout]") &&
-                strcmp(key, "[icons]") && strcmp(key, "[components]"))
+                strcmp(key, "[icons]") && strcmp(key, "[components]") &&
+                strcmp(key, "[assets]"))
                 valid = false;
             path_copy(section, key, sizeof section);
             continue;
@@ -315,6 +317,13 @@ static bool load(App *app, const char *id, ThemePackage *package)
                                       : package->backgrounds[screen],
                               path, PATH_CAP);
             }
+        } else if (!strcmp(section, "[assets]")) {
+            needs_v2 = true;
+            if (strcmp(key, "prepared") || !*value || *value == '/' || strchr(value, ':') ||
+                !path_resolve_sd(path, directory, value))
+                valid = false;
+            else
+                path_copy(package->prepared_assets, path, PATH_CAP);
         } else if (!strcmp(section, "[components]")) {
             if (!strcmp(key, "alpha")) {
                 needs_v2 = true;
@@ -423,8 +432,10 @@ void themes_init(App *app)
     themes_background_load(&app->themes.active, false);
     themes_icons_cancel();
     themes_components_cancel();
+    theme_assets_begin(&app->themes.active);
     themes_icons_load(&app->themes.active, false);
     themes_components_load(&app->themes.active, false);
+    theme_assets_end();
 }
 static int compare_ids(const void *left, const void *right)
 {
@@ -443,8 +454,10 @@ static void preview(App *app)
     themes_components_cancel();
     if (state->ready) {
         themes_background_load(&state->candidate, true);
+        theme_assets_begin(&state->candidate);
         themes_icons_load(&state->candidate, true);
         themes_components_load(&state->candidate, true);
+        theme_assets_end();
     }
 }
 void themes_open(App *app)

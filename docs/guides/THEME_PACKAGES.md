@@ -583,6 +583,37 @@ image decoding run in drawing. Recovery bypasses external components. The deskto
 setup tool previews and validates them along with icons. Older builds reject the
 new section: update `BOOT.NDS` together with these theme packs.
 
+### Prepared sprite bundles
+
+Keep PNGs as editable sources and optionally prepare icons and components with:
+
+```sh
+python tools/pack_theme_assets.py /path/to/theme
+```
+
+Add `[assets] prepared=assets.gfx` to a version-2 manifest. The tool uses Pillow
+only on the computer. Gloam then reads one compressed bundle instead of opening
+and decoding each sprite PNG. Missing records or an invalid/unavailable bundle
+fall back to the corresponding PNGs. Fonts, backgrounds and audio remain separate.
+
+**Rebuild the bundle after editing a source PNG**, or remove the `prepared` key
+while authoring. The prepared copy takes precedence; Gloam does not scan source
+timestamps at startup. Copy both the bundle and PNGs when distributing a theme.
+
+`GLMART01` starts with an eight-byte magic, a little-endian uint32 decoded size
+and uint32 record count, followed by one zlib stream with its checksum. Each
+record contains group (0 icon, 1 component), zero reserved byte, uint16 index,
+uint32 payload length, then its pixels. Indices follow the packer's `ICONS` and
+`COMPONENTS` lists. Icons contain 2,048 RGB555 bytes; components append a 256-byte
+coverage plane. Duplicate indices, unknown groups/indices, invalid lengths and
+truncated streams reject the bundle. Decoded data is capped at 192 KiB and
+compressed data at decoded size plus 1,024 bytes.
+
+Preparation temporarily retains the compressed and decoded data while copying
+sprites into the normal caches, then frees both. A complete current 59-sprite
+set decodes to 128,984 bytes; authors should account for that transient memory
+alongside active/preview caches. No bundle decoding happens during rendering.
+
 ### Cover shelf
 
 Choose **Shelf** in browser appearance settings, or set `view=shelf` in a theme.

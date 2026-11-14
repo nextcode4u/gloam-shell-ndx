@@ -4,6 +4,7 @@
 #include "app.h"
 #include "icons.h"
 #include "paths.h"
+#include "theme_assets.h"
 #include "themes.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,7 +41,8 @@ void themes_icons_load(const ThemePackage *package, bool preview)
         if (!path_join(path, bank->directory, filename))
             continue;
         uint16_t *image = malloc(32 * 32 * sizeof *image);
-        if (image && icon_load_png(path, image))
+        if (image &&
+            (theme_assets_copy(package, false, i, image, NULL) || icon_load_png(path, image)))
             bank->images[i] = image;
         else
             free(image);

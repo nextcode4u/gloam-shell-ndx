@@ -2,6 +2,7 @@
 #include "app.h"
 #include "icons.h"
 #include "paths.h"
+#include "theme_assets.h"
 #include "themes.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,7 +45,9 @@ void themes_components_load(const ThemePackage *package, bool preview)
             continue;
         uint16_t *image = malloc(32 * 32 * sizeof *image);
         uint8_t coverage[256];
-        if (image && icon_load_png_coverage(path, image, bank->use_coverage ? coverage : NULL)) {
+        if (image &&
+            (theme_assets_copy(package, true, i, image, bank->use_coverage ? coverage : NULL) ||
+             icon_load_png_coverage(path, image, bank->use_coverage ? coverage : NULL))) {
             bool partial = false;
             for (unsigned pixel = 0; bank->use_coverage && pixel < 1024; pixel++) {
                 unsigned alpha = (coverage[pixel / 4] >> ((pixel % 4) * 2)) & 3;
