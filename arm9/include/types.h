@@ -180,7 +180,8 @@ typedef enum {
     PICKER_REPAIR,
     PICKER_CONFIGURATION,
     PICKER_ICON,
-    PICKER_HANDLER
+    PICKER_HANDLER,
+    PICKER_SPLASH
 } PickerKind;
 typedef struct {
     bool open, truncated, failed, confirmed;
@@ -311,6 +312,9 @@ typedef struct {
     bool rail_focus, configuration_reload_requested, startup_cancelled, startup_due;
     bool advanced_settings, simple_settings_lock;
     UpdateState updates;
+    int splash_mode;
+    bool splash_once, splash_sound, splash_preview_requested;
+    char splash_path[PATH_CAP];
     int auto_launch_delay;
     unsigned startup_countdown;
     int rail_selected, rail_saved_scroll;

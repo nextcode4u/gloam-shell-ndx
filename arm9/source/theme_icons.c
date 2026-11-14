@@ -1,6 +1,7 @@
 /* Optional PNG symbols are decoded during theme changes, never while drawing.
  * Two banks preserve the applied pack while previewing another. Missing or bad
  * images retain the built-in symbol independently of the rest of the pack. */
+#include "app.h"
 #include "icons.h"
 #include "paths.h"
 #include "themes.h"
@@ -43,6 +44,7 @@ void themes_icons_load(const ThemePackage *package, bool preview)
             bank->images[i] = image;
         else
             free(image);
+        app_loading_checkpoint();
     }
 }
 void themes_icons_accept(void)

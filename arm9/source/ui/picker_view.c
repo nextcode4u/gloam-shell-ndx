@@ -85,6 +85,7 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_text(top, 10, 8,
               (picker->kind == PICKER_TOP_BACKGROUND || picker->kind == PICKER_BOTTOM_BACKGROUND)
                   ? "WALLPAPER"
+              : picker->kind == PICKER_SPLASH        ? "STARTUP SPLASH"
               : picker->kind == PICKER_ICON          ? "BROWSER ICON"
               : picker->kind == PICKER_CONFIGURATION ? "IMPORT CONFIGURATION"
               : picker->kind == PICKER_REPAIR        ? "LOCATE SHORTCUT"
@@ -115,6 +116,9 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
         top, 116, 55,
         (picker->kind == PICKER_TOP_BACKGROUND || picker->kind == PICKER_BOTTOM_BACKGROUND)
             ? "Pick a PNG or JPEG. Center-cropped and dimmed to keep text readable."
+        : picker->kind == PICKER_SPLASH
+            ? "Choose a prepared .gsp splash. Both screens appear in the still preview. Select "
+              "Preview splash in settings to play it."
         : picker->kind == PICKER_ICON
             ? "Choose a 32x32 PNG icon, up to 64 KiB. Browser icons and cover art stay separate."
         : picker->kind == PICKER_CONFIGURATION
@@ -132,6 +136,7 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_text(bottom, 10, 7,
               (picker->kind == PICKER_TOP_BACKGROUND || picker->kind == PICKER_BOTTOM_BACKGROUND)
                   ? "Choose wallpaper"
+              : picker->kind == PICKER_SPLASH        ? "Choose splash"
               : picker->kind == PICKER_ICON          ? "Choose browser icon"
               : picker->kind == PICKER_CONFIGURATION ? "Choose configuration"
               : picker->kind == PICKER_REPAIR        ? "Locate replacement"

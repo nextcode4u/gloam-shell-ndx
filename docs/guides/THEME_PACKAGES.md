@@ -567,3 +567,9 @@ The update notification has a built-in accent-colored arrow when its optional
 so enabling it does not shorten the header or move tabs. While the checker is
 connected, a small accent-colored W indicates an active connection; it does not
 claim a signal-strength reading.
+
+## Optional startup splash
+
+Place `splash.gsp` inside the theme folder to supply a startup splash. No INI key
+is needed. Users can disable it or select their own override. See
+[startup splashes](STARTUP_SPLASHES.md) for the builder, playback behavior and format limits.

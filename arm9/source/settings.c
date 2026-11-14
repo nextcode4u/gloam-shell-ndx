@@ -19,6 +19,7 @@
 #include "paths.h"
 #include "picker.h"
 #include "preferences.h"
+#include "splash.h"
 #include "tabs.h"
 #include "themes.h"
 #include "ui_strings.h"
@@ -30,6 +31,11 @@
 #endif
 
 enum {
+    OPT_SPLASH_MODE,
+    OPT_SPLASH_PATH,
+    OPT_SPLASH_ONCE,
+    OPT_SPLASH_SOUND,
+    OPT_SPLASH_PREVIEW,
     OPT_BACKGROUND_UPDATES,
     OPT_CHECK_UPDATES,
     OPT_SETTINGS_MODE,
@@ -133,6 +139,11 @@ static const char *option_keys[] = {
     [OPT_HIDE_BIOS] = "hide_bios",
     [OPT_SPEED] = "speed",
     [OPT_STARTUP] = "startup",
+    [OPT_SPLASH_MODE] = "splash_mode",
+    [OPT_SPLASH_PATH] = "splash_path",
+    [OPT_SPLASH_ONCE] = "splash_once",
+    [OPT_SPLASH_SOUND] = "splash_sound",
+    [OPT_SPLASH_PREVIEW] = "splash_preview",
     [OPT_AUDIO] = "audio",
     [OPT_PROFILES] = "profiles",
     [OPT_LAUNCH] = "launch",
@@ -237,6 +248,26 @@ static const SettingsOption appearance[] = {
      "Simple keeps everyday controls. Advanced adds launch, boot and maintenance settings. "
      "Switching views preserves your existing choices.",
      true, OPT_SETTINGS_MODE},
+    {"Startup splash",
+     "Off, the theme splash, or your custom package. Theme falls back to the default splash when "
+     "supplied. Recovery skips all splashes.",
+     true, OPT_SPLASH_MODE},
+    {"Choose splash",
+     "Select a prepared .gsp package anywhere on SD. This enables Custom; the theme remains "
+     "unchanged.",
+     false, OPT_SPLASH_PATH},
+    {"Splash playback",
+     "While loading never waits for the animation to finish. Play once lets the intro finish "
+     "before browsing. Any button skips.",
+     true, OPT_SPLASH_ONCE},
+    {"Splash sound",
+     "Play the package's optional sound at the UI sound volume. Stops before theme music. Reduced "
+     "motion stays silent.",
+     true, OPT_SPLASH_SOUND},
+    {"Preview splash",
+     "Play the selected splash now. Any button returns here; preferences are not changed by "
+     "previewing.",
+     false, OPT_SPLASH_PREVIEW},
 };
 static const SettingsOption browser[] = {
     {"Sort order",
@@ -480,9 +511,10 @@ static void refresh_routes(App *app)
 }
 
 /* Simple pages reference the same options and handlers as the full catalog. */
-static const int simple_appearance[] = {OPT_SETTINGS_MODE, OPT_THEME,  OPT_BRIGHTNESS,
-                                        OPT_ACCENT,        OPT_MOTION, OPT_ICONS,
-                                        OPT_VIEW,          OPT_COVERS, OPT_CLOCK};
+static const int simple_appearance[] = {
+    OPT_SETTINGS_MODE, OPT_THEME,       OPT_BRIGHTNESS,   OPT_ACCENT,        OPT_MOTION,
+    OPT_ICONS,         OPT_VIEW,        OPT_COVERS,       OPT_CLOCK,         OPT_SPLASH_MODE,
+    OPT_SPLASH_PATH,   OPT_SPLASH_ONCE, OPT_SPLASH_SOUND, OPT_SPLASH_PREVIEW};
 static const int simple_browser[] = {OPT_SORT,      OPT_EXTENSIONS, OPT_HIDE_SAVES,
                                      OPT_HIDE_BIOS, OPT_SPEED,      OPT_TITLE_SOURCE};
 static const int simple_audio[] = {OPT_MUSIC_MODE, OPT_MUSIC_PATH, OPT_MUSIC_VOLUME, OPT_EFFECTS,
@@ -616,6 +648,16 @@ void settings_adjust(App *app, int direction)
     app->settings.text_started_frame = app->frame_count;
     bool refresh = false;
     switch (option->id) {
+    case OPT_SPLASH_MODE:
+        app->splash_mode =
+            (app->splash_mode + (direction < 0 ? SPLASH_MODE_COUNT - 1 : 1)) % SPLASH_MODE_COUNT;
+        break;
+    case OPT_SPLASH_ONCE:
+        app->splash_once = !app->splash_once;
+        break;
+    case OPT_SPLASH_SOUND:
+        app->splash_sound = !app->splash_sound;
+        break;
     case OPT_BACKGROUND_UPDATES:
         app->updates.enabled = !app->updates.enabled;
         break;
@@ -875,6 +917,14 @@ void settings_activate(App *app)
                                      : "Built-in appearance restored",
                   sizeof app->settings.status);
         return;
+    case OPT_SPLASH_PATH:
+        if (!picker_open_splash(app))
+            path_copy(app->settings.status, "Splash picker unavailable in this session",
+                      sizeof app->settings.status);
+        return;
+    case OPT_SPLASH_PREVIEW:
+        app->splash_preview_requested = !app->recovery_mode && app->storage_ready;
+        return;
     case OPT_MUSIC_PATH:
         if (!picker_open_audio(app))
             path_copy(app->settings.status, "Music picker unavailable",
@@ -1106,6 +1156,23 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
                 : app->system_catalog.titles[option->id - OPT_ROUTE_SETTINGS].available
                     ? "Title found"
                     : "Unavailable";
+        break;
+    case OPT_SPLASH_MODE: {
+        static const char *names[] = {"Off", "Theme", "Custom"};
+        value = names[app->splash_mode];
+        break;
+    }
+    case OPT_SPLASH_PATH:
+        value = *app->splash_path ? "Selected" : "Choose file";
+        break;
+    case OPT_SPLASH_ONCE:
+        value = app->splash_once ? "Play once" : "While loading";
+        break;
+    case OPT_SPLASH_SOUND:
+        value = app->splash_sound ? "On" : "Off";
+        break;
+    case OPT_SPLASH_PREVIEW:
+        value = "Play";
         break;
     case OPT_ROUTE_MENU:
         value = app->dsi_mode ? "Boot-dependent" : "Needs DSi mode";

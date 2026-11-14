@@ -1,4 +1,5 @@
 /* Optional nine-slice artwork. Prepare once on theme changes; drawing does no I/O. */
+#include "app.h"
 #include "icons.h"
 #include "paths.h"
 #include "themes.h"
@@ -41,6 +42,7 @@ void themes_components_load(const ThemePackage *package, bool preview)
             bank->images[i] = image;
         else
             free(image);
+        app_loading_checkpoint();
     }
 }
 void themes_components_cancel(void)

@@ -22,6 +22,7 @@
 #include "renderer.h"
 #include "settings.h"
 #include "slot1.h"
+#include "splash_preferences.h"
 #include "startup.h"
 #include "storage_state.h"
 #include "system_routes.h"
@@ -295,6 +296,87 @@ static bool slot1_transfer(const uint8_t command[8], uint32_t flags, void *outpu
 static const Slot1Operations slot1_operations = {slot1_present, slot1_power, slot1_transfer,
                                                  slot1_seed, slot1_key_seed};
 
+/* The IRQ only counts frames. File access and drawing stay in the main thread. */
+static volatile unsigned splash_clock;
+static void splash_vblank(void)
+{
+    splash_clock++;
+}
+typedef struct {
+    Splash splash;
+    bool prepared, skipped, recovery, preview;
+    unsigned started, drawn;
+    int mainbg, subbg, channel;
+} BootPresentation;
+
+static void present_splash(App *state, void *context)
+{
+    BootPresentation *boot = context;
+    scanKeys();
+    unsigned pressed = keysDown();
+    if (!boot->preview && (keysHeld() & KEY_SELECT))
+        boot->recovery = true;
+    if (pressed & ~KEY_LID || boot->recovery)
+        boot->skipped = true;
+    if (!boot->prepared) {
+        boot->prepared = true;
+        if (!boot->preview && (keysHeld() & ~KEY_LID))
+            boot->skipped = true;
+        if (!boot->skipped && splash_load_selected(&boot->splash, state)) {
+            boot->started = splash_clock;
+            boot->drawn = UINT32_MAX;
+            if (state->splash_sound && !state->reduced_motion && boot->splash.sound_bytes) {
+                DC_FlushRange(boot->splash.sound, boot->splash.sound_bytes);
+                boot->channel = soundPlaySampleChannel(
+                    2, boot->splash.sound, SoundFormat_16Bit, boot->splash.sound_bytes, 16000,
+                    state->audio.effects_volume * 127 / 100, 64, false, 0);
+            }
+        }
+    }
+    if (boot->skipped) {
+        if (boot->channel >= 0) {
+            soundKill(boot->channel);
+            boot->channel = -1;
+            /* Leave two frames for ARM7 before the buffer may be released. */
+            swiWaitForVBlank();
+            swiWaitForVBlank();
+        }
+        return;
+    }
+    unsigned elapsed = splash_clock - boot->started;
+    if (!splash_needs_frame(&boot->splash, boot->drawn, elapsed, state->reduced_motion))
+        return;
+    boot->drawn = elapsed;
+    splash_render(&boot->splash, elapsed, state->reduced_motion, top, bottom);
+    DC_FlushRange(top, sizeof top);
+    DC_FlushRange(bottom, sizeof bottom);
+    swiWaitForVBlank();
+    dmaCopy(top, bgGetGfxPtr(boot->mainbg), sizeof top);
+    dmaCopy(bottom, bgGetGfxPtr(boot->subbg), sizeof bottom);
+}
+static void finish_splash(BootPresentation *boot)
+{
+    while (splash_playing(&boot->splash, splash_clock - boot->started,
+                          !boot->preview && app.scan_directory, boot->preview || app.splash_once,
+                          boot->skipped)) {
+        if (!boot->preview && app.scan_directory)
+            browser_scan_step(&app);
+        /* While loading releases the browser as soon as its first scan is ready. */
+        if (!boot->preview && !app.scan_directory && !app.splash_once)
+            break;
+        unsigned before = splash_clock;
+        present_splash(&app, boot);
+        if (!boot->skipped && splash_clock == before)
+            swiWaitForVBlank();
+    }
+    if (boot->channel >= 0) {
+        soundKill(boot->channel);
+        swiWaitForVBlank();
+        swiWaitForVBlank();
+    }
+    splash_close(&boot->splash);
+}
+
 int main(int argc, char **argv)
 {
     (void)argc;
@@ -302,6 +384,7 @@ int main(int argc, char **argv)
     defaultExceptionHandler();
     /* Cooperative UI/network workers both wait for this IRQ. BIOS-only waits
      * did not require an explicit enabled VBlank source. */
+    irqSet(IRQ_VBLANK, splash_vblank);
     irqEnable(IRQ_VBLANK);
     videoSetMode(MODE_5_2D);
     videoSetModeSub(MODE_5_2D);
@@ -335,7 +418,17 @@ int main(int argc, char **argv)
         }
     }
     scanKeys();
-    app_init_mode(&app, root, storage, isDSiMode(), (keysHeld() & KEY_SELECT) != 0);
+    BootPresentation boot = {.mainbg = mainbg, .subbg = subbg, .channel = -1};
+    app_init_progress(&app, root, storage, isDSiMode(), (keysHeld() & KEY_SELECT) != 0,
+                      present_splash, &boot);
+    finish_splash(&boot);
+    if (boot.recovery && !app.recovery_mode) {
+        browser_scan_cancel(&app);
+        installed_catalog_cancel(&app.installed_catalog);
+        app_init_mode(&app, root, storage, isDSiMode(), true);
+    }
+    if (boot.skipped)
+        startup_cancel(&app);
     image_job_set_clock(artwork_clock, 263, 32); /* About 2 ms of decode work. */
     artwork_cache_enable_async(true);
     int applied_scroll_speed = -1;
@@ -590,6 +683,20 @@ int main(int argc, char **argv)
                         app_move(&app, i - location->selected);
                 }
             }
+        }
+        if (app.splash_preview_requested) {
+            app.splash_preview_requested = false;
+            stop_update_checker();
+            stop_launcher_audio();
+            BootPresentation preview = {
+                .preview = true, .mainbg = mainbg, .subbg = subbg, .channel = -1};
+            present_splash(&app, &preview);
+            if (!preview.splash.data)
+                path_copy(app.settings.status,
+                          "No valid splash. Choose Theme or Custom and a .gsp file.",
+                          sizeof app.settings.status);
+            finish_splash(&preview);
+            audio_request_reload(&app);
         }
         if (app.configuration_reload_requested) {
             stop_update_checker();

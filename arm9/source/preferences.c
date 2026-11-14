@@ -2,6 +2,7 @@
 #include "preferences.h"
 #include "browser.h"
 #include "paths.h"
+#include "splash.h"
 #include "system_routes.h"
 #include "tabs.h"
 #include "themes.h"
@@ -99,6 +100,15 @@ static bool read_state_file(App *app, const char *filename)
             app->auto_launch_delay = 5;
         else if (!strcmp(line, "auto_launch_delay=10"))
             app->auto_launch_delay = 10;
+        else if (sscanf(line, "splash_mode=%d", &value) == 1 && value >= SPLASH_OFF &&
+                 value < SPLASH_MODE_COUNT)
+            app->splash_mode = value;
+        else if (sscanf(line, "splash_once=%d", &value) == 1)
+            app->splash_once = value == 1;
+        else if (sscanf(line, "splash_sound=%d", &value) == 1)
+            app->splash_sound = value == 1;
+        else if (!strncmp(line, "splash_path=", 12) && line[12])
+            path_resolve_sd(app->splash_path, app->root, line + 12);
         else if (sscanf(line, "music_mode=%d", &value) == 1 && value >= MUSIC_OFF &&
                  value < MUSIC_MODE_COUNT)
             app->audio.mode = value;
@@ -282,6 +292,15 @@ bool app_save(App *app)
             app->filter_recognized,
             app->recovery_mode ? app->recovery_preferences.clock_12_hour : app->clock_12_hour,
             app->startup_tab);
+    char splash_reference[PATH_CAP] = "";
+    if (*app->splash_path && path_is_within_root(app->splash_path, app->root)) {
+        const char *relative = app->splash_path + strlen(app->root);
+        while (*relative == '/')
+            relative++;
+        path_resolve_sd(splash_reference, "sd:/", relative);
+    }
+    fprintf(file, "splash_mode=%d\nsplash_once=%d\nsplash_sound=%d\nsplash_path=%s\n",
+            app->splash_mode, app->splash_once, app->splash_sound, splash_reference);
     fprintf(file, "background_updates=%d\n", app->updates.enabled);
     fprintf(file, "settings_mode=%s\nsimple_settings_lock=%d\n",
             app->advanced_settings ? "advanced" : "simple", app->simple_settings_lock);

@@ -23,6 +23,7 @@
 #include "picker.h"
 #include "preferences.h"
 #include "settings.h"
+#include "splash.h"
 #include "startup.h"
 #include "system_routes.h"
 #include "tabs.h"
@@ -75,12 +76,24 @@ void app_reset_preview(App *app)
     }
 }
 
-void app_init_mode(App *app, const char *root, bool storage, bool dsi, bool recovery)
+static void (*loading_progress)(App *, void *);
+static App *loading_app;
+static void *loading_context;
+void app_loading_checkpoint(void)
+{
+    if (loading_progress)
+        loading_progress(loading_app, loading_context);
+}
+
+void app_init_progress(App *app, const char *root, bool storage, bool dsi, bool recovery,
+                       void (*progress)(App *, void *), void *context)
 {
     memset(app, 0, sizeof *app);
     path_copy(app->root, root, PATH_CAP);
     app->battery_level = app->brightness = app->requested_brightness = -1;
     app->scroll_speed = SCROLL_NORMAL;
+    app->splash_mode = SPLASH_THEME;
+    app->recovery_mode = recovery;
     app->audio.music_volume = 70;
     app->audio.effects_volume = 70;
     app->audio.effects_enabled = true;
@@ -100,13 +113,19 @@ void app_init_mode(App *app, const char *root, bool storage, bool dsi, bool reco
         app->storage_ready = false;
     ui_language_load(&app->language, root, app->storage_ready && !recovery);
     tabs_load(app);
-    if (app->storage_ready) {
+    if (app->storage_ready)
         preferences_load(app);
+    if (progress)
+        progress(app, context);
+    if (app->storage_ready)
         associations_load(app);
-    }
+    if (progress)
+        progress(app, context);
     dashboard_load(app);
     app->recovery_mode = recovery;
     collections_load(app);
+    if (progress)
+        progress(app, context);
     if (recovery) {
         app->recovery_preferences.accent_index = app->accent_index;
         app->recovery_preferences.icon_size = app->icon_size;
@@ -122,7 +141,15 @@ void app_init_mode(App *app, const char *root, bool storage, bool dsi, bool reco
         app->show_covers = false;
     }
     artwork_disk_cache_configure(root, app->storage_ready && !recovery);
+    loading_progress = progress;
+    loading_app = app;
+    loading_context = context;
     themes_init(app);
+    loading_progress = NULL;
+    loading_app = NULL;
+    loading_context = NULL;
+    if (progress)
+        progress(app, context);
     audio_request_reload(app);
     /* preferences_load temporarily retains the last active content path here.
      * Scanning resets its pending-selection field, so preserve it across begin. */
@@ -149,6 +176,11 @@ void app_init_mode(App *app, const char *root, bool storage, bool dsi, bool reco
                  app->tab_config_skipped);
         app_panel(app, PANEL_MESSAGE);
     }
+}
+
+void app_init_mode(App *app, const char *root, bool storage, bool dsi, bool recovery)
+{
+    app_init_progress(app, root, storage, dsi, recovery, NULL, NULL);
 }
 
 void app_init(App *app, const char *root, bool storage, bool dsi)

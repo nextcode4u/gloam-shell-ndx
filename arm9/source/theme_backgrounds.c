@@ -73,8 +73,10 @@ static bool load_surface(Background *background, const ThemePackage *package, in
 }
 void themes_background_load(const ThemePackage *package, bool preview)
 {
-    for (int screen = 0; screen < 2; screen++)
+    for (int screen = 0; screen < 2; screen++) {
         load_surface(&surfaces[preview ? 1 : 0][screen], package, screen);
+        app_loading_checkpoint();
+    }
 }
 static void move_surface(Background *destination, Background *source)
 {

@@ -13,6 +13,7 @@
 #include "item_preferences.h"
 #include "launch.h"
 #include "paths.h"
+#include "splash_preferences.h"
 #include "themes.h"
 #include <errno.h>
 #include <stdio.h>
@@ -90,7 +91,8 @@ void picker_scan_step(App *app)
         if (app->hide_bios_folders && directory_scan_is_bios_folder(&record))
             continue;
         bool folder = record.directory;
-        bool supported = picker->kind == PICKER_ICON ? !strcasecmp(path_extension(path), "png")
+        bool supported = picker->kind == PICKER_SPLASH ? !strcasecmp(path_extension(path), "gsp")
+                         : picker->kind == PICKER_ICON ? !strcasecmp(path_extension(path), "png")
                          : picker->kind == PICKER_CONFIGURATION
                              ? !strcasecmp(path_extension(path), "dsconfig")
                          : picker->kind == PICKER_REPAIR ? true
@@ -248,6 +250,23 @@ bool picker_open_configuration(App *app)
     refresh(app, NULL);
     return true;
 }
+bool picker_open_splash(App *app)
+{
+    if (app->picker.open || !app->storage_ready || app->recovery_mode)
+        return false;
+    Entry *entries = calloc(ENTRY_CAP, sizeof *entries);
+    if (!entries)
+        return false;
+    memset(&app->picker, 0, sizeof app->picker);
+    app->picker.open = true;
+    app->picker.kind = PICKER_SPLASH;
+    app->picker.entries = entries;
+    path_copy(app->picker.target, "Custom startup splash", PATH_CAP);
+    path_copy(app->picker.path, app->root, PATH_CAP);
+    refresh(app, NULL);
+    return true;
+}
+
 bool picker_open_audio(App *app)
 {
     if (app->picker.open || !app->storage_ready)
@@ -377,6 +396,21 @@ void picker_activate(App *app)
         path_copy(picker->path, entry->path, PATH_CAP);
         picker->batch = 0;
         refresh(app, NULL);
+        return;
+    }
+    if (picker->kind == PICKER_SPLASH) {
+        Splash splash = {0};
+        if (!splash_load(&splash, entry->path)) {
+            path_copy(picker->status, "Invalid splash: use a prepared .gsp package, max 2 MiB",
+                      sizeof picker->status);
+            return;
+        }
+        splash_close(&splash);
+        path_copy(app->splash_path, entry->path, PATH_CAP);
+        app->splash_mode = SPLASH_CUSTOM;
+        app_mark_preferences_dirty(app);
+        picker_close(app);
+        message(app, "Custom splash selected. Use Preview splash to play it.");
         return;
     }
     if (picker->kind == PICKER_CONFIGURATION) {
@@ -549,11 +583,17 @@ void picker_tick(App *app)
         return;
     }
     if (++picker->idle_frames != 7 ||
-        (picker->kind != PICKER_COVER && picker->kind != PICKER_ICON &&
-         picker->kind != PICKER_TOP_BACKGROUND && picker->kind != PICKER_BOTTOM_BACKGROUND) ||
+        (picker->kind != PICKER_SPLASH && picker->kind != PICKER_COVER &&
+         picker->kind != PICKER_ICON && picker->kind != PICKER_TOP_BACKGROUND &&
+         picker->kind != PICKER_BOTTOM_BACKGROUND) ||
         !picker->count)
         return;
     const Entry *entry = &picker->entries[picker->selected];
+    if (picker->kind == PICKER_SPLASH) {
+        if (entry->kind == ITEM_FILE && !splash_thumbnail(&picker->preview, entry->path))
+            path_copy(picker->status, "Invalid splash package", sizeof picker->status);
+        return;
+    }
     if (entry->kind == ITEM_FILE && !artwork_decode_image(&picker->preview, entry->path))
         path_copy(picker->status, "Image unavailable: max 512x512, 1 MiB", sizeof picker->status);
 }

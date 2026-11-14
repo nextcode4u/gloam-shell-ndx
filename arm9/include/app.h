@@ -5,6 +5,11 @@
 /* Navigation and actions are shared by the DSi executable and host tests. */
 void app_init(App *app, const char *root, bool storage_ready, bool dsi_mode);
 void app_init_mode(App *app, const char *root, bool storage_ready, bool dsi_mode, bool recovery);
+/* Optional boot presentation checkpoints; the ordinary initializer has no callback. */
+void app_init_progress(App *app, const char *root, bool storage, bool dsi, bool recovery,
+                       void (*progress)(App *, void *), void *context);
+/* Asset loaders yield presentation work only during a progress-enabled boot. */
+void app_loading_checkpoint(void);
 void app_category(App *app, int category);
 void app_move(App *app, int delta);
 void app_rail_toggle(App *app);

@@ -15,6 +15,7 @@ layout; they are intentional compatibility paths.
 │   │   ├── state.ini             preferences and navigation
 │   │   ├── tabs.ini              custom folder tabs
 │   │   ├── themes/               palette/font/background/audio packs
+│   │   ├── splashes/             optional custom/default startup packages
 │   │   ├── plugins/              argv association profiles
 │   │   │   ├── apps/             emulator/player executables and companion files
 │   │   │   └── startup/scummvm.ini optional native collection discovery

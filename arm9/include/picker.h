@@ -7,6 +7,7 @@
 bool picker_open(App *app, PickerKind kind);
 bool picker_open_handlers(App *app, const char *path);
 bool picker_open_audio(App *app);
+bool picker_open_splash(App *app);
 bool picker_open_configuration(App *app);
 bool picker_open_background(App *app, int screen);
 bool picker_open_extension(App *app, const char *extension);
