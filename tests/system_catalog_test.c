@@ -85,11 +85,69 @@ static void regional_settings_handoff(const char *root)
     }
 }
 
+static void put_le32(unsigned char *p, uint32_t value)
+{
+    for (unsigned i = 0; i < 4; i++)
+        p[i] = value >> (8 * i);
+}
+static void launcher_without_tmd(const char *root)
+{
+    char nand[PATH_CAP], path[PATH_CAP], second[PATH_CAP];
+    directory(root, "patched-launcher");
+    assert(path_join(nand, root, "patched-launcher"));
+    directory(nand, "title");
+    directory(nand, "title/00030017");
+    directory(nand, "title/00030017/484e414a");
+    directory(nand, "title/00030017/484e414a/content");
+    assert(path_join(path, nand, "title/00030017/484e414a/content/00000002.app"));
+    unsigned char app[0x1100] = {0};
+    app[0x12] = 3;
+    put_le32(app + 0x230, 0x484E414A);
+    put_le32(app + 0x234, 0x30017);
+    const unsigned offsets[] = {0x20, 0x30, 0x1C0, 0x1D0};
+    for (unsigned i = 0; i < 4; i++) {
+        put_le32(app + offsets[i], 0x1000 + i * 4);
+        put_le32(app + offsets[i] + 12, 4);
+    }
+    FILE *f = fopen(path, "wb");
+    assert(f && fwrite(app, 1, sizeof app, f) == sizeof app && !fclose(f));
+    SystemCatalog catalog;
+    system_catalog_scan(&catalog, nand);
+    assert(catalog.launcher.available && catalog.launcher.low == 0x484E414A &&
+           catalog.launcher.boot_content == 2);
+    /* An unusable TMD must not hide the validated executable. */
+    assert(path_join(second, nand, "title/00030017/484e414a/content/title.tmd"));
+    f = fopen(second, "wb");
+    assert(f && fputs("modified metadata", f) >= 0 && !fclose(f));
+    system_catalog_scan(&catalog, nand);
+    assert(catalog.launcher.available);
+    /* Neither content order nor a higher version chooses between two matches. */
+    assert(path_join(second, nand, "title/00030017/484e414a/content/00000003.app"));
+    f = fopen(second, "wb");
+    assert(f && fwrite(app, 1, sizeof app, f) == sizeof app && !fclose(f));
+    system_catalog_scan(&catalog, nand);
+    assert(!catalog.launcher.available);
+    assert(!remove(second));
+    /* Wrong embedded region and out-of-file executable sections are rejected. */
+    app[0x230] = 'E';
+    f = fopen(path, "wb");
+    assert(f && fwrite(app, 1, sizeof app, f) == sizeof app && !fclose(f));
+    system_catalog_scan(&catalog, nand);
+    assert(!catalog.launcher.available);
+    app[0x230] = 'J';
+    put_le32(app + 0x1CC, 0xFFFFFFFF);
+    f = fopen(path, "wb");
+    assert(f && fwrite(app, 1, sizeof app, f) == sizeof app && !fclose(f));
+    system_catalog_scan(&catalog, nand);
+    assert(!catalog.launcher.available);
+}
+
 int main(int argc, char **argv)
 {
     assert(argc == 2);
     const char *root = argv[1];
     regional_settings_handoff(root);
+    launcher_without_tmd(root);
     directory(root, "title");
     directory(root, "title/00030015");
     title(root, 0x30015, "484e4245", 0x484E4245);

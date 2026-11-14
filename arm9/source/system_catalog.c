@@ -53,6 +53,64 @@ bool native_title_content(const char *directory, uint32_t high, uint32_t low,
         fclose(file);
     return valid && found_boot;
 }
+/* Unlaunch/language-patched installations may not retain usable Launcher TMD
+ * metadata. Only Launcher gets this fallback, and only one matching executable
+ * is accepted. This checks structure/identity, not a cryptographic signature. */
+static uint32_t le32(const unsigned char *p)
+{
+    return p[0] | (uint32_t)p[1] << 8 | (uint32_t)p[2] << 16 | (uint32_t)p[3] << 24;
+}
+static bool launcher_app(const char *path, uint32_t low)
+{
+    struct stat status;
+    if (stat(path, &status) || !S_ISREG(status.st_mode) || status.st_size < 0x1000 ||
+        (uint64_t)status.st_size > UINT32_MAX)
+        return false;
+    FILE *file = fopen(path, "rb");
+    unsigned char header[0x240];
+    bool valid = file && fread(header, 1, sizeof header, file) == sizeof header;
+    if (file)
+        fclose(file);
+    valid = valid && (header[0x12] == 2 || header[0x12] == 3) && le32(header + 0x230) == low &&
+            le32(header + 0x234) == 0x00030017;
+    /* Both legacy and DSi CPU sections must fit in the file. */
+    const unsigned offsets[] = {0x20, 0x30, 0x1C0, 0x1D0};
+    for (unsigned i = 0; valid && i < sizeof offsets / sizeof offsets[0]; i++) {
+        uint32_t start = le32(header + offsets[i]);
+        uint32_t bytes = le32(header + offsets[i] + 12);
+        valid = start >= 0x1000 && !(start & 3) && bytes >= 4 &&
+                start <= (uint64_t)status.st_size && bytes <= (uint64_t)status.st_size - start;
+    }
+    return valid;
+}
+static bool launcher_content(const char *directory, uint32_t low, uint32_t *boot_content)
+{
+    char content[PATH_CAP];
+    if (!path_join(content, directory, "content"))
+        return false;
+    DIR *folder = opendir(content);
+    if (!folder)
+        return false;
+    struct dirent *entry;
+    unsigned scanned = 0, matches = 0;
+    while ((entry = readdir(folder))) {
+        if (++scanned > 128) {
+            matches = 0; /* Never choose from an incomplete scan. */
+            break;
+        }
+        if (strlen(entry->d_name) != 12 || strcmp(entry->d_name + 8, ".app") ||
+            strspn(entry->d_name, "0123456789abcdefABCDEF") != 8)
+            continue;
+        char path[PATH_CAP];
+        if (!path_join(path, content, entry->d_name) || !launcher_app(path, low))
+            continue;
+        *boot_content = (uint32_t)strtoul(entry->d_name, NULL, 16);
+        if (++matches > 1)
+            break;
+    }
+    closedir(folder);
+    return matches == 1;
+}
 void system_catalog_scan(SystemCatalog *catalog, const char *nand_root)
 {
     memset(catalog, 0, sizeof *catalog);
@@ -87,8 +145,13 @@ void system_catalog_scan(SystemCatalog *catalog, const char *nand_root)
                     continue;
                 char title[PATH_CAP];
                 uint32_t boot_content = 0;
-                if (!path_join(title, directory, entry->d_name) ||
-                    !native_title_content(title, groups[group], (uint32_t)id, &boot_content, false))
+                if (!path_join(title, directory, entry->d_name))
+                    continue;
+                bool found =
+                    native_title_content(title, groups[group], (uint32_t)id, &boot_content, false);
+                if (!found && i == 5)
+                    found = launcher_content(title, (uint32_t)id, &boot_content);
+                if (!found)
                     continue;
                 NativeTitle *native = i < 5 ? &catalog->titles[i] : &catalog->launcher;
                 if (native->available)
