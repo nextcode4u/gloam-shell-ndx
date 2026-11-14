@@ -24,4 +24,3 @@ if __name__ == "__main__":
     (folder / "theme.ini").write_text("[theme]\nversion=2\n[components]\ndirectory=components\nalpha=coverage\n")
     png(folder / "components/row-selected.png", True)
     png(folder / "components/header.png", False)
-
