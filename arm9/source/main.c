@@ -92,8 +92,9 @@ static int update_worker(void *unused)
             if (status != ASSOCSTATUS_ASSOCIATED)
                 continue;
             app.updates.connected = true;
-            struct in_addr dns;
-            Wifi_GetIPInfo(NULL, NULL, &dns, NULL);
+            /* BlocksDS dswifi writes all four outputs, including unused ones. */
+            struct in_addr gateway = {0}, subnet = {0}, dns = {0}, secondary_dns = {0};
+            Wifi_GetIPInfo(&gateway, &subnet, &dns, &secondary_dns);
             if (!update_fetch(ca, dns.s_addr, update_wait, tag))
                 tag[0] = 0;
             break;
