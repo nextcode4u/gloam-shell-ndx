@@ -68,7 +68,7 @@ jobs:
           notes = Path('dist/prerelease-notes.md')
           notes.write_text(
               f'Gloam Shell NDX {tag}\n\nSource commit: {source}.\n\n'
-              'Development preview; physical DSi validation remains pending. '
+              'Development preview; limited physical DSi validation is underway. '
               'See docs/CURRENT_SUPPORT.md for launch/backend compatibility limits.\n\n'
               'BOOT.NDS updates only the frontend. sd.zip supplies full SD setup; '
               'preserve existing settings and saves. addons.zip, when included, '
