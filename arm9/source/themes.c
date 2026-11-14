@@ -49,6 +49,8 @@ static void builtin(ThemePackage *package, int accent)
         (ThemePalette){rgb(0x0C1018), rgb(0x151B25),         rgb(0x2A323F), rgb(0xEDEBE1),
                        rgb(0xACB7C6), preset_accent(accent), rgb(0x0D1219)};
     font_builtin(&package->font);
+    package->format_version = 1;
+    package->screen_opacity[0] = package->screen_opacity[1] = 101;
     package->background_strength = 25;
     package->component_border = 8;
     package->tab_gap = 4;
@@ -123,7 +125,7 @@ static bool load(App *app, const char *id, ThemePackage *package)
         return false;
     char line[1024], section[32] = "", font[PATH_CAP] = "";
     size_t size = 0;
-    bool version = false, valid = true;
+    bool version = false, valid = true, needs_v2 = false;
     while (fgets(line, sizeof line, file)) {
         size += strlen(line);
         if (size > 4096 || (!strchr(line, '\n') && !feof(file))) {
@@ -150,9 +152,10 @@ static bool load(App *app, const char *id, ThemePackage *package)
         key = trim(key);
         value = trim(value);
         if (!strcmp(section, "[theme]")) {
-            if (!strcmp(key, "version"))
-                version = !strcmp(value, "1");
-            else if (!strcmp(key, "header") && strlen(value) < sizeof package->header)
+            if (!strcmp(key, "version")) {
+                version = !strcmp(value, "1") || !strcmp(value, "2");
+                package->format_version = !strcmp(value, "2") ? 2 : 1;
+            } else if (!strcmp(key, "header") && strlen(value) < sizeof package->header)
                 path_copy(package->header, value, sizeof package->header);
             else if (!strcmp(key, "name") && *value && strlen(value) < sizeof package->name)
                 path_copy(package->name, value, sizeof package->name);
@@ -254,13 +257,18 @@ static bool load(App *app, const char *id, ThemePackage *package)
                     package->scene_cover_width = number;
                 else
                     package->scene_cover_height = number;
-            } else if (!strcmp(key, "content_opacity")) {
+            } else if (!strcmp(key, "content_opacity") || !strcmp(key, "top_content_opacity") ||
+                       !strcmp(key, "bottom_content_opacity")) {
                 char *end;
                 unsigned long number = strtoul(value, &end, 10);
                 if (!*value || *end || number > 100)
                     valid = false;
-                else
+                else if (!strcmp(key, "content_opacity"))
                     package->content_opacity = number;
+                else {
+                    needs_v2 = true;
+                    package->screen_opacity[!strcmp(key, "bottom_content_opacity")] = number;
+                }
             } else if (!strcmp(key, "row_padding") || !strcmp(key, "large_grid_columns")) {
                 char *end;
                 unsigned long number = strtoul(value, &end, 10);
@@ -322,10 +330,11 @@ static bool load(App *app, const char *id, ThemePackage *package)
         } else
             valid = false;
     }
-    valid = valid && version && !ferror(file) && readable(package->palette) &&
-            package->scene_cover_x >= 2 && package->scene_cover_y >= 26 &&
-            package->scene_cover_width >= 8 && package->scene_cover_width <= 96 &&
-            package->scene_cover_height >= 8 && package->scene_cover_height <= 90 &&
+    valid = valid && version && (!needs_v2 || package->format_version == 2) && !ferror(file) &&
+            readable(package->palette) && package->scene_cover_x >= 2 &&
+            package->scene_cover_y >= 26 && package->scene_cover_width >= 8 &&
+            package->scene_cover_width <= 96 && package->scene_cover_height >= 8 &&
+            package->scene_cover_height <= 90 &&
             package->scene_cover_x + package->scene_cover_width <= 254 &&
             package->scene_cover_y + package->scene_cover_height <= 116;
     fclose(file);

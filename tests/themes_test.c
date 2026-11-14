@@ -215,10 +215,20 @@ int main(int argc, char **argv)
     themes_move(&app, 3);
     assert(!app.themes.ready);
     themes_cancel(&app);
-    const char *bad_layout[] = {"top_layout=unknown", "chrome=off",        "content_opacity=101",
-                                "content_opacity=-1", "scene_cover_x=240", "scene_cover_height=91",
-                                "scene_cover_y=0",    "tab_style=unknown", "tab_highlight=unknown",
-                                "tab_gap=9",          "tab_gap=-1",        "tab_visible=0",
+    const char *bad_layout[] = {"top_layout=unknown",
+                                "chrome=off",
+                                "content_opacity=101",
+                                "top_content_opacity=50",
+                                "bottom_content_opacity=50",
+                                "content_opacity=-1",
+                                "scene_cover_x=240",
+                                "scene_cover_height=91",
+                                "scene_cover_y=0",
+                                "tab_style=unknown",
+                                "tab_highlight=unknown",
+                                "tab_gap=9",
+                                "tab_gap=-1",
+                                "tab_visible=0",
                                 "tab_visible=6"};
     for (unsigned i = 0; i < sizeof bad_layout / sizeof *bad_layout; i++) {
         char content[160];
@@ -250,6 +260,29 @@ int main(int argc, char **argv)
         assert(!app.themes.ready);
         themes_cancel(&app);
     }
+    write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini",
+               "[theme]\nversion=2\n[layout]\ncontent_opacity=40\n"
+               "top_content_opacity=0\nbottom_content_opacity=100\n");
+    themes_open(&app);
+    themes_move(&app, 3);
+    assert(app.themes.ready && app.themes.candidate.format_version == 2);
+    ThemePackage surfaces = app.themes.candidate;
+    assert(themes_content_opacity(&surfaces, 0) == 0);
+    assert(themes_content_opacity(&surfaces, 1) == 100);
+    surfaces.background_strength = 100;
+    for (int screen = 0; screen < 2; screen++)
+        strcpy(surfaces.backgrounds[screen], "tests/fixtures/cover-example.png");
+    themes_background_load(&surfaces, true);
+    themes_background_draw(&surfaces, 0, top);
+    themes_background_draw(&surfaces, 1, bottom);
+    unsigned different = 0;
+    for (int y = 4; y < 188; y++)
+        for (int x = 6; x < 250; x++) {
+            assert(bottom[y * 256 + x] == surfaces.palette.bg);
+            different += top[y * 256 + x] != bottom[y * 256 + x];
+        }
+    assert(different > 0);
+    themes_cancel(&app);
     puts("PASS: theme preview/apply/cancel, validated fonts/contrast, persistence and recovery "
          "isolation");
 }

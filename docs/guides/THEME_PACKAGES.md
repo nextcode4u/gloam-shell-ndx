@@ -1,4 +1,9 @@
-# Theme packages (version 1)
+# Theme packages
+
+Version 2 adds independent top/bottom reading-surface opacity. It requires a
+frontend built with version-2 support; Gloam 1.0.0 rejects these packages.
+Existing `version=1` themes retain their behavior. New packs declare
+`[theme] version=2`; no conversion of older packs is necessary.
 
 Open **Frontend Settings → Appearance → Theme**. Up/Down previews packages on
 both screens. A applies; B/START cancels. Touch selects a preview, then applies
@@ -36,7 +41,7 @@ ui=builtin
 ```
 
 `name` and color/font overrides are optional; omitted values use the built-in
-base. `version=1` is required. Files are at most 4 KiB with lines shorter than
+base. `version=1` or `version=2` is required. Files are at most 4 KiB with lines shorter than
 1 KiB. Unsupported fields/sections and invalid values reject the candidate.
 Colors use exactly six hexadecimal RGB digits. Integer brightness-separation
 checks reject unreadable text/background, text/surface, muted/background,
@@ -239,6 +244,8 @@ large_grid_columns=3
 top_layout=poster
 chrome=minimal
 content_opacity=40
+top_content_opacity=20
+bottom_content_opacity=75
 ```
 
 All keys are optional. `view` accepts classic/extended/list/grid/shelf/index and `icon_size`
@@ -246,6 +253,13 @@ accepts small/large. These supply defaults when Apply is pressed; ordinary
 Appearance choices can override them afterward and remain saved across restart.
 Preview/cancel does not change browser preferences. Named presets retain their
 explicit icon/view choices independently of these apply-time defaults.
+
+Version-2 `top_content_opacity` and `bottom_content_opacity` accept 0–100 percent
+and override `content_opacity` for their respective screen. Omitted overrides
+inherit that shared value, regardless of key order. Lower values reveal more
+wallpaper; higher values strengthen the reading surface. Both are preblended
+during loading and add no per-frame work or extra pixel buffers. Scene's exposed
+illustration strip remains unshaded. Personal wallpaper strength is independent.
 
 Framed browser rows reserve at least four pixels above and below their text or
 icon content. Their selection frame stays anchored to the selected row, avoiding

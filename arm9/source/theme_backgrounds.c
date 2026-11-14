@@ -23,7 +23,7 @@ static bool load_surface(Background *background, const ThemePackage *package, in
     memset(background, 0, sizeof *background);
     background->matte = package->palette.bg;
     background->strength = package->background_strength;
-    background->content_opacity = package->content_opacity;
+    background->content_opacity = themes_content_opacity(package, screen);
     path_copy(background->path, package->backgrounds[screen], PATH_CAP);
     if (!*background->path || !background->strength)
         return false;
@@ -50,8 +50,8 @@ static bool load_surface(Background *background, const ThemePackage *package, in
                    256 * 94 * sizeof *background->scene);
     }
     /* Preblend the reading surface once, never in the frame loop. */
-    if (background->ready && package->content_opacity <= 100) {
-        unsigned alpha = package->content_opacity;
+    if (background->ready && background->content_opacity <= 100) {
+        unsigned alpha = background->content_opacity;
         for (int y = 4; alpha && y < 188; y++)
             for (int x = 6; x < 250; x++) {
                 uint16_t old = background->pixels[y * 256 + x];
@@ -107,7 +107,7 @@ void themes_background_draw(const ThemePackage *package, int screen, uint16_t *p
         if (background->ready && !strcmp(background->path, package->backgrounds[screen]) &&
             background->matte == package->palette.bg &&
             background->strength == package->background_strength &&
-            background->content_opacity == package->content_opacity) {
+            background->content_opacity == themes_content_opacity(package, screen)) {
             memcpy(pixels, background->pixels, 256 * 192 * sizeof *pixels);
             return;
         }
@@ -123,7 +123,7 @@ void themes_background_scene_draw(const ThemePackage *package, uint16_t *pixels)
             !strcmp(background->path, package->backgrounds[0]) &&
             background->matte == package->palette.bg &&
             background->strength == package->background_strength &&
-            background->content_opacity == package->content_opacity) {
+            background->content_opacity == themes_content_opacity(package, 0)) {
             memcpy(pixels + 256 * 24, background->scene, 256 * 94 * sizeof *pixels);
             return;
         }
