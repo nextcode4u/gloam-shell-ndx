@@ -538,16 +538,28 @@ function Test-GloamTheme([string]$Source) {
     $manifest=Get-GloamPath $root 'theme.ini'
     if (-not [IO.File]::Exists($manifest) -or ([IO.FileInfo]::new($manifest)).Length -gt 4096) { throw 'Theme manifest is missing or exceeds 4 KiB.' }
     $data=Read-GloamIni $manifest
-    $allowed=@{theme=@('version','name','header');colors=@('background','surface','line','text','muted','accent','ink','selection_text','tab_text');fonts=@('ui');audio=@('music','cursor','confirm','back');backgrounds=@('top','bottom','strength');layout=@('view','icon_size','row_padding','large_grid_columns','top_layout','chrome','content_opacity','scene_cover_x','scene_cover_y','scene_cover_width','scene_cover_height','tab_style','tab_highlight','tab_gap','tab_visible');icons=@('directory');components=@('directory','border')}
+    $allowed=@{
+        theme=@('version','name','header')
+        colors=@('background','surface','line','text','muted','accent','ink','selection_text','tab_text')
+        fonts=@('ui','heading')
+        audio=@('music','cursor','confirm','back')
+        backgrounds=@('top','bottom','strength','top_surface','bottom_surface')
+        layout=@('view','icon_size','row_padding','large_grid_columns','top_layout','chrome',
+                 'content_opacity','top_content_opacity','bottom_content_opacity','tabs_position',
+                 'scene_cover_x','scene_cover_y','scene_cover_width','scene_cover_height',
+                 'tab_style','tab_highlight','tab_gap','tab_visible')
+        icons=@('directory')
+        components=@('directory','border','alpha')
+    }
     foreach ($section in $data.Keys) {
         if (-not $allowed.ContainsKey($section)) { $errors.Add("Unknown section: $section"); continue }
         foreach ($key in $data[$section].Keys) { if ($key -notin $allowed[$section]) { $errors.Add("Unknown key: $section/$key") } }
     }
-    if (-not $data.Contains('theme') -or $data['theme']['version'] -ne '1') { $errors.Add('Expected theme version 1.') }
+    if (-not $data.Contains('theme') -or $data['theme']['version'] -notin @('1','2')) { $errors.Add('Expected theme version 1 or 2.') }
     if ($data.Contains('theme') -and $data['theme'].Contains('header') -and [Text.Encoding]::UTF8.GetByteCount($data['theme']['header']) -gt 63) { $errors.Add('Header must fit in 63 UTF-8 bytes.') }
     if ($data.Contains('colors')) { foreach ($key in $data['colors'].Keys) { if ($data['colors'][$key] -notmatch '^#[0-9A-Fa-f]{6}$') { $errors.Add("Invalid colour: $key") } } }
     if ($data.Contains('layout')) {
-        foreach ($pair in @(@('view',@('classic','extended','list','grid','shelf','index')),@('icon_size',@('small','large')),@('top_layout',@('sidebar','sidebar_left','poster','scene')),@('chrome',@('full','minimal')),@('tab_style',@('labels','icons','numbered','pager')),@('tab_highlight',@('skin','underline','outline')))) {
+        foreach ($pair in @(@('view',@('classic','extended','list','grid','shelf','index')),@('icon_size',@('small','large')),@('top_layout',@('sidebar','sidebar_left','poster','scene','spotlight','gallery','journal')),@('tabs_position',@('top','bottom')),@('chrome',@('full','minimal')),@('tab_style',@('labels','icons','numbered','pager')),@('tab_highlight',@('skin','underline','outline')))) {
             if ($data['layout'].Contains($pair[0]) -and $data['layout'][$pair[0]] -notin $pair[1]) { $errors.Add("Invalid layout: $($pair[0])") }
         }
         foreach ($key in @('tab_gap','tab_visible')) { if ($data['layout'].Contains($key)) {
@@ -561,11 +573,22 @@ function Test-GloamTheme([string]$Source) {
             else { $rect[$key]=$number }
         } }
         if ($rect.scene_cover_x -lt 2 -or $rect.scene_cover_y -lt 26 -or $rect.scene_cover_width -lt 8 -or $rect.scene_cover_width -gt 96 -or $rect.scene_cover_height -lt 8 -or $rect.scene_cover_height -gt 90 -or ($rect.scene_cover_x+$rect.scene_cover_width) -gt 254 -or ($rect.scene_cover_y+$rect.scene_cover_height) -gt 116) { $errors.Add('Scene cover must stay inside the illustration strip with a two-pixel frame margin.') }
-        foreach ($key in @('row_padding','large_grid_columns','content_opacity')) { if ($data['layout'].Contains($key)) {
-            $value=0; $minimum=if ($key -eq 'large_grid_columns') {2} else {0}; $maximum=if ($key -eq 'row_padding') {12} elseif ($key -eq 'content_opacity') {100} else {4}
+        foreach ($key in @('row_padding','large_grid_columns','content_opacity','top_content_opacity','bottom_content_opacity')) { if ($data['layout'].Contains($key)) {
+            $value=0; $minimum=if ($key -eq 'large_grid_columns') {2} else {0}; $maximum=if ($key -eq 'row_padding') {12} elseif ($key.EndsWith('content_opacity')) {100} else {4}
             if (-not [int]::TryParse($data['layout'][$key],[ref]$value) -or $value -lt $minimum -or $value -gt $maximum) { $errors.Add("Invalid layout: $key") }
         } }
     }
+    $needsV2=$false
+    foreach ($pair in @(@('fonts','heading'),@('components','alpha'),@('layout','top_content_opacity'),@('layout','bottom_content_opacity'),@('layout','tabs_position'),@('backgrounds','top_surface'),@('backgrounds','bottom_surface'))) {
+        if ($data.Contains($pair[0]) -and $data[$pair[0]].Contains($pair[1])) { $needsV2=$true }
+    }
+    if ($data.Contains('layout')) {
+        $composition=$data['layout']['top_layout']
+        if ($composition -in @('spotlight','gallery','journal')) { $needsV2=$true }
+        if ($data['layout'].Contains('tabs_position') -and $composition -notin @('spotlight','gallery','journal')) { $errors.Add('Tab position requires Spotlight, Gallery or Journal.') }
+    }
+    if ($needsV2 -and (-not $data.Contains('theme') -or $data['theme']['version'] -ne '2')) { $errors.Add('These theme fields require version 2.') }
+    if ($data.Contains('components') -and $data['components'].Contains('alpha') -and $data['components']['alpha'] -notin @('binary','coverage')) { $errors.Add('Component alpha must be binary or coverage.') }
     foreach ($section in @('fonts','audio','backgrounds')) { if ($data.Contains($section)) {
         foreach ($key in $data[$section].Keys) {
             $value=$data[$section][$key]
@@ -574,6 +597,19 @@ function Test-GloamTheme([string]$Source) {
             try { $path=Get-GloamPath $root $value; if (-not [IO.File]::Exists($path)) { if ($section -eq 'fonts') { $errors.Add("Missing font: $value") } else { $warnings.Add("Missing $section asset: $value (fallback)") } } }
             catch { $errors.Add("Unsafe asset path: $section/$key") }
         }
+    } }
+    if ($data.Contains('backgrounds')) { foreach ($key in @('top_surface','bottom_surface')) {
+        if (-not $data['backgrounds'].Contains($key)) { continue }
+        try {
+            $path=Get-GloamPath $root $data['backgrounds'][$key]
+            if (-not [IO.File]::Exists($path)) { continue } # Already reported above.
+            if (([IO.FileInfo]::new($path)).Length -gt 262144) { throw 'larger than 256 KiB' }
+            Add-Type -AssemblyName PresentationCore
+            $stream=[IO.File]::OpenRead($path)
+            try { $decoder=[Windows.Media.Imaging.PngBitmapDecoder]::new($stream,[Windows.Media.Imaging.BitmapCreateOptions]::PreservePixelFormat,[Windows.Media.Imaging.BitmapCacheOption]::OnLoad); $image=$decoder.Frames[0] }
+            finally { $stream.Dispose() }
+            if ($image.PixelWidth -ne 256 -or $image.PixelHeight -ne 192) { throw 'must be 256 x 192 pixels' }
+        } catch { $warnings.Add("$key invalid: $($_.Exception.Message); flat reading surface fallback") }
     } }
     if ($data.Contains('components') -and $data['components'].Contains('border')) {
         $border=0

@@ -1043,6 +1043,26 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.run_ps('Import-GloamTheme $root ' + literal(win(source)), success=False)
         self.assertFalse((self.sd / '_nds/dsi-frontend/themes/theme-check').exists())
 
+    def test_version_two_theme_materials_and_layout_validation(self):
+        source = self.root / 'theme-v2'
+        source.mkdir()
+        manifest = source / 'theme.ini'
+        original = ('[theme]\nversion=2\n[layout]\ntop_layout=journal\n'
+                    'tabs_position=bottom\ntop_content_opacity=80\nbottom_content_opacity=100\n'
+                    '[fonts]\nui=builtin\nheading=builtin\n[components]\nalpha=coverage\n'
+                    '[backgrounds]\ntop_surface=paper.png\n')
+        manifest.write_text(original)
+        command = '$r=Test-GloamTheme ' + literal(win(source))
+        self.run_ps(command + '; if (-not $r.Valid -or $r.Warnings.Count -ne 1) { throw ($r | ConvertTo-Json) }')
+        (source / 'paper.png').write_bytes(b'broken PNG')
+        self.run_ps(command + '; if (-not $r.Valid -or $r.Warnings.Count -ne 1) { throw "surface fallback missing" }')
+        for old, new in [('version=2', 'version=1'), ('alpha=coverage', 'alpha=unknown'),
+                         ('top_layout=journal', 'top_layout=sidebar'),
+                         ('top_content_opacity=80', 'top_content_opacity=101'),
+                         ('paper.png', '../outside.png')]:
+            manifest.write_text(original.replace(old, new))
+            self.run_ps(command + '; if ($r.Valid) { throw "invalid version-2 theme accepted" }')
+
     def test_legacy_theme_without_navigation_icons_keeps_its_fallbacks(self):
         source = self.root / 'legacy-theme'
         shutil.copytree(ROOT / 'sdroot/_nds/dsi-frontend/themes/copper', source)
