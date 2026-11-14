@@ -308,5 +308,5 @@ ASAN_OPTIONS=detect_leaks=1 build/host/parser-mutation-test "$fixture/parser-mut
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" tests/splash_test.c -o build/host/splash-test
-"${FRONTEND_TEST_PYTHON:-python3}" tests/test_splash.py --fixture "$fixture/splash"
+python3 tests/splash_fixture.py "$fixture/splash"
 ASAN_OPTIONS=detect_leaks=1 build/host/splash-test "$fixture/splash"

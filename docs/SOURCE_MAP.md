@@ -19,7 +19,7 @@ protocol definitions live in `common/include`.
 | Artwork | `artwork.c`, `artwork_cache.c`, `artwork_disk_cache.c`, `album_art.c`, `image_decode.c`, `image_input.c`, `image_job.c`. |
 | Icons and title metadata | `icons.c`, `animated_icon.c`, `system_icons.c`, `slot1.c`, `title_metadata.c`; `file_types.c` classifies fallbacks and `ui/item_icons.c` draws their shared symbol family. System icons use discovered native banners with original built-in fallbacks. `slot1.c` reads cartridge metadata cooperatively through bounded hardware callbacks in `main.c`. |
 | Themes, fonts and text | `themes.c`, `theme_backgrounds.c`, `theme_icons.c`, `theme_components.c`, `font_pack.c`, `text.c`, `ui_strings.c`, `ui/font*.h`. |
-| Startup splashes | `splash.c` validates/draws prepared layers; `splash_preferences.c` resolves theme/custom/default packages and thumbnails. `main.c` owns boot checkpoints, skip/recovery and sound lifetime. `tools/pack_splash.py` and `tools/splash_builder.py` provide CLI and graphical authoring. |
+| Startup splashes | `splash.c` validates/draws prepared layers; `splash_preferences.c` resolves theme/custom/default packages and thumbnails. `main.c` owns boot checkpoints, skip/recovery and sound lifetime. The [theme directory](https://github.com/nextcode4u/gloam-shell-theme-directory) owns the converter and graphical builder; `tests/splash_fixture.py` supplies independent native test data. |
 | Launcher audio and reports | `audio.c`, `diagnostics.c`. |
 | Drawing and screen composition | `ui/drawing.c`, `ui/renderer.c`, and the individual `ui/*_view.c` files. |
 

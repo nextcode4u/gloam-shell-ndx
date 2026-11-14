@@ -5,6 +5,9 @@ contain static artwork, simple layer effects or converted frame animations, with
 optional sound. They are loaded once; playback does not decode PNG/GIF images or
 read frames from SD. All package memory is released before normal browsing.
 
+Splash playback is available in source builds after Gloam 1.0.0. The 1.0.0
+release does not include these settings.
+
 ## On the console
 
 START → Appearance includes these controls in Simple and Advanced settings:
@@ -39,55 +42,17 @@ The settings records are `splash_mode=0|1|2`, `splash_once=0|1`,
 `splash_sound=0|1` and `splash_path=sd:/...`. Configuration export/import includes
 these records through the existing state file. User artwork stays in place.
 
-## Contributor workflow
+## Creating a splash
 
-Install the Python dependencies from `requirements-dev.txt`, then run:
+The graphical Splash Builder, converter, contributor instructions and Python
+tests live in the [theme-directory repository](https://github.com/nextcode4u/gloam-shell-theme-directory).
+Follow its [splash authoring guide](https://github.com/nextcode4u/gloam-shell-theme-directory/blob/main/docs/STARTUP_SPLASHES.md)
+to import artwork/animation, preview it and export a package. No theme INI edits
+are needed: place `splash.gsp` in the theme folder, or select a custom file in Gloam.
 
-```sh
-python tools/pack_splash.py
-```
-
-The graphical Splash Builder uses Python's Tk interface (included with the
-standard Windows Python installer; some Linux distributions package Tk separately).
-It is a small splash tool, independent of a full theme editor.
-
-1. Choose PNG/JPEG artwork, an animated GIF, or a folder of numbered PNG frames
-   for each screen. A single screen is enough; unused screens stay black.
-2. Optionally add a transparent overlay/logo for either screen. Overlays are
-   centered; their width can be adjusted. Without an overlay, the chosen effect
-   applies to the screen image instead.
-3. Choose fit or crop, frame rate and effect: none, fade, slide up, slide left or
-   reveal. Effects last 0.5 seconds by default. Fit preserves aspect ratio and
-   uses the selected letterbox colour; crop explicitly fills the screen.
-4. Set duration and a still-frame time, or leave them automatic. Animated inputs
-   retain their timing through fixed-rate sampling; PNG folders use the selected
-   frame rate. Short sequences hold their last frame. Frames beyond an explicitly
-   shorter package duration are not shown.
-5. Optionally choose a WAV. The converter accepts mono/stereo 8/16-bit PCM at
-   8–48 kHz and converts it to mono PCM16 at 16 kHz. Sound is limited to the package
-   duration. The PC visual preview is silent; check audio in Gloam.
-6. Build and preview. Check Reduced motion, Skip, and the fast-startup simulation.
-   The opening image should already make sense: While loading may end mid-animation.
-7. Save a `.gsp`, **Add to theme** (choose the folder containing `theme.ini`), or
-   **Install as custom splash** (choose the SD root/staging folder).
-
-Add to theme writes only `splash.gsp`; it needs no INI changes. Include the source
-artwork's credits/license with the theme. Custom installation keeps the package
-under `splashes/`, backs up an existing valid state file, and preserves unrelated
-settings and repeated navigation/favorite records. It does not change ROMs or saves.
-
-For repeatable command-line builds:
-
-```sh
-python tools/pack_splash.py splash.gsp --top sky.png --top-logo logo.png --effect fade
-python tools/pack_splash.py splash.gsp --top animation.gif --bottom still.png --fps 15
-python tools/pack_splash.py splash.gsp --top frames/ --fps 20 --sound intro.wav
-```
-
-An existing output requires `--replace`. `--duration` and `--poster` use seconds;
-`--transition` controls effect duration. The default is shared indexed colour;
-`--direct` retains RGB555 colours with greater memory/SD cost. Source images and
-frame sequences remain editable; the `.gsp` is the runtime asset.
+Gloam owns playback, settings and the format contract below. Its native checks
+use independent synthetic fixtures in `tests/splash_fixture.py`; building or
+testing the launcher does not require a theme-directory checkout.
 
 ## Limits and format
 

@@ -26,4 +26,4 @@ Start with [setup and controls](GETTING_STARTED.md) and [current support](CURREN
 - [Browser jobs](development/BROWSER_JOBS.md) and [artwork cache](development/ARTWORK_CACHE.md).
 - [Dependency sources, licenses and modifications](../THIRD_PARTY.md).
 
-[Startup splashes](guides/STARTUP_SPLASHES.md): authoring, theme/custom selection and prepared animation packages.
+[Startup splashes](guides/STARTUP_SPLASHES.md): theme/custom selection, prepared animation format and the separate authoring tools.
