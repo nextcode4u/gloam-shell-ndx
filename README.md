@@ -38,10 +38,11 @@ Screenshots show Gloam's renderer with the supplied themes and example content.
 - Favorites and recent items, configuration export/import, recovery mode,
   hidden/save/BIOS folder filters and adjustable scrolling.
 
-**Development status:** physical DSi validation is pending. Launch and return
-behavior depends on the title, backend and boot environment. Bundling an official
-backend does not resolve the remaining retail compatibility work; see
-[current support](docs/CURRENT_SUPPORT.md).
+**1.0 release:** [Download Gloam Shell NDX](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest).
+Core launch, save, settings and sleep routes have passed reported tests on a
+Japanese DSi LL with Unlaunch and an English-patched menu. Compatibility depends
+on the title, backend and boot environment; see [current support](docs/CURRENT_SUPPORT.md)
+for tested scope, known limitations and remaining validation.
 
 ## Install
 
@@ -58,7 +59,7 @@ You can also extract `addons.zip` and double-click
 `addon-installer/Start Gloam Setup.cmd`. The tool also previews ROM-folder organization while preserving recognized saves
 and Gloam title references. See the [Windows setup guide](docs/guides/WINDOWS_SETUP.md).
 
-Build the SD package below, then merge the contents of `dist/sd.zip` onto a
+Download `sd.zip` from the release (or build it below), then merge its contents onto a
 backed-up SD card. The entry point is `/BOOT.NDS`. Preserve your existing settings,
 libraries and other applications' support files when upgrading.
 

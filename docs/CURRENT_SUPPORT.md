@@ -1,7 +1,7 @@
 # Current support
 
-Gloam Shell NDX is a development project. The browser, settings and launch adapters
-are implemented; limited physical DSi validation is underway. A listed route is not
+Gloam Shell NDX 1.0 includes the browser, settings and launch adapters described
+below. Physical DSi validation covers one reported setup; broader checks continue. A listed route is not
 a guarantee for every title, boot method or application build.
 
 | Area | Support and limits |
@@ -51,7 +51,7 @@ The release script packages unmodified upstream nds-bootstrap and Slot-1 Launche
 releases identified in [the dependency lock](../config/release-dependencies.json).
 Hash verification establishes artifact identity, not launch compatibility.
 
-Before a stable release, validate boot performance, display readability, peak
+Remaining hardware validation includes boot performance, display readability, peak
 memory, SD removal, power controls, audio/microphone quality and wireless on
 physical DSi hardware; broaden the initial sleep/resume and cartridge checks. Broader title and save/return coverage is also
 needed. Arbitrary dashboard widgets, 3D/coverflow and CJK/RTL fonts are
