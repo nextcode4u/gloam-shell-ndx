@@ -22,6 +22,52 @@ static void draw(Splash *splash, unsigned tick, bool reduced)
     assert(top.before == 0x12345678 && top.after == 0x12345678);
     assert(bottom.before == 0x12345678 && bottom.after == 0x12345678);
 }
+static void motion_checks(const char *root)
+{
+    char path[PATH_CAP];
+    Splash splash = {0};
+    assert(path_join(path, root, "motion.gsp") && splash_load(&splash, path));
+    assert(splash.layers[0].motion && splash.background == 0x801F);
+    draw(&splash, 11, false);
+    assert(top.pixels[96 * 256 + 128] == 0x801F);
+    draw(&splash, 42, false);
+    assert(top.pixels[96 * 256 + 128] == 0x83E0);
+    assert(top.pixels[0] == 0x801F); /* Bottom layers cannot spill to the upper display. */
+    draw(&splash, 72, false);
+    assert(top.pixels[96 * 256 + 128] == 0x801F);
+    draw(&splash, 0, true);
+    assert(top.pixels[96 * 256 + 128] == 0x83E0);
+    assert(splash_needs_frame(&splash, 42, 43, false));
+    assert(!splash_needs_frame(&splash, 42, 43, true));
+    const unsigned scales[] = {0, 1, 25, 100, 400};
+    for (unsigned reveal = 0; reveal < 5; reveal++)
+        for (unsigned easing = 0; easing < 4; easing++)
+            for (unsigned repeat = 0; repeat < 3; repeat++)
+                for (unsigned i = 0; i < 5; i++) {
+                    SplashLayer *layer = &splash.layers[0];
+                    layer->effect = reveal;
+                    layer->easing = easing;
+                    layer->repeat = repeat;
+                    layer->start_scale = scales[i];
+                    layer->end_scale = scales[4 - i];
+                    layer->start_x = -512;
+                    layer->start_y = 512;
+                    layer->end_x = 512;
+                    layer->end_y = -512;
+                    for (unsigned tick = 0; tick < 180; tick += 13)
+                        draw(&splash, tick, false);
+                }
+    splash_close(&splash);
+    const char *bad[] = {"scale",    "alpha",    "easing",     "repeat",   "sequence",
+                         "reserved", "position", "background", "zero-time"};
+    for (unsigned i = 0; i < sizeof bad / sizeof *bad; i++) {
+        char name[64];
+        snprintf(name, sizeof name, "bad-motion-%s.gsp", bad[i]);
+        assert(path_join(path, root, name));
+        assert(!splash_load(&splash, path) && !splash.data);
+    }
+}
+
 static bool option(const char *name)
 {
     for (int page = 0; page < settings_section_count(&app); page++)
@@ -36,6 +82,7 @@ static bool option(const char *name)
 int main(int argc, char **argv)
 {
     assert(argc == 2);
+    motion_checks(argv[1]);
     char valid[PATH_CAP], bad[PATH_CAP];
     assert(path_join(valid, argv[1], "valid.gsp") && path_join(bad, argv[1], "bad.gsp"));
     Splash splash = {0};

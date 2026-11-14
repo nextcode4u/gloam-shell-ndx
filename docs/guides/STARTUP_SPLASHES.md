@@ -83,3 +83,52 @@ are row-major and share their layer's dimensions and palette. Optional audio is
 last, four-byte aligned mono PCM16 at 16 kHz, at most 320,000 bytes. Offsets,
 dimensions, reserved fields, sizes, duration and CRC are validated before rendering.
 Unknown or malformed formats are rejected without changing preferences.
+
+## Independent layer motion (version 2)
+
+New contributor exports can use `GLOMSP02`. Gloam still accepts version-1
+packages unchanged. Version 2 adds independent layer sizing, X/Y travel, scale,
+opacity, delay, duration, easing, reveal direction and repeat choices. These
+are splash-package versions, separate from `theme.ini` versions. Builds with
+only `GLOMSP01` support cannot play the new packages.
+
+The source bitmap remains prepared in memory. Scaling uses nearest-neighbour
+sampling around its centre, with fixed-point motion and clipping to its own
+screen. Drawing allocates no memory and performs no file reads. A small moving
+logo does not require a full-screen frame sequence. Four layers and the 2 MiB
+package limit remain; GIF frames themselves are still stored uncompressed.
+
+Presets are an authoring convenience: fade, four slides, four directional reveals,
+zoom in/out, fade with zoom, pulse and drift fill in editable layer controls.
+The native player receives bounded values, not scripts or preset names. Reduced
+motion uses the designated source frame and each layer's end position, scale,
+opacity and fully revealed state. Skip and While loading retain their existing
+behavior. Layer motion does not force a splash to finish before browsing.
+
+Version 2 keeps the 32-byte header. The magic is `GLOMSP02`; byte 21 remains zero;
+bytes 22–23 store an opaque RGB555 background colour. Layer records are 64 bytes:
+
+| Offset | Fields |
+| --- | --- |
+| 0–31 | Same structure as version 1, except effect means reveal: 0 none, 1 right, 2 left, 3 up, 4 down. |
+| 32–39 | Start X/Y and end X/Y offsets, four signed 16-bit values, −512..512 pixels. |
+| 40–43 | Start and end scale, unsigned 16-bit percentages, 0..400. |
+| 44–45 | Start and end opacity, bytes in 0..32. |
+| 46 | Easing: 0 linear, 1 quadratic ease-in, 2 quadratic ease-out, 3 smoothstep. |
+| 47 | Motion repetition: 0 once/hold, 1 loop, 2 ping-pong. |
+| 48 | Source frame sequence: 0 once/hold, 1 loop, 2 ping-pong. |
+| 49–63 | Zero reserved bytes. |
+
+The base X/Y position may also be −512..512. Scale 100 preserves the prepared
+bitmap size; scale zero draws nothing. Source dimensions remain at most 256×192;
+large scales are clipped, without allocating a larger intermediate image.
+Repeating motion and reveals require a positive transition duration. Delays must
+start within the package duration. Motion and frame-sequence repetition are
+independent and bounded by ordinary startup/preview termination.
+
+Progress is 0..1024, with integer easing and signed interpolation truncated toward
+zero. Fade blends RGB555 channels using 0..32 coverage. Motion completion holds
+the end state; frame playback holds the last frame unless repeat is requested.
+The loader validates enums, ranges, reserved bytes, offsets, exact payload sizes
+and checksum before exposing any layer. The builder's optional native comparison
+suite checks actual rendered pixels against this implementation.

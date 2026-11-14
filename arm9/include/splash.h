@@ -11,12 +11,17 @@ typedef enum { SPLASH_OFF, SPLASH_THEME, SPLASH_CUSTOM, SPLASH_MODE_COUNT } Spla
 typedef struct {
     unsigned screen, format, effect, width, height, frames, hold, delay, transition;
     int x, y;
+    bool motion;
+    int start_x, start_y, end_x, end_y;
+    unsigned start_scale, end_scale, start_opacity, end_opacity;
+    unsigned easing, repeat, sequence;
     const unsigned char *palette, *pixels;
 } SplashLayer;
 typedef struct {
     unsigned char *data;
     size_t bytes;
     unsigned duration, poster, count;
+    uint16_t background;
     SplashLayer layers[SPLASH_LAYER_CAP];
     const int16_t *sound;
     unsigned sound_bytes;

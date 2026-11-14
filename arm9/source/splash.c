@@ -35,21 +35,25 @@ void splash_close(Splash *splash)
 static bool validate(Splash *splash)
 {
     const unsigned char *data = splash->data;
-    if (splash->bytes < 64 || memcmp(data, "GLOMSP01", 8) || read32(data + 8) != splash->bytes ||
+    bool motion = splash->bytes >= 8 && !memcmp(data, "GLOMSP02", 8);
+    if (splash->bytes < 64 || (!motion && memcmp(data, "GLOMSP01", 8)) ||
+        read32(data + 8) != splash->bytes ||
         read32(data + 12) != checksum(data + 16, splash->bytes - 16))
         return false;
     splash->duration = read16(data + 16);
     splash->poster = read16(data + 18);
     splash->count = data[20];
+    splash->background = motion ? read16(data + 22) : 0x8000;
     if (!splash->duration || splash->duration > SPLASH_TICK_CAP ||
         splash->poster >= splash->duration || !splash->count || splash->count > SPLASH_LAYER_CAP ||
-        data[21] || data[22] || data[23])
+        data[21] || (motion ? !(splash->background & 0x8000) : data[22] || data[23]))
         return false;
-    size_t offset = 32 + 32 * splash->count;
+    unsigned record_size = motion ? 64 : 32;
+    size_t offset = 32 + record_size * splash->count;
     if (offset > splash->bytes)
         return false;
     for (unsigned i = 0; i < splash->count; i++) {
-        const unsigned char *record = data + 32 + 32 * i;
+        const unsigned char *record = data + 32 + record_size * i;
         SplashLayer *layer = &splash->layers[i];
         layer->screen = record[0];
         layer->format = record[1];
@@ -62,13 +66,36 @@ static bool validate(Splash *splash)
         layer->y = (int16_t)read16(record + 14);
         layer->delay = read16(record + 16);
         layer->transition = read16(record + 18);
+        layer->motion = motion;
+        if (motion) {
+            layer->start_x = (int16_t)read16(record + 32);
+            layer->start_y = (int16_t)read16(record + 34);
+            layer->end_x = (int16_t)read16(record + 36);
+            layer->end_y = (int16_t)read16(record + 38);
+            layer->start_scale = read16(record + 40);
+            layer->end_scale = read16(record + 42);
+            layer->start_opacity = record[44];
+            layer->end_opacity = record[45];
+            layer->easing = record[46];
+            layer->repeat = record[47];
+            layer->sequence = record[48];
+            if (abs(layer->start_x) > 512 || abs(layer->start_y) > 512 || abs(layer->end_x) > 512 ||
+                abs(layer->end_y) > 512 || layer->start_scale > 400 || layer->end_scale > 400 ||
+                layer->start_opacity > 32 || layer->end_opacity > 32 || layer->easing > 3 ||
+                layer->repeat > 2 || layer->sequence > 2 || (layer->repeat && !layer->transition) ||
+                abs(layer->x) > 512 || abs(layer->y) > 512)
+                return false;
+            for (unsigned reserved = 49; reserved < 64; reserved++)
+                if (record[reserved])
+                    return false;
+        }
         if (layer->screen > 1 || layer->format > 1 || layer->effect > 4 || record[3] ||
             read32(record + 28) || !layer->width || layer->width > 256 || !layer->height ||
             layer->height > 192 || !layer->frames || layer->frames > 120 || !layer->hold ||
             layer->hold > SPLASH_TICK_CAP || layer->delay >= splash->duration ||
             layer->transition > splash->duration || (layer->effect && !layer->transition) ||
-            layer->x < 0 || layer->y < 0 || layer->x + layer->width > 256 ||
-            layer->y + layer->height > 192)
+            (!motion && (layer->x < 0 || layer->y < 0 || layer->x + layer->width > 256 ||
+                         layer->y + layer->height > 192)))
             return false;
         size_t bytes = layer->width * layer->height * layer->frames * (layer->format ? 1u : 2u) +
                        (layer->format ? 512u : 0u);
@@ -121,11 +148,103 @@ static uint16_t blend(uint16_t color, uint16_t behind, unsigned amount)
            (((((color >> 5) & 31) * amount + ((behind >> 5) & 31) * inverse) >> 5) << 5) |
            (((((color >> 10) & 31) * amount + ((behind >> 10) & 31) * inverse) >> 5) << 10);
 }
+/* Motion uses fixed-point interpolation and bounded nearest-neighbour sampling.
+ * No allocations, decoded frame copies or per-pixel divisions are required. */
+static unsigned motion_progress(const SplashLayer *layer, unsigned elapsed)
+{
+    unsigned duration = layer->transition;
+    if (!duration)
+        return 1024;
+    if (layer->repeat == 1)
+        elapsed %= duration;
+    else if (layer->repeat == 2) {
+        elapsed %= duration * 2;
+        if (elapsed > duration)
+            elapsed = duration * 2 - elapsed;
+    }
+    unsigned p = elapsed >= duration ? 1024 : elapsed * 1024 / duration;
+    if (layer->easing == 1)
+        return p * p / 1024;
+    if (layer->easing == 2)
+        return 1024 - (1024 - p) * (1024 - p) / 1024;
+    if (layer->easing == 3)
+        return p * p * (3072 - 2 * p) / (1024 * 1024);
+    return p;
+}
+static unsigned motion_frame(const SplashLayer *layer, unsigned elapsed)
+{
+    unsigned frame = elapsed / layer->hold;
+    if (layer->sequence == 1)
+        return frame % layer->frames;
+    if (layer->sequence == 2 && layer->frames > 1) {
+        unsigned cycle = (layer->frames - 1) * 2;
+        frame %= cycle;
+        return frame < layer->frames ? frame : cycle - frame;
+    }
+    return frame < layer->frames ? frame : layer->frames - 1;
+}
+static int interpolate(int start, int end, unsigned progress)
+{
+    return start + (end - start) * (int)progress / 1024;
+}
+static void render_motion(const SplashLayer *layer, unsigned elapsed, bool reduced,
+                          uint16_t *destination)
+{
+    unsigned progress = reduced ? 1024 : motion_progress(layer, elapsed);
+    unsigned opacity = interpolate(layer->start_opacity, layer->end_opacity, progress);
+    unsigned scale = interpolate(layer->start_scale, layer->end_scale, progress);
+    int width = layer->width * scale / 100, height = layer->height * scale / 100;
+    if (!width || !height || !opacity)
+        return;
+    /* Scaling keeps the layer's centre fixed; offsets are relative to its base position. */
+    int x = layer->x + ((int)layer->width - width) / 2 +
+            interpolate(layer->start_x, layer->end_x, progress);
+    int y = layer->y + ((int)layer->height - height) / 2 +
+            interpolate(layer->start_y, layer->end_y, progress);
+    int left = x < 0 ? 0 : x, top = y < 0 ? 0 : y;
+    int right = x + width > 256 ? 256 : x + width;
+    int bottom = y + height > 192 ? 192 : y + height;
+    /* Reveal directions: right, left, up and down. */
+    int visible_width = width * progress / 1024, visible_height = height * progress / 1024;
+    if (layer->effect == 1 && right > x + visible_width)
+        right = x + visible_width;
+    if (layer->effect == 2 && left < x + width - visible_width)
+        left = x + width - visible_width;
+    if (layer->effect == 3 && top < y + height - visible_height)
+        top = y + height - visible_height;
+    if (layer->effect == 4 && bottom > y + visible_height)
+        bottom = y + visible_height;
+    if (left >= right || top >= bottom)
+        return;
+    unsigned columns[256];
+    for (int column = left; column < right; column++)
+        columns[column] = (column - x) * layer->width / width;
+    unsigned frame = motion_frame(layer, elapsed);
+    for (int row = top; row < bottom; row++) {
+        size_t offset = (frame * layer->height + (row - y) * layer->height / height) * layer->width;
+        for (int column = left; column < right; column++) {
+            size_t pixel = offset + columns[column];
+            uint16_t color = layer->format ? read16(layer->palette + layer->pixels[pixel] * 2)
+                                           : read16(layer->pixels + pixel * 2);
+            if (color & 0x8000) {
+                uint16_t *out = destination + row * 256 + column;
+                *out = opacity == 32 ? color : blend(color, *out, opacity);
+            }
+        }
+    }
+}
+
 static unsigned layer_state(const SplashLayer *layer, unsigned ticks)
 {
     if (ticks < layer->delay)
         return UINT32_MAX;
     unsigned elapsed = ticks - layer->delay;
+    if (layer->motion) {
+        bool moving = layer->effect || layer->start_x != layer->end_x ||
+                      layer->start_y != layer->end_y || layer->start_scale != layer->end_scale ||
+                      layer->start_opacity != layer->end_opacity;
+        return motion_frame(layer, elapsed) * 2048 + (moving ? motion_progress(layer, elapsed) : 0);
+    }
     unsigned frame = elapsed / layer->hold;
     if (frame >= layer->frames)
         frame = layer->frames - 1;
@@ -151,7 +270,7 @@ void splash_render(const Splash *splash, unsigned ticks, bool reduced_motion,
                    uint16_t top[256 * 192], uint16_t bottom[256 * 192])
 {
     for (unsigned p = 0; p < 256 * 192; p++)
-        top[p] = bottom[p] = 0x8000;
+        top[p] = bottom[p] = splash->data ? splash->background : 0x8000;
     if (!splash->data)
         return;
     if (reduced_motion)
@@ -161,6 +280,10 @@ void splash_render(const Splash *splash, unsigned ticks, bool reduced_motion,
         if (!reduced_motion && ticks < layer->delay)
             continue;
         unsigned elapsed = ticks > layer->delay ? ticks - layer->delay : 0;
+        if (layer->motion) {
+            render_motion(layer, elapsed, reduced_motion, layer->screen ? bottom : top);
+            continue;
+        }
         unsigned frame = elapsed / layer->hold;
         if (frame >= layer->frames)
             frame = layer->frames - 1;

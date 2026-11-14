@@ -163,3 +163,8 @@ The initialized SDK stack is retained: its 1.25.0 Internet teardown is unsupport
 including heading clearance and configurable top/bottom navigation. Drawing and
 geometry regression checks share those regions; browser touch geometry stays in
 `layout.h`.
+
+`splash.c` validates both prepared splash formats. Version 2 keeps motion in
+bounded per-layer metadata and uses fixed-point transforms with screen-local
+clipping; it does not bake effects into frame sequences or allocate while drawing.
+The contributor UI, project migration and matching preview stay in the theme repo.
