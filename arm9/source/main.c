@@ -651,6 +651,7 @@ int main(int argc, char **argv)
             int title = app.system_title_requested;
             app.system_title_requested = -1;
             uint32_t request[8];
+            unsigned char autoload[0x400];
             const NativeTitle *native = NULL;
             if (title < 5)
                 native = &app.system_catalog.titles[title];
@@ -666,9 +667,13 @@ int main(int argc, char **argv)
                                                        : "System title was not discovered.",
                           sizeof app.message);
                 app_panel(&app, PANEL_MESSAGE);
-            } else if (app_save(&app) && system_title_request(request, native)) {
-                unsigned char autoload[0x400];
-                system_title_autoload(autoload, native);
+            } else if (!system_title_handoff(request, autoload, native,
+                                             &app.system_catalog.launcher)) {
+                path_copy(app.message,
+                          "System-title handoff unavailable. Settings needs a discovered DSi Menu.",
+                          sizeof app.message);
+                app_panel(&app, PANEL_MESSAGE);
+            } else if (app_save(&app)) {
                 stop_update_checker();
                 stop_launcher_audio();
                 memcpy((void *)0x02000300, request, sizeof request);

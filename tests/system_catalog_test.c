@@ -40,10 +40,56 @@ static void title(const char *root, uint32_t category, const char *name, uint32_
     f = fopen(p, "wb");
     assert(f && fwrite(header, 1, sizeof header, f) == sizeof header && !fclose(f));
 }
+static void regional_settings_handoff(const char *root)
+{
+    const char *regions = "JEPUCK";
+    for (const char *region = regions; *region; region++) {
+        char name[16], nand[PATH_CAP], id[9];
+        snprintf(name, sizeof name, "region-%c", *region);
+        directory(root, name);
+        assert(path_join(nand, root, name));
+        directory(nand, "title");
+        directory(nand, "title/00030015");
+        directory(nand, "title/00030017");
+        uint32_t settings_id = 0x484E4200 | (unsigned char)*region;
+        uint32_t launcher_id = 0x484E4100 | (unsigned char)*region;
+        snprintf(id, sizeof id, "%08lx", (unsigned long)settings_id);
+        title(nand, 0x30015, id, settings_id);
+        snprintf(id, sizeof id, "%08lx", (unsigned long)launcher_id);
+        title(nand, 0x30017, id, launcher_id);
+        SystemCatalog catalog;
+        system_catalog_scan(&catalog, nand);
+        assert(catalog.titles[0].available && catalog.titles[0].low == settings_id);
+        uint32_t warmboot[8], expected[8];
+        unsigned char autoload[0x400], expected_autoload[0x400];
+        assert(system_title_handoff(warmboot, autoload, &catalog.titles[0], &catalog.launcher));
+        assert(system_title_request(expected, &catalog.titles[0]));
+        assert(!memcmp(warmboot, expected, sizeof warmboot));
+        assert(system_title_autoload(expected_autoload, &catalog.launcher));
+        assert(!memcmp(autoload, expected_autoload, sizeof autoload));
+        assert(warmboot[2] == settings_id && warmboot[4] == settings_id);
+        /* Missing or unrelated Launcher metadata must not trigger direct Settings boot. */
+        catalog.launcher.available = false;
+        assert(!system_title_handoff(warmboot, autoload, &catalog.titles[0], &catalog.launcher));
+        for (unsigned i = 0; i < 8; i++)
+            assert(!warmboot[i]);
+        for (unsigned i = 0; i < sizeof autoload; i++)
+            assert(!autoload[i]);
+        catalog.launcher.available = true;
+        catalog.launcher.low = settings_id;
+        assert(!system_title_handoff(warmboot, autoload, &catalog.titles[0], &catalog.launcher));
+        NativeTitle sound = {0x30005, 0x484E4B00 | (unsigned char)*region, true, 9};
+        assert(system_title_handoff(warmboot, autoload, &sound, NULL));
+        assert(system_title_autoload(expected_autoload, &sound));
+        assert(!memcmp(autoload, expected_autoload, sizeof autoload));
+    }
+}
+
 int main(int argc, char **argv)
 {
     assert(argc == 2);
     const char *root = argv[1];
+    regional_settings_handoff(root);
     directory(root, "title");
     directory(root, "title/00030015");
     title(root, 0x30015, "484e4245", 0x484E4245);
