@@ -423,8 +423,8 @@ static void draw_scene(const App *app, uint16_t *pixels, Palette colors, const c
         }
     }
     draw_rectangle(pixels, 6, 119, 244, 34, colors.bg);
-    draw_text_scrolling(pixels, 12, 121, name, colors.text, 232, app->selection_idle_frames,
-                        !app->reduced_motion);
+    draw_heading_scrolling(theme, pixels, 12, 121, name, colors.text, 232,
+                           app->selection_idle_frames, !app->reduced_motion);
     char facts[80];
     if (entry && entry->size)
         snprintf(facts, sizeof facts, "%s / %lu KiB", entry_type(entry),
@@ -448,8 +448,8 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
                   app->browser_style != BROWSER_INDEX;
     themes_background_draw(&app->themes.active, 0, pixels);
     draw_theme_chrome(&app->themes.active, pixels, 22);
-    draw_text_scrolling(pixels, 10, 7, app->recovery_mode ? "RECOVERY" : theme->header, colors.text,
-                        138, app->frame_count, !app->reduced_motion);
+    draw_heading_scrolling(theme, pixels, 10, 7, app->recovery_mode ? "RECOVERY" : theme->header,
+                           colors.text, 138, app->frame_count, !app->reduced_motion);
     draw_theme_status(app, pixels);
     char tab_position[16];
     snprintf(tab_position, sizeof tab_position, "%d/%d", app->category + 1, app->tab_count);
@@ -468,8 +468,9 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
         *app->slot1.title)
         name = app->slot1.title;
     if (!scene)
-        draw_text_scrolling(pixels, offset + 12, 31, name, colors.text, poster ? 232 : 154,
-                            app->selection_idle_frames, !app->reduced_motion);
+        draw_heading_scrolling(theme, pixels, offset + 12, 31, name, colors.text,
+                               poster ? 232 : 154, app->selection_idle_frames,
+                               !app->reduced_motion);
     if (scene) {
         draw_scene(app, pixels, colors, name);
     } else if (poster) {
@@ -519,15 +520,16 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
                 app->show_covers && !app->artwork_resolved && app->selection_idle_frames >= 7
                     ? "LOADING"
                     : placeholder_label(type.icon);
-            draw_text(pixels, x + (w - (int)strlen(label) * 7) / 2, y + 67, label, colors.text, 11);
+            draw_text(pixels, x + (w - (int)draw_text_width(label)) / 2, y + 67, label, colors.text,
+                      11);
             char suffix[9] = "";
             if (entry && entry->kind == ITEM_FILE) {
                 const char *extension = path_extension(entry->name);
                 for (int i = 0; i < 8 && extension[i]; i++)
                     suffix[i] = (char)toupper((unsigned char)extension[i]);
             }
-            draw_text(pixels, x + (w - (int)strlen(suffix) * 7) / 2, y + 85, suffix, colors.muted,
-                      8);
+            draw_text(pixels, x + (w - (int)draw_text_width(suffix)) / 2, y + 85, suffix,
+                      colors.muted, 8);
         }
         /* Preserve the theme's readable font: type labels such as SYSTEM APP
          * wrap inside the metadata column instead of becoming SYSTE.. . */
@@ -594,7 +596,7 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
         : app->panel == PANEL_INFO
             ? ui_translate(&app->language, "dialog.item_details", "ITEM DETAILS")
             : "GLOAM SHELL NDX";
-    draw_text(pixels, 14, y + 9, title, colors.accent, 30);
+    draw_heading(&app->themes.active, pixels, 14, y + 9, title, colors.accent, 210);
     if (app->panel == PANEL_MESSAGE) {
         draw_text_wrapped(pixels, 14, y + 29, app->message, colors.text, 36, 7);
         draw_text(pixels, 14, footer,
@@ -883,14 +885,14 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
     draw_top_screen(app, top, colors, clock);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, layout_has_path(app->category) ? 34 : 22);
-    draw_text_scrolling(bottom, 10, 7,
-                        app->category == CATEGORY_HOME && app->collection_open >= 0
-                            ? app->collections.groups[app->collection_open].label
-                        : app->category == CATEGORY_SYSTEM && app->installed_open
-                            ? ui_text(&app->language, UI_INSTALLED_TITLES)
-                            : tabs_label(app, app->category),
-                        colors.text, 161, app->frame_count - app->tab_text_started_frame,
-                        !app->reduced_motion);
+    draw_heading_scrolling(&app->themes.active, bottom, 10, 7,
+                           app->category == CATEGORY_HOME && app->collection_open >= 0
+                               ? app->collections.groups[app->collection_open].label
+                           : app->category == CATEGORY_SYSTEM && app->installed_open
+                               ? ui_text(&app->language, UI_INSTALLED_TITLES)
+                               : tabs_label(app, app->category),
+                           colors.text, 161, app->frame_count - app->tab_text_started_frame,
+                           !app->reduced_motion);
     draw_text_scrolling(bottom, 188, 7, ui_text(&app->language, UI_SETTINGS), colors.accent, 58,
                         app->frame_count, !app->reduced_motion);
     const Location *location = &app->locations[app->category];

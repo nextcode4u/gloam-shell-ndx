@@ -14,8 +14,8 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
-    draw_text(top, 10, 8, ui_translate(&app->language, "dialog.open_with", "OPEN WITH"), p.accent,
-              32);
+    draw_heading(&app->themes.active, top, 10, 8,
+                 ui_translate(&app->language, "dialog.open_with", "OPEN WITH"), p.accent, 224);
     const char *name = strrchr(picker->target, '/');
     draw_text_scrolling(top, 10, 31, name ? name + 1 : picker->target, p.text, 231,
                         picker->idle_frames, !app->reduced_motion);
@@ -41,9 +41,9 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
                           ? picker->status
                           : "Several apps handle this file. Your choice applies to this launch.",
                       p.muted, 33, 3);
-    draw_text(bottom, 10, 7,
-              ui_translate(&app->language, "dialog.choose_application", "Choose application"),
-              p.text, 32);
+    draw_heading(&app->themes.active, bottom, 10, 7,
+                 ui_translate(&app->language, "dialog.choose_application", "Choose application"),
+                 p.text, 224);
     draw_text(bottom, 10, 24,
               ui_translate(&app->language, "dialog.ambiguous_folder",
                            "Folder rules could not select one"),
@@ -82,17 +82,17 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
-    draw_text(top, 10, 8,
-              (picker->kind == PICKER_TOP_BACKGROUND || picker->kind == PICKER_BOTTOM_BACKGROUND)
-                  ? "WALLPAPER"
-              : picker->kind == PICKER_SPLASH        ? "STARTUP SPLASH"
-              : picker->kind == PICKER_ICON          ? "BROWSER ICON"
-              : picker->kind == PICKER_CONFIGURATION ? "IMPORT CONFIGURATION"
-              : picker->kind == PICKER_REPAIR        ? "LOCATE SHORTCUT"
-              : picker->kind == PICKER_AUDIO         ? "LAUNCHER MUSIC"
-              : picker->kind == PICKER_COVER         ? "COVER ASSIGNMENT"
-                                                     : "APPLICATION FOR FILE",
-              accent, 33);
+    draw_heading(&app->themes.active, top, 10, 8,
+                 (picker->kind == PICKER_TOP_BACKGROUND || picker->kind == PICKER_BOTTOM_BACKGROUND)
+                     ? "WALLPAPER"
+                 : picker->kind == PICKER_SPLASH        ? "STARTUP SPLASH"
+                 : picker->kind == PICKER_ICON          ? "BROWSER ICON"
+                 : picker->kind == PICKER_CONFIGURATION ? "IMPORT CONFIGURATION"
+                 : picker->kind == PICKER_REPAIR        ? "LOCATE SHORTCUT"
+                 : picker->kind == PICKER_AUDIO         ? "LAUNCHER MUSIC"
+                 : picker->kind == PICKER_COVER         ? "COVER ASSIGNMENT"
+                                                        : "APPLICATION FOR FILE",
+                 accent, 231);
     const char *target = strrchr(picker->target, '/');
     draw_text_scrolling(top, 10, 31, target ? target + 1 : picker->target, text, 231,
                         picker->idle_frames, !app->reduced_motion);
@@ -133,18 +133,19 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
             : "Pick a homebrew app. This file becomes argv[1].",
         text, 18, 8);
     draw_text_wrapped(top, 10, 163, "START cancels. B opens the parent folder.", muted, 33, 2);
-    draw_text(bottom, 10, 7,
-              (picker->kind == PICKER_TOP_BACKGROUND || picker->kind == PICKER_BOTTOM_BACKGROUND)
-                  ? "Choose wallpaper"
-              : picker->kind == PICKER_SPLASH        ? "Choose splash"
-              : picker->kind == PICKER_ICON          ? "Choose browser icon"
-              : picker->kind == PICKER_CONFIGURATION ? "Choose configuration"
-              : picker->kind == PICKER_REPAIR        ? "Locate replacement"
-              : picker->kind == PICKER_AUDIO         ? "Choose music"
-              : picker->kind == PICKER_COVER
-                  ? "Choose cover"
-                  : ui_translate(&app->language, "dialog.choose_application", "Choose application"),
-              text, 30);
+    draw_heading(
+        &app->themes.active, bottom, 10, 7,
+        (picker->kind == PICKER_TOP_BACKGROUND || picker->kind == PICKER_BOTTOM_BACKGROUND)
+            ? "Choose wallpaper"
+        : picker->kind == PICKER_SPLASH        ? "Choose splash"
+        : picker->kind == PICKER_ICON          ? "Choose browser icon"
+        : picker->kind == PICKER_CONFIGURATION ? "Choose configuration"
+        : picker->kind == PICKER_REPAIR        ? "Locate replacement"
+        : picker->kind == PICKER_AUDIO         ? "Choose music"
+        : picker->kind == PICKER_COVER
+            ? "Choose cover"
+            : ui_translate(&app->language, "dialog.choose_application", "Choose application"),
+        text, 210);
     draw_text(bottom, 210, 7, "< >", muted, 5);
     draw_text_scrolling(bottom, 10, 24, picker->path, muted, 231, picker->idle_frames,
                         !app->reduced_motion);

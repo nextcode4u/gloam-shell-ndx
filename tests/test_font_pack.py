@@ -16,6 +16,45 @@ FONT = Path("/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf")
     importlib.util.find_spec("PIL") and FONT.exists(), "Pillow and DejaVu required"
 )
 class FontPackTests(unittest.TestCase):
+    def test_proportional_faces_retain_advances_and_coverage(self):
+        from tools.pack_theme_font import pack_font
+
+        for face, size, baseline, height in (
+            ("DejaVuSans.ttf", 10, 10, 12),
+            ("DejaVuSerif.ttf", 14, 13, 16),
+        ):
+            data = pack_font(
+                FONT.with_name(face),
+                size,
+                baseline,
+                True,
+                proportional=True,
+                height=height,
+            )
+            self.assertEqual(data[:8], b"DSFONT03")
+            self.assertEqual(data[8:16], bytes((16, height, 32, 95, 160, 96, 0, 0)))
+            stride = 2 + height * 4
+            self.assertEqual(len(data), 16 + 191 * stride)
+            advances = []
+            soft = 0
+            for glyph in range(191):
+                offset = 16 + glyph * stride
+                advance = data[offset]
+                advances.append(advance)
+                self.assertTrue(1 <= advance <= 16)
+                self.assertEqual(data[offset + 1], 0)
+                for row in struct.unpack_from(f"<{height}I", data, offset + 2):
+                    self.assertEqual(row >> (2 * advance), 0)
+                    soft += sum(
+                        ((row >> (2 * x)) & 3) in (1, 2) for x in range(advance)
+                    )
+            self.assertLess(advances[ord("i") - 32], advances[ord("W") - 32])
+            self.assertGreater(soft, 0)
+        with self.assertRaises(ValueError):
+            pack_font(FONT, 30, 20, proportional=True)
+        with self.assertRaises(ValueError):
+            pack_font(FONT, 10, 9, proportional=True, height=17)
+
     def test_native_envelope_and_rejected_overflow(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "ui.dsfont"
@@ -28,8 +67,12 @@ class FontPackTests(unittest.TestCase):
             subprocess.run(command, check=True, capture_output=True)
             data = output.read_bytes()
             self.assertEqual(len(data), 2296)
-            self.assertEqual(data[:16], b"DSFONT01" + bytes([7, 12, 32, 95, 0, 0, 0, 0]))
-            self.assertTrue(all(row <= 0x3FFF for row in struct.unpack("<1140H", data[16:])))
+            self.assertEqual(
+                data[:16], b"DSFONT01" + bytes([7, 12, 32, 95, 0, 0, 0, 0])
+            )
+            self.assertTrue(
+                all(row <= 0x3FFF for row in struct.unpack("<1140H", data[16:]))
+            )
             before = data
             result = subprocess.run(command + ["--size", "30"], capture_output=True)
             self.assertNotEqual(result.returncode, 0)
@@ -55,17 +98,24 @@ class FontPackTests(unittest.TestCase):
             subprocess.run(command, check=True, capture_output=True)
             data = output.read_bytes()
             self.assertEqual(len(data), 4600)
-            self.assertEqual(data[:16], b"DSFONT02" + bytes([7, 12, 32, 95, 160, 96, 0, 0]))
+            self.assertEqual(
+                data[:16], b"DSFONT02" + bytes([7, 12, 32, 95, 160, 96, 0, 0])
+            )
             self.assertIn("ui_font_latin[96][12]", header.read_text())
-            self.assertTrue(all(row <= 0x3FFF for row in struct.unpack("<2292H", data[16:])))
+            self.assertTrue(
+                all(row <= 0x3FFF for row in struct.unpack("<2292H", data[16:]))
+            )
 
     def test_shared_extended_fallback_is_reproducible_without_theme_memory_growth(self):
         from tools.make_font import extended_header
-        source = FONT.with_name('DejaVuSansMono.ttf')
+
+        source = FONT.with_name("DejaVuSansMono.ttf")
         generated = extended_header(source)
-        self.assertEqual(generated, (ROOT / 'arm9/source/ui/font_extended.h').read_text())
-        for codepoint in ('0141', '03AC', '0416', '044F'):
-            self.assertIn('U+' + codepoint, generated)
+        self.assertEqual(
+            generated, (ROOT / "arm9/source/ui/font_extended.h").read_text()
+        )
+        for codepoint in ("0141", "03AC", "0416", "044F"):
+            self.assertIn("U+" + codepoint, generated)
 
     def test_monochrome_bearings_keep_complete_glyphs(self):
         # FreeType's regular 11px w extends left; R extends right. Compare the

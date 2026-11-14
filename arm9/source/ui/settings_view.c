@@ -17,13 +17,14 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
-    draw_text(top, 10, 8,
-              app->simple_settings_lock ? ui_translate(&app->language, "dialog.settings_locked",
-                                                       "SIMPLE SETTINGS - LOCKED")
-              : settings_is_simple(app)
-                  ? ui_translate(&app->language, "dialog.settings_simple", "SIMPLE SETTINGS")
-                  : ui_translate(&app->language, "dialog.settings_advanced", "ADVANCED SETTINGS"),
-              palette.accent, 33);
+    draw_heading(
+        &app->themes.active, top, 10, 8,
+        app->simple_settings_lock
+            ? ui_translate(&app->language, "dialog.settings_locked", "SIMPLE SETTINGS - LOCKED")
+        : settings_is_simple(app)
+            ? ui_translate(&app->language, "dialog.settings_simple", "SIMPLE SETTINGS")
+            : ui_translate(&app->language, "dialog.settings_advanced", "ADVANCED SETTINGS"),
+        palette.accent, 231);
     draw_rectangle(top, 10, 23, 236, 1, palette.line);
     draw_text_clipped(top, 10, 31, settings_option_text(app, option, false), palette.text, 33);
     char value[96];
@@ -42,7 +43,8 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_text(top, 10, 179,
               ui_translate(&app->language, "dialog.settings_close", "L/R pages  B / START close"),
               palette.muted, 33);
-    draw_text_clipped(bottom, 10, 7, settings_section_name(app, state->section), palette.text, 26);
+    draw_heading(&app->themes.active, bottom, 10, 7, settings_section_name(app, state->section),
+                 palette.text, 182);
     char page[24];
     snprintf(page, sizeof page, "%d/%d", state->section + 1, settings_section_count(app));
     draw_text(bottom, 222, 7, page, palette.accent, 4);

@@ -2,8 +2,6 @@
 #include "drawing.h"
 #include "font_pack.h"
 #include "text.h"
-#define UI_FONT_HEIGHT FONT_HEIGHT
-#define UI_FONT_ADVANCE FONT_WIDTH
 #include <stdio.h>
 #include <string.h>
 
@@ -37,121 +35,156 @@ void draw_rectangle(uint16_t *pixels, int x, int y, int width, int height, uint1
         memcpy(first + row * 256, first, (size_t)width * sizeof *first);
 }
 
+unsigned draw_text_width(const char *value)
+{
+    return font_measure(font_current(), value);
+}
+
+static void glyph(uint16_t *pixels, const FontPack *font, int x, int y, unsigned character,
+                  uint16_t color, int left, int right)
+{
+    unsigned advance = font_advance(font, character);
+    for (unsigned row = 0; row < font_height(font); row++) {
+        int screen_y = y + row;
+        if (screen_y < 0 || screen_y >= 192)
+            continue;
+        uint32_t bits = font_glyph_row(font, character, row);
+        for (unsigned column = 0; column < advance; column++) {
+            int screen_x = x + column;
+            unsigned coverage = (bits >> (column * 2)) & 3;
+            if (screen_x < left || screen_x >= right || !coverage)
+                continue;
+            uint16_t *destination = &pixels[screen_y * 256 + screen_x];
+            *destination =
+                coverage == 3 ? color : draw_blend_coverage(color, *destination, coverage);
+        }
+    }
+}
+
+static void text_fit(uint16_t *pixels, const FontPack *font, int x, int y, const char *value,
+                     uint16_t color, int width, bool ellipsis)
+{
+    if (!value || width <= 0 || x >= 256 || x + width <= 0)
+        return;
+    if (width > 256 - x)
+        width = 256 - x;
+    int left = x < 0 ? 0 : x, right = x + width;
+    unsigned dots = font_advance(font, '.') * 2;
+    bool shortened = ellipsis && font_measure(font, value) > (unsigned)width && width > (int)dots;
+    int limit = width - (shortened ? (int)dots : 0), used = 0;
+    while (*value) {
+        unsigned character = text_next(&value), advance = font_advance(font, character);
+        if (used + (int)advance > limit)
+            break;
+        glyph(pixels, font, x + used, y, character, color, left, right);
+        used += advance;
+    }
+    if (shortened) {
+        glyph(pixels, font, x + used, y, '.', color, left, right);
+        glyph(pixels, font, x + used + dots / 2, y, '.', color, left, right);
+    }
+}
+
+static void text_scrolling(uint16_t *pixels, const FontPack *font, int x, int y, const char *value,
+                           uint16_t color, int width, unsigned elapsed_frames, bool animate)
+{
+    if (!value || width <= 0 || x >= 256 || x + width <= 0)
+        return;
+    unsigned text_width = font_measure(font, value);
+    if (!animate || text_width <= (unsigned)width) {
+        text_fit(pixels, font, x, y, value, color, width, true);
+        return;
+    }
+    unsigned gap = 3 * font_advance(font, ' ');
+    unsigned offset = (elapsed_frames / 3) % (text_width + gap);
+    int left = x < 0 ? 0 : x, right = x + width > 256 ? 256 : x + width;
+    int origin = x - (int)offset;
+    const char *cursor = value;
+    /* Pixel distances, including the loop gap, use the very same advances as drawing. */
+    while (origin < right) {
+        if (!*cursor) {
+            origin += gap;
+            cursor = value;
+            continue;
+        }
+        unsigned character = text_next(&cursor), advance = font_advance(font, character);
+        if (origin + (int)advance > left)
+            glyph(pixels, font, origin, y, character, color, left, right);
+        origin += advance;
+    }
+}
+
 void draw_text(uint16_t *pixels, int x, int y, const char *value, uint16_t color,
                int max_characters)
 {
-    for (int index = 0; value && *value && index < max_characters; index++) {
-        unsigned character = text_next(&value);
-        for (int row = 0; row < UI_FONT_HEIGHT; row++) {
-            int screen_y = y + row;
-            if (screen_y < 0 || screen_y >= 192)
-                continue;
-            unsigned bits = font_row(character, row);
-            for (int column = 0; column < UI_FONT_ADVANCE; column++) {
-                int screen_x = x + index * UI_FONT_ADVANCE + column;
-                unsigned coverage = (bits >> (column * 2)) & 3;
-                if (screen_x < 0 || screen_x >= 256 || coverage == 0)
-                    continue;
-                uint16_t *destination = &pixels[screen_y * 256 + screen_x];
-                *destination =
-                    coverage == 3 ? color : draw_blend_coverage(color, *destination, coverage);
-            }
-        }
-    }
+    if (max_characters > 120)
+        max_characters = 120;
+    text_fit(pixels, font_current(), x, y, value, color, max_characters * FONT_WIDTH, false);
 }
-
 void draw_text_clipped(uint16_t *pixels, int x, int y, const char *value, uint16_t color,
                        int max_characters)
 {
-    char clipped[512];
-    int available_characters = (256 - x) / UI_FONT_ADVANCE;
-    if (max_characters > available_characters)
-        max_characters = available_characters;
     if (max_characters > 120)
         max_characters = 120;
-    if (max_characters <= 0)
-        return;
-    bool shortened = text_length(value) > (size_t)max_characters;
-    int kept = shortened && max_characters > 2 ? max_characters - 2 : max_characters;
-    size_t bytes = text_prefix_bytes(value, kept);
-    memcpy(clipped, value ? value : "", bytes);
-    clipped[bytes] = 0;
-    if (shortened && max_characters > 2)
-        strcat(clipped, "..");
-    draw_text(pixels, x, y, clipped, color, max_characters);
+    text_fit(pixels, font_current(), x, y, value, color, max_characters * FONT_WIDTH, true);
 }
-
 void draw_text_scrolling(uint16_t *pixels, int x, int y, const char *value, uint16_t color,
                          int width, unsigned elapsed_frames, bool animate)
 {
-    if (!value || width <= 0)
-        return;
-    unsigned text_width = (unsigned)text_length(value) * UI_FONT_ADVANCE;
-    if (!animate || text_width <= (unsigned)width) {
-        draw_text_clipped(pixels, x, y, value, color, width / UI_FONT_ADVANCE);
-        return;
-    }
-    /* Move immediately at 20 pixels/second. Three
-     * blank cells separate repetitions; the next beginning follows the tail
-     * through the same viewport, without an end stop or a position jump. */
-    unsigned length = text_width / UI_FONT_ADVANCE;
-    unsigned cycle_cells = length + 3;
-    unsigned offset = (elapsed_frames / 3) % (cycle_cells * UI_FONT_ADVANCE);
-    unsigned cell = offset / UI_FONT_ADVANCE;
-    int left = x < 0 ? 0 : x;
-    int right = x + width > 256 ? 256 : x + width;
-    const char *cursor = value + text_prefix_bytes(value, cell < length ? cell : length);
-    int origin = x - (int)(offset % UI_FONT_ADVANCE);
-    for (; origin < right; origin += UI_FONT_ADVANCE) {
-        unsigned character = cell < length ? text_next(&cursor) : ' ';
-        if (++cell == cycle_cells) {
-            cell = 0;
-            cursor = value;
-        }
-        for (int row = 0; row < UI_FONT_HEIGHT; row++) {
-            int screen_y = y + row;
-            if (screen_y < 0 || screen_y >= 192)
-                continue;
-            unsigned bits = font_row(character, row);
-            for (int column = 0; column < UI_FONT_ADVANCE; column++) {
-                int screen_x = origin + column;
-                unsigned coverage = (bits >> (column * 2)) & 3;
-                if (!coverage || screen_x < left || screen_x >= right)
-                    continue;
-                uint16_t *destination = &pixels[screen_y * 256 + screen_x];
-                *destination =
-                    coverage == 3 ? color : draw_blend_coverage(color, *destination, coverage);
-            }
-        }
-    }
+    text_scrolling(pixels, font_current(), x, y, value, color, width, elapsed_frames, animate);
+}
+
+void draw_heading_scrolling(const ThemePackage *package, uint16_t *pixels, int x, int y,
+                            const char *value, uint16_t color, int width, unsigned elapsed_frames,
+                            bool animate)
+{
+    const FontPack *font = package->custom_heading ? &package->heading_font : &package->font;
+    /* Headings occupy at most two extra pixels above/below the existing 12px line. */
+    y -= ((int)font_height(font) - FONT_HEIGHT) / 2;
+    text_scrolling(pixels, font, x, y, value, color, width, elapsed_frames, animate);
+}
+void draw_heading(const ThemePackage *package, uint16_t *pixels, int x, int y, const char *value,
+                  uint16_t color, int width)
+{
+    draw_heading_scrolling(package, pixels, x, y, value, color, width, 0, false);
 }
 
 void draw_text_wrapped(uint16_t *pixels, int x, int y, const char *value, uint16_t color,
                        int line_width, int max_lines)
 {
-    int available_characters = (256 - x - 10) / UI_FONT_ADVANCE;
-    if (line_width > available_characters)
-        line_width = available_characters;
     if (line_width > 120)
         line_width = 120;
-    if (line_width <= 0 || !value)
+    int width = line_width * FONT_WIDTH;
+    if (width > 256 - x - 10)
+        width = 256 - x - 10;
+    if (width <= 0 || !value)
         return;
+    const FontPack *font = font_current();
     const char *cursor = value;
+    int left = x < 0 ? 0 : x, right = x + width;
     for (int row = 0; row < max_lines && *cursor; row++) {
         const char *end = cursor, *word_break = NULL;
-        for (int column = 0; column < line_width && *end && *end != '\n'; column++) {
-            if (*end == ' ' && column > line_width / 2)
+        unsigned used = 0;
+        while (*end && *end != '\n') {
+            const char *next = end;
+            unsigned advance = font_advance(font, text_next(&next));
+            if (used + advance > (unsigned)width)
+                break;
+            if (*end == ' ')
                 word_break = end;
-            text_next(&end);
+            used += advance;
+            end = next;
         }
-        if (*end && *end != '\n' && word_break)
+        if (*end && *end != '\n' && word_break && word_break > cursor)
             end = word_break;
-        char line[512];
-        size_t bytes = (size_t)(end - cursor);
-        memcpy(line, cursor, bytes);
-        line[bytes] = 0;
-        draw_text(pixels, x, y + row * 12, line, color, line_width);
-        cursor = end;
+        if (end == cursor && *end != '\n')
+            text_next(&end); /* Even a narrower-than-one-glyph column must advance. */
+        int pen = x;
+        while (cursor < end) {
+            unsigned character = text_next(&cursor);
+            glyph(pixels, font, pen, y + row * FONT_HEIGHT, character, color, left, right);
+            pen += font_advance(font, character);
+        }
         if (*cursor == '\n')
             cursor++;
         while (*cursor == ' ')

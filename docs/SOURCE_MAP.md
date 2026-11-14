@@ -35,7 +35,7 @@ Directory and picker scans run in bounded steps. Image jobs yield cooperatively
 and cancel when navigation changes. Selected overflow text uses the shared
 pixel-clipped `draw_text_scrolling` helper: settings and tabs own their start
 frames, while browser/picker views use selection-idle counters. Repetitions
-follow each other through a three-cell gap without stopping at the end. Reduced
+follow each other through a three-space gap measured with the active font without stopping at the end. Reduced
 motion keeps text static.
 
 `settings.c` owns both settings catalogs: Simple references a bounded subset of
@@ -122,6 +122,11 @@ counts, and Index skips cover decoding.
 Theme UI components are prepared in `theme_components.c`; `ui/theme_components.c`
 clips and draws nine-slice images. They share the theme preview/apply/cancel
 lifecycle with icons and never change layout or input bounds.
+Version-2 coverage planes are retained only for components with translucent
+pixels. Opaque components and native icons keep their direct drawing paths.
+`font_pack.c` validates fixed-cell and proportional faces; `ui/drawing.c` shares
+the same glyph advances for measurement, wrapping, clipping and looping.
+Controllers select the body face; headings read their explicit package role.
 
 Top-screen theme compositions live in `ui/renderer.c`: content and navigation
 use independent offsets for left/right rails; Poster has a separate artwork/tab

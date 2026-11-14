@@ -123,7 +123,7 @@ static bool load(App *app, const char *id, ThemePackage *package)
     FILE *file = fopen(path, "r");
     if (!file)
         return false;
-    char line[1024], section[32] = "", font[PATH_CAP] = "";
+    char line[1024], section[32] = "", font[PATH_CAP] = "", heading[PATH_CAP] = "";
     size_t size = 0;
     bool version = false, valid = true, needs_v2 = false;
     while (fgets(line, sizeof line, file)) {
@@ -180,10 +180,12 @@ static bool load(App *app, const char *id, ThemePackage *package)
                 }
             if (!matched)
                 valid = false;
-        } else if (!strcmp(section, "[fonts]") && !strcmp(key, "ui")) {
-            if (strlen(value) >= sizeof font)
+        } else if (!strcmp(section, "[fonts]") && (!strcmp(key, "ui") || !strcmp(key, "heading"))) {
+            bool title = !strcmp(key, "heading");
+            needs_v2 |= title;
+            if (!*value || strlen(value) >= PATH_CAP)
                 valid = false;
-            path_copy(font, value, sizeof font);
+            path_copy(title ? heading : font, value, PATH_CAP);
         } else if (!strcmp(section, "[layout]")) {
             if (!strcmp(key, "view")) {
                 static const char *names[] = {"classic", "extended", "list",
@@ -353,6 +355,18 @@ static bool load(App *app, const char *id, ThemePackage *package)
             !font_pack_load(&package->font, path))
             return false;
         package->external_font = true;
+    }
+    if (package->font.height != FONT_HEIGHT ||
+        (package->font.proportional && package->format_version != 2))
+        return false;
+    if (*heading) {
+        if (!strcmp(heading, "builtin"))
+            font_builtin(&package->heading_font);
+        else if (*heading == '/' || strchr(heading, ':') ||
+                 !path_resolve_sd(path, directory, heading) ||
+                 !font_pack_load(&package->heading_font, path))
+            return false;
+        package->custom_heading = true;
     }
     if (!app->recovery_mode && app->wallpaper_strength >= 0)
         package->background_strength = app->wallpaper_strength;

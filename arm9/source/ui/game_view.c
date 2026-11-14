@@ -12,11 +12,11 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
-    draw_text(top, 10, 8,
-              editor->defaults
-                  ? ui_translate(&app->language, "dialog.game_defaults_title", "GAME DEFAULTS")
-                  : ui_translate(&app->language, "dialog.title_options_title", "TITLE OPTIONS"),
-              p.accent, 32);
+    draw_heading(&app->themes.active, top, 10, 8,
+                 editor->defaults
+                     ? ui_translate(&app->language, "dialog.game_defaults_title", "GAME DEFAULTS")
+                     : ui_translate(&app->language, "dialog.title_options_title", "TITLE OPTIONS"),
+                 p.accent, 224);
     const char *name = strrchr(editor->path, '/');
     draw_text_wrapped(top, 10, 30,
                       editor->defaults ? "Applies to nds-bootstrap launches"
@@ -51,11 +51,11 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
               ui_translate(&app->language, "dialog.backend_experimental",
                            "Backend handoff: experimental"),
               p.muted, 33);
-    draw_text(bottom, 10, 7,
-              editor->defaults
-                  ? ui_translate(&app->language, "dialog.game_defaults", "Game defaults")
-                  : ui_translate(&app->language, "dialog.title_options", "Title options"),
-              p.text, 32);
+    draw_heading(&app->themes.active, bottom, 10, 7,
+                 editor->defaults
+                     ? ui_translate(&app->language, "dialog.game_defaults", "Game defaults")
+                     : ui_translate(&app->language, "dialog.title_options", "Title options"),
+                 p.text, 224);
     draw_text(bottom, 10, 24,
               ui_translate(&app->language, "dialog.change_reset", "< > change  Y reset"), p.muted,
               33);

@@ -11,8 +11,9 @@ void cheats_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
-    draw_text(top, 10, 8, ui_translate(&app->language, "dialog.cheats_title", "TITLE CHEATS"),
-              p.accent, 32);
+    draw_heading(&app->themes.active, top, 10, 8,
+                 ui_translate(&app->language, "dialog.cheats_title", "TITLE CHEATS"), p.accent,
+                 224);
     int indices[CHEAT_ENTRY_CAP], count = cheats_visible(state, indices);
     if (count && state->selected < count) {
         const CheatEntry *entry = &state->entries[indices[state->selected]];
@@ -36,7 +37,7 @@ void cheats_render(const App *app, uint16_t *top, uint16_t *bottom)
             enabled++;
     char title[48];
     snprintf(title, sizeof title, "Cheats: %d enabled", enabled);
-    draw_text(bottom, 10, 7, title, p.text, 33);
+    draw_heading(&app->themes.active, bottom, 10, 7, title, p.text, 231);
     draw_text(bottom, 10, 24,
               ui_translate(&app->language, "dialog.cheats_hint", "A toggle  Y disable all"),
               p.muted, 33);

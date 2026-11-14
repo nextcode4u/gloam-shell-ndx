@@ -253,8 +253,8 @@ typedef struct {
     char id[THEME_ID_CAP], name[THEME_ID_CAP];
     char header[64];
     ThemePalette palette;
-    FontPack font;
-    bool external_font;
+    FontPack font, heading_font;
+    bool external_font, custom_heading;
     int default_view, default_icon_size;
     unsigned row_padding, large_grid_columns;
     /* Screen composition is independent of the user-selected browser view. */

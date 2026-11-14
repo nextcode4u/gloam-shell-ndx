@@ -13,9 +13,9 @@ void association_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
-    draw_text(top, 10, 8,
-              ui_translate(&app->language, "dialog.associations_title", "FILE ASSOCIATIONS"),
-              p.accent, 32);
+    draw_heading(&app->themes.active, top, 10, 8,
+                 ui_translate(&app->language, "dialog.associations_title", "FILE ASSOCIATIONS"),
+                 p.accent, 224);
     const char *extension = editor->count ? editor->extensions[editor->selected] : "";
     char label[48];
     snprintf(label, sizeof label, ".%s files", extension);
@@ -44,9 +44,9 @@ void association_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_text_wrapped(top, 10, 146,
                       "Per-file choices take priority. Content and applications stay in place.",
                       p.muted, 33, 3);
-    draw_text(bottom, 10, 7,
-              ui_translate(&app->language, "dialog.extension_defaults", "Extension defaults"),
-              p.text, 32);
+    draw_heading(&app->themes.active, bottom, 10, 7,
+                 ui_translate(&app->language, "dialog.extension_defaults", "Extension defaults"),
+                 p.text, 224);
     draw_text(
         bottom, 10, 24,
         ui_translate(&app->language, "dialog.select_back_close", "A select  B back  START close"),

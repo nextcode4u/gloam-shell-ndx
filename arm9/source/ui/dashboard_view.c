@@ -11,8 +11,9 @@ void dashboard_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
-    draw_text(top, 10, 8, ui_translate(&app->language, "dialog.dashboard", "PERSONAL DASHBOARD"),
-              p.accent, 32);
+    draw_heading(&app->themes.active, top, 10, 8,
+                 ui_translate(&app->language, "dialog.dashboard", "PERSONAL DASHBOARD"), p.accent,
+                 224);
     draw_text_wrapped(top, 10, 37,
                       "Choose which sections appear on Home and their order. Press START to "
                       "open frontend settings.",
@@ -21,8 +22,9 @@ void dashboard_render(const App *app, uint16_t *top, uint16_t *bottom)
                       "Recent entries record launch requests, not confirmed gameplay or playtime. "
                       "Hiding Recent stops recording new requests.",
                       p.muted, 33, 6);
-    draw_text(bottom, 10, 7, ui_translate(&app->language, "dialog.home_sections", "Home sections"),
-              p.text, 32);
+    draw_heading(&app->themes.active, bottom, 10, 7,
+                 ui_translate(&app->language, "dialog.home_sections", "Home sections"), p.text,
+                 224);
     draw_text(bottom, 10, 24,
               ui_translate(&app->language, "dialog.reorder_hint", "< > reorder  A show/hide"),
               p.muted, 33);

@@ -17,9 +17,16 @@ static inline uint16_t draw_blend_coverage(uint16_t foreground, uint16_t backgro
     return (uint16_t)(0x8000 | red | (green << 5) | (blue << 10));
 }
 uint16_t draw_rgb555(int r, int g, int b);
+unsigned draw_text_width(const char *value);
+void draw_heading(const ThemePackage *package, uint16_t *pixels, int x, int y, const char *value,
+                  uint16_t color, int width);
+void draw_heading_scrolling(const ThemePackage *package, uint16_t *pixels, int x, int y,
+                            const char *value, uint16_t color, int width, unsigned elapsed_frames,
+                            bool animate);
 void draw_rectangle(uint16_t *pixels, int x, int y, int width, int height, uint16_t color);
 void draw_text(uint16_t *pixels, int x, int y, const char *value, uint16_t color,
                int max_characters);
+/* Legacy widths are 7-pixel layout units; glyph advances are measured in pixels. */
 void draw_text_clipped(uint16_t *pixels, int x, int y, const char *value, uint16_t color,
                        int max_characters);
 /* Pixel-clipped overflow: immediate, continuous tail-to-head looping. */

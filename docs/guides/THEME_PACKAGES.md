@@ -1,7 +1,7 @@
 # Theme packages
 
-Version 2 adds independent top/bottom reading-surface opacity and optional
-translucent components. It requires a
+Version 2 adds independent top/bottom reading-surface opacity, optional
+translucent components and proportional body/heading fonts. It requires a
 frontend built with version-2 support; Gloam 1.0.0 rejects these packages.
 Existing `version=1` themes retain their behavior. New packs declare
 `[theme] version=2`; no conversion of older packs is necessary.
@@ -13,9 +13,9 @@ records the package ID in normal frontend state; the original package is not
 edited. Restart reloads that package. Missing/invalid packages use the built-in
 appearance and report the fallback, while retaining the requested ID for repair.
 
-The current package format supports palettes, fixed-cell fonts, per-screen backgrounds, icon packs, modular UI components and audio.
+The current package format supports palettes, bitmap fonts, per-screen backgrounds, icon packs, modular UI components and audio.
 Named on-console appearance snapshots are documented in [APPEARANCE_PRESETS.md](APPEARANCE_PRESETS.md). Bounded layout defaults/spacing/grid overrides are implemented (see below);
-variable font metrics and full UI localization remain further work. This version does not interpret AKMenu or
+full UI localization is not provided. This version does not interpret AKMenu or
 TWiLight theme files directly. Required navigation keeps its shared geometry.
 
 Packages live at `_nds/dsi-frontend/themes/<id>/theme.ini`. IDs use ASCII letters,
@@ -149,7 +149,7 @@ Absolute paths, devices and parent traversal are rejected. A bad/missing face
 rejects the candidate; the current active face remains available. The built-in
 font is permanently compiled into the ROM.
 
-The pack format is deliberately a restricted first version:
+The original fixed-cell pack format remains supported:
 
 | Bytes | Meaning |
 | --- | --- |
@@ -176,8 +176,9 @@ Pillow/FreeType is an authoring dependency only. The tool checks ink bounds and
 advance before rasterization and rejects overflow rather than cropping or
 stretching. Ordinary users copy an already prepared package; no compiler is
 needed on the console. Font redistribution licenses must accompany the package;
-Copper includes the DejaVu license. Larger and variable-width font work is
-specified separately in [THEME_FONTS.md](THEME_FONTS.md).
+Copper includes the DejaVu license. Version-2 themes can load DSFONT03 proportional
+body fonts and a separate `[fonts] heading` face with a 12–16-pixel line height.
+The role limits, exporter commands and complete format are in [THEME_FONTS.md](THEME_FONTS.md).
 
 ## Recovery
 
@@ -230,9 +231,8 @@ Personal wallpaper references persist across theme changes. Recovery bypasses
 all external wallpaper reads and blocks changes to normal wallpaper settings.
 Refresh metadata also reloads prepared backgrounds.
 
-The drawing/font path now supports fixed-cell Latin-1 packs and UTF-8-aware
-measurement. See [TEXT_AND_TITLES.md](TEXT_AND_TITLES.md); wider scripts and
-variable glyph metrics still require more work.
+The drawing/font path supports Latin-1 packs and UTF-8-aware pixel measurement.
+See [TEXT_AND_TITLES.md](TEXT_AND_TITLES.md) for the shared fallback scripts.
 
 ## Bounded layout settings
 

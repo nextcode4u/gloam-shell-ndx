@@ -119,6 +119,11 @@ python3 tests/theme_coverage_fixture.py "$fixture/theme-coverage"
 ASAN_OPTIONS=detect_leaks=1 build/host/theme-coverage-test "$fixture/theme-coverage"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
+    "${model_objects[@]}" "${ui_objects[@]}" tests/proportional_text_test.c -o build/host/proportional-text-test
+python3 tests/proportional_font_fixture.py "$fixture/proportional-font"
+ASAN_OPTIONS=detect_leaks=1 build/host/proportional-text-test "$fixture/proportional-font"
+
+cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/theme_samples_test.c -o build/host/theme-samples-test
 mkdir "$fixture/theme-samples"
 cp -r sdroot/. "$fixture/theme-samples/"

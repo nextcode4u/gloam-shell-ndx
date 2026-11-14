@@ -135,11 +135,17 @@ bool themes_background_set(App *app, int screen, const char *path)
     if (app->recovery_mode || !app->storage_ready || screen < 0 || screen > 1 ||
         !path_is_within_root(path, app->root))
         return false;
-    ThemePackage candidate = app->themes.active;
-    path_copy(candidate.backgrounds[screen], path, PATH_CAP);
-    if (!candidate.background_strength)
-        candidate.background_strength = 25;
-    if (!load_surface(&surfaces[1][screen], &candidate, screen))
+    /* Font roles make a package too large for a temporary ARM9 stack copy. */
+    ThemePackage *candidate = malloc(sizeof *candidate);
+    if (!candidate)
+        return false;
+    *candidate = app->themes.active;
+    path_copy(candidate->backgrounds[screen], path, PATH_CAP);
+    if (!candidate->background_strength)
+        candidate->background_strength = 25;
+    bool loaded = load_surface(&surfaces[1][screen], candidate, screen);
+    free(candidate);
+    if (!loaded)
         return false;
     move_surface(&surfaces[0][screen], &surfaces[1][screen]);
     path_copy(app->themes.active.backgrounds[screen], path, PATH_CAP);

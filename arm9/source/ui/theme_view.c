@@ -12,8 +12,9 @@ void themes_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(package, top, 22);
     themes_background_draw(package, 1, bottom);
     draw_theme_chrome(package, bottom, 22);
-    draw_text(top, 10, 8, ui_translate(&app->language, "dialog.theme_preview", "THEME PREVIEW"),
-              palette.accent, 30);
+    draw_heading(package, top, 10, 8,
+                 ui_translate(&app->language, "dialog.theme_preview", "THEME PREVIEW"),
+                 palette.accent, 210);
     if (package->top_layout == 3) {
         themes_background_scene_draw(package, top);
         draw_theme_component(package, top, THEME_CARD, 14, 44, 48, 48);
@@ -39,8 +40,9 @@ void themes_render(const App *app, uint16_t *top, uint16_t *bottom)
                   ? ui_translate(&app->language, "dialog.theme_font", "Theme font")
                   : ui_translate(&app->language, "dialog.builtin_font", "Built-in font"),
               palette.muted, 20);
-    draw_text(bottom, 10, 7, ui_translate(&app->language, "dialog.choose_theme", "Choose theme"),
-              palette.text, 30);
+    draw_heading(package, bottom, 10, 7,
+                 ui_translate(&app->language, "dialog.choose_theme", "Choose theme"), palette.text,
+                 210);
     draw_text(bottom, 10, 24,
               ui_translate(&app->language, "dialog.preview_hint", "Up/down preview; A applies"),
               palette.muted, 33);

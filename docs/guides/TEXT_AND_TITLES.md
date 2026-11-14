@@ -1,8 +1,9 @@
 # Text and internal title names
 
 Drawing, clipping and wrapping now consume UTF-8 codepoints rather than bytes.
-Invalid encodings produce safe fallback cells, and supported multibyte letters
-remain one seven-pixel cell. Banner UTF-16 is converted without splitting a
+Invalid encodings produce safe fallback glyphs. Measurement and drawing use
+the active face's pixel advances; legacy fonts retain seven-pixel cells.
+Banner UTF-16 is converted without splitting a
 surrogate pair or truncating inside an encoded character. Unsupported glyphs
 remain a single `?`; this does not provide Japanese/Chinese/Korean glyph coverage
 or translate the frontend's interface.
@@ -14,6 +15,8 @@ ASCII theme packs. Its licensed source is DejaVu Sans Mono Bold. Format v1
 95 ASCII glyphs followed by 96 Latin-1 glyphs in the same fixed envelope. Blank
 space, nonbreaking space and soft hyphen are permitted; other blank glyphs,
 foreign geometry, extra data and out-of-cell pixels are rejected.
+Version-2 themes additionally support [DSFONT03 proportional fonts and separate
+headings](THEME_FONTS.md), with bounded advances and line heights.
 
 Generate the optional example and reproducible fallback table:
 
@@ -47,7 +50,7 @@ files retain their own names rather than adopting the emulator's banner title.
 Long selected settings labels/values, folder/ROM names, file-picker names,
 browser title details, tab labels and folder paths use the same pixel-clipped
 horizontal loop. Text starts moving on selection, one pixel every three frames
-(first movement within 50 ms at 60 Hz), with no initial delay. Three blank character cells separate the end from the next
+(first movement within 50 ms at 60 Hz), with no initial delay. Three spaces in the active face separate the end from the next
 beginning. There is no end hold, backwards movement or snap to the start;
 the next beginning moves into view after the tail and keeps going.
 
@@ -68,7 +71,7 @@ viewport/framebuffer bounds. Native checks use the ROM grid and long tab names.
 
 ## Preview metadata
 
-Short type labels beside cover art and system icons wrap within the seven-cell
+Short type labels beside cover art and system icons wrap within the 49-pixel
 column, using up to three lines at the normal theme font size. `SYSTEM APP`
 therefore shows completely as two lines. File size, console and storage rows
 sit below the reserved label area, so longer labels do not overlap them or the
