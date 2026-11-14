@@ -67,8 +67,8 @@ jobs:
         run: test "$(cat "$BLOCKSDS/version.txt")" = v1.25.0
       - name: Build both SD-command modes and restore the release default
         run: |
-          make -j2 MELONDS_SD_COMPAT=0
           make -j2 MELONDS_SD_COMPAT=1
+          make -j2 MELONDS_SD_COMPAT=0
       - run: python3 tools/write_build_info.py
       - name: Check add-on releases without silently changing reviewed pins
         if: inputs.include_addons

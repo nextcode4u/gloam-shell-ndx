@@ -25,7 +25,8 @@ $(ELF): Makefile
 $(ROM): $(ARM7ELF) $(GAME_ICON)
 
 # The driver override below is pinned to BlocksDS 1.25.0. Review it when upgrading.
-MELONDS_SD_COMPAT ?= 1
+# Hardware releases use upstream SD commands; legacy emulator workarounds are opt-in.
+MELONDS_SD_COMPAT ?= 0
 ifneq ($(MELONDS_SD_COMPAT),0)
 ifneq ($(MELONDS_SD_COMPAT),1)
 $(error MELONDS_SD_COMPAT must be 0 or 1)
