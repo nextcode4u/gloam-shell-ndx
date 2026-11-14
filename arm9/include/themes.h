@@ -35,6 +35,8 @@ void themes_components_load(const ThemePackage *package, bool preview);
 void themes_components_accept(void);
 void themes_components_cancel(void);
 const uint16_t *themes_component(const ThemePackage *package, ThemeComponent component);
+/* Optional packed 2-bit coverage. NULL keeps the binary-alpha fast path. */
+const uint8_t *themes_component_alpha(const ThemePackage *package, ThemeComponent component);
 #define THEME_ACCENT_COUNT 16
 const char *themes_accent_name(int index);
 void themes_init(App *app);

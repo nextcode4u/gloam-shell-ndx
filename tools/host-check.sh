@@ -114,6 +114,11 @@ printf '[theme]\nversion=1\n[colors]\ntext=#0c1018\n' > "$fixture/themes/_nds/ds
 ASAN_OPTIONS=detect_leaks=1 build/host/themes-test "$fixture/themes"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
+    "${model_objects[@]}" "${ui_objects[@]}" tests/theme_coverage_test.c -o build/host/theme-coverage-test
+python3 tests/theme_coverage_fixture.py "$fixture/theme-coverage"
+ASAN_OPTIONS=detect_leaks=1 build/host/theme-coverage-test "$fixture/theme-coverage"
+
+cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/theme_samples_test.c -o build/host/theme-samples-test
 mkdir "$fixture/theme-samples"
 cp -r sdroot/. "$fixture/theme-samples/"

@@ -19,6 +19,11 @@ bool icon_is_ds_title(const char *path)
 
 bool icon_load_png(const char *path, uint16_t pixels[32 * 32])
 {
+    return icon_load_png_coverage(path, pixels, NULL);
+}
+
+bool icon_load_png_coverage(const char *path, uint16_t pixels[32 * 32], uint8_t coverage[256])
+{
     FILE *file = fopen(path, "rb");
     if (!file)
         return false;
@@ -27,7 +32,7 @@ bool icon_load_png(const char *path, uint16_t pixels[32 * 32])
     valid = valid && bytes >= 24 && bytes <= 65536 && !fseek(file, 0, SEEK_SET);
     unsigned char *data = valid ? malloc((size_t)bytes) : NULL;
     valid = data && fread(data, 1, (size_t)bytes, file) == (size_t)bytes &&
-            image_decode_icon(pixels, data, (size_t)bytes);
+            image_decode_component(pixels, coverage, data, (size_t)bytes);
     free(data);
     fclose(file);
     return valid;

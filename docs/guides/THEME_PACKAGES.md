@@ -1,6 +1,7 @@
 # Theme packages
 
-Version 2 adds independent top/bottom reading-surface opacity. It requires a
+Version 2 adds independent top/bottom reading-surface opacity and optional
+translucent components. It requires a
 frontend built with version-2 support; Gloam 1.0.0 rejects these packages.
 Existing `version=1` themes retain their behavior. New packs declare
 `[theme] version=2`; no conversion of older packs is necessary.
@@ -516,7 +517,20 @@ shrink to fit. This keeps an outline or folded corner intact on a short row and
 a tall cover card. All output clips to the screen, including moving Shelf cards.
 Avoid words and icons inside these images: Gloam draws the live content over them.
 
-Each PNG is at most 64 KiB. Binary alpha and RGB555 follow the icon contract.
+Each PNG is at most 64 KiB. By default binary alpha and RGB555 follow the icon contract.
+Version-2 packs can add `alpha=coverage` in `[components]` to retain four levels:
+transparent, one-third, two-thirds and opaque. The loader rounds PNG alpha to
+the nearest level. `alpha=binary` retains the original threshold. This affects
+only component PNGs, including status sprites, never native banners or file icons.
+Use partial coverage for glass fills, soft shadow edges and layered borders;
+keep modal panels opaque so underlying labels do not compete with dialog text.
+
+Only images containing partial coverage retain a packed 256-byte alpha plane.
+Nineteen partial components add at most 4,864 bytes per active/preview bank.
+Opaque and binary components retain the direct-copy path. Partial pixels blend
+against the actual prepared screen; no full-screen scratch buffer or live blur
+is allocated. Rendering cost depends on the area of translucent components and
+must still be checked on a physical DSi.
 Missing or invalid images fall back individually to the built-in drawing for
 that region. An unselected Grid cell without a component stays transparent.
 Paths cannot leave the theme package. A malformed manifest, including a border
@@ -536,7 +550,7 @@ uses beveled edges. Regenerate them with:
 .venv/bin/python tools/make_theme_components.py --check
 ```
 
-Components decode only when loading or previewing a theme. Eighteen complete images
+Components decode only when loading or previewing a theme. Nineteen complete images
 use 38 KiB, or 76 KiB with a second preview bank. No scripts, filesystem reads or
 image decoding run in drawing. Recovery bypasses external components. The desktop
 setup tool previews and validates them along with icons. Older builds reject the

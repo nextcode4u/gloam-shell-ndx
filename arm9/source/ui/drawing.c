@@ -37,21 +37,6 @@ void draw_rectangle(uint16_t *pixels, int x, int y, int width, int height, uint1
         memcpy(first + row * 256, first, (size_t)width * sizeof *first);
 }
 
-/* Blend coverage against the actual surface, including selected rows. */
-static uint16_t blend_text_pixel(uint16_t foreground, uint16_t background, unsigned coverage)
-{
-    unsigned inverse = 3 - coverage;
-    unsigned red = (foreground & 31) * coverage + (background & 31) * inverse + 1;
-    unsigned green = ((foreground >> 5) & 31) * coverage + ((background >> 5) & 31) * inverse + 1;
-    unsigned blue = ((foreground >> 10) & 31) * coverage + ((background >> 10) & 31) * inverse + 1;
-    /* Each numerator is 0..94. In this range (n * 171) >> 9 is exactly n / 3,
-     * avoiding three ARM9 Thumb software divisions per antialiased pixel. */
-    red = red * 171 >> 9;
-    green = green * 171 >> 9;
-    blue = blue * 171 >> 9;
-    return (uint16_t)(0x8000 | red | (green << 5) | (blue << 10));
-}
-
 void draw_text(uint16_t *pixels, int x, int y, const char *value, uint16_t color,
                int max_characters)
 {
@@ -69,7 +54,7 @@ void draw_text(uint16_t *pixels, int x, int y, const char *value, uint16_t color
                     continue;
                 uint16_t *destination = &pixels[screen_y * 256 + screen_x];
                 *destination =
-                    coverage == 3 ? color : blend_text_pixel(color, *destination, coverage);
+                    coverage == 3 ? color : draw_blend_coverage(color, *destination, coverage);
             }
         }
     }
@@ -135,7 +120,7 @@ void draw_text_scrolling(uint16_t *pixels, int x, int y, const char *value, uint
                     continue;
                 uint16_t *destination = &pixels[screen_y * 256 + screen_x];
                 *destination =
-                    coverage == 3 ? color : blend_text_pixel(color, *destination, coverage);
+                    coverage == 3 ? color : draw_blend_coverage(color, *destination, coverage);
             }
         }
     }

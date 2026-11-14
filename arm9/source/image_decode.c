@@ -56,6 +56,12 @@ static unsigned char *decode_rgba(const unsigned char *data, size_t size, unsign
 }
 bool image_decode_icon(uint16_t pixels[32 * 32], const unsigned char *data, size_t size)
 {
+    return image_decode_component(pixels, NULL, data, size);
+}
+
+bool image_decode_component(uint16_t pixels[32 * 32], uint8_t coverage[256],
+                            const unsigned char *data, size_t size)
+{
     static const unsigned char dimensions[] = {0, 0, 0, 32, 0, 0, 0, 32};
     if (!data || size < 24 || size > 65536 || memcmp(data, "\x89PNG\r\n\x1a\n", 8) ||
         memcmp(data + 16, dimensions, sizeof dimensions))
@@ -64,9 +70,14 @@ bool image_decode_icon(uint16_t pixels[32 * 32], const unsigned char *data, size
     unsigned char *rgba = decode_rgba(data, size, &width, &height);
     if (!rgba)
         return false;
+    if (coverage)
+        memset(coverage, 0, 256);
     for (int i = 0; i < 32 * 32; i++) {
         unsigned char *pixel = rgba + i * 4;
-        pixels[i] = pixel[3] < 128 ? 0 : rgb(pixel[0], pixel[1], pixel[2]);
+        unsigned alpha = coverage ? (pixel[3] * 3u + 127) / 255 : pixel[3] < 128 ? 0 : 3;
+        pixels[i] = alpha ? rgb(pixel[0], pixel[1], pixel[2]) : 0;
+        if (coverage)
+            coverage[i / 4] |= alpha << ((i % 4) * 2);
     }
     stbi_image_free(rgba);
     return true;

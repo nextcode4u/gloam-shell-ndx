@@ -6,6 +6,7 @@
 bool icon_system_fallback(int target, uint16_t pixels[32 * 32]);
 bool icon_is_ds_title(const char *path);
 bool icon_load_png(const char *path, uint16_t pixels[32 * 32]);
+bool icon_load_png_coverage(const char *path, uint16_t pixels[32 * 32], uint8_t coverage[256]);
 bool icon_decode_banner(const void *data, size_t bytes, uint16_t pixels[32 * 32]);
 bool icon_decode_animation(const void *header, const void *animation, size_t bytes,
                            BrowserIcon *icon);

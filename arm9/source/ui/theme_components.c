@@ -19,6 +19,7 @@ bool draw_theme_component(const ThemePackage *package, uint16_t *pixels, ThemeCo
                           int x, int y, int width, int height)
 {
     const uint16_t *image = themes_component(package, component);
+    const uint8_t *coverage = themes_component_alpha(package, component);
     if (!image || width <= 0 || height <= 0 || width > 512 || height > 384 ||
         package->component_border > 12 || x < -512 || x > 512 || y < -384 || y > 384)
         return false;
@@ -31,9 +32,13 @@ bool draw_theme_component(const ThemePackage *package, uint16_t *pixels, ThemeCo
     for (int row = top; row < bottom; row++) {
         unsigned source = source_position(row, height, package->component_border) * 32;
         for (int column = left; column < right; column++) {
-            uint16_t color = image[source + columns[x + column]];
-            if (color & 0x8000)
-                pixels[(y + row) * 256 + x + column] = color;
+            unsigned index = source + columns[x + column];
+            uint16_t color = image[index];
+            if (color & 0x8000) {
+                uint16_t *destination = &pixels[(y + row) * 256 + x + column];
+                unsigned alpha = coverage ? (coverage[index / 4] >> ((index % 4) * 2)) & 3 : 3;
+                *destination = alpha == 3 ? color : draw_blend_coverage(color, *destination, alpha);
+            }
         }
     }
     return true;
@@ -59,13 +64,18 @@ static bool status_sprite(const ThemePackage *package, uint16_t *pixels, ThemeCo
                           int x)
 {
     const uint16_t *image = themes_component(package, component);
+    const uint8_t *coverage = themes_component_alpha(package, component);
     if (!image)
         return false;
     for (int y = 0; y < 16; y++)
         for (int xx = 0; xx < 16; xx++) {
-            uint16_t color = image[y * 2 * 32 + xx * 2];
-            if (color & 0x8000)
-                pixels[(y + 4) * 256 + x + xx] = color;
+            unsigned index = y * 2 * 32 + xx * 2;
+            uint16_t color = image[index];
+            if (color & 0x8000) {
+                uint16_t *destination = &pixels[(y + 4) * 256 + x + xx];
+                unsigned alpha = coverage ? (coverage[index / 4] >> ((index % 4) * 2)) & 3 : 3;
+                *destination = alpha == 3 ? color : draw_blend_coverage(color, *destination, alpha);
+            }
         }
     return true;
 }

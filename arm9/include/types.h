@@ -262,7 +262,7 @@ typedef struct {
     unsigned format_version, screen_opacity[2]; /* 101 inherits content_opacity. */
     unsigned tab_style, tab_highlight, tab_gap, tab_visible;
     unsigned scene_cover_x, scene_cover_y, scene_cover_width, scene_cover_height;
-    bool minimal_chrome;
+    bool minimal_chrome, component_coverage;
     uint16_t selection_text, tab_text;
     char backgrounds[2][PATH_CAP];
     char icon_directory[PATH_CAP], component_directory[PATH_CAP];

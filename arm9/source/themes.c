@@ -298,7 +298,15 @@ static bool load(App *app, const char *id, ThemePackage *package)
                     path_copy(package->backgrounds[screen], path, PATH_CAP);
             }
         } else if (!strcmp(section, "[components]")) {
-            if (!strcmp(key, "border")) {
+            if (!strcmp(key, "alpha")) {
+                needs_v2 = true;
+                if (!strcmp(value, "coverage"))
+                    package->component_coverage = true;
+                else if (!strcmp(value, "binary"))
+                    package->component_coverage = false;
+                else
+                    valid = false;
+            } else if (!strcmp(key, "border")) {
                 char *end;
                 unsigned long border = strtoul(value, &end, 10);
                 if (!*value || *end || border > 12)
