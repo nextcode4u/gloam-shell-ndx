@@ -1,5 +1,6 @@
 /* Bounded, preconverted startup artwork. See docs/guides/STARTUP_SPLASHES.md. */
 #include "splash.h"
+#include "image_decode.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,13 +30,16 @@ static uint32_t checksum(const unsigned char *data, size_t size)
 }
 void splash_close(Splash *splash)
 {
+    for (unsigned i = 0; i < SPLASH_LAYER_CAP; i++)
+        free(splash->layers[i].decoded);
     free(splash->data);
     memset(splash, 0, sizeof *splash);
 }
 static bool validate(Splash *splash)
 {
     const unsigned char *data = splash->data;
-    bool motion = splash->bytes >= 8 && !memcmp(data, "GLOMSP02", 8);
+    bool compressed = splash->bytes >= 8 && !memcmp(data, "GLOMSP03", 8);
+    bool motion = compressed || (splash->bytes >= 8 && !memcmp(data, "GLOMSP02", 8));
     if (splash->bytes < 64 || (!motion && memcmp(data, "GLOMSP01", 8)) ||
         read32(data + 8) != splash->bytes ||
         read32(data + 12) != checksum(data + 16, splash->bytes - 16))
@@ -85,7 +89,9 @@ static bool validate(Splash *splash)
                 layer->repeat > 2 || layer->sequence > 2 || (layer->repeat && !layer->transition) ||
                 abs(layer->x) > 512 || abs(layer->y) > 512)
                 return false;
-            for (unsigned reserved = 49; reserved < 64; reserved++)
+            if (compressed && record[49] > 1)
+                return false;
+            for (unsigned reserved = compressed ? 50 : 49; reserved < 64; reserved++)
                 if (record[reserved])
                     return false;
         }
@@ -97,13 +103,39 @@ static bool validate(Splash *splash)
             (!motion && (layer->x < 0 || layer->y < 0 || layer->x + layer->width > 256 ||
                          layer->y + layer->height > 192)))
             return false;
-        size_t bytes = layer->width * layer->height * layer->frames * (layer->format ? 1u : 2u) +
-                       (layer->format ? 512u : 0u);
-        if (read32(record + 20) != offset || read32(record + 24) != bytes ||
+        size_t frame_bytes = layer->width * layer->height * (layer->format ? 1u : 2u);
+        size_t palette_bytes = layer->format ? 512u : 0u;
+        bool packed = compressed && record[49];
+        size_t bytes = read32(record + 24);
+        if (read32(record + 20) != offset ||
+            (!packed && bytes != frame_bytes * layer->frames + palette_bytes) ||
             bytes > splash->bytes - offset)
             return false;
         layer->palette = layer->format ? data + offset : NULL;
-        layer->pixels = data + offset + (layer->format ? 512 : 0);
+        if (packed) {
+            size_t table_bytes = 4 * (layer->frames + 1);
+            if (bytes < palette_bytes + table_bytes)
+                return false;
+            layer->frame_table = data + offset + palette_bytes;
+            unsigned previous = (unsigned)table_bytes;
+            if (read32(layer->frame_table) != previous)
+                return false;
+            for (unsigned frame = 0; frame < layer->frames; frame++) {
+                unsigned end = read32(layer->frame_table + (frame + 1) * 4);
+                if (end < previous || end - previous < 6 || end - previous > frame_bytes + 1024 ||
+                    end > bytes - palette_bytes)
+                    return false;
+                previous = end;
+            }
+            if (previous != bytes - palette_bytes)
+                return false;
+            layer->decoded = malloc(frame_bytes);
+            if (!layer->decoded)
+                return false;
+            layer->decoded_frame = UINT32_MAX;
+            layer->pixels = layer->decoded;
+        } else
+            layer->pixels = data + offset + palette_bytes;
         offset = (offset + bytes + 3) & ~(size_t)3;
         if (offset > splash->bytes)
             return false;
@@ -183,6 +215,30 @@ static unsigned motion_frame(const SplashLayer *layer, unsigned elapsed)
     }
     return frame < layer->frames ? frame : layer->frames - 1;
 }
+bool splash_prepare(Splash *splash, unsigned ticks, bool reduced_motion)
+{
+    if (!splash->data)
+        return false;
+    if (reduced_motion)
+        ticks = splash->poster;
+    for (unsigned i = 0; i < splash->count; i++) {
+        SplashLayer *layer = &splash->layers[i];
+        if (!layer->decoded || (!reduced_motion && ticks < layer->delay))
+            continue;
+        unsigned elapsed = ticks > layer->delay ? ticks - layer->delay : 0;
+        unsigned frame = motion_frame(layer, elapsed);
+        if (layer->decoded_frame == frame)
+            continue;
+        layer->decoded_frame = UINT32_MAX;
+        unsigned start = read32(layer->frame_table + frame * 4);
+        unsigned end = read32(layer->frame_table + (frame + 1) * 4);
+        size_t size = layer->width * layer->height * (layer->format ? 1u : 2u);
+        if (!image_decode_zlib_frame(layer->decoded, size, layer->frame_table + start, end - start))
+            return false;
+        layer->decoded_frame = frame;
+    }
+    return true;
+}
 static int interpolate(int start, int end, unsigned progress)
 {
     return start + (end - start) * (int)progress / 1024;
@@ -220,6 +276,11 @@ static void render_motion(const SplashLayer *layer, unsigned elapsed, bool reduc
     for (int column = left; column < right; column++)
         columns[column] = (column - x) * layer->width / width;
     unsigned frame = motion_frame(layer, elapsed);
+    if (layer->decoded) {
+        if (layer->decoded_frame != frame)
+            return;
+        frame = 0;
+    }
     for (int row = top; row < bottom; row++) {
         size_t offset = (frame * layer->height + (row - y) * layer->height / height) * layer->width;
         for (int column = left; column < right; column++) {

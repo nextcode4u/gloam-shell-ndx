@@ -18,9 +18,52 @@ static struct {
 static void draw(Splash *splash, unsigned tick, bool reduced)
 {
     top.before = top.after = bottom.before = bottom.after = 0x12345678;
+    assert(splash_prepare(splash, tick, reduced));
     splash_render(splash, tick, reduced, top.pixels, bottom.pixels);
     assert(top.before == 0x12345678 && top.after == 0x12345678);
     assert(bottom.before == 0x12345678 && bottom.after == 0x12345678);
+}
+static void compressed_checks(const char *root)
+{
+    Splash splash = {0};
+    char path[PATH_CAP];
+    const char *valid[] = {"compressed.gsp", "compressed-direct.gsp"};
+    for (unsigned i = 0; i < 2; i++) {
+        assert(path_join(path, root, valid[i]) && splash_load(&splash, path));
+        unsigned char *buffer = splash.layers[0].decoded;
+        assert(buffer && splash.layers[0].decoded_frame == UINT32_MAX);
+        draw(&splash, 0, false);
+        assert(top.pixels[0] == 0x801F && bottom.pixels[0] == 0x8000);
+        draw(&splash, 3, false);
+        assert(top.pixels[0] == 0x83E0);
+        draw(&splash, 6, false);
+        assert(top.pixels[0] == 0xFC00);
+        draw(&splash, 9, false);
+        assert(top.pixels[0] == 0x801F);
+        draw(&splash, 0, true);
+        assert(top.pixels[0] == 0xFC00 && splash.layers[0].decoded == buffer);
+        /* A second render of the same frame does not decode again. */
+        buffer[0] = 0;
+        assert(splash_prepare(&splash, 0, true) && buffer[0] == 0);
+        splash_close(&splash);
+    }
+    const char *bad_frames[] = {"short", "large", "adler", "truncated"};
+    for (unsigned i = 0; i < 4; i++) {
+        char name[64];
+        snprintf(name, sizeof name, "bad-frame-%s.gsp", bad_frames[i]);
+        assert(path_join(path, root, name) && splash_load(&splash, path));
+        draw(&splash, 0, false);
+        assert(!splash_prepare(&splash, 3, false));
+        assert(splash.layers[0].decoded_frame == UINT32_MAX);
+        splash_close(&splash);
+    }
+    const char *bad_tables[] = {"codec", "start", "end", "reserved"};
+    for (unsigned i = 0; i < 4; i++) {
+        char name[64];
+        snprintf(name, sizeof name, "bad-packed-%s.gsp", bad_tables[i]);
+        assert(path_join(path, root, name));
+        assert(!splash_load(&splash, path) && !splash.data);
+    }
 }
 static void motion_checks(const char *root)
 {
@@ -142,8 +185,14 @@ int main(int argc, char **argv)
     strcpy(app.theme_id, "probe");
     path_copy(app.splash_path, bad, PATH_CAP);
     assert(splash_load_selected(&splash, &app) && splash.layers[0].format == 0);
+    assert(path_join(app.splash_path, argv[1], "bad-frame-first.gsp"));
+    assert(splash_load_selected(&splash, &app) && splash.layers[0].format == 0);
     strcpy(app.theme_id, "missing");
-    assert(splash_load_selected(&splash, &app) && splash.count == 1);
+    assert(splash_load_selected(&splash, &app) && splash.layers[0].decoded);
+    char shared[PATH_CAP];
+    assert(path_join(shared, argv[1], "_nds/dsi-frontend/themes/default/splash.gsp"));
+    assert(!remove(shared));
+    assert(splash_load_selected(&splash, &app) && splash.count == 1 && !splash.layers[0].decoded);
     app.splash_mode = SPLASH_OFF;
     assert(!splash_load_selected(&splash, &app));
     app.splash_mode = SPLASH_CUSTOM;
@@ -177,7 +226,9 @@ int main(int argc, char **argv)
     assert(app.picker.preview.ready);
     picker_activate(&app);
     assert(!app.picker.open && app.splash_mode == SPLASH_CUSTOM);
-    puts("PASS: prepared splash pixels, timing, skip, reduced motion, mutation rejection, preview "
+    compressed_checks(argv[1]);
+    puts("PASS: compressed/raw splash pixels, timing, skip, reduced motion, mutation rejection, "
+         "preview "
          "picker and persistence");
     return 0;
 }

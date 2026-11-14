@@ -1,6 +1,6 @@
 # stb_image provenance
 
-Based on stb_image.h from nothings/stb at 4e9b368bfc071e97206ea5c6adba68dd0cbf8897. Full MIT/public-domain notices are retained in the header. This build enables JPEG only, disables stdio/HDR/linear conversion, and limits dimensions to 512. The authored wrapper stays in arm9/source/image_decode.c.
+Based on stb_image.h from nothings/stb at 4e9b368bfc071e97206ea5c6adba68dd0cbf8897. Full MIT/public-domain notices are retained in the header. This build enables JPEG and fixed-output zlib decoding, disables stdio/HDR/linear conversion, and limits image dimensions to 512. The authored wrapper stays in arm9/source/image_decode.c. Splash frames use the fixed-output zlib API with an exact size limit and an additional Adler checksum check; this requires no changes to the upstream decoder.
 
 Local changes (8 November 2026): optional STBI_JPEG_PROGRESS and
 STBI_JPEG_CANCELLED callbacks in baseline/progressive entropy block decoding,

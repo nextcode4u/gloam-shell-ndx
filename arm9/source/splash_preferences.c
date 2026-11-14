@@ -4,6 +4,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+static bool load_candidate(Splash *splash, const char *path, bool reduced_motion)
+{
+    if (splash_load(splash, path) && splash_prepare(splash, 0, reduced_motion))
+        return true;
+    splash_close(splash);
+    return false;
+}
+
 bool splash_load_selected(Splash *splash, const App *app)
 {
     splash_close(splash);
@@ -11,7 +19,7 @@ bool splash_load_selected(Splash *splash, const App *app)
         app->splash_mode == SPLASH_OFF)
         return false;
     if (app->splash_mode == SPLASH_CUSTOM && path_is_within_root(app->splash_path, app->root) &&
-        splash_load(splash, app->splash_path))
+        load_candidate(splash, app->splash_path, app->reduced_motion))
         return true;
     /* A conventional filename avoids parsing/loading a whole theme at startup. */
     char path[PATH_CAP], relative[128];
@@ -20,11 +28,16 @@ bool splash_load_selected(Splash *splash, const App *app)
         strspn(app->theme_id, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-") ==
             length) {
         snprintf(relative, sizeof relative, "themes/%s/splash.gsp", app->theme_id);
-        if (path_preferences_file(path, app->root, relative) && splash_load(splash, path))
+        if (path_preferences_file(path, app->root, relative) &&
+            load_candidate(splash, path, app->reduced_motion))
             return true;
     }
+    if (path_preferences_file(path, app->root, "themes/default/splash.gsp") &&
+        load_candidate(splash, path, app->reduced_motion))
+        return true;
+    /* Retain the original fallback for installations with a personal default. */
     return path_preferences_file(path, app->root, "splashes/default.gsp") &&
-           splash_load(splash, path);
+           load_candidate(splash, path, app->reduced_motion);
 }
 
 bool splash_thumbnail(Artwork *artwork, const char *path)
@@ -34,7 +47,7 @@ bool splash_thumbnail(Artwork *artwork, const char *path)
     if (!splash_load(&splash, path))
         return false;
     uint16_t *screens = malloc(2 * 256 * 192 * sizeof *screens);
-    if (screens) {
+    if (screens && splash_prepare(&splash, 0, true)) {
         splash_render(&splash, 0, true, screens, screens + 256 * 192);
         artwork->width = 64;
         artwork->height = 96;

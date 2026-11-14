@@ -33,10 +33,20 @@ has presentation checkpoints between stages and theme assets, so a slow SD read
 can still interrupt animation briefly. No network initialization is required.
 
 Missing or invalid Custom packages fall back to the theme, then
-`/_nds/dsi-frontend/splashes/default.gsp`, when installed. Theme also uses that
-default when it has no splash. If none is valid, startup continues normally.
+`/_nds/dsi-frontend/themes/default/splash.gsp`. The shared default folder has no
+`theme.ini`, so it does not appear in the theme picker. The original
+`/_nds/dsi-frontend/splashes/default.gsp` path remains a final fallback for older
+installations. Theme also uses the default when it has no splash. If none is
+valid, startup continues normally. A corrupt compressed frame encountered during
+playback ends the splash and allows startup to continue.
 Off and recovery do not load packages. Defaults are Theme, While loading and
 sound off, including existing installations without splash preferences.
+
+The supplied default uses both screens at 256×192, with all 64 frames at 20 fps
+(3.2 seconds). It is an SD asset, not embedded in `BOOT.NDS`. Updating only the
+binary does not install it; copy the default folder from the matching SD package.
+The [source artwork and conversion command](../../assets/README.md) are included
+for rebuilding. While loading can finish before the animation ends.
 
 The settings records are `splash_mode=0|1|2`, `splash_once=0|1`,
 `splash_sound=0|1` and `splash_path=sd:/...`. Configuration export/import includes
@@ -132,3 +142,34 @@ the end state; frame playback holds the last frame unless repeat is requested.
 The loader validates enums, ranges, reserved bytes, offsets, exact payload sizes
 and checksum before exposing any layer. The builder's optional native comparison
 suite checks actual rendered pixels against this implementation.
+
+## Compressed frames (version 3)
+
+`GLOMSP03` keeps version 2's header, motion fields, palette and limits. Layer
+record byte 49 selects raw frames (0) or independently zlib-compressed frames
+(1); bytes 50–63 remain zero. Both kinds can coexist in one package. Older
+packages remain supported, and older players reject version 3 cleanly.
+
+A compressed payload contains its optional 512-byte indexed palette, then a
+`frame_count + 1` table of little-endian u32 offsets. Offsets are relative to the
+start of that table. The first equals the table's byte size; each subsequent
+offset ends one stream, and the last ends the payload. Streams are contiguous,
+independent zlib-wrapped DEFLATE data with no dictionary. Each must produce
+exactly `width * height * bytes_per_pixel` bytes. Input streams are limited to
+that decoded size plus 1,024 bytes. Package CRC, table bounds, stream output
+length and Adler checksums are checked; malformed data never enlarges buffers.
+Outer payload padding remains four-byte aligned and is not part of a stream.
+
+The whole package is read once, still capped at 2 MiB. Loading allocates one
+frame buffer per compressed layer: at most 96 KiB per layer, 384 KiB total, plus
+fixed decoder stack space. The supplied indexed two-screen default uses 96 KiB
+of frame buffers. `splash_prepare` decodes only changed source frames into those
+buffers; rendering consumes them without decoding, allocating or reading SD.
+The decoder reuses the already bundled stb library's fixed-output zlib path.
+
+Frames are independently seekable, so a missed deadline skips to the current
+frame instead of decoding a backlog. Reduced motion decodes only the designated
+still. Play once, While loading, skipping and audio lifetime are unchanged.
+Compression is lossless after the builder's palette/RGB555 conversion. It does
+not reduce frame count, resolution or frame rate. Host checks cover decoding
+and bounds; timing on a physical DSi still needs confirmation.

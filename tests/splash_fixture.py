@@ -73,16 +73,58 @@ def motion_package():
     data = bytearray(32 + 64 * len(layers))
     for i, (screen, width, height, x, y, color) in enumerate(layers):
         payload = struct.pack("<H", color) * width * height
-        struct.pack_into("<4B4H2h2H3I", data, 32 + i * 64, screen, 0, 0, 0,
-                         width, height, 1, 3, x, y, 12 if i == 0 else 0, 30,
-                         len(data), len(payload), 0)
-        struct.pack_into("<4h2H5B", data, 64 + i * 64,
-                         48 if i == 0 else -50, -100 if i == 0 else 30, 0, 0,
-                         0 if i == 0 else 100, 200 if i == 0 else 100,
-                         0 if i == 0 else 32, 32, 2, 2, 0)
+        struct.pack_into(
+            "<4B4H2h2H3I",
+            data,
+            32 + i * 64,
+            screen,
+            0,
+            0,
+            0,
+            width,
+            height,
+            1,
+            3,
+            x,
+            y,
+            12 if i == 0 else 0,
+            30,
+            len(data),
+            len(payload),
+            0,
+        )
+        struct.pack_into(
+            "<4h2H5B",
+            data,
+            64 + i * 64,
+            48 if i == 0 else -50,
+            -100 if i == 0 else 30,
+            0,
+            0,
+            0 if i == 0 else 100,
+            200 if i == 0 else 100,
+            0 if i == 0 else 32,
+            32,
+            2,
+            2,
+            0,
+        )
         data.extend(payload)
-    struct.pack_into("<8sIIHHBBHII", data, 0, b"GLOMSP02", len(data), 0,
-                     180, 90, len(layers), 0, 0x801F, 0, 0)
+    struct.pack_into(
+        "<8sIIHHBBHII",
+        data,
+        0,
+        b"GLOMSP02",
+        len(data),
+        0,
+        180,
+        90,
+        len(layers),
+        0,
+        0x801F,
+        0,
+        0,
+    )
     struct.pack_into("<I", data, 12, zlib.crc32(data[16:]))
     return data
 
@@ -90,14 +132,20 @@ def motion_package():
 def fixture(root):
     root = Path(root)
     root.mkdir(parents=True, exist_ok=True)
+    compressed_fixture(root)
     modern = motion_package()
     (root / "motion.gsp").write_bytes(modern)
     for name, offset, fmt, value in (
-        ("scale", 72, "H", 401), ("alpha", 76, "B", 33),
-        ("easing", 78, "B", 4), ("repeat", 79, "B", 3),
-        ("sequence", 80, "B", 3), ("reserved", 81, "B", 1),
-        ("position", 64, "h", -513), ("background", 22, "H", 0),
-        ("zero-time", 50, "H", 0)):
+        ("scale", 72, "H", 401),
+        ("alpha", 76, "B", 33),
+        ("easing", 78, "B", 4),
+        ("repeat", 79, "B", 3),
+        ("sequence", 80, "B", 3),
+        ("reserved", 81, "B", 1),
+        ("position", 64, "h", -513),
+        ("background", 22, "H", 0),
+        ("zero-time", 50, "H", 0),
+    ):
         bad = bytearray(modern)
         struct.pack_into("<" + fmt, bad, offset, value)
         struct.pack_into("<I", bad, 12, zlib.crc32(bad[16:]))
@@ -111,6 +159,9 @@ def fixture(root):
     default.mkdir(parents=True, exist_ok=True)
     (theme / "splash.gsp").write_bytes(package(direct=True))
     (default / "default.gsp").write_bytes(package(bottom_only=True))
+    shared = root / "_nds/dsi-frontend/themes/default"
+    shared.mkdir(parents=True, exist_ok=True)
+    (shared / "splash.gsp").write_bytes(compressed_package())
     for name, offset, fmt, value in (
         ("duration", 16, "H", 0),
         ("layers", 20, "B", 5),
@@ -123,6 +174,83 @@ def fixture(root):
         struct.pack_into("<" + fmt, bad, offset, value)
         struct.pack_into("<I", bad, 12, zlib.crc32(bad[16:]))
         (root / ("bad-" + name + ".gsp")).write_bytes(bad)
+
+
+def compressed_package(direct=False, corrupt=None):
+    """Three independently compressed color frames, authored without the builder."""
+    data = bytearray(96)
+    size = 16 * 16 * (2 if direct else 1)
+    payload = (
+        bytearray()
+        if direct
+        else bytearray(struct.pack("<256H", 0, 0x801F, 0x83E0, 0xFC00, *([0] * 252)))
+    )
+    table = bytearray(16)
+    for frame, color in enumerate((0x801F, 0x83E0, 0xFC00)):
+        raw = struct.pack("<H", color) * 256 if direct else bytes([frame + 1]) * 256
+        if (corrupt == "short" and frame == 1) or (corrupt == "first" and frame == 0):
+            raw = raw[:-1]
+        if corrupt == "large" and frame == 1:
+            raw += bytes(200000)
+        stream = bytearray(zlib.compress(raw))
+        if corrupt == "adler" and frame == 1:
+            stream[-1] ^= 1
+        if corrupt == "truncated" and frame == 1:
+            stream = stream[:6]
+        struct.pack_into("<I", table, frame * 4, len(table))
+        table.extend(stream)
+    struct.pack_into("<I", table, 12, len(table))
+    payload.extend(table)
+    struct.pack_into(
+        "<4B4H2h2H3I",
+        data,
+        32,
+        0,
+        int(not direct),
+        0,
+        0,
+        16,
+        16,
+        3,
+        3,
+        0,
+        0,
+        0,
+        0,
+        96,
+        len(payload),
+        0,
+    )
+    struct.pack_into("<4h2H5B", data, 64, 0, 0, 0, 0, 100, 100, 32, 32, 0, 0, 1)
+    data[81] = 1
+    data.extend(payload)
+    data.extend(bytes(-len(data) % 4))
+    struct.pack_into(
+        "<8sIIHHBBHII", data, 0, b"GLOMSP03", len(data), 0, 60, 6, 1, 0, 0x8000, 0, 0
+    )
+    struct.pack_into("<I", data, 12, zlib.crc32(data[16:]))
+    return data
+
+
+def compressed_fixture(root):
+    for direct in (False, True):
+        (root / ("compressed-direct.gsp" if direct else "compressed.gsp")).write_bytes(
+            compressed_package(direct)
+        )
+    for corruption in ("first", "short", "large", "adler", "truncated"):
+        (root / ("bad-frame-" + corruption + ".gsp")).write_bytes(
+            compressed_package(corrupt=corruption)
+        )
+    for name, offset, value in (
+        ("codec", 81, 2),
+        ("start", 608, 0),
+        ("end", 620, 0xFFFFFFFF),
+        ("reserved", 82, 1),
+    ):
+        data = compressed_package()
+        struct.pack_into("<" + ("B" if offset < 96 else "I"), data, offset, value)
+        struct.pack_into("<I", data, 12, zlib.crc32(data[16:]))
+        (root / ("bad-packed-" + name + ".gsp")).write_bytes(data)
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@
 #define STBI_JPEG_CANCELLED() image_decode_cancelled()
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_JPEG
+#define STBI_SUPPORT_ZLIB
 #define STBI_NO_STDIO
 #define STBI_NO_HDR
 #define STBI_NO_LINEAR
@@ -16,6 +17,32 @@
 #pragma GCC diagnostic pop
 #include <stdlib.h>
 #include <string.h>
+
+/* Fixed-output zlib decoding for prepared splash frames. stb never grows this
+ * buffer; verify the stream's Adler checksum as well as its exact output size. */
+bool image_decode_zlib_frame(unsigned char *out, size_t size, const unsigned char *data,
+                             size_t bytes)
+{
+    if (!out || !data || !size || size > 256u * 192 * 2 || bytes < 6 || bytes > size + 1024)
+        return false;
+    if (stbi_zlib_decode_buffer((char *)out, (int)size, (const char *)data, (int)bytes) !=
+        (int)size)
+        return false;
+    unsigned a = 1, b = 0;
+    for (size_t start = 0; start < size;) {
+        size_t end = start + 5552 < size ? start + 5552 : size;
+        while (start < end) {
+            a += out[start++];
+            b += a;
+        }
+        a %= 65521;
+        b %= 65521;
+    }
+    const unsigned char *sum = data + bytes - 4;
+    uint32_t expected =
+        (uint32_t)sum[0] << 24 | (uint32_t)sum[1] << 16 | (uint32_t)sum[2] << 8 | sum[3];
+    return (b << 16 | a) == expected;
+}
 
 static uint16_t rgb(unsigned r, unsigned g, unsigned b)
 {

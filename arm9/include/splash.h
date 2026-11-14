@@ -16,6 +16,9 @@ typedef struct {
     unsigned start_scale, end_scale, start_opacity, end_opacity;
     unsigned easing, repeat, sequence;
     const unsigned char *palette, *pixels;
+    const unsigned char *frame_table;
+    unsigned char *decoded;
+    unsigned decoded_frame;
 } SplashLayer;
 typedef struct {
     unsigned char *data;
@@ -31,6 +34,9 @@ typedef struct {
  * Stop hardware audio before closing a splash: samples belong to this object. */
 bool splash_load(Splash *splash, const char *path);
 void splash_close(Splash *splash);
+/* Decode only changed compressed frames into buffers allocated at load time.
+ * No I/O or allocations here. A failed decode must end playback. */
+bool splash_prepare(Splash *splash, unsigned ticks, bool reduced_motion);
 /* No allocation, file I/O or hardware access while rendering prepared assets. */
 void splash_render(const Splash *splash, unsigned ticks, bool reduced_motion,
                    uint16_t top[256 * 192], uint16_t bottom[256 * 192]);

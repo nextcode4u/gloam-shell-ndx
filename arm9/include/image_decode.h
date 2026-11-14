@@ -1,6 +1,8 @@
 #ifndef FRONTEND_IMAGE_DECODE_H
 #define FRONTEND_IMAGE_DECODE_H
 #include "types.h"
+bool image_decode_zlib_frame(unsigned char *out, size_t size, const unsigned char *data,
+                             size_t bytes);
 bool image_decode_icon(uint16_t pixels[32 * 32], const unsigned char *data, size_t size);
 bool image_decode_component(uint16_t pixels[32 * 32], uint8_t coverage[256],
                             const unsigned char *data, size_t size);

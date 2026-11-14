@@ -346,6 +346,10 @@ static void present_splash(App *state, void *context)
     unsigned elapsed = splash_clock - boot->started;
     if (!splash_needs_frame(&boot->splash, boot->drawn, elapsed, state->reduced_motion))
         return;
+    if (!splash_prepare(&boot->splash, elapsed, state->reduced_motion)) {
+        boot->skipped = true;
+        return;
+    }
     boot->drawn = elapsed;
     splash_render(&boot->splash, elapsed, state->reduced_motion, top, bottom);
     DC_FlushRange(top, sizeof top);

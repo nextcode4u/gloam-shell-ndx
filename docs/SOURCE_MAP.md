@@ -164,7 +164,12 @@ including heading clearance and configurable top/bottom navigation. Drawing and
 geometry regression checks share those regions; browser touch geometry stays in
 `layout.h`.
 
-`splash.c` validates both prepared splash formats. Version 2 keeps motion in
+`splash.c` validates the prepared splash formats. Version 3 prepares independently
+compressed frames through `image_decode_zlib_frame` before drawing, with one
+reusable buffer per compressed layer. The source GIFs and conversion recipe for
+the shared default live in `assets/`; its production package lives under
+`sdroot/_nds/dsi-frontend/themes/default/`, without a `theme.ini`.
+Version 2 keeps motion in
 bounded per-layer metadata and uses fixed-point transforms with screen-local
 clipping; it does not bake effects into frame sequences or allocate while drawing.
 The contributor UI, project migration and matching preview stay in the theme repo.
