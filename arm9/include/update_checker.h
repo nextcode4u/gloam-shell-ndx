@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <time.h>
-#define GLOAM_VERSION "v0.1.0-preview.25"
+#define GLOAM_VERSION "v0.1.0-preview.26"
 #define UPDATE_RESPONSE_CAP (96 * 1024)
 #define UPDATE_TAG_CAP 48
 #define UPDATE_TRUST_CAP (64 * 1024)
