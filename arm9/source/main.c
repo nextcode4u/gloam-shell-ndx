@@ -667,10 +667,10 @@ int main(int argc, char **argv)
                                                        : "System title was not discovered.",
                           sizeof app.message);
                 app_panel(&app, PANEL_MESSAGE);
-            } else if (!system_title_handoff(request, autoload, native,
-                                             &app.system_catalog.launcher)) {
+            } else if (!system_title_handoff(request, autoload, native, &app.system_catalog)) {
                 path_copy(app.message,
-                          "System-title handoff unavailable. Settings needs a discovered DSi Menu.",
+                          "System-title handoff unavailable. DSi Menu is missing or invalid; "
+                          "check any NAND launcher.dsi.",
                           sizeof app.message);
                 app_panel(&app, PANEL_MESSAGE);
             } else if (app_save(&app)) {
@@ -704,15 +704,21 @@ int main(int argc, char **argv)
                 if (!app.system_catalog.attempted && app.dsi_mode && nandInit(true))
                     system_catalog_scan(&app.system_catalog, "nand:/");
                 unsigned char autoload[0x400];
-                system_title_autoload(autoload, &app.system_catalog.launcher);
-                stop_update_checker();
-                stop_launcher_audio();
-                memcpy((void *)0x02000300, request, sizeof request);
-                memcpy((void *)0x02000800, autoload, sizeof autoload);
-                DC_FlushAll();
-                systemReboot();
-                while (1)
-                    swiWaitForVBlank();
+                if (!system_launcher_autoload(autoload, &app.system_catalog)) {
+                    path_copy(app.message,
+                              "DSi Menu is missing or invalid; check any NAND launcher.dsi.",
+                              sizeof app.message);
+                    app_panel(&app, PANEL_MESSAGE);
+                } else {
+                    stop_update_checker();
+                    stop_launcher_audio();
+                    memcpy((void *)0x02000300, request, sizeof request);
+                    memcpy((void *)0x02000800, autoload, sizeof autoload);
+                    DC_FlushAll();
+                    systemReboot();
+                    while (1)
+                        swiWaitForVBlank();
+                }
             }
         }
         unsigned launch_buttons = KEY_A | KEY_B | KEY_X | KEY_Y | KEY_START | KEY_SELECT | KEY_L |

@@ -119,28 +119,37 @@ bool system_title_autoload(unsigned char request[0x400], const NativeTitle *titl
     return true;
 }
 
-/* Settings depends on the system launch environment. Preserve its TLNC request
- * while Unlaunch starts the installed Launcher, which dispatches the request.
- * Both IDs/content paths come from this console's read-only NAND discovery. */
+bool system_launcher_autoload(unsigned char request[0x400], const SystemCatalog *catalog)
+{
+    memset(request, 0, 0x400);
+    if (!catalog)
+        return false;
+    if (catalog->patched_launcher_present) {
+        if (!catalog->patched_launcher_valid)
+            return false;
+        autoload_path(request, "nand:/launcher.dsi");
+        return true;
+    }
+    const NativeTitle *launcher = &catalog->launcher;
+    if (!launcher->available || launcher->high != 0x00030017 ||
+        (launcher->low & 0xFFFFFF00) != 0x484E4100)
+        return false;
+    return system_title_autoload(request, launcher);
+}
+
+/* Settings uses the same menu as explicit system-menu return. Keep the
+ * requested Settings title in TLNC while Unlaunch enters that menu. */
 bool system_title_handoff(uint32_t warmboot[8], unsigned char autoload[0x400],
-                          const NativeTitle *title, const NativeTitle *launcher)
+                          const NativeTitle *title, const SystemCatalog *catalog)
 {
     memset(warmboot, 0, 8 * sizeof *warmboot);
     memset(autoload, 0, 0x400);
     if (!system_title_request(warmboot, title))
         return false;
-    const NativeTitle *entry = title;
-    if (title->high == 0x00030015 && (title->low & 0xFFFFFF00) == 0x484E4200) {
-        if (!launcher || !launcher->available || launcher->high != 0x00030017 ||
-            (launcher->low & 0xFFFFFF00) != 0x484E4100) {
-            memset(warmboot, 0, 8 * sizeof *warmboot);
-            return false;
-        }
-        entry = launcher;
-    }
-    if (!system_title_autoload(autoload, entry)) {
+    bool settings = title->high == 0x00030015 && (title->low & 0xFFFFFF00) == 0x484E4200;
+    bool ready = settings ? system_launcher_autoload(autoload, catalog)
+                          : system_title_autoload(autoload, title);
+    if (!ready)
         memset(warmboot, 0, 8 * sizeof *warmboot);
-        return false;
-    }
-    return true;
+    return ready;
 }

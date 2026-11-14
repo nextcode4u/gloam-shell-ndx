@@ -15,7 +15,9 @@ bool system_title_request(uint32_t request[8], const NativeTitle *title);
 bool system_title_autoload(unsigned char request[0x400], const NativeTitle *title);
 /* Settings enters through Launcher; other titles retain direct Unlaunch boot. */
 bool system_title_handoff(uint32_t warmboot[8], unsigned char autoload[0x400],
-                          const NativeTitle *title, const NativeTitle *launcher);
+                          const NativeTitle *title, const SystemCatalog *catalog);
+/* Prefer the validated language-patched NAND menu for both return and Settings. */
+bool system_launcher_autoload(unsigned char request[0x400], const SystemCatalog *catalog);
 /* Structural validation only; does not authenticate Nintendo signatures. */
 bool native_title_content(const char *directory, uint32_t high, uint32_t low,
                           uint32_t *boot_content, bool allow_unsigned);

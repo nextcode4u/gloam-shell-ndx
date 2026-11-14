@@ -62,7 +62,7 @@ static void regional_settings_handoff(const char *root)
         assert(catalog.titles[0].available && catalog.titles[0].low == settings_id);
         uint32_t warmboot[8], expected[8];
         unsigned char autoload[0x400], expected_autoload[0x400];
-        assert(system_title_handoff(warmboot, autoload, &catalog.titles[0], &catalog.launcher));
+        assert(system_title_handoff(warmboot, autoload, &catalog.titles[0], &catalog));
         assert(system_title_request(expected, &catalog.titles[0]));
         assert(!memcmp(warmboot, expected, sizeof warmboot));
         assert(system_title_autoload(expected_autoload, &catalog.launcher));
@@ -70,14 +70,14 @@ static void regional_settings_handoff(const char *root)
         assert(warmboot[2] == settings_id && warmboot[4] == settings_id);
         /* Missing or unrelated Launcher metadata must not trigger direct Settings boot. */
         catalog.launcher.available = false;
-        assert(!system_title_handoff(warmboot, autoload, &catalog.titles[0], &catalog.launcher));
+        assert(!system_title_handoff(warmboot, autoload, &catalog.titles[0], &catalog));
         for (unsigned i = 0; i < 8; i++)
             assert(!warmboot[i]);
         for (unsigned i = 0; i < sizeof autoload; i++)
             assert(!autoload[i]);
         catalog.launcher.available = true;
         catalog.launcher.low = settings_id;
-        assert(!system_title_handoff(warmboot, autoload, &catalog.titles[0], &catalog.launcher));
+        assert(!system_title_handoff(warmboot, autoload, &catalog.titles[0], &catalog));
         NativeTitle sound = {0x30005, 0x484E4B00 | (unsigned char)*region, true, 9};
         assert(system_title_handoff(warmboot, autoload, &sound, NULL));
         assert(system_title_autoload(expected_autoload, &sound));
@@ -121,6 +121,43 @@ static void launcher_without_tmd(const char *root)
     assert(f && fputs("modified metadata", f) >= 0 && !fclose(f));
     system_catalog_scan(&catalog, nand);
     assert(catalog.launcher.available);
+    /* Prefer the patched root menu even when the original installed menu is
+     * present, and never fall back to stock if the patched file is malformed. */
+    char patched[PATH_CAP];
+    assert(path_join(patched, nand, "Launcher.dsi"));
+    f = fopen(patched, "wb");
+    assert(f && fwrite(app, 1, sizeof app, f) == sizeof app && !fclose(f));
+    system_catalog_scan(&catalog, nand);
+    assert(catalog.patched_launcher_present && catalog.patched_launcher_valid);
+    unsigned char autoload[0x400];
+    assert(system_launcher_autoload(autoload, &catalog));
+    const char *route = "nand:/launcher.dsi";
+    for (size_t i = 0; i <= strlen(route); i++)
+        assert(autoload[0x38 + i * 2] == route[i] && !autoload[0x39 + i * 2]);
+    NativeTitle settings = {0x30015, 0x484E424A, true, 1};
+    uint32_t warmboot[8], expected[8];
+    catalog.launcher.available = false;
+    assert(system_title_handoff(warmboot, autoload, &settings, &catalog));
+    assert(system_title_request(expected, &settings));
+    assert(!memcmp(warmboot, expected, sizeof expected));
+    for (size_t i = 0; i <= strlen(route); i++)
+        assert(autoload[0x38 + i * 2] == route[i] && !autoload[0x39 + i * 2]);
+    f = fopen(patched, "wb");
+    assert(f && fputs("invalid", f) >= 0 && !fclose(f));
+    system_catalog_scan(&catalog, nand);
+    assert(catalog.launcher.available && catalog.patched_launcher_present &&
+           !catalog.patched_launcher_valid);
+    assert(!system_launcher_autoload(autoload, &catalog));
+    assert(!system_title_handoff(warmboot, autoload, &settings, &catalog));
+    for (unsigned i = 0; i < sizeof autoload; i++)
+        assert(!autoload[i]);
+    for (unsigned i = 0; i < 8; i++)
+        assert(!warmboot[i]);
+    NativeTitle sound = {0x30005, 0x484E4B4A, true, 1};
+    assert(system_title_handoff(warmboot, autoload, &sound, &catalog));
+    assert(!remove(patched));
+    system_catalog_scan(&catalog, nand);
+    assert(!catalog.patched_launcher_present && system_launcher_autoload(autoload, &catalog));
     /* Neither content order nor a higher version chooses between two matches. */
     assert(path_join(second, nand, "title/00030017/484e414a/content/00000003.app"));
     f = fopen(second, "wb");

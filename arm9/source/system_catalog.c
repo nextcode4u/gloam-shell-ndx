@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/stat.h>
 
 static uint32_t be32(const unsigned char *p)
@@ -71,8 +72,10 @@ static bool launcher_app(const char *path, uint32_t low)
     bool valid = file && fread(header, 1, sizeof header, file) == sizeof header;
     if (file)
         fclose(file);
-    valid = valid && (header[0x12] == 2 || header[0x12] == 3) && le32(header + 0x230) == low &&
-            le32(header + 0x234) == 0x00030017;
+    valid =
+        valid && (header[0x12] == 2 || header[0x12] == 3) &&
+        (low ? le32(header + 0x230) == low : (le32(header + 0x230) & 0xFFFFFF00) == 0x484E4100) &&
+        le32(header + 0x234) == 0x00030017;
     /* Both legacy and DSi CPU sections must fit in the file. */
     const unsigned offsets[] = {0x20, 0x30, 0x1C0, 0x1D0};
     for (unsigned i = 0; valid && i < sizeof offsets / sizeof offsets[0]; i++) {
@@ -111,10 +114,40 @@ static bool launcher_content(const char *directory, uint32_t low, uint32_t *boot
     closedir(folder);
     return matches == 1;
 }
+/* The language patcher stores its menu outside the installed title tree.
+ * Presence with invalid contents must block stock-menu fallback: switching
+ * between the two menus can make the console ask for initial setup again. */
+static void patched_launcher_scan(SystemCatalog *catalog, const char *root)
+{
+    DIR *folder = opendir(root);
+    if (!folder)
+        return;
+    struct dirent *entry;
+    unsigned scanned = 0;
+    while ((entry = readdir(folder))) {
+        if (++scanned > 256) {
+            catalog->patched_launcher_present = true;
+            catalog->patched_launcher_valid = false;
+            break;
+        }
+        if (strcasecmp(entry->d_name, "launcher.dsi"))
+            continue;
+        if (catalog->patched_launcher_present) {
+            catalog->patched_launcher_valid = false;
+            break;
+        }
+        catalog->patched_launcher_present = true;
+        char path[PATH_CAP];
+        catalog->patched_launcher_valid =
+            path_join(path, root, entry->d_name) && launcher_app(path, 0);
+    }
+    closedir(folder);
+}
 void system_catalog_scan(SystemCatalog *catalog, const char *nand_root)
 {
     memset(catalog, 0, sizeof *catalog);
     catalog->attempted = true;
+    patched_launcher_scan(catalog, nand_root);
     static const uint32_t groups[] = {0x00030015, 0x00030005, 0x00030017};
     static const uint32_t prefixes[] = {0x484E4200, 0x484E4900, 0x484E4B00,
                                         0x484E4500, 0x484E4400, 0x484E4100};
