@@ -697,14 +697,12 @@ int main(int argc, char **argv)
                 app_panel(&app, PANEL_MESSAGE);
             } else {
                 uint32_t request[8];
-                system_menu_request(request);
-                /* Unlaunch ignores an empty title ID and chooses its default.
-                 * Supply the discovered Launcher path to reach the actual Menu.
-                 * Stock firmware still receives its normal zero-ID request. */
+                /* Resolve the same preferred menu used by Settings. Patched
+                 * menus receive only an explicit Unlaunch path request. */
                 if (!app.system_catalog.attempted && app.dsi_mode && nandInit(true))
                     system_catalog_scan(&app.system_catalog, "nand:/");
                 unsigned char autoload[0x400];
-                if (!system_launcher_autoload(autoload, &app.system_catalog)) {
+                if (!system_menu_handoff(request, autoload, &app.system_catalog)) {
                     path_copy(app.message,
                               "DSi Menu is missing or invalid; check any NAND launcher.dsi.",
                               sizeof app.message);

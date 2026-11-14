@@ -136,6 +136,12 @@ static void launcher_without_tmd(const char *root)
         assert(autoload[0x38 + i * 2] == route[i] && !autoload[0x39 + i * 2]);
     NativeTitle settings = {0x30015, 0x484E424A, true, 1};
     uint32_t warmboot[8], expected[8];
+    memset(warmboot, 0xA5, sizeof warmboot);
+    assert(system_menu_handoff(warmboot, autoload, &catalog));
+    for (unsigned i = 0; i < 8; i++)
+        assert(!warmboot[i]);
+    for (size_t i = 0; i <= strlen(route); i++)
+        assert(autoload[0x38 + i * 2] == route[i] && !autoload[0x39 + i * 2]);
     catalog.launcher.available = false;
     assert(system_title_handoff(warmboot, autoload, &settings, &catalog));
     assert(system_title_request(expected, &settings));
@@ -148,6 +154,7 @@ static void launcher_without_tmd(const char *root)
     assert(catalog.launcher.available && catalog.patched_launcher_present &&
            !catalog.patched_launcher_valid);
     assert(!system_launcher_autoload(autoload, &catalog));
+    assert(!system_menu_handoff(warmboot, autoload, &catalog));
     assert(!system_title_handoff(warmboot, autoload, &settings, &catalog));
     for (unsigned i = 0; i < sizeof autoload; i++)
         assert(!autoload[i]);
@@ -158,6 +165,9 @@ static void launcher_without_tmd(const char *root)
     assert(!remove(patched));
     system_catalog_scan(&catalog, nand);
     assert(!catalog.patched_launcher_present && system_launcher_autoload(autoload, &catalog));
+    assert(system_menu_handoff(warmboot, autoload, &catalog));
+    system_menu_request(expected);
+    assert(!memcmp(warmboot, expected, sizeof expected));
     /* Neither content order nor a higher version chooses between two matches. */
     assert(path_join(second, nand, "title/00030017/484e414a/content/00000003.app"));
     f = fopen(second, "wb");

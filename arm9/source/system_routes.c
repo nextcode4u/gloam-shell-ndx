@@ -137,6 +137,20 @@ bool system_launcher_autoload(unsigned char request[0x400], const SystemCatalog 
     return system_title_autoload(request, launcher);
 }
 
+/* A patched menu is an explicit Unlaunch file target. Do not also ask it
+ * to dispatch a numeric MENU request after starting. Stock-menu behavior
+ * remains unchanged; Settings deliberately retains its destination request. */
+bool system_menu_handoff(uint32_t warmboot[8], unsigned char autoload[0x400],
+                         const SystemCatalog *catalog)
+{
+    memset(warmboot, 0, 8 * sizeof *warmboot);
+    if (!system_launcher_autoload(autoload, catalog))
+        return false;
+    if (!catalog->patched_launcher_present)
+        system_menu_request(warmboot);
+    return true;
+}
+
 /* Settings uses the same menu as explicit system-menu return. Keep the
  * requested Settings title in TLNC while Unlaunch enters that menu. */
 bool system_title_handoff(uint32_t warmboot[8], unsigned char autoload[0x400],
