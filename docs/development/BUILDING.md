@@ -156,7 +156,7 @@ ignore this field and can select the first global match. The SD/add-on templates
 carry the new rules; Python/PowerShell updates preserve existing custom profiles,
 so merge these fields into preserved files rather than replacing user settings.
 
-GitHub build checks and the manually triggered draft-prerelease workflow are
+GitHub build checks and the manually triggered draft-release workflow are
 described in [releasing](RELEASING.md). Verify local artifacts with
 `python3 tools/verify_release.py --addons` before uploading the complete set.
 
@@ -179,7 +179,7 @@ profiling is still required. The tool accepts no existing SD-card target.
 ## Release-check identity
 
 Before preparing a release, set `GLOAM_VERSION` in
-`arm9/include/update_checker.h` to the intended tag and rebuild. The prerelease
+`arm9/include/update_checker.h` to the intended tag and rebuild. The release
 workflow rejects a mismatched tag so an installed release does not advertise
 itself as an update. Source packages retain the same identity for rebuilds.
 

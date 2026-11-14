@@ -1,4 +1,4 @@
-name: Prepare prerelease
+name: Prepare release
 
 on:
   release:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: New preview/rc version (for example v0.1.0-preview.1)
+        description: New stable, preview or rc version (for example v1.0.0)
         required: true
         type: string
       addons:
@@ -58,18 +58,19 @@ jobs:
           import re
           import subprocess
           tag = os.environ['RELEASE_TAG']
-          if not re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+-(preview|rc)\.[0-9]+', tag):
-              raise SystemExit('Use a new preview/rc version tag')
+          if not re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+(?:-(preview|rc)\.[0-9]+)?', tag):
+              raise SystemExit('Use a new stable, preview or rc version tag')
           version = re.search(r'#define GLOAM_VERSION "([^"\n]+)"',
                               Path('arm9/include/update_checker.h').read_text())
           if not version or version[1] != tag:
               raise SystemExit('Bump GLOAM_VERSION to the release tag before building the release.')
+          prerelease = '-' in tag
           source = os.environ['SOURCE_COMMIT']
-          notes = Path('dist/prerelease-notes.md')
+          notes = Path('dist/release-notes.md')
           notes.write_text(
               f'Gloam Shell NDX {tag}\n\nSource commit: {source}.\n\n'
-              'Development preview; limited physical DSi validation is underway. '
-              'See docs/CURRENT_SUPPORT.md for launch/backend compatibility limits.\n\n'
+              f'{"Development preview" if prerelease else "Stable release"}. '
+              'See docs/CURRENT_SUPPORT.md for hardware validation and compatibility limits.\n\n'
               'BOOT.NDS updates only the frontend. sd.zip supplies full SD setup; '
               'preserve existing settings and saves. addons.zip, when included, '
               'contains only the reviewed redistributable subset and shared downloaders.\n\n'
@@ -79,7 +80,7 @@ jobs:
           files = [str(Path('dist') / name) for name in names] + ['dist/SHA256SUMS']
           subprocess.run(['gh', 'release', 'create', tag, *files, '--target', source,
                           '--title', f'Gloam Shell NDX {tag}', '--notes-file', str(notes),
-                          '--draft', '--prerelease'], check=True)
+                          '--draft'] + (['--prerelease'] if prerelease else []), check=True)
           PY
 
   retain-current-preview:

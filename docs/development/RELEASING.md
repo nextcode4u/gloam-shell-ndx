@@ -1,4 +1,4 @@
-# Build checks and prereleases
+# Build checks and releases
 
 `.github/workflows/ci.yml` runs the sanitizer/model/render suites, Python tests
 and public-tree checks on pull requests and main pushes. A separate native job
@@ -15,10 +15,11 @@ Python and GitHub CLI as packaging tools. Frontend execution does not depend on
 Python. Neither job uses private firmware, NAND, commercial titles or emulator
 runtime data. Downloaded dependencies and build output remain ignored.
 
-Run **Prepare prerelease** manually from the main branch to prepare a new
-`vX.Y.Z-preview.N` or `vX.Y.Z-rc.N` tag. It first runs all check jobs, optionally
+Run **Prepare release** manually from the main branch to prepare a new
+`vX.Y.Z`, `vX.Y.Z-preview.N` or `vX.Y.Z-rc.N` tag. It first runs all check jobs, optionally
 checks and packages reviewed add-ons, downloads the resulting artifact and
-verifies it again before creating a **draft prerelease**. Review the draft's
+verifies it again before creating a **draft release**. Preview/rc tags are marked as prereleases;
+stable tags are not. Review the draft's
 notes, source commit, compatibility limits and complete artifact set before
 publishing. Existing release tags are not replaced automatically.
 
