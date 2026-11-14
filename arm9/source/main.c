@@ -359,6 +359,14 @@ int main(int argc, char **argv)
             startup_cancel(&app);
             down = repeat = 0; /* The cancelling press does not also launch an item. */
         }
+        if (app.system_notice_active) {
+            if (down & KEY_B) {
+                app.system_title_requested = -1;
+                app.system_menu_requested = false;
+                app.system_notice_active = false;
+            }
+            down = repeat = 0; /* Keep the requested destination stable. */
+        }
         if (app.launch_requested) {
             /* Keep the prepared selection stable while the opening press is
              * released. B cancels without also navigating out of the folder. */
@@ -647,7 +655,13 @@ int main(int argc, char **argv)
             if (app.category == CATEGORY_SYSTEM && app.installed_open)
                 app_scan(&app);
         }
-        if (app.system_title_requested >= 0 && boot_keys_released) {
+        if (app.system_menu_requested && !app.system_catalog.attempted && app.dsi_mode &&
+            nandInit(true))
+            system_catalog_scan(&app.system_catalog, "nand:/");
+        bool system_notice_ready = system_launch_notice_ready(&app);
+        if (app.system_notice_active && keysHeld())
+            system_notice_ready = false; /* Do not carry the opening press into Unlaunch. */
+        if (app.system_title_requested >= 0 && boot_keys_released && system_notice_ready) {
             int title = app.system_title_requested;
             app.system_title_requested = -1;
             uint32_t request[8];
@@ -690,7 +704,7 @@ int main(int argc, char **argv)
                 app_panel(&app, PANEL_MESSAGE);
             }
         }
-        if (app.system_menu_requested && boot_keys_released) {
+        if (app.system_menu_requested && boot_keys_released && system_notice_ready) {
             app.system_menu_requested = false;
             if (!app.storage_lost && !app_save(&app)) {
                 snprintf(app.message, sizeof app.message, "%s", app.preferences_error);
@@ -699,8 +713,6 @@ int main(int argc, char **argv)
                 uint32_t request[8];
                 /* Resolve the same preferred menu used by Settings. Patched
                  * menus receive only an explicit Unlaunch path request. */
-                if (!app.system_catalog.attempted && app.dsi_mode && nandInit(true))
-                    system_catalog_scan(&app.system_catalog, "nand:/");
                 unsigned char autoload[0x400];
                 if (!system_menu_handoff(request, autoload, &app.system_catalog)) {
                     path_copy(app.message,

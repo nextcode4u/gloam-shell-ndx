@@ -28,7 +28,10 @@ the cold/manual launch wait in an emulator comparison, but the warm-return
 comparison remains unresolved. That option changes Unlaunch behavior beyond
 Gloam and has not been validated on the tested physical console. Gloam does not
 modify Unlaunch, rewrite the patched menu's title ID or simulate confirmation
-input; pressing a button remains the tested workaround.
+input; pressing a button remains the tested workaround. Before Settings or menu
+return through a validated `nand:/launcher.dsi`, Gloam shows a three-second
+notice: “Press A shortly after launch to continue.” B cancels the pending launch.
+Stock-menu launches and direct system-title launches have no added delay.
 
 The release script packages unmodified upstream nds-bootstrap and Slot-1 Launcher
 releases identified in [the dependency lock](../config/release-dependencies.json).

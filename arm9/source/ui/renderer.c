@@ -835,7 +835,7 @@ static void draw_grid(const App *app, uint16_t *pixels, Palette colors)
     }
 }
 
-void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clock)
+static void render_content(const App *app, uint16_t *top, uint16_t *bottom, const char *clock)
 {
     if (app->storage_lost) {
         storage_render(app, top, bottom);
@@ -1011,4 +1011,18 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
                   colors.text, 32);
     }
     draw_overlay(app, bottom, colors);
+}
+
+void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clock)
+{
+    render_content(app, top, bottom, clock);
+    if (!app->system_notice_active)
+        return;
+    Palette colors = themes_palette(app);
+    draw_rectangle(bottom, 10, 108, 236, 66, colors.surface);
+    draw_rectangle(bottom, 10, 108, 236, 1, colors.accent);
+    draw_text(bottom, 16, 113, "Language-patched menu", colors.accent, 30);
+    draw_text_wrapped(bottom, 16, 130, "Press A shortly after launch to continue.", colors.text, 30,
+                      2);
+    draw_text(bottom, 16, 159, "B: cancel", colors.muted, 30);
 }

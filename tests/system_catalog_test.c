@@ -189,8 +189,40 @@ static void launcher_without_tmd(const char *root)
     assert(!catalog.launcher.available);
 }
 
+static void launch_notice_test(void)
+{
+    static App app;
+    app.system_title_requested = -1;
+    app.system_menu_requested = true;
+    assert(system_launch_notice_ready(&app)); /* Stock menu has no delay. */
+    app.system_catalog.patched_launcher_present = true;
+    assert(system_launch_notice_ready(&app)); /* Invalid menu reports its error directly. */
+    app.system_catalog.patched_launcher_valid = true;
+    app.frame_count = 100;
+    assert(!system_launch_notice_ready(&app) && app.system_notice_active);
+    app.frame_count = 279;
+    assert(!system_launch_notice_ready(&app));
+    app.frame_count = 280;
+    assert(system_launch_notice_ready(&app));
+    app.system_menu_requested = false;
+    assert(system_launch_notice_ready(&app) && !app.system_notice_active);
+    app.system_title_requested = 0;
+    assert(!system_launch_notice_ready(&app)); /* Settings starts a fresh notice. */
+    app.frame_count += 180;
+    assert(system_launch_notice_ready(&app));
+    app.system_title_requested = 2;
+    assert(system_launch_notice_ready(&app) && !app.system_notice_active);
+    app.system_title_requested = -1;
+    app.system_menu_requested = true;
+    app.frame_count = UINT32_MAX - 80;
+    assert(!system_launch_notice_ready(&app));
+    app.frame_count += 180;
+    assert(system_launch_notice_ready(&app)); /* Frame-counter wrap is harmless. */
+}
+
 int main(int argc, char **argv)
 {
+    launch_notice_test();
     assert(argc == 2);
     const char *root = argv[1];
     regional_settings_handoff(root);

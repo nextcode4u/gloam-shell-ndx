@@ -167,3 +167,20 @@ bool system_title_handoff(uint32_t warmboot[8], unsigned char autoload[0x400],
         memset(warmboot, 0, 8 * sizeof *warmboot);
     return ready;
 }
+
+/* This explains an external launcher's input wait; it never injects input. */
+bool system_launch_notice_ready(App *app)
+{
+    int target = app->system_menu_requested ? 1 : app->system_title_requested == 0 ? 0 : -1;
+    if (target < 0 || !app->system_catalog.patched_launcher_present ||
+        !app->system_catalog.patched_launcher_valid) {
+        app->system_notice_active = false;
+        return true;
+    }
+    if (!app->system_notice_active || app->system_notice_target != target) {
+        app->system_notice_active = true;
+        app->system_notice_started = app->frame_count;
+        app->system_notice_target = target;
+    }
+    return (unsigned)(app->frame_count - app->system_notice_started) >= 180;
+}
