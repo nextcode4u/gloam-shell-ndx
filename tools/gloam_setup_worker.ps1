@@ -111,17 +111,8 @@ try {
             if ($job.Noncommercial) { $arguments.Noncommercial = $true }
             if ($job.Offline) { $arguments.Offline = $true }
             switch ($job.Action) {
-                'InstallAddons' {
-                    # The GUI lists the full catalog, including apps bundled in addons.zip.
-                    # Freeze those packaged pins just as the standalone install menu does.
-                    $catalog = Get-Content -LiteralPath $job.Manifest -Raw -Encoding UTF8 | ConvertFrom-Json
-                    if ($catalog.format -ne 1) { throw 'Unsupported download manifest' }
-                    $apps = if ($catalog.PSObject.Properties.Name -contains 'updates') { @($catalog.updates) } else { @($catalog.applications) }
-                    $snapshot = @{ format=1; applications=$apps; updates=$apps; manual=@() }
-                    $path = Join-Path ([IO.Path]::GetDirectoryName($Request)) 'install-catalog.json'
-                    [IO.File]::WriteAllText($path, ($snapshot | ConvertTo-Json -Depth 30), [Text.UTF8Encoding]::new($true))
-                    $arguments.Manifest = $path
-                }
+                # Installation refreshes the reviewed catalog in the downloader,
+                # just like updates; selected IDs also cover bundled applications.
                 'UpdateAddons' { $arguments.Update = $true }
                 'CheckAddons' { $arguments.CheckUpdates = $true }
                 'CheckSupport' { $arguments.CheckSupport = $true }

@@ -802,6 +802,30 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.run_ps(command, success=False)
         self.assertFalse(installed.exists())
 
+    def test_worker_fresh_install_uses_online_fix_instead_of_packaged_pin(self):
+        payload = b'Authored startup-fixed executable'
+        digest = hashlib.sha256(payload).hexdigest()
+        cache = self.root / 'cache'
+        cache.mkdir()
+        (cache / 'fixed.nds').write_bytes(payload)
+        app = dict(id='demo', version='fixed', terms='Authored', noncommercial=False,
+                   repository='https://example.invalid', files=[{
+                       'format': 'raw', 'destination': '_nds/dsi-frontend/plugins/apps/demo.nds',
+                       'sha256': digest, 'download': {'asset': 'fixed.nds',
+                       'url': 'https://example.invalid/fixed.nds', 'sha256': digest}}])
+        remote = self.root / 'remote.json'
+        remote.write_text(json.dumps({'format': 1, 'updates': [app]}))
+        request = self.root / 'job.json'
+        request.write_text(json.dumps(dict(Action='InstallAddons', Target=win(self.sd),
+            ReleaseDirectory=win(self.root), Manifest=win(self.installer / 'downloads.json'),
+            Cache=win(cache), Selected=['demo'], Noncommercial=False, Offline=False)))
+        command = ('function global:Invoke-RestMethod { Get-Content -Raw -LiteralPath ' +
+                   literal(win(remote)) + ' | ConvertFrom-Json }; & ' +
+                   literal(win(self.installer / 'gloam-setup-worker.ps1')) + ' -Request ' +
+                   literal(win(request)))
+        self.run_ps(command)
+        self.assertEqual((self.sd / app['files'][0]['destination']).read_bytes(), payload)
+
     def test_gui_install_failure_log_is_plain_text(self):
         # This recommended app is present only in the complete GUI catalog.
         # A deliberately bad inline hash must reach staging, then fail legibly.

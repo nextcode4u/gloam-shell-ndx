@@ -494,8 +494,12 @@ try {
     $root = (Resolve-Path -LiteralPath $Target).ProviderPath
     if (([int][bool]$CheckUpdates + [int][bool]$CheckSupport + [int][bool]$Update) -gt 1) { throw 'Choose one of -CheckUpdates, -CheckSupport or -Update' }
     if ($Upstream -and (-not $CheckUpdates -or $Offline)) { throw '-Upstream requires -CheckUpdates and online access' }
-    $applications = @($document.applications)
-    if ($CheckUpdates -or $CheckSupport -or $Update) { $applications = @(Get-UpdateApps $document) }
+    $applications = @(Get-UpdateApps $document)
+    if (-not ($CheckUpdates -or $CheckSupport -or $Update -or $Only)) {
+        # Refresh versions without expanding the packaged default selection.
+        $installIds = @($document.applications | ForEach-Object { $_.id })
+        $applications = @($applications | Where-Object { $_.id -in $installIds })
+    }
     if ($CheckSupport) { Test-Support $applications $root $Only; exit 0 }
     $selected = @(Get-SelectedApps $applications $Only)
     if ($CheckUpdates) {

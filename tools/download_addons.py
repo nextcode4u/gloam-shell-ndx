@@ -632,8 +632,12 @@ def main():
             parser.error("choose one of --check-updates, --check-support or --update")
         if args.upstream and (not args.check_updates or args.offline):
             parser.error("--upstream requires --check-updates and online access")
-        if args.check_updates or args.check_support or args.update:
-            manifest = update_manifest(manifest, args.catalog, args.offline)
+        install_ids = {app["id"] for app in manifest["applications"]}
+        manifest = update_manifest(manifest, args.catalog, args.offline)
+        if not (args.check_updates or args.check_support or args.update or args.only):
+            # Refresh versions without expanding the packaged default selection.
+            manifest["applications"] = [app for app in manifest["applications"]
+                                        if app["id"] in install_ids]
         if args.check_support:
             check_support(manifest, args.target, args.only)
             return

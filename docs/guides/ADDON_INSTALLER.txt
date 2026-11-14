@@ -67,6 +67,10 @@ FDS, disk systems or other machine modes are labelled separately from basic use.
 Emulator-selected custom BIOS locations still need checking in that emulator.
 A presence/size match does not verify authenticity or compatibility.
 
+Online installs refresh reviewed download pins before staging, so fresh installs
+receive fixes without a separate update step. Existing files are preserved; use
+Update selected to replace an already installed executable with a backup.
+
 Update checks compare installed executable hashes with the current reviewed
 catalog from Gloam's GitHub repository. If unavailable or older, the packaged
 pins remain in use. New reviewed pins become available remotely after that

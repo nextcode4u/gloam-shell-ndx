@@ -369,6 +369,23 @@ class DownloadAddonTests(unittest.TestCase):
         self.assertIn('Other upstream release: v2 (not selected', output.getvalue())
         self.assertEqual((self.sd / self.name).read_bytes(), self.binary)
 
+    def test_fresh_cli_install_refreshes_pins_without_expanding_selection(self):
+        import copy
+        from tools.download_addons import main
+        fresh = copy.deepcopy(self.app)
+        fresh["version"] = "fixed"
+        extra = copy.deepcopy(fresh)
+        extra["id"] = "not-selected"
+        remote = {"format": 1, "updates": [fresh, extra]}
+        manifest = self.root / "downloads.json"
+        manifest.write_text(json.dumps(self.manifest))
+        with patch("sys.argv", ["download-addons", "--target", str(self.sd),
+                                    "--manifest", str(manifest)]), \
+             patch("tools.download_addons.read_remote_json", return_value=remote), \
+             patch("tools.download_addons.stage") as install:
+            main()
+        self.assertEqual(install.call_args.args[0]["applications"], [fresh])
+
     def test_reviewed_catalog_refresh_fallback_and_older_catalog(self):
         self.manifest['updates'] = [self.app]
         self.manifest['reviewed'] = '2026-11-08'
