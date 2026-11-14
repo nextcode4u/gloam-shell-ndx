@@ -45,5 +45,13 @@ bool draw_theme_component(const ThemePackage *package, uint16_t *pixels, ThemeCo
 void draw_theme_selection(const ThemePackage *package, uint16_t *pixels, int x, int y, int width,
                           int height);
 void draw_theme_chrome(const ThemePackage *package, uint16_t *pixels, int header_height);
+bool draw_theme_sprite(const ThemePackage *package, uint16_t *pixels, ThemeComponent component,
+                       int x, int y, int width, int height);
+void draw_theme_arrow(const ThemePackage *package, uint16_t *pixels, int x, int y,
+                      ThemeComponent direction, uint16_t color);
+void draw_theme_scrollbar(const ThemePackage *package, uint16_t *pixels, int x, int y, int height,
+                          int thumb_y, int thumb_height);
+void draw_theme_focus(const App *app, uint16_t *pixels, int x, int y, int width, int height,
+                      unsigned elapsed);
 void draw_theme_status(const App *app, uint16_t *pixels);
 #endif

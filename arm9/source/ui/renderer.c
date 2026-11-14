@@ -15,6 +15,7 @@
 #include "storage_state.h"
 #include "tabs.h"
 #include "theme_composition.h"
+#include "theme_motion.h"
 #include "themes.h"
 #include "ui_strings.h"
 
@@ -519,7 +520,9 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     themes_background_draw(&app->themes.active, 0, pixels);
     draw_theme_chrome(&app->themes.active, pixels, 22);
     draw_heading_scrolling(theme, pixels, 10, 7, app->recovery_mode ? "RECOVERY" : theme->header,
-                           colors.text, 138, app->frame_count, !app->reduced_motion);
+                           colors.text, *theme->ambient_path ? 122 : 138, app->frame_count,
+                           !app->reduced_motion);
+    draw_theme_ambient(app, pixels);
     draw_theme_status(app, pixels);
     char tab_position[16];
     snprintf(tab_position, sizeof tab_position, "%d/%d", app->category + 1, app->tab_count);
@@ -785,9 +788,10 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
     }
     if (app->panel == PANEL_QUICK || app->panel == PANEL_ACTIONS) {
         if (app->panel_scroll > 0)
-            draw_text(pixels, 232, y + 9, "^", colors.muted, 1);
+            draw_theme_arrow(&app->themes.active, pixels, 232, y + 9, THEME_ARROW_UP, colors.muted);
         if (app->panel_scroll + UI_PANEL_VISIBLE_ROWS < count)
-            draw_text(pixels, 232, footer, "v", colors.muted, 1);
+            draw_theme_arrow(&app->themes.active, pixels, 232, footer, THEME_ARROW_DOWN,
+                             colors.muted);
     }
     const char *hint =
         app->panel == PANEL_QUICK && app->panel_selection <= QUICK_BROWSER_STYLE
@@ -847,6 +851,9 @@ static void draw_shelf(const App *app, uint16_t *pixels, Palette colors)
             draw_rectangle(pixels, x, top, 62, UI_SHELF_CARD_HEIGHT, colors.surface);
             draw_rectangle(pixels, x, top, 62, 1, colors.line);
         }
+        if (selected)
+            draw_theme_focus(app, pixels, x, top, 62, UI_SHELF_CARD_HEIGHT,
+                             app->selection_idle_frames);
         if (app->show_covers && art && art->ready && strcmp(art->source, "NDS banner")) {
             int width = 56, height = art->height * width / art->width;
             if (height > UI_SHELF_CARD_HEIGHT - 8) {
@@ -902,6 +909,9 @@ static void draw_grid(const App *app, uint16_t *pixels, Palette colors)
         if (selected && !skinned)
             draw_theme_selection(&app->themes.active, pixels, x, y, layout_grid_cell_width(app) - 1,
                                  height - 1);
+        if (selected)
+            draw_theme_focus(app, pixels, x, y, layout_grid_cell_width(app) - 1, height - 1,
+                             app->selection_idle_frames);
         char name[256];
         browser_display_name(app, &app->entries[index], name);
         if (app->icon_size == ICON_SMALL) {
@@ -983,6 +993,8 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
     if (!app->themes.active.minimal_chrome)
         draw_rectangle(bottom, 10, list_top - 5, 236, 1, colors.line);
     if (!app->entry_count) {
+        if (app->scan_directory || app->installed_catalog.scanning)
+            draw_theme_sprite(&app->themes.active, bottom, THEME_BUSY, 230, 83, 12, 12);
         draw_text_wrapped(
             bottom, 16, 65,
             app->category == CATEGORY_SYSTEM && app->installed_open
@@ -1018,6 +1030,7 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
                 draw_theme_component(&app->themes.active, bottom, THEME_ROW, 6,
                                      list_top + row * row_height, 244, row_height);
             draw_theme_selection(&app->themes.active, bottom, 6, sy, 244, row_height);
+            draw_theme_focus(app, bottom, 6, sy, 244, row_height, app->selection_idle_frames);
             for (int row = 0; row < visible_rows; row++) {
                 int i = location->scroll + row;
                 if (i >= app->entry_count)
@@ -1060,7 +1073,8 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
                                       (234 - text_x) / 7);
                 }
                 if (entry->kind == ITEM_DIRECTORY || entry->kind == ITEM_CATEGORY)
-                    draw_text(bottom, 239, y + (row_height - 12) / 2, ">", colors.muted, 1);
+                    draw_theme_arrow(&app->themes.active, bottom, 239, y + (row_height - 12) / 2,
+                                     THEME_ARROW_RIGHT, colors.muted);
                 else if (app_is_favorite(app, entry->path))
                     draw_text(bottom, 239, y + (row_height - 12) / 2, "*", colors.accent, 1);
             }
@@ -1069,11 +1083,9 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
             int h = list_height * visible_rows / app->entry_count;
             if (h < 5)
                 h = 5;
-            draw_rectangle(bottom, 253, list_top, 2, list_height, colors.line);
-            draw_rectangle(bottom, 253,
-                           list_top +
-                               (list_height - h) * location->selected / (app->entry_count - 1),
-                           2, h, colors.accent);
+            draw_theme_scrollbar(
+                &app->themes.active, bottom, 253, list_top, list_height,
+                list_top + (list_height - h) * location->selected / (app->entry_count - 1), h);
         }
     }
     draw_rectangle(bottom, 10, 176, 236, 1, colors.line);

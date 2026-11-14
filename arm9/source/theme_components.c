@@ -15,12 +15,36 @@ typedef struct {
     bool use_coverage;
 } ComponentBank;
 static ComponentBank banks[2];
-static const char *const names[THEME_COMPONENT_COUNT] = {
-    "header",          "footer",        "panel",           "row-selected",
-    "tab-selected",    "card",          "card-selected",   "row",
-    "icon-frame",      "artwork-frame", "battery-empty",   "battery-low",
-    "battery-half",    "battery-high",  "battery-full",    "battery-charging",
-    "battery-unknown", "wireless-idle", "update-available"};
+static const char *const names[THEME_COMPONENT_COUNT] = {"header",
+                                                         "footer",
+                                                         "panel",
+                                                         "row-selected",
+                                                         "tab-selected",
+                                                         "card",
+                                                         "card-selected",
+                                                         "row",
+                                                         "icon-frame",
+                                                         "artwork-frame",
+                                                         "battery-empty",
+                                                         "battery-low",
+                                                         "battery-half",
+                                                         "battery-high",
+                                                         "battery-full",
+                                                         "battery-charging",
+                                                         "battery-unknown",
+                                                         "wireless-idle",
+                                                         "update-available",
+                                                         "check-off",
+                                                         "check-on",
+                                                         "toggle-off",
+                                                         "toggle-on",
+                                                         "arrow-left",
+                                                         "arrow-right",
+                                                         "arrow-up",
+                                                         "arrow-down",
+                                                         "scroll-track",
+                                                         "scroll-thumb",
+                                                         "busy"};
 
 static void clear_bank(ComponentBank *bank)
 {
@@ -38,7 +62,8 @@ void themes_components_load(const ThemePackage *package, bool preview)
         return;
     path_copy(bank->directory, package->component_directory, PATH_CAP);
     bank->use_coverage = package->component_coverage;
-    for (unsigned i = 0; i < THEME_COMPONENT_COUNT; i++) {
+    unsigned count = package->control_assets ? THEME_COMPONENT_COUNT : THEME_CHECK_OFF;
+    for (unsigned i = 0; i < count; i++) {
         char name[40], path[PATH_CAP];
         snprintf(name, sizeof name, "%s.png", names[i]);
         if (!path_join(path, bank->directory, name))

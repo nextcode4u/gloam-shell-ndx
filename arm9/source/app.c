@@ -27,6 +27,7 @@
 #include "startup.h"
 #include "system_routes.h"
 #include "tabs.h"
+#include "theme_motion.h"
 #include "themes.h"
 #include "title_metadata.h"
 #include <stdio.h>
@@ -792,6 +793,7 @@ void app_tick(App *app)
     app->frame_count++;
     artwork_cache_update();
     startup_tick(app);
+    themes_motion_tick(app);
     if (!app->storage_lost && app->installed_catalog.scanning &&
         installed_catalog_step(&app->installed_catalog) && app->category == CATEGORY_SYSTEM &&
         app->installed_open)

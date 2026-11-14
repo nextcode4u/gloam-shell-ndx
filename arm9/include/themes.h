@@ -28,6 +28,17 @@ typedef enum {
     THEME_BATTERY_UNKNOWN,
     THEME_WIRELESS_IDLE,
     THEME_UPDATE_AVAILABLE,
+    THEME_CHECK_OFF,
+    THEME_CHECK_ON,
+    THEME_TOGGLE_OFF,
+    THEME_TOGGLE_ON,
+    THEME_ARROW_LEFT,
+    THEME_ARROW_RIGHT,
+    THEME_ARROW_UP,
+    THEME_ARROW_DOWN,
+    THEME_SCROLL_TRACK,
+    THEME_SCROLL_THUMB,
+    THEME_BUSY,
     THEME_COMPONENT_COUNT
 } ThemeComponent;
 ThemeComponent themes_battery_component(int level, bool charging);

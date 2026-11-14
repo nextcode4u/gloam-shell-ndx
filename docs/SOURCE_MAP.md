@@ -125,6 +125,9 @@ lifecycle with icons and never change layout or input bounds.
 `theme_assets.c` validates an optional compressed sprite bundle only during
 theme loading, copies its records into those normal caches and frees the temporary
 data. `tools/pack_theme_assets.py` is the matching PNG authoring converter.
+`theme_motion.c` owns the delayed, bounded ambient cache and frame scheduling;
+`app_tick` advances it. Rendering only reads its current frame. Optional controls
+and selection feedback use the existing clipped UI drawing helpers.
 Version-2 coverage planes are retained only for components with translucent
 pixels. Opaque components and native icons keep their direct drawing paths.
 `font_pack.c` validates fixed-cell and proportional faces; `ui/drawing.c` shares

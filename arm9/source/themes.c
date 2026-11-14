@@ -6,6 +6,7 @@
 #include "paths.h"
 #include "theme_assets.h"
 #include "theme_composition.h"
+#include "theme_motion.h"
 #include <ctype.h>
 #include <dirent.h>
 #include <stdio.h>
@@ -55,6 +56,7 @@ static void builtin(ThemePackage *package, int accent)
     package->screen_opacity[0] = package->screen_opacity[1] = 101;
     package->background_strength = 25;
     package->component_border = 8;
+    package->ambient_ticks = 12;
     package->tab_gap = 4;
     package->tab_visible = 3;
     package->scene_cover_x = 14;
@@ -140,7 +142,7 @@ static bool load(App *app, const char *id, ThemePackage *package)
         if (*key == '[') {
             if (strcmp(key, "[theme]") && strcmp(key, "[colors]") && strcmp(key, "[fonts]") &&
                 strcmp(key, "[audio]") && strcmp(key, "[backgrounds]") && strcmp(key, "[layout]") &&
-                strcmp(key, "[icons]") && strcmp(key, "[components]") &&
+                strcmp(key, "[icons]") && strcmp(key, "[components]") && strcmp(key, "[motion]") &&
                 strcmp(key, "[assets]"))
                 valid = false;
             path_copy(section, key, sizeof section);
@@ -317,6 +319,27 @@ static bool load(App *app, const char *id, ThemePackage *package)
                                       : package->backgrounds[screen],
                               path, PATH_CAP);
             }
+        } else if (!strcmp(section, "[motion]")) {
+            needs_v2 = true;
+            if (!strcmp(key, "focus")) {
+                if (!strcmp(value, "pulse"))
+                    package->focus_feedback = true;
+                else if (!strcmp(value, "off"))
+                    package->focus_feedback = false;
+                else
+                    valid = false;
+            } else if (!strcmp(key, "ambient_ticks")) {
+                char *end;
+                unsigned long ticks = strtoul(value, &end, 10);
+                if (!*value || *end || ticks < 5 || ticks > 120)
+                    valid = false;
+                else
+                    package->ambient_ticks = ticks;
+            } else if (strcmp(key, "ambient") || !*value || *value == '/' || strchr(value, ':') ||
+                       !path_resolve_sd(path, directory, value))
+                valid = false;
+            else
+                path_copy(package->ambient_path, path, PATH_CAP);
         } else if (!strcmp(section, "[assets]")) {
             needs_v2 = true;
             if (strcmp(key, "prepared") || !*value || *value == '/' || strchr(value, ':') ||
@@ -325,7 +348,15 @@ static bool load(App *app, const char *id, ThemePackage *package)
             else
                 path_copy(package->prepared_assets, path, PATH_CAP);
         } else if (!strcmp(section, "[components]")) {
-            if (!strcmp(key, "alpha")) {
+            if (!strcmp(key, "controls")) {
+                needs_v2 = true;
+                if (!strcmp(value, "on"))
+                    package->control_assets = true;
+                else if (!strcmp(value, "off"))
+                    package->control_assets = false;
+                else
+                    valid = false;
+            } else if (!strcmp(key, "alpha")) {
                 needs_v2 = true;
                 if (!strcmp(value, "coverage"))
                     package->component_coverage = true;
@@ -417,6 +448,7 @@ void themes_accent_override(App *app)
 }
 void themes_init(App *app)
 {
+    themes_motion_reset();
     char id[THEME_ID_CAP];
     path_copy(id, app->theme_id, sizeof id);
     if (app->recovery_mode)
@@ -521,6 +553,7 @@ void themes_apply(App *app)
                   sizeof app->themes.status);
         return;
     }
+    themes_motion_reset();
     app->themes.active = app->themes.candidate;
     themes_background_accept();
     themes_icons_accept();

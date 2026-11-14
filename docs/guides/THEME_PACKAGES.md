@@ -553,7 +553,8 @@ Use partial coverage for glass fills, soft shadow edges and layered borders;
 keep modal panels opaque so underlying labels do not compete with dialog text.
 
 Only images containing partial coverage retain a packed 256-byte alpha plane.
-Nineteen partial components add at most 4,864 bytes per active/preview bank.
+Nineteen base components add at most 4,864 bytes per active/preview bank;
+enabling all eleven optional controls raises that coverage limit to 7,680 bytes.
 Opaque and binary components retain the direct-copy path. Partial pixels blend
 against the actual prepared screen; no full-screen scratch buffer or live blur
 is allocated. Rendering cost depends on the area of translucent components and
@@ -582,6 +583,56 @@ use 38 KiB, or 76 KiB with a second preview bank. No scripts, filesystem reads o
 image decoding run in drawing. Recovery bypasses external components. The desktop
 setup tool previews and validates them along with icons. Older builds reject the
 new section: update `BOOT.NDS` together with these theme packs.
+
+### Optional control artwork
+
+Version-2 packs can add `controls=on` under `[components]`. Without this opt-in,
+Gloam does not look for the extra files, preserving older packs' loading work.
+Each control is an optional 32×32 PNG with the same alpha and size rules:
+
+| Files | Destination |
+| --- | --- |
+| `check-off.png`, `check-on.png` | 14×12 cheat selection boxes. |
+| `toggle-off.png`, `toggle-on.png` | 18×12 settings switches beside the textual value. |
+| `arrow-left.png`, `arrow-right.png`, `arrow-up.png`, `arrow-down.png` | 8×10 browser, picker and quick-panel arrows. |
+| `scroll-track.png`, `scroll-thumb.png` | Two-pixel-wide browser scrollbar, stretched to the required height. |
+| `busy.png` | 12×12 indicator during an initial empty directory scan. |
+
+Controls scale as whole sprites except the scrollbar, which uses nine-slice
+scaling. Keep small designs bold. Missing controls retain the standard drawing;
+touch bounds, input handling and text labels stay unchanged. All thirty component
+pixel buffers use at most 60 KiB per bank, plus optional coverage planes.
+
+### Lightweight feedback and accents
+
+```ini
+[motion]
+focus=pulse
+ambient=motion/ambient.gtm
+ambient_ticks=12
+```
+
+`focus=off` is the default. `pulse` adds a brief, twelve-frame margin gleam to a
+newly selected row/card without moving its border or delaying input. Reduced
+motion disables the gleam.
+
+`ambient` is an optional prepared accent, drawn at 16×16 in a reserved top-header
+area at (136, 4). The header label uses the remaining width. It never covers the
+title preview, tabs or status icons. Loading waits until at least 90 frames after
+startup and 30 selection-idle frames, with a usable SD/browser and no modal,
+picker, theme preview or directory scan. A failed load is not retried every frame.
+Animation pauses during those activities; Reduced motion shows its first frame.
+The active accent is freed when replacing the theme. Recovery bypasses it.
+
+`ambient_ticks` is 5–120 frames per accent frame, default 12 (5 fps at 60 Hz).
+The `GLMFX001` format has a 16-byte header: eight magic bytes, one frame-count
+byte (1–8), width and height bytes (both 32), then five zero bytes. Each frame
+contains 1,024 little-endian RGB555 pixels and 256 packed coverage bytes, four
+two-bit values per byte, low bits first. Coverage levels are 0/1/2/3; opaque RGB555
+colors have bit 15 set. Exact length is required. Eight frames retain 18 KiB;
+there are no per-frame file reads, image decodes or allocations. The theme
+directory's `tools/theme_finishing.py` shows an authoring example. This is one
+small accent, not a general animation engine or a full-screen background movie.
 
 ### Prepared sprite bundles
 

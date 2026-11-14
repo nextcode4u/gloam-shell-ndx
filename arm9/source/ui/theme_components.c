@@ -1,5 +1,6 @@
 /* Stretch centers and edges while retaining the artwork's corner proportions. */
 #include "drawing.h"
+#include "theme_motion.h"
 #include "themes.h"
 
 static unsigned source_position(int position, int length, unsigned border)
@@ -59,31 +60,68 @@ void draw_theme_chrome(const ThemePackage *package, uint16_t *pixels, int header
     draw_theme_component(package, pixels, THEME_FOOTER, 4, 176, 248, 16);
 }
 
-/* Status artwork scales as a whole sprite, never as a nine-slice panel. */
-static bool status_sprite(const ThemePackage *package, uint16_t *pixels, ThemeComponent component,
-                          int x)
+/* Controls scale as whole sprites; narrow tracks use slices instead. */
+bool draw_theme_sprite(const ThemePackage *package, uint16_t *pixels, ThemeComponent component,
+                       int x, int y, int width, int height)
 {
     const uint16_t *image = themes_component(package, component);
     const uint8_t *coverage = themes_component_alpha(package, component);
-    if (!image)
+    if (!image || width < 1 || height < 1 || width > 256 || height > 192 || x < -256 || x > 256 ||
+        y < -192 || y > 192)
         return false;
-    for (int y = 0; y < 16; y++)
-        for (int xx = 0; xx < 16; xx++) {
-            unsigned index = y * 2 * 32 + xx * 2;
+    for (int yy = 0; yy < height; yy++) {
+        if (y + yy < 0 || y + yy >= 192)
+            continue;
+        for (int xx = 0; xx < width; xx++) {
+            if (x + xx < 0 || x + xx >= 256)
+                continue;
+            unsigned index = (yy * 32 / height) * 32 + xx * 32 / width;
             uint16_t color = image[index];
             if (color & 0x8000) {
-                uint16_t *destination = &pixels[(y + 4) * 256 + x + xx];
+                uint16_t *destination = &pixels[(y + yy) * 256 + x + xx];
                 unsigned alpha = coverage ? (coverage[index / 4] >> ((index % 4) * 2)) & 3 : 3;
                 *destination = alpha == 3 ? color : draw_blend_coverage(color, *destination, alpha);
             }
         }
+    }
     return true;
+}
+void draw_theme_arrow(const ThemePackage *package, uint16_t *pixels, int x, int y,
+                      ThemeComponent direction, uint16_t color)
+{
+    if (direction < THEME_ARROW_LEFT || direction > THEME_ARROW_DOWN)
+        return;
+    if (draw_theme_sprite(package, pixels, direction, x, y, 8, 10))
+        return;
+    static const char *glyphs[] = {"<", ">", "^", "v"};
+    draw_text(pixels, x, y, glyphs[direction - THEME_ARROW_LEFT], color, 1);
+}
+void draw_theme_scrollbar(const ThemePackage *package, uint16_t *pixels, int x, int y, int height,
+                          int thumb_y, int thumb_height)
+{
+    if (!draw_theme_component(package, pixels, THEME_SCROLL_TRACK, x, y, 2, height))
+        draw_rectangle(pixels, x, y, 2, height, package->palette.line);
+    if (!draw_theme_component(package, pixels, THEME_SCROLL_THUMB, x, thumb_y, 2, thumb_height))
+        draw_rectangle(pixels, x, thumb_y, 2, thumb_height, package->palette.accent);
+}
+void draw_theme_focus(const App *app, uint16_t *pixels, int x, int y, int width, int height,
+                      unsigned elapsed)
+{
+    if (!app->themes.active.focus_feedback || app->reduced_motion || elapsed >= 12 || width < 8 ||
+        height < 8)
+        return;
+    unsigned alpha = elapsed < 4 ? 2 : 1;
+    /* One short gleam on the margin, without moving a border across adjacent text. */
+    for (int yy = y + 3; yy < y + height - 3; yy++)
+        if (yy >= 0 && yy < 192 && x + 2 >= 0 && x + 2 < 256)
+            pixels[yy * 256 + x + 2] = draw_blend_coverage(app->themes.active.palette.accent,
+                                                           pixels[yy * 256 + x + 2], alpha);
 }
 void draw_theme_status(const App *app, uint16_t *pixels)
 {
     const ThemePackage *package = &app->themes.active;
     ThemeComponent battery = themes_battery_component(app->battery_level, app->battery_charging);
-    if (!status_sprite(package, pixels, battery, 154)) {
+    if (!draw_theme_sprite(package, pixels, battery, 154, 4, 16, 16)) {
         uint16_t color = battery == THEME_BATTERY_EMPTY || battery == THEME_BATTERY_LOW
                              ? package->palette.accent
                              : package->palette.muted;
@@ -99,7 +137,7 @@ void draw_theme_status(const App *app, uint16_t *pixels)
     }
     /* Replace the idle wireless slot with the update notice, preserving header bounds. */
     if (app->updates.available) {
-        if (!status_sprite(package, pixels, THEME_UPDATE_AVAILABLE, 176)) {
+        if (!draw_theme_sprite(package, pixels, THEME_UPDATE_AVAILABLE, 176, 4, 16, 16)) {
             uint16_t ink = package->palette.accent;
             draw_rectangle(pixels, 182, 8, 3, 9, ink);
             for (int row = 0; row < 5; row++)
@@ -112,8 +150,26 @@ void draw_theme_status(const App *app, uint16_t *pixels)
         draw_text(pixels, 176, 6, "W", package->palette.accent, 1);
         return;
     }
-    if (!status_sprite(package, pixels, THEME_WIRELESS_IDLE, 176)) {
+    if (!draw_theme_sprite(package, pixels, THEME_WIRELESS_IDLE, 176, 4, 16, 16)) {
         draw_text(pixels, 176, 6, "W", package->palette.muted, 1);
         draw_rectangle(pixels, 184, 14, 6, 1, package->palette.muted);
     }
+}
+
+void draw_theme_ambient(const App *app, uint16_t *pixels)
+{
+    const uint8_t *coverage;
+    const uint16_t *frame = themes_motion_frame(app, &coverage);
+    if (!frame)
+        return;
+    /* This reserved header mark never crosses titles, covers, tabs or status icons. */
+    for (int y = 0; y < 16; y++)
+        for (int x = 0; x < 16; x++) {
+            unsigned index = y * 64 + x * 2;
+            unsigned alpha = (coverage[index / 4] >> ((index % 4) * 2)) & 3;
+            if (!alpha)
+                continue;
+            uint16_t *pixel = &pixels[(y + 4) * 256 + x + 136];
+            *pixel = alpha == 3 ? frame[index] : draw_blend_coverage(frame[index], *pixel, alpha);
+        }
 }

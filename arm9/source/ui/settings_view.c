@@ -4,6 +4,7 @@
 #include "themes.h"
 #include "ui_strings.h"
 #include <stdio.h>
+#include <string.h>
 
 void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
 {
@@ -62,15 +63,23 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
         bool selected = index == state->selected;
         if (selected) {
             draw_theme_selection(&app->themes.active, bottom, 6, y, 244, SETTINGS_ROW_HEIGHT);
+            draw_theme_focus(app, bottom, 6, y, 244, SETTINGS_ROW_HEIGHT, elapsed);
         }
         const SettingsOption *item = settings_option(app, state->section, index);
         draw_text_scrolling(bottom, 14, y + 3, settings_option_text(app, item, false),
                             selected ? themes_selection_text(&app->themes.active) : palette.muted,
                             126, elapsed, selected && !app->reduced_motion);
         settings_value(app, item, value, sizeof value);
+        const char *on = ui_translate(&app->language, "value.on", "On");
+        const char *off = ui_translate(&app->language, "value.off", "Off");
+        bool toggle = !strcmp(value, on) || !strcmp(value, off);
+        if (toggle)
+            draw_theme_sprite(&app->themes.active, bottom,
+                              !strcmp(value, on) ? THEME_TOGGLE_ON : THEME_TOGGLE_OFF, 220, y + 3,
+                              18, 12);
         draw_text_scrolling(bottom, 148, y + 3, value,
-                            item->adjustable ? palette.accent : palette.muted, 91, elapsed,
-                            selected && !app->reduced_motion);
+                            item->adjustable ? palette.accent : palette.muted, toggle ? 68 : 91,
+                            elapsed, selected && !app->reduced_motion);
     }
     draw_rectangle(bottom, 10, 176, 236, 1, palette.line);
     draw_text(bottom, 10, 179,

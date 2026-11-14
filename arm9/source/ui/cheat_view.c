@@ -47,9 +47,13 @@ void cheats_render(const App *app, uint16_t *top, uint16_t *bottom)
         if (visible == state->selected) {
             draw_theme_selection(&app->themes.active, bottom, 6, y, 244, 18);
         }
-        draw_text(bottom, 14, y + 3,
-                  entry->folder ? (entry->expanded ? "-" : "+") : (entry->selected ? "[x]" : "[ ]"),
-                  p.accent, 3);
+        if (entry->folder || !draw_theme_sprite(&app->themes.active, bottom,
+                                                entry->selected ? THEME_CHECK_ON : THEME_CHECK_OFF,
+                                                14, y + 3, 14, 12))
+            draw_text(bottom, 14, y + 3,
+                      entry->folder ? (entry->expanded ? "-" : "+")
+                                    : (entry->selected ? "[x]" : "[ ]"),
+                      p.accent, 3);
         draw_text_clipped(bottom, 40, y + 3, entry->name, p.text, 29);
     }
     draw_text_clipped(bottom, 10, 170,

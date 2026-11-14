@@ -56,6 +56,7 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
         bool selected = index == picker->selected;
         if (selected) {
             draw_theme_selection(&app->themes.active, bottom, 6, y, 244, PICKER_ROW_HEIGHT);
+            draw_theme_focus(app, bottom, 6, y, 244, PICKER_ROW_HEIGHT, picker->idle_frames);
         }
         draw_theme_icon(&app->themes.active, bottom, 14, y + 3, 12, PLACEHOLDER_APPLICATION,
                         selected ? p.accent : p.muted);
@@ -147,7 +148,12 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
             ? "Choose cover"
             : ui_translate(&app->language, "dialog.choose_application", "Choose application"),
         text, 210);
-    draw_text(bottom, 210, 7, "< >", muted, 5);
+    if (themes_component(&app->themes.active, THEME_ARROW_LEFT) &&
+        themes_component(&app->themes.active, THEME_ARROW_RIGHT)) {
+        draw_theme_arrow(&app->themes.active, bottom, 210, 7, THEME_ARROW_LEFT, muted);
+        draw_theme_arrow(&app->themes.active, bottom, 230, 7, THEME_ARROW_RIGHT, muted);
+    } else
+        draw_text(bottom, 210, 7, "< >", muted, 5);
     draw_text_scrolling(bottom, 10, 24, picker->path, muted, 231, picker->idle_frames,
                         !app->reduced_motion);
     for (int row = 0; row < PICKER_VISIBLE_ROWS; row++) {
@@ -158,6 +164,7 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
         bool selected = index == picker->selected;
         if (selected) {
             draw_theme_selection(&app->themes.active, bottom, 6, y, 244, PICKER_ROW_HEIGHT);
+            draw_theme_focus(app, bottom, 6, y, 244, PICKER_ROW_HEIGHT, picker->idle_frames);
         }
         const Entry *entry = &picker->entries[index];
         draw_theme_icon(&app->themes.active, bottom, 14, y + 3, 12, entry_file_type(entry).icon,
