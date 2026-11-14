@@ -18,9 +18,12 @@ with both screens doing useful work.
 
 [Explore all eleven illustrated themes](docs/images/theme-personalities.png).
 
-
 Phosphor, Eclipse and Prism are three of the included [themes](docs/guides/THEME_PACKAGES.md).
 Screenshots show Gloam's renderer with the supplied themes and example content.
+
+Find more themes or share your own in the
+[Gloam Shell Theme Directory](https://github.com/nextcode4u/gloam-shell-theme-directory).
+Each theme includes previews, installation instructions and asset credits.
 
 ## Features
 
