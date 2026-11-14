@@ -1049,7 +1049,8 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         manifest = source / 'theme.ini'
         original = ('[theme]\nversion=2\n[layout]\ntop_layout=journal\n'
                     'tabs_position=bottom\ntop_content_opacity=80\nbottom_content_opacity=100\n'
-                    '[fonts]\nui=builtin\nheading=builtin\n[components]\nalpha=coverage\n'
+                    '[fonts]\nui=builtin\nheading=builtin\n[components]\nalpha=coverage\ncontrols=on\n'
+                    '[motion]\nfocus=pulse\nambient_ticks=12\n'
                     '[backgrounds]\ntop_surface=paper.png\n')
         manifest.write_text(original)
         command = '$r=Test-GloamTheme ' + literal(win(source))
@@ -1059,6 +1060,8 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         for old, new in [('version=2', 'version=1'), ('alpha=coverage', 'alpha=unknown'),
                          ('top_layout=journal', 'top_layout=sidebar'),
                          ('top_content_opacity=80', 'top_content_opacity=101'),
+                         ('ambient_ticks=12', 'ambient_ticks=1'), ('focus=pulse','focus=unknown'),
+                         ('controls=on', 'controls=unknown'),
                          ('paper.png', '../outside.png')]:
             manifest.write_text(original.replace(old, new))
             self.run_ps(command + '; if ($r.Valid) { throw "invalid version-2 theme accepted" }')

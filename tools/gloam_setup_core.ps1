@@ -549,7 +549,9 @@ function Test-GloamTheme([string]$Source) {
                  'scene_cover_x','scene_cover_y','scene_cover_width','scene_cover_height',
                  'tab_style','tab_highlight','tab_gap','tab_visible')
         icons=@('directory')
-        components=@('directory','border','alpha')
+        components=@('directory','border','alpha','controls')
+        motion=@('ambient','ambient_ticks','focus')
+        assets=@('prepared')
     }
     foreach ($section in $data.Keys) {
         if (-not $allowed.ContainsKey($section)) { $errors.Add("Unknown section: $section"); continue }
@@ -579,7 +581,7 @@ function Test-GloamTheme([string]$Source) {
         } }
     }
     $needsV2=$false
-    foreach ($pair in @(@('fonts','heading'),@('components','alpha'),@('layout','top_content_opacity'),@('layout','bottom_content_opacity'),@('layout','tabs_position'),@('backgrounds','top_surface'),@('backgrounds','bottom_surface'))) {
+    foreach ($pair in @(@('fonts','heading'),@('components','alpha'),@('components','controls'),@('layout','top_content_opacity'),@('layout','bottom_content_opacity'),@('layout','tabs_position'),@('backgrounds','top_surface'),@('backgrounds','bottom_surface'),@('assets','prepared'),@('motion','ambient'),@('motion','ambient_ticks'),@('motion','focus'))) {
         if ($data.Contains($pair[0]) -and $data[$pair[0]].Contains($pair[1])) { $needsV2=$true }
     }
     if ($data.Contains('layout')) {
@@ -588,10 +590,18 @@ function Test-GloamTheme([string]$Source) {
         if ($data['layout'].Contains('tabs_position') -and $composition -notin @('spotlight','gallery','journal')) { $errors.Add('Tab position requires Spotlight, Gallery or Journal.') }
     }
     if ($needsV2 -and (-not $data.Contains('theme') -or $data['theme']['version'] -ne '2')) { $errors.Add('These theme fields require version 2.') }
+    if ($data.Contains('components') -and $data['components'].Contains('controls') -and $data['components']['controls'] -notin @('on','off')) { $errors.Add('Component controls must be on or off.') }
     if ($data.Contains('components') -and $data['components'].Contains('alpha') -and $data['components']['alpha'] -notin @('binary','coverage')) { $errors.Add('Component alpha must be binary or coverage.') }
-    foreach ($section in @('fonts','audio','backgrounds')) { if ($data.Contains($section)) {
+    foreach ($section in @('fonts','audio','backgrounds','assets','motion')) { if ($data.Contains($section)) {
         foreach ($key in $data[$section].Keys) {
             $value=$data[$section][$key]
+            if ($section -eq 'motion' -and $key -eq 'focus') {
+                if ($value -notin @('off','pulse')) { $errors.Add('Focus feedback must be off or pulse.') }; continue
+            }
+            if ($section -eq 'motion' -and $key -eq 'ambient_ticks') {
+                $ticks=0
+                if (-not [int]::TryParse($value,[ref]$ticks) -or $ticks -lt 5 -or $ticks -gt 120) { $errors.Add('Ambient timing must be 5-120 ticks.') }; continue
+            }
             if ($section -eq 'backgrounds' -and $key -eq 'strength') { $strength=0; if (-not [int]::TryParse($value,[ref]$strength) -or $strength -lt 0 -or $strength -gt 100) { $errors.Add('Background strength must be 0-100.') }; continue }
             if ($section -eq 'fonts' -and $value -eq 'builtin') { continue }
             try { $path=Get-GloamPath $root $value; if (-not [IO.File]::Exists($path)) { if ($section -eq 'fonts') { $errors.Add("Missing font: $value") } else { $warnings.Add("Missing $section asset: $value (fallback)") } } }
@@ -617,7 +627,7 @@ function Test-GloamTheme([string]$Source) {
     }
     $imageSets=@{
         icons=@('file','folder','game','application','audio','video','book','text','image','save','config','archive','shortcut','system','missing','settings','camera','sound','pictochat','download-play','system-menu','slot1','tab-home','tab-games','tab-apps','tab-media','tab-system','tab-files','tab-folder')
-        components=@('header','footer','panel','row-selected','tab-selected','card','card-selected','row','icon-frame','artwork-frame','battery-empty','battery-low','battery-half','battery-high','battery-full','battery-charging','battery-unknown','wireless-idle','update-available')
+        components=@('header','footer','panel','row-selected','tab-selected','card','card-selected','row','icon-frame','artwork-frame','battery-empty','battery-low','battery-half','battery-high','battery-full','battery-charging','battery-unknown','wireless-idle','update-available','check-off','check-on','toggle-off','toggle-on','arrow-left','arrow-right','arrow-up','arrow-down','scroll-track','scroll-thumb','busy')
     }
     foreach ($section in @('icons','components')) { if ($data.Contains($section) -and $data[$section].Contains('directory')) {
         try {
@@ -626,7 +636,7 @@ function Test-GloamTheme([string]$Source) {
             foreach ($name in $imageSets[$section]) {
                 $relative=$data[$section]['directory']+'/'+$name+'.png'
                 $path=Get-GloamPath $root $relative
-                if (-not [IO.File]::Exists($path)) { if ($name -ne 'update-available' -and ($section -ne 'icons' -or -not $name.StartsWith('tab-'))) { $warnings.Add("$section/$name missing: built-in fallback") }; continue }
+                if (-not [IO.File]::Exists($path)) { if ($name -notin @('update-available','check-off','check-on','toggle-off','toggle-on','arrow-left','arrow-right','arrow-up','arrow-down','scroll-track','scroll-thumb','busy') -and ($section -ne 'icons' -or -not $name.StartsWith('tab-'))) { $warnings.Add("$section/$name missing: built-in fallback") }; continue }
                 try {
                     if (([IO.FileInfo]::new($path)).Length -gt 65536) { throw 'larger than 64 KiB' }
                     $stream=[IO.File]::OpenRead($path)
