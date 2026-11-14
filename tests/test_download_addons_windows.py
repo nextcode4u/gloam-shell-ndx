@@ -162,6 +162,11 @@ class WindowsInstallerMenuTests(unittest.TestCase):
         bios = self.target / 'roms/bios/combined.bin'
         bios.parent.mkdir(parents=True)
         bios.write_bytes(b'fixture!')
+        # BIOS collections may deliberately hide firmware from ROM browsers.
+        hidden_path = windows_path(bios).replace("'", "''")
+        subprocess.run([POWERSHELL, '-NoProfile', '-Command',
+                        "[IO.File]::SetAttributes('" + hidden_path +
+                        "', [IO.FileAttributes]::Hidden)"], check=True, capture_output=True)
         before = {str(p.relative_to(self.target)): p.read_bytes() for p in self.target.rglob('*') if p.is_file()}
         for command in commands:
             result = subprocess.run(command, capture_output=True, text=True, timeout=30)

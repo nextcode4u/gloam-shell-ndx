@@ -211,7 +211,7 @@ function Test-Support($Apps, [string]$Folder, [string[]]$Names) {
         Write-Output "$($app.id): $note"
         foreach ($item in @($app.files | Where-Object { $_.destination -notmatch '\.(nds|srl)$' })) {
             $path = Get-Destination $Folder $item.destination
-            if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Item -LiteralPath $path).Length -eq 0) {
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Item -Force -LiteralPath $path).Length -eq 0) {
                 Write-Output "  MISSING support file: $($item.destination)"
             }
         }
@@ -232,7 +232,7 @@ function Test-Support($Apps, [string]$Folder, [string[]]$Names) {
                     }
                     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { $valid = $false }
                     else {
-                        $length = (Get-Item -LiteralPath $path).Length
+                        $length = (Get-Item -Force -LiteralPath $path).Length
                         if (-not $length -or ($size -and $length -ne $size)) { $valid = $false }
                     }
                 }
