@@ -170,8 +170,12 @@ void icons_tick(App *app)
         selection >= 0 && selection < app->entry_count ? &app->entries[selection] : NULL;
     bool system_selected =
         selected && (selected->kind == ITEM_SYSTEM || selected->kind == ITEM_INSTALLED_TITLE);
+    /* Text-only lists still need the selected title's banner for the top preview. */
+    bool title_preview =
+        selected && selected->kind == ITEM_FILE && icon_is_ds_title(selected->path);
     if ((!app->storage_ready && !system_selected) ||
-        (!layout_has_icons(app) && !system_selected && !app->detail_tab && app->show_covers) ||
+        (!layout_has_icons(app) && !system_selected && !title_preview && !app->detail_tab &&
+         app->show_covers) ||
         ++app->icons_idle_frames < 2)
         return;
     const Location *location = &app->locations[app->category];

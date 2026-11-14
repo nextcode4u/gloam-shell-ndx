@@ -37,7 +37,8 @@ int main(int argc, char **argv)
     app.browser_style = BROWSER_LIST;
     for (int i = 0; i < 5; i++)
         app_tick(&app);
-    assert(app.icon_reads == 0 && app.entries[0].title_loaded);
+    /* List stays text-only below, but prepares one selected banner above. */
+    assert(app.icon_reads == 1 && app.entries[0].title_loaded);
     browser_display_name(&app, &app.entries[0], display);
     assert(!strcmp(display, "Jeu"));
     assert(!strcmp(app.entries[0].path, path));

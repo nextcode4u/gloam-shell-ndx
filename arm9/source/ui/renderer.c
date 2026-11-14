@@ -331,6 +331,13 @@ static void draw_side_tabs(const App *app, uint16_t *pixels, Palette colors, int
         draw_text(pixels, rail + 209, 158, "v", colors.muted, 1);
 }
 
+/* Banner fallbacks are icons, not cover art. Keeping them on the icon path
+ * preserves the themed card while asynchronous artwork metadata resolves. */
+static bool preview_has_cover(const App *app)
+{
+    return app->artwork.ready && strcmp(app->artwork.source, "NDS banner") != 0;
+}
+
 static void draw_poster(const App *app, uint16_t *pixels, Palette colors)
 {
     const ThemePackage *theme = &app->themes.active;
@@ -341,7 +348,7 @@ static void draw_poster(const App *app, uint16_t *pixels, Palette colors)
     int selected = app->locations[app->category].selected;
     bool native = entry && (entry->kind == ITEM_SYSTEM || entry->kind == ITEM_INSTALLED_TITLE) &&
                   icons_for_entry(app, selected);
-    if (!native && app->artwork.ready) {
+    if (!native && preview_has_cover(app)) {
         int width = 108, height = app->artwork.height * 108 / app->artwork.width;
         if (height > artwork_height) {
             height = artwork_height;
@@ -388,7 +395,7 @@ static void draw_scene(const App *app, uint16_t *pixels, Palette colors, const c
     int box_x = theme->scene_cover_x, box_y = theme->scene_cover_y;
     int box_width = theme->scene_cover_width, box_height = theme->scene_cover_height;
     if (entry && app->show_covers) {
-        if (app->artwork.ready) {
+        if (preview_has_cover(app)) {
             int width = box_width, height = app->artwork.height * width / app->artwork.width;
             if (height > box_height) {
                 height = box_height;
@@ -472,11 +479,14 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     } else if (app->detail_tab == 0 && app->show_covers) {
         int x = offset + 15, y = 53, w = 96, h = 104;
         int selected = app->locations[app->category].selected;
-        if (entry && (entry->kind == ITEM_SYSTEM || entry->kind == ITEM_INSTALLED_TITLE) &&
-            icons_for_entry(app, selected)) {
+        if (entry && (entry->kind == ITEM_SYSTEM || entry->kind == ITEM_INSTALLED_TITLE ||
+                      (entry->kind == ITEM_FILE && icon_is_ds_title(entry->path) &&
+                       !preview_has_cover(app)))) {
+            draw_theme_component(theme, pixels, THEME_CARD, x, y, w, h);
             draw_browser_icon(app, pixels, selected, offset + 31, 73, 64, colors.accent);
             draw_text(pixels, offset + 24, 149,
                       entry->kind == ITEM_INSTALLED_TITLE           ? "NAND TITLE"
+                      : entry->kind == ITEM_FILE                    ? "TITLE ICON"
                       : entry->target == 6 && app->slot1.icon.ready ? "CARD ICON"
                                                                     : "SYSTEM ICON",
                       colors.muted, 14);

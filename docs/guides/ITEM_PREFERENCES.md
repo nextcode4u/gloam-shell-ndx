@@ -13,10 +13,13 @@ A missing/invalid assigned image falls back to automatic lookup:
 1. Explicit per-item assignment.
 2. `filename.ext.png` sidecar for a file.
 3. Folder `cover.png`.
-4. Static native NDS banner, where applicable.
+4. Native NDS/DSi banner, where applicable.
 
 **Clear cover assignment** restores automatic lookup. It does not delete the
 source image or disable sidecar/folder art. Browser icons remain independent.
+Top-screen banner fallbacks retain the theme's icon card and native animation;
+actual cover images use the separate cover frame. List view still loads the
+selected title's banner for the top preview while keeping the bottom text-only.
 The picker deliberately shows PNG assets that ordinary browsing hides as covers.
 
 **Choose app for this file** opens the same picker filtered to native homebrew

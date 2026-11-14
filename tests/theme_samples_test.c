@@ -40,6 +40,56 @@ static void draw(void)
     assert(top.after == 0x87654321 && bottom.after == 0x87654321);
 }
 
+/* Resolving a banner fallback must not replace the existing card with a
+ * cover frame or matte. Real covers must still take their separate route. */
+static void banner_preview_surface(void)
+{
+    app_category(&app, CATEGORY_GAMES);
+    app.browser_style = BROWSER_CLASSIC;
+    app.show_covers = true;
+    app.detail_tab = 0;
+    app.rail_focus = false;
+    app.reduced_motion = true;
+    app.entry_count = 1;
+    app.locations[app.category].selected = app.locations[app.category].scroll = 0;
+    memset(&app.entries[0], 0, sizeof app.entries[0]);
+    strcpy(app.entries[0].name, "Synthetic title");
+    strcpy(app.title, "Synthetic banner metadata");
+    app.entry_icons[0] = 0;
+    memset(&app.icons[0], 0, sizeof app.icons[0]);
+    app.icons[0].ready = true;
+    /* A small transparent banner with a fully opaque central symbol. */
+    for (int y = 8; y < 24; y++)
+        for (int x = 8; x < 24; x++)
+            app.icons[0].pixels[y * 32 + x] = 0x83E0;
+    const char *paths[] = {"sd:/title.nds", "sd:/title.dsi", "sd:/title.srl", "nand:/title.app",
+                           "nand:/settings.app"};
+    for (unsigned kind = 0; kind < 5; kind++) {
+        strcpy(app.entries[0].path, paths[kind]);
+        app.entries[0].kind = kind == 3   ? ITEM_INSTALLED_TITLE
+                              : kind == 4 ? ITEM_SYSTEM
+                                          : ITEM_FILE;
+        for (unsigned layout = 0; layout < 4; layout++) {
+            app.themes.active.top_layout = layout;
+            app.artwork.ready = false;
+            draw();
+            memcpy(stationary_rows, top.pixels, sizeof stationary_rows);
+            app.artwork.ready = true;
+            app.artwork.width = app.artwork.height = 32;
+            strcpy(app.artwork.source, "NDS banner");
+            for (int pixel = 0; pixel < 32 * 32; pixel++)
+                app.artwork.pixels[pixel] = 0xFC1F;
+            draw();
+            assert(!memcmp(stationary_rows, top.pixels, sizeof stationary_rows));
+            if (kind < 3) {
+                strcpy(app.artwork.source, "Sidecar PNG");
+                draw();
+                assert(memcmp(stationary_rows, top.pixels, sizeof stationary_rows));
+            }
+        }
+    }
+}
+
 static int luminance(uint16_t color)
 {
     return (3 * (color & 31) + 6 * ((color >> 5) & 31) + ((color >> 10) & 31)) / 10;
@@ -253,6 +303,7 @@ int main(int argc, char **argv)
             settings_section(&app, 1);
         }
         settings_close(&app);
+        banner_preview_surface();
     }
     puts("PASS: shipped themes preview/cancel/apply/restart, Latin-1 font, PNG/JPEG wallpapers, "
          "audio and all browser sizes/views/settings framebuffer bounds");

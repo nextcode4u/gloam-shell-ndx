@@ -264,6 +264,20 @@ int main(int argc, char **argv)
     render_app(&app, top.pixels, bottom.pixels, "12:00");
     for (int pixel = 0; pixel < 256 * 192; pixel++)
         assert(bottom.pixels[pixel] != 0x801f); /* The red banner is absent below. */
+    /* List loads only the selected native title for its top-screen preview. */
+    icons_reset(&app);
+    reads = app.icon_reads;
+    select_entry("Native.dsi");
+    assert(app.icon_reads == reads + 1);
+    assert(icons_for_entry(&app, find_entry("Native.dsi")));
+    assert(!icons_for_entry(&app, find_entry("Native.srl")));
+    assert(!icons_for_entry(&app, find_entry("Second.smc")));
+    render_app(&app, top.pixels, bottom.pixels, "12:00");
+    assert(top.pixels[73 * 256 + 33] == (0x8000 | (31 << 10)));
+    for (int pixel = 0; pixel < 256 * 192; pixel++)
+        assert(bottom.pixels[pixel] != (0x8000 | (31 << 10)));
+    settle();
+    assert(app.icon_reads == reads + 1);
     app_panel(&app, PANEL_QUICK);
     app.panel_selection = QUICK_ICON_SIZE;
     app.preferences_dirty = false;
