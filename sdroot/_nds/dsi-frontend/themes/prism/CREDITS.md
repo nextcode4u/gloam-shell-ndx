@@ -18,4 +18,8 @@ UI cues. `tools/make_theme_icons.py` and `tools/make_theme_components.py` reprod
 the sprites; `tools/pack_theme_assets.py <theme-folder>` rebuilds `assets.gfx`.
 All smoothing, texture preparation and resampling happen on the authoring PC.
 
-Synthesized music/cues retain the same CC0-1.0 dedication.
+Original synthesized UI cues retain the same CC0-1.0 dedication. Background music has its own terms below.
+
+## Background music
+
+“Cipher” by Kevin MacLeod (incompetech.com), CC-BY-4.0. See [MUSIC.md](MUSIC.md) for source, adaptations and attribution, and [MUSIC-LICENSE.txt](MUSIC-LICENSE.txt) for the full terms.

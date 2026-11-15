@@ -247,3 +247,10 @@ noncommercial redistribution. Full English/Japanese notices, original BDF
 sources, immutable source revision and hashes are retained under
 [third_party/mplus-bitmap](third_party/mplus-bitmap/UPSTREAM.md). This shared
 12-pixel fallback is independent of each theme font and the optional interface catalog.
+
+Most theme background tracks are by **Kevin MacLeod (incompetech.com)**, licensed
+under Creative Commons Attribution 4.0 International. Each theme retains
+MUSIC.md (track/source/adaptations) and MUSIC-LICENSE.txt (full license); these
+are included in release licenses.zip. Original MP3 and prepared WAV hashes are
+pinned in `config/theme-music.json`. Original synthesized UI cues remain CC0.
+Copper retains the separately licensed “Sentinel” recording described in its credits.

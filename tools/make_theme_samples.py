@@ -2,10 +2,6 @@
 """Build original example-theme assets without modifying personal settings."""
 
 import argparse
-import io
-import math
-import struct
-import wave
 from pathlib import Path
 
 if __package__:
@@ -22,54 +18,6 @@ else:
 ROOT = Path(__file__).resolve().parents[1]
 THEMES = ROOT / "sdroot/_nds/dsi-frontend/themes"
 FONT_DIRECTORY = Path("/usr/share/fonts/truetype/dejavu")
-
-
-def music(name: str) -> bytes:
-    """An original eight-second loop with zero-ended notes and restrained levels."""
-    rate = 16000
-    notes = (
-        [220, 261.6256, 329.6276, 293.6648, 220, 261.6256, 391.9954, 329.6276]
-        if name == "nocturne"
-        else [261.6256, 329.6276, 391.9954, 329.6276, 293.6648, 349.2282, 440, 391.9954]
-    )
-    if name == "eclipse":
-        notes = [164.8138, 220, 246.9417, 220, 196, 164.8138, 146.8324, 164.8138]
-    elif name == "prism":
-        notes = [293.6648, 369.9944, 440, 554.3653, 493.8833, 440, 369.9944, 329.6276]
-    elif name == "ember":
-        notes = [196, 246.9417, 293.6648, 246.9417, 220, 196, 164.8138, 196]
-    elif name == "glacier":
-        notes = [
-            329.6276,
-            493.8833,
-            440,
-            369.9944,
-            329.6276,
-            293.6648,
-            246.9417,
-            293.6648,
-        ]
-    elif name == "garnet":
-        notes = [146.8324, 174.6141, 220, 196, 174.6141, 164.8138, 130.8128, 146.8324]
-    frames = bytearray()
-    for frequency in notes:
-        for index in range(rate):
-            time = index / rate
-            fade = min(1.0, time / 0.06, (rate - 1 - index) / (rate * 0.18))
-            envelope = fade * (0.65 + 0.35 * math.exp(-3 * time))
-            sample = (
-                0.14 * math.sin(2 * math.pi * frequency * time)
-                + 0.055 * math.sin(math.pi * frequency * time)
-                + 0.018 * math.sin(4 * math.pi * frequency * time)
-            )
-            frames.extend(struct.pack("<h", round(sample * envelope * 32767)))
-    output = io.BytesIO()
-    with wave.open(output, "wb") as stream:
-        stream.setnchannels(1)
-        stream.setsampwidth(2)
-        stream.setframerate(rate)
-        stream.writeframes(frames)
-    return output.getvalue()
 
 
 def assets(download_fonts=False) -> dict[Path, bytes]:
@@ -93,8 +41,6 @@ def assets(download_fonts=False) -> dict[Path, bytes]:
             result[Path(name) / "sounds" / (filename + ".wav")] = tones(
                 notes, duration, level
             )
-        if name not in ("folio", "phosphor"):
-            result[Path(name) / "sounds/loop.wav"] = music(name)
     for name, roles in theme_fonts(download_fonts):
         notices = []
         for role, (source, settings, family, notice) in roles.items():

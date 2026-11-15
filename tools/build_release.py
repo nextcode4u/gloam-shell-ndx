@@ -138,7 +138,7 @@ def release_notices(sd: dict[str, bytes], dependencies: list[dict]) -> dict[str,
         name: data for name, data in sd.items()
         if name in required or name.startswith("docs/notices/")
         or (name.startswith("_nds/dsi-frontend/themes/")
-            and Path(name).name.upper() in {"CREDITS.MD", "LICENSE.TXT", "COPYING"})
+            and Path(name).name.upper() in {"CREDITS.MD", "LICENSE.TXT", "COPYING", "MUSIC.MD", "MUSIC-LICENSE.TXT"})
         or name == "_nds/dsi-frontend/loaders/slot1launch.txt"
     }
     for name, data in notices.items():

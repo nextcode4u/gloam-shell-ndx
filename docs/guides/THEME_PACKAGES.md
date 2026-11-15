@@ -144,7 +144,7 @@ applies the package's browser defaults. Personal view/icon changes still work.
 These examples use the existing selection easing, marquee and animated-banner
 behavior; packages cannot supply custom animation scripts or widget positions.
 
-Original geometry and synthesized audio are CC0; packed fonts retain the
+Original geometry and synthesized UI cues are CC0; separately credited background music retains its own terms; packed fonts retain the
 included DejaVu licenses. Per-package CREDITS.md files record ownership. Rebuild
 or verify only these sample assets with the pinned authoring environment:
 
@@ -895,3 +895,11 @@ no runtime PNG conversion/blending when default assets match.
 Older Gloam builds reject `GLMART02` and use the included PNGs; new builds also
 accept `GLMART01`. No theme.ini or theme-format version change is required.
 Update both BOOT.NDS and assets.gfx to benefit from prepared surfaces.
+
+Background tracks in the supplied packs are licensed recordings rather than
+placeholder tone loops. `tools/prepare_theme_music.py` verifies the reviewed WAVs;
+`--rebuild --download` reproduces excerpts from pinned originals using FFmpeg.
+Source downloads stay under ignored build storage. Each pack retains its track
+credit/adaptation notes in MUSIC.md and full terms in MUSIC-LICENSE.txt; release
+packaging moves both into licenses.zip. Copper retains the earlier user-selected
+Sentinel track and its existing Pixabay notice. No runtime audio limit is raised.

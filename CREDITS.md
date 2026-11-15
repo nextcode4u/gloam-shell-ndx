@@ -34,6 +34,8 @@ Actual source reuse is identified separately below and in THIRD_PARTY.md.
   handoff and return bootstub; inherited notices remain in third_party/.
 - TWiLight Menu++ / Arisotura: ROM save-memory table.
 - Lode Vandevenne / LodePNG and Sean Barrett / stb contributors: image decoding.
+- Kevin MacLeod (incompetech.com): most theme background tracks, CC-BY-4.0;
+  individual track credits and adaptation details accompany each theme.
 - DejaVu / Bitstream font contributors: built-in and theme bitmap faces.
 - COZ / M+ FONTS PROJECT: shared Japanese bitmap fallback. Original sources,
   permissive notices and revision pins are under `third_party/mplus-bitmap/`.

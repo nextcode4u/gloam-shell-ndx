@@ -311,6 +311,12 @@ class PackageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing the forwarder"):
             build_release(self.root, offline=True)
 
+    def test_release_collects_separate_music_terms(self):
+        notices = {"LICENSE": b"GPL", "CREDITS.md": b"Authors", "THIRD_PARTY.md": b"Inventory",
+                   "_nds/dsi-frontend/themes/example/MUSIC.md": b"Track and adaptation credits",
+                   "_nds/dsi-frontend/themes/example/MUSIC-LICENSE.txt": b"Full CC-BY-4.0 terms"}
+        self.assertEqual(release_notices(notices, []), notices)
+
     def test_release_rejects_missing_and_empty_notices(self):
         notices = {"LICENSE": b"GPL", "CREDITS.md": b"Authors", "THIRD_PARTY.md": b"Inventory",
                    "docs/notices/third_party/example/COPYING": b"Full license"}
