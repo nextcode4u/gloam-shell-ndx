@@ -1,6 +1,6 @@
 # Homebrew loader provenance
 
-Loader: coderkei/nds-bootloader at 52fb19fc961a23643d7fe0601ff3d475aa21e121, from the AKMenu-Next submodule. Original linker script and LICENSE retained; the source has the marked compatibility backport below.
+Loader: coderkei/nds-bootloader at 52fb19fc961a23643d7fe0601ff3d475aa21e121, from the AKMenu-Next submodule. Original linker script and LICENSE retained; the source has the marked compatibility backports below.
 
 `source/boot.c` clears the previous ARM9 exception-handler pointer at
 `0x02FFFD9C` before loading the next application. This backports
@@ -9,6 +9,11 @@ from Deletecat/nds-bootloader (reviewed at
 `1aadf13bdc1f187351821d55ec53c8e984278eb5`), using a volatile store.
 Otherwise a child application's exception can jump into the unloaded launcher's
 overwritten code. Existing copyright/license notices and source formatting are retained.
+
+`source/boot.c` also disables both sound-capture channels, then clears their
+destination and length registers before clearing RAM. This backports the capture
+reset from [RocketRobz's Memory Pit fix](https://github.com/Deletecat/nds-bootloader/commit/ba79fa3592e56354ed68f9e6333d0720121eab73),
+preventing inherited capture activity from writing into the next application.
 
 Return stub: devkitPro/nds-hb-menu at 3c1f64c12da157fdd14a2d594db139f50e283261, bootstub/bootstub.s. Its source notice and COPYING are retained.
 
