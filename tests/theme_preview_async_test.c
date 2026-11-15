@@ -53,6 +53,7 @@ static void settle(void)
 }
 static void start(void)
 {
+    themes_preview(&app);
     for (int frame = 0; !app.themes.loading; frame++) {
         assert(frame < 10);
         app_tick(&app);
@@ -70,8 +71,13 @@ int main(int argc, char **argv)
     settle();
     assert(app.themes.ready && app.themes.count == 3);
     themes_move(&app, 1);
-    assert(app.themes.selected == 1 && app.themes.pending && !app.themes.ready);
-    for (int frame = 0; frame < 6; frame++) {
+    assert(app.themes.selected == 1 && !app.themes.pending && !app.themes.ready);
+    themes_touch(&app, 20, 62); /* Tap the selected row to request a preview. */
+    assert(app.themes.pending && !app.themes.loading);
+    themes_move(&app, 1); /* A different row cancels that request before any decode. */
+    themes_move(&app, -1);
+    assert(!app.themes.pending && !app.themes.ready);
+    for (int frame = 0; frame < 120; frame++) {
         app_tick(&app);
         assert(!image_job_task_pending());
     }
@@ -81,20 +87,24 @@ int main(int argc, char **argv)
     /* Artwork polling must never resume or consume the theme-owned context. */
     assert(!artwork_cache_update() && image_job_yields() == yields);
     assert(font_current() == &app.themes.active.font);
-    themes_apply(&app); /* Queue apply; do not commit partially loaded assets. */
-    assert(app.themes.open && app.themes.apply_requested && !*app.theme_id);
+    themes_preview(&app); /* Repeated X must not restart an in-progress decode. */
+    assert(image_job_yields() == yields);
+    themes_apply(&app); /* Apply cannot commit or queue partially loaded assets. */
+    assert(app.themes.open && !*app.theme_id);
     themes_move(&app, 1); /* Supersede and unwind the paused PNG decoder. */
-    assert(app.themes.selected == 2 && !image_job_busy() && app.themes.pending);
-    assert(!app.themes.apply_requested && !app.themes.ready && !*app.theme_id);
+    assert(app.themes.selected == 2 && !image_job_busy() && !app.themes.pending);
+    assert(!app.themes.ready && !*app.theme_id);
     themes_move(&app, -1); /* Beta is skipped without starting its decode. */
     start();
     themes_apply(&app);
     settle();
+    assert(app.themes.open && app.themes.ready && !*app.theme_id);
+    themes_apply(&app);
     assert(!app.themes.open && !strcmp(app.theme_id, "alpha"));
     assert(!image_job_busy() && themes_preview_visible());
     assert(font_current() == &app.themes.active.font);
     themes_open(&app);
-    start(); /* Reopening deliberately reloads, supporting on-disk theme edits. */
+    start(); /* X deliberately reloads, supporting on-disk theme edits. */
     themes_cancel(&app);
     assert(!app.themes.open && !image_job_busy() && !app.themes.ready);
     themes_open(&app);
@@ -109,8 +119,10 @@ int main(int argc, char **argv)
     FILE *file = fopen(bad, "w");
     assert(file && fputs("[theme]\nversion=99\n", file) >= 0 && !fclose(file));
     themes_open(&app);
-    themes_move(&app, 2); /* Alpha -> malformed package, with Apply requested early. */
+    themes_move(&app, 2); /* Alpha -> malformed package; selection does no I/O. */
     themes_apply(&app);
+    assert(!app.themes.pending && !image_job_busy());
+    themes_preview(&app);
     settle();
     assert(app.themes.open && !app.themes.ready && !strcmp(app.theme_id, "alpha"));
     assert(!image_job_busy() && themes_preview_visible());
@@ -121,6 +133,7 @@ int main(int argc, char **argv)
     storage_observe(&app, false);
     assert(app.storage_lost && !app.themes.open && !image_job_busy());
     assert(font_current() == &app.themes.active.font);
-    puts("PASS: immediate selection, deferred/cooperative previews, task ownership, queued apply, "
-         "superseded PNG cleanup, cancel, active-theme reuse, invalid packages and SD loss");
+    puts("PASS: selection without decode, explicit/repeated X, cooperative task ownership, "
+         "ready-only apply, superseded PNG cleanup, cancel, active reuse, invalid packages and SD "
+         "loss");
 }

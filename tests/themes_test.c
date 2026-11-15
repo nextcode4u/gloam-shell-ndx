@@ -75,8 +75,10 @@ int main(int argc, char **argv)
     ThemePackage original = app.themes.active;
     assert(!themes_icon(&original, PLACEHOLDER_FOLDER));
     themes_open(&app);
+    themes_preview(&app);
     assert(app.themes.count == 4 && app.themes.ready);
     themes_move(&app, 1);
+    themes_preview(&app);
     assert(!strcmp(app.themes.candidate.id, "copper") && app.themes.candidate.external_font);
     assert(!strcmp(app.themes.candidate.header, "Header override"));
     assert(!memcmp(&original, &app.themes.active, sizeof original) && !app.preferences_dirty);
@@ -157,7 +159,9 @@ int main(int argc, char **argv)
     assert(!themes_component(&app.themes.candidate, THEME_ROW_SELECTED));
     assert(font_row('A', 3) == original.font.rows['A' - 32][3]);
     themes_open(&app);
+    themes_preview(&app);
     themes_move(&app, 1);
+    themes_preview(&app);
     themes_apply(&app);
     assert(!app.themes.open && !strcmp(app.theme_id, "copper") && app.preferences_dirty);
     assert(!memcmp(themes_icon(&app.themes.active, PLACEHOLDER_FOLDER), expected, sizeof expected));
@@ -172,6 +176,7 @@ int main(int argc, char **argv)
     assert(path_join(manifest, root, "_nds/dsi-frontend/themes/copper/icons/file.png"));
     assert(!remove(manifest));
     themes_open(&app);
+    themes_preview(&app);
     assert(app.themes.ready);
     assert(!themes_component(&app.themes.candidate, THEME_ROW_SELECTED));
     assert(themes_component(&app.themes.candidate, THEME_HEADER));
@@ -190,7 +195,9 @@ int main(int argc, char **argv)
     assert(!strcmp(restored.theme_id, "copper") && restored.themes.active.external_font);
     assert(!memcmp(&app.themes.active.font, &restored.themes.active.font, sizeof original.font));
     themes_open(&restored);
+    themes_preview(&restored);
     themes_move(&restored, 2); /* copper -> invalid package */
+    themes_preview(&restored);
     assert(!restored.themes.ready);
     themes_apply(&restored);
     assert(restored.themes.open && !strcmp(restored.theme_id, "copper"));
@@ -239,7 +246,9 @@ int main(int argc, char **argv)
     write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini",
                "[theme]\nversion=1\n[layout]\nlarge_grid_columns=5\n");
     themes_open(&app);
+    themes_preview(&app);
     themes_move(&app, 3);
+    themes_preview(&app);
     assert(!app.themes.ready);
     themes_cancel(&app);
     const char *bad_layout[] = {"top_layout=unknown",
@@ -266,7 +275,9 @@ int main(int argc, char **argv)
         snprintf(content, sizeof content, "[theme]\nversion=1\n[layout]\n%s\n", bad_layout[i]);
         write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
         themes_open(&app);
+        themes_preview(&app);
         themes_move(&app, 3);
+        themes_preview(&app);
         assert(!app.themes.ready);
         themes_cancel(&app);
     }
@@ -279,7 +290,9 @@ int main(int argc, char **argv)
                  compositions[i]);
         write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
         themes_open(&app);
+        themes_preview(&app);
         themes_move(&app, 3);
+        themes_preview(&app);
         assert(app.themes.ready && app.themes.candidate.top_layout == 4 + i);
         assert(app.themes.candidate.tabs_position == 1);
         themes_cancel(&app);
@@ -291,7 +304,9 @@ int main(int argc, char **argv)
         snprintf(content, sizeof content, "[theme]\nversion=2\n[layout]\n%s\n", bad_positions[i]);
         write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
         themes_open(&app);
+        themes_preview(&app);
         themes_move(&app, 3);
+        themes_preview(&app);
         assert(!app.themes.ready);
         themes_cancel(&app);
     }
@@ -301,7 +316,9 @@ int main(int argc, char **argv)
         snprintf(content, sizeof content, "[theme]\nversion=1\nheader=%s\n", headers[i]);
         write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
         themes_open(&app);
+        themes_preview(&app);
         themes_move(&app, 3);
+        themes_preview(&app);
         assert(app.themes.ready && !strcmp(app.themes.candidate.header, headers[i]));
         themes_cancel(&app);
     }
@@ -313,7 +330,9 @@ int main(int argc, char **argv)
                  bad_components[i]);
         write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
         themes_open(&app);
+        themes_preview(&app);
         themes_move(&app, 3);
+        themes_preview(&app);
         assert(!app.themes.ready);
         themes_cancel(&app);
     }
@@ -321,7 +340,9 @@ int main(int argc, char **argv)
                "[theme]\nversion=2\n[layout]\ncontent_opacity=40\n"
                "top_content_opacity=0\nbottom_content_opacity=100\n");
     themes_open(&app);
+    themes_preview(&app);
     themes_move(&app, 3);
+    themes_preview(&app);
     assert(app.themes.ready && app.themes.candidate.format_version == 2);
     ThemePackage surfaces = app.themes.candidate;
     assert(themes_content_opacity(&surfaces, 0) == 0);
@@ -344,7 +365,9 @@ int main(int argc, char **argv)
                "[theme]\nversion=2\n[backgrounds]\ntop_surface=paper-top.png\n"
                "bottom_surface=paper-bottom.png\n");
     themes_open(&app);
+    themes_preview(&app);
     themes_move(&app, 3);
+    themes_preview(&app);
     assert(app.themes.ready);
     assert(strstr(app.themes.candidate.reading_surfaces[0], "/paper-top.png"));
     assert(strstr(app.themes.candidate.reading_surfaces[1], "/paper-bottom.png"));
@@ -356,7 +379,9 @@ int main(int argc, char **argv)
                  bad_surfaces[i]);
         write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
         themes_open(&app);
+        themes_preview(&app);
         themes_move(&app, 3);
+        themes_preview(&app);
         assert(!app.themes.ready);
         themes_cancel(&app);
     }

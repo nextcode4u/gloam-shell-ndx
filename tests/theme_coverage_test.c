@@ -77,6 +77,7 @@ static void material_surfaces(void)
                          file) >= 0);
     assert(!fclose(file));
     themes_open(&app);
+    themes_preview(&app);
     assert(app.themes.ready);
     const uint8_t *candidate =
         themes_component_material(&app.themes.candidate, THEME_ROW_SELECTED, &palette);
@@ -85,6 +86,7 @@ static void material_surfaces(void)
     themes_cancel(&app);
     assert(themes_component_material(&app.themes.active, THEME_ROW, &palette) == active);
     themes_open(&app);
+    themes_preview(&app);
     themes_apply(&app);
     assert(themes_component_material(&app.themes.active, THEME_ROW, &palette)[0] == 0x88);
     assert(surface.before == 0xc0ffee && surface.after == 0xc0ffee);
@@ -147,6 +149,7 @@ int main(int argc, char **argv)
     assert(file && fputs("[theme]\nversion=1\n[components]\ndirectory=components\n", file) >= 0);
     assert(!fclose(file));
     themes_open(&app);
+    themes_preview(&app);
     assert(app.themes.ready && !themes_component_alpha(&app.themes.candidate, THEME_ROW_SELECTED));
     assert(!app.themes.candidate.component_tiled);
     assert(themes_component_alpha(&app.themes.active, THEME_ROW_SELECTED));
@@ -154,6 +157,7 @@ int main(int argc, char **argv)
     assert(themes_component_alpha(&app.themes.active, THEME_ROW_SELECTED));
     assert(app.themes.active.component_tiled);
     themes_open(&app);
+    themes_preview(&app);
     themes_apply(&app);
     assert(!themes_component_alpha(&app.themes.active, THEME_ROW_SELECTED));
     assert(!app.themes.active.component_tiled);

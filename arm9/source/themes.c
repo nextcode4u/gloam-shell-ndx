@@ -537,31 +537,38 @@ static void preview_complete(App *app)
     ThemeState *state = &app->themes;
     preview_visible = true;
     path_copy(state->status,
-              state->ready ? "Preview only. A applies; B cancels."
+              state->ready ? "Preview ready."
                            : "Invalid package, font or contrast; retained current theme.",
               sizeof state->status);
     font_use(state->ready ? &state->candidate.font : &state->active.font);
     if (!state->ready)
         preview_assets_clear();
-    if (state->ready && state->apply_requested)
-        themes_apply(app);
 }
-static void preview(App *app, bool reuse_active)
+static void select_preview(App *app)
 {
     ThemeState *state = &app->themes;
     preview_stop(app);
-    state->ready = state->pending = state->reuse_active = state->apply_requested = false;
+    state->ready = state->pending = state->reuse_active = false;
     font_use(&state->active.font);
-    if (reuse_active && !strcmp(state->ids[state->selected], state->active.id)) {
+    if (!strcmp(state->ids[state->selected], state->active.id)) {
         state->candidate = state->active;
         state->ready = state->reuse_active = true;
-        preview_complete(app);
-    } else if (image_job_supported()) {
+        path_copy(state->status, "Current theme.", sizeof state->status);
+    } else
+        path_copy(state->status, "Press X to load this preview.", sizeof state->status);
+}
+void themes_preview(App *app)
+{
+    ThemeState *state = &app->themes;
+    if (!state->open || state->pending || state->loading || app->storage_lost)
+        return;
+    preview_stop(app);
+    state->ready = state->reuse_active = false;
+    font_use(&state->active.font);
+    if (image_job_supported()) {
         artwork_cache_cancel_pending();
         state->pending = true;
-        state->preview_delay = 6; /* Coalesce quick navigation, not every passed row. */
-        path_copy(state->status, "Loading preview; keep browsing. A applies when ready.",
-                  sizeof state->status);
+        path_copy(state->status, "Loading preview...", sizeof state->status);
     } else {
         preview_load(app);
         preview_complete(app);
@@ -579,17 +586,12 @@ void themes_tick(App *app)
         state->loading = false;
         preview_complete(app);
     } else if (state->pending && !image_job_busy()) {
-        if (state->preview_delay) {
-            state->preview_delay--;
-            return;
-        }
         state->pending = false;
         preview_visible = false;
         state->loading = image_job_begin_task(preview_load, app);
         if (!state->loading) {
             path_copy(state->status, "Preview unavailable; select another theme.",
                       sizeof state->status);
-            state->apply_requested = false;
             preview_visible = true;
         } else if (image_job_task_finish()) {
             state->loading = false;
@@ -627,7 +629,7 @@ void themes_open(App *app)
         if (!strcmp(state->ids[index], state->active.id))
             state->selected = index;
     state->scroll = state->selected >= 7 ? state->selected - 6 : 0;
-    preview(app, false);
+    select_preview(app);
 }
 void themes_move(App *app, int direction)
 {
@@ -639,12 +641,12 @@ void themes_move(App *app, int direction)
         state->scroll = state->selected;
     if (state->selected >= state->scroll + 7)
         state->scroll = state->selected - 6;
-    preview(app, true);
+    select_preview(app);
 }
 void themes_cancel(App *app)
 {
     preview_stop(app);
-    app->themes.ready = app->themes.pending = app->themes.apply_requested = false;
+    app->themes.ready = app->themes.pending = false;
     app->themes.open = false;
     font_use(&app->themes.active.font);
 }
@@ -653,7 +655,11 @@ void themes_apply(App *app)
     if (!app->themes.open)
         return;
     if (!app->themes.ready) {
-        app->themes.apply_requested = app->themes.pending || app->themes.loading;
+        path_copy(app->themes.status,
+                  app->themes.pending || app->themes.loading
+                      ? "Loading preview..."
+                      : "Press X to preview before applying.",
+                  sizeof app->themes.status);
         return;
     }
     if (app->themes.reuse_active) {
@@ -688,8 +694,11 @@ void themes_touch(App *app, int x, int y)
     int index = app->themes.scroll + (y - 41) / 18;
     if (index >= app->themes.count)
         return;
-    if (index == app->themes.selected)
-        themes_apply(app);
-    else
+    if (index == app->themes.selected) {
+        if (app->themes.ready)
+            themes_apply(app);
+        else
+            themes_preview(app);
+    } else
         themes_move(app, index - app->themes.selected);
 }

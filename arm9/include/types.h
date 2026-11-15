@@ -280,8 +280,7 @@ typedef struct {
     char ids[THEME_CAP][THEME_ID_CAP];
     int count, selected, scroll;
     bool open, ready;
-    bool pending, loading, reuse_active, apply_requested;
-    unsigned preview_delay;
+    bool pending, loading, reuse_active;
     char status[96];
 } ThemeState;
 #define RECENT_CAP 16

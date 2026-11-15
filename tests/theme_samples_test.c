@@ -26,11 +26,13 @@ static struct {
 static void choose(const char *id)
 {
     themes_open(&app);
+    themes_preview(&app);
     int index = 0;
     while (index < app.themes.count && strcmp(app.themes.ids[index], id))
         index++;
     assert(index < app.themes.count);
     themes_move(&app, index - app.themes.selected);
+    themes_preview(&app);
     assert(app.themes.ready);
 }
 static void draw(void)

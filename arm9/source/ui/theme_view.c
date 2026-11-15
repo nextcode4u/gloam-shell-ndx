@@ -44,7 +44,7 @@ void themes_render(const App *app, uint16_t *top, uint16_t *bottom)
                  ui_translate(&app->language, "dialog.choose_theme", "Choose theme"), palette.text,
                  210);
     draw_text(bottom, 10, 24,
-              ui_translate(&app->language, "dialog.preview_hint", "Up/down preview; A applies"),
+              ui_translate(&app->language, "dialog.theme_select_hint", "Up/down select; X previews"),
               palette.muted, 33);
     for (int row = 0; row < 7; row++) {
         int index = state->scroll + row;
@@ -59,5 +59,9 @@ void themes_render(const App *app, uint16_t *top, uint16_t *bottom)
                                 : ui_translate(&app->language, "dialog.builtin", "Built-in"),
                           palette.text, 31);
     }
-    draw_text_wrapped(bottom, 10, 168, state->status, palette.muted, 33, 2);
+    draw_text_clipped(bottom, 10, 168, state->status, palette.muted, 33);
+    draw_text_clipped(
+        bottom, 10, 180,
+        ui_translate(&app->language, "dialog.theme_controls", "X Preview  A Apply  B Back"),
+        palette.text, 33);
 }

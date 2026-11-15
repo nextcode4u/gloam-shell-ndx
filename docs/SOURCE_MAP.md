@@ -31,12 +31,12 @@ change settings or perform hardware calls. The frame loop owns those operations.
 Saved locations, directory entry handoff and scan startup enforce those roots;
 Back stops at each assigned root. Files retains SD-wide browsing.
 
-Theme previews coalesce rapid selection changes for six frames, then use the
-shared cooperative decoder worker. Navigation cancels superseded loads and
-unwinds owned allocations before starting another theme. Preview asset banks
-stay hidden until complete; Apply can wait for that transaction, and Cancel
-preserves the active package. Returning to the applied theme within the picker
-reuses its banks; reopening the picker reloads assets to support theme editing.
+Theme navigation selects entries without decoding assets. X explicitly requests
+preview through the shared cooperative decoder worker, using half a frame's
+budget rather than the smaller background-artwork slice. Navigation and Cancel
+unwind superseded work; repeated X leaves the current load running. Preview banks
+stay hidden until complete, and A only applies a ready preview. Returning to the
+applied theme reuses its banks; X can reload it to support on-disk theme editing.
 
 Directory and picker scans run in bounded steps. Image jobs yield cooperatively
 and cancel when navigation changes. Selected overflow text uses the shared

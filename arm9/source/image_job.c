@@ -107,7 +107,10 @@ void image_decode_checkpoint(void)
         unsigned now = budget_clock() % clock_period;
         unsigned elapsed =
             now >= slice_start ? now - slice_start : clock_period - slice_start + now;
-        if (elapsed < clock_budget && checkpoints < 256)
+        /* A manually requested theme preview gets half a frame; background
+         * artwork retains its small idle budget. Input still runs every frame. */
+        unsigned budget = task_callback ? clock_period / 2 : clock_budget;
+        if (elapsed < budget && checkpoints < 256)
             return;
     } else if (checkpoints < 4)
         return;

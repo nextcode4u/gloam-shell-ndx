@@ -542,6 +542,8 @@ int main(int argc, char **argv)
                 themes_move(&app, -1);
             if (repeat & KEY_DOWN)
                 themes_move(&app, 1);
+            if (down & KEY_X)
+                themes_preview(&app);
             if (down & KEY_A)
                 themes_apply(&app);
         } else if (app.picker.open) {

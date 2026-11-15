@@ -7,9 +7,10 @@ frontend built with version-2 support; Gloam 1.0.0 rejects these packages.
 Existing `version=1` themes retain their behavior. New packs declare
 `[theme] version=2`; no conversion of older packs is necessary.
 
-Open **Frontend Settings → Appearance → Theme**. Up/Down previews packages on
-both screens. A applies; B/START cancels. Touch selects a preview, then applies
-when the same row is selected again. Preview never writes preferences. Applying
+Open **Frontend Settings → Appearance → Theme**. Up/Down moves through
+the list without loading assets. X loads the selected preview on both screens;
+A applies after it is ready. B/START cancels. Touch selects a row, a second tap
+requests its preview, and tapping a ready preview applies it. Preview never writes preferences. Applying
 records the package ID in normal frontend state; the original package is not
 edited. Restart reloads that package. Missing/invalid packages use the built-in
 appearance and report the fallback, while retaining the requested ID for repair.
