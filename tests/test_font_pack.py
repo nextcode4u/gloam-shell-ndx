@@ -55,6 +55,24 @@ class FontPackTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             pack_font(FONT, 10, 9, proportional=True, height=17)
 
+    def test_edge_bearing_adjustment_preserves_complete_ink(self):
+        from PIL import ImageFont
+        from tools.pack_theme_font import proportional_glyph, pack_font
+
+        font = ImageFont.truetype(str(FONT.with_name("DejaVuSans.ttf")), 10)
+        expected, _ = proportional_glyph(font, "A", 10, 12)
+        adjusted, _ = proportional_glyph(font, "A", 11, 12, edge_shift=2)
+        self.assertEqual(
+            expected.crop(expected.getbbox()).tobytes(),
+            adjusted.crop(adjusted.getbbox()).tobytes(),
+        )
+        with self.assertRaises(ValueError):
+            proportional_glyph(font, "A", 20, 12, edge_shift=2)
+        with self.assertRaises(ValueError):
+            pack_font(FONT, 10, 9, proportional=True, edge_shift=3)
+        with self.assertRaisesRegex(ValueError, "variable font"):
+            pack_font(FONT, 10, 9, proportional=True, weight=500)
+
     def test_native_envelope_and_rejected_overflow(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "ui.dsfont"

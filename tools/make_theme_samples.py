@@ -12,10 +12,12 @@ if __package__:
     from .make_theme_scenes import assets as scene_assets
     from .make_audio_samples import tones
     from .pack_theme_font import pack_font
+    from .theme_font_sources import theme_fonts
 else:
     from make_theme_scenes import assets as scene_assets
     from make_audio_samples import tones
     from pack_theme_font import pack_font
+    from theme_font_sources import theme_fonts
 
 ROOT = Path(__file__).resolve().parents[1]
 THEMES = ROOT / "sdroot/_nds/dsi-frontend/themes"
@@ -70,7 +72,7 @@ def music(name: str) -> bytes:
     return output.getvalue()
 
 
-def assets() -> dict[Path, bytes]:
+def assets(download_fonts=False) -> dict[Path, bytes]:
     result = {}
     for name, pitch in [
         ("folio", 0.65),
@@ -93,37 +95,26 @@ def assets() -> dict[Path, bytes]:
             )
         if name not in ("folio", "phosphor"):
             result[Path(name) / "sounds/loop.wav"] = music(name)
-    # Four-level proportional faces replace fixed-cell terminal typography.
-    for name, face in {
-        "copper": "DejaVuSerif",
-        "slate": "DejaVuSans",
-        "folio": "DejaVuSerif",
-        "nocturne": "DejaVuSans",
-        "tide": "DejaVuSans",
-        "phosphor": "DejaVuSans-Bold",
-        "eclipse": "DejaVuSans",
-        "prism": "DejaVuSans-Bold",
-        "ember": "DejaVuSerif",
-        "glacier": "DejaVuSans-Bold",
-        "garnet": "DejaVuSerif",
-    }.items():
-        serif = face == "DejaVuSerif"
-        result[Path(name) / "fonts/ui.dsfont"] = pack_font(
-            FONT_DIRECTORY / (face + ".ttf"),
-            10,
-            9 if serif else 10,
-            latin1=True,
-            proportional=True,
-        )
-        heading = "DejaVuSerif" if serif else "DejaVuSans-Bold"
-        result[Path(name) / "fonts/heading.dsfont"] = pack_font(
-            FONT_DIRECTORY / (heading + ".ttf"),
-            13,
-            13,
-            latin1=True,
-            proportional=True,
-            height=16,
-        )
+    for name, roles in theme_fonts(download_fonts):
+        notices = []
+        for role, (source, settings, family, notice) in roles.items():
+            filename = "ui" if role == "body" else "heading"
+            result[Path(name) / "fonts" / (filename + ".dsfont")] = pack_font(
+                source, latin1=True, proportional=True, **settings
+            )
+            notices.append(f"{role.title()} face: {family}\n\n{notice.strip()}\n")
+        if name == "copper":
+            # The legacy Latin fixture remains for the built-in fallback tests.
+            notices.append(
+                "Legacy latin.dsfont / DejaVu notice:\n"
+                + (THEMES / "copper/fonts/DEJAVU-LICENSE.txt").read_text()
+            )
+        result[Path(name) / "fonts/LICENSE.txt"] = (
+            "\n".join(
+                line.rstrip() for line in "\n".join(notices).splitlines()
+            ).rstrip()
+            + "\n"
+        ).encode()
     result.update({path.relative_to(THEMES): data for path, data in scene_assets()})
     return result
 
@@ -133,8 +124,13 @@ def main() -> None:
     parser.add_argument(
         "--check", action="store_true", help="Check assets without changing them"
     )
+    parser.add_argument(
+        "--download-fonts",
+        action="store_true",
+        help="Fetch checksum-pinned OFL authoring inputs",
+    )
     args = parser.parse_args()
-    generated = assets()
+    generated = assets(args.download_fonts)
     for relative, data in generated.items():
         destination = THEMES / relative
         if args.check:

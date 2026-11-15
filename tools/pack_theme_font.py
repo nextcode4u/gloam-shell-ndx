@@ -36,7 +36,7 @@ def glyph_bitmap(
     return bitmap
 
 
-def proportional_glyph(font, character, baseline, height):
+def proportional_glyph(font, character, baseline, height, edge_shift=0):
     """Keep hinted bearings and coverage; never crop or stretch an overflowing glyph."""
     left, top, right, bottom = font.getbbox(character, anchor="ls")
     mask = Image.new("L", (max(1, right - left), max(1, bottom - top)))
@@ -51,11 +51,13 @@ def proportional_glyph(font, character, baseline, height):
         ink_right, ink_bottom = left + bounds[2], top + bounds[3]
         shift = max(0, -ink_left)
         advance = max(advance + shift, ink_right + shift)
-        if ink_top + baseline < 0 or ink_bottom + baseline > height:
+        y = ink_top + baseline
+        fitted_y = max(0, min(y, height - (ink_bottom - ink_top)))
+        if ink_bottom - ink_top > height or abs(fitted_y - y) > edge_shift:
             raise ValueError(
                 f"Glyph {character!r} exceeds the {height}-pixel line height"
             )
-        bitmap.paste(mask.crop(bounds), (ink_left + shift, ink_top + baseline))
+        bitmap.paste(mask.crop(bounds), (ink_left + shift, fitted_y))
     if advance > 16:
         raise ValueError(f"Glyph {character!r} exceeds the 16-pixel advance limit")
     return bitmap, advance
@@ -69,12 +71,31 @@ def pack_font(
     *,
     proportional: bool = False,
     height: int = 12,
+    weight: float | None = None,
+    edge_shift: int = 0,
 ) -> bytes:
     if not 12 <= height <= 16 or (not proportional and height != 12):
         raise ValueError(
             "Fixed fonts use height 12; proportional fonts use heights 12–16"
         )
+    if edge_shift not in (0, 1, 2):
+        raise ValueError("Edge shift must be between zero and two pixels")
     font = ImageFont.truetype(str(source), size)
+    if weight is not None:
+        try:
+            axes = font.get_variation_axes()
+        except OSError as error:
+            raise ValueError("Weight requires a variable font") from error
+        values = [axis["default"] for axis in axes]
+        for index, axis in enumerate(axes):
+            if axis["name"] == b"Weight":
+                if not axis["minimum"] <= weight <= axis["maximum"]:
+                    raise ValueError("Weight is outside this font's variation range")
+                values[index] = weight
+                break
+        else:
+            raise ValueError("Font has no Weight axis")
+        font.set_variation_by_axes(values)
     if proportional:
         output = bytearray(
             b"DSFONT03"
@@ -85,7 +106,11 @@ def pack_font(
         for codepoint in list(range(32, 127)) + (
             list(range(160, 256)) if latin1 else []
         ):
-            bitmap, advance = proportional_glyph(font, chr(codepoint), baseline, height)
+            bitmap, advance = proportional_glyph(
+                font, chr(codepoint), baseline, height, edge_shift
+            )
+            if codepoint not in (32, 160, 173) and not bitmap.getbbox():
+                raise ValueError(f"Font has no visible glyph for U+{codepoint:04X}")
             output.extend((advance, 0))
             for y in range(height):
                 bits = sum(
@@ -120,6 +145,13 @@ def main() -> None:
     parser.add_argument("output", type=Path)
     parser.add_argument("--size", type=int, default=11)
     parser.add_argument("--baseline", type=int, default=9)
+    parser.add_argument("--weight", type=float, help="Variable-font weight axis")
+    parser.add_argument(
+        "--edge-shift",
+        type=int,
+        default=0,
+        help="Allow up to two pixels of bearing adjustment at line edges",
+    )
     parser.add_argument(
         "--latin1", action="store_true", help="Include U+00A0 through U+00FF"
     )
@@ -147,6 +179,8 @@ def main() -> None:
             args.latin1,
             proportional=args.proportional,
             height=args.height,
+            weight=args.weight,
+            edge_shift=args.edge_shift,
         )
     except (OSError, ValueError) as error:
         parser.error(str(error))

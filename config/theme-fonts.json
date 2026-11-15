@@ -1,0 +1,442 @@
+{
+  "format": 1,
+  "repository": "https://github.com/google/fonts",
+  "commit": "cc39c4c2c304bc368c9b7c311ea2bcc6013299fe",
+  "faces": {
+    "librebaskerville": {
+      "name": "LibreBaskerville",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/librebaskerville/LibreBaskerville%5Bwght%5D.ttf",
+        "sha256": "05a95421961341c5b2556285e8415df9db27dab4f4abe22b446b3c6a8b916c5d"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/librebaskerville/OFL.txt",
+        "sha256": "3624eddd4c8f8a908130a417ae7cd089c9da69899c4e0ca1a5217d0a6fae16fd"
+      }
+    },
+    "cinzel": {
+      "name": "Cinzel",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/cinzel/Cinzel%5Bwght%5D.ttf",
+        "sha256": "f4d83d34d1f6c741193e4acf4b3dff9531e5a67b6aa65228d00a7db72a4e0f34"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/cinzel/OFL.txt",
+        "sha256": "f2b3029aba64c378bf0963b62945eee15e564fe4330b934c8f2eb058282b5e83"
+      }
+    },
+    "inter": {
+      "name": "Inter",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf",
+        "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/inter/OFL.txt",
+        "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57"
+      }
+    },
+    "barlowsemicondensed": {
+      "name": "BarlowSemiCondensed-Bold",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/barlowsemicondensed/BarlowSemiCondensed-Bold.ttf",
+        "sha256": "5bd6757e459a110da81b44532f0f43058e2dab2401688abca84f2fdbde193cbb"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/barlowsemicondensed/OFL.txt",
+        "sha256": "186d750eb496a4c17a76385f82be6aea2ac1cf2de074a811d63786cf374ea73f"
+      }
+    },
+    "literata": {
+      "name": "Literata",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/literata/Literata%5Bopsz%2Cwght%5D.ttf",
+        "sha256": "b41138c9373112f32abb589cc22e8674b06ed4048b0c513be922bdd26f274440"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/literata/OFL.txt",
+        "sha256": "8742963604cd89dc81437811a850018fc03b2bfad686d7422c8235967c87614e"
+      }
+    },
+    "kalam": {
+      "name": "Kalam-Regular",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/kalam/Kalam-Regular.ttf",
+        "sha256": "57cecb63d4608019371954274ae1d8c397764debd5b19d4a33c1efa4dc923c0b"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/kalam/OFL.txt",
+        "sha256": "f62ef357d3a1c3d27edd35a6e1ba350e8a8d13499797964eeadefbf0b3b15d1f"
+      }
+    },
+    "nunito": {
+      "name": "Nunito",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/nunito/Nunito%5Bwght%5D.ttf",
+        "sha256": "bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/nunito/OFL.txt",
+        "sha256": "580df76c95a1ec5ab878ceb25bb3d85c6a076804e9c970c8c6972aea775fdf65"
+      }
+    },
+    "delius": {
+      "name": "Delius-Regular",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/delius/Delius-Regular.ttf",
+        "sha256": "c0fd66626926b637d64eb13de013b3318dbd72cdf92c33e41a29a03828bab6f6"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/delius/OFL.txt",
+        "sha256": "d8eb8611f8c98d20cbf18a28425652d6022dc2a5cca15026b920f1f2bc92a612"
+      }
+    },
+    "atkinsonhyperlegible": {
+      "name": "AtkinsonHyperlegible-Regular",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/atkinsonhyperlegible/AtkinsonHyperlegible-Regular.ttf",
+        "sha256": "7fb917c89019896d0b52ee84b7cbb3304c18cb90b19a62f5e32712bd23e97669"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/atkinsonhyperlegible/OFL.txt",
+        "sha256": "f32d22b3908fcad2c86a74000614ec22e6a7f66ea7e867e616026a27aebdc143"
+      }
+    },
+    "fraunces": {
+      "name": "Fraunces",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/fraunces/Fraunces%5BSOFT%2CWONK%2Copsz%2Cwght%5D.ttf",
+        "sha256": "177ff6c0f14e5550a3c624247cd1189611d4eb65d000b14944c63d967958abbb"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/fraunces/OFL.txt",
+        "sha256": "bdf4c22802eaf804f998195871c6b8938aac2ac14b2d78a8bd66a6f1eced833b"
+      }
+    },
+    "ibmplexsanscondensed": {
+      "name": "IBMPlexSansCondensed-Regular",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/ibmplexsanscondensed/IBMPlexSansCondensed-Regular.ttf",
+        "sha256": "e7437c072eef2ef592ae6f2beb0000446287385907abb57ac1cf07bcbaa2aa33"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/ibmplexsanscondensed/OFL.txt",
+        "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+      }
+    },
+    "spacegrotesk": {
+      "name": "SpaceGrotesk",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/spacegrotesk/SpaceGrotesk%5Bwght%5D.ttf",
+        "sha256": "acad6de1fc93436f5c0f1f4137751ef04f1aea3063e7036535970ffcfbd79f72"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/spacegrotesk/OFL.txt",
+        "sha256": "564ce565c371c5e5bbf286006565a7c9aa55a9f56e7ca58d56e05d649dd61a72"
+      }
+    },
+    "outfit": {
+      "name": "Outfit",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/outfit/Outfit%5Bwght%5D.ttf",
+        "sha256": "fc7287273e66929776e2ba54f144fe699080bec29f61bf649d70d871468aeade"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/outfit/OFL.txt",
+        "sha256": "c676351bf8576b9aba743cd5eaa8c0e7ee0d51f805d720447b4df4ddb6a2e416"
+      }
+    },
+    "cormorantgaramond": {
+      "name": "CormorantGaramond",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/cormorantgaramond/CormorantGaramond%5Bwght%5D.ttf",
+        "sha256": "b20b7d9626dd956b2c5e558692ad328b1f19e3275e2782db4fa07670d83f35e0"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/cormorantgaramond/OFL.txt",
+        "sha256": "60700d351cac4650c51f3f9db318d2a420f8b45052dba2715eb5fec41f0f6956"
+      }
+    },
+    "quicksand": {
+      "name": "Quicksand",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/quicksand/Quicksand%5Bwght%5D.ttf",
+        "sha256": "39c9b64223561f56aaff6062a6f04063c4fc86809ad6768722c06614d977e1cc"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/quicksand/OFL.txt",
+        "sha256": "14d28541780d90f6577bb7abcc6f005bf6969614294e75c82abb8758a696ad46"
+      }
+    },
+    "fredoka": {
+      "name": "Fredoka",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/fredoka/Fredoka%5Bwdth%2Cwght%5D.ttf",
+        "sha256": "2ba02e68b152868aef9ba28e24b3648c7d457fe6f25c761f2c2c53fb61a73fc8"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/fredoka/OFL.txt",
+        "sha256": "5c9e7eee5c6b25f4b05b8d53b2e470ea4962f9ced742d044a98f7d95d1375bab"
+      }
+    },
+    "sourcesans3": {
+      "name": "SourceSans3",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/sourcesans3/SourceSans3%5Bwght%5D.ttf",
+        "sha256": "042fe2cc0b933e328410d7acbd0aa6a1873dca5aef81875f4bc214b08825c7b9"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/sourcesans3/OFL.txt",
+        "sha256": "09746787287a289323b0ec3cff4d1a4a801331b82b7207c1e186f5d26619a392"
+      }
+    },
+    "publicsans": {
+      "name": "PublicSans",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/publicsans/PublicSans%5Bwght%5D.ttf",
+        "sha256": "d75a7dc1a27eb9e336d5b33f55489d2ecb5621bf694d5c43b2415bce2ca830a8"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/publicsans/OFL.txt",
+        "sha256": "157a9e77f7580246e97c769490e2e977ae94399f9d30f4556015c41fe8c28bac"
+      }
+    },
+    "archivoblack": {
+      "name": "ArchivoBlack-Regular",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/archivoblack/ArchivoBlack-Regular.ttf",
+        "sha256": "dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/archivoblack/OFL.txt",
+        "sha256": "3173acd82f8c6159b5b1037b539fcbd4edff68e65c2ea8b9412b5a5ca97b08ff"
+      }
+    },
+    "ebgaramond": {
+      "name": "EBGaramond",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/ebgaramond/EBGaramond%5Bwght%5D.ttf",
+        "sha256": "ef9512f92f6d579e5dc75af59a5a4b1b8b47d2eda89e00b954d44520e5369027"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/ebgaramond/OFL.txt",
+        "sha256": "0985066662eb755ed3683ae5482a81a9195b49ce3f7e165cc2388b3dbece7dd7"
+      }
+    },
+    "bitter": {
+      "name": "Bitter",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/bitter/Bitter[wght].ttf",
+        "sha256": "ef2b9a711fb02f1e5823b34da1b7450e0fc76793b7d733a8b41006e24916d4a7"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/bitter/OFL.txt",
+        "sha256": "152a1e283e23b42c4940da4c72f2f5bebaa17969cb77c76d7af05903846006f1"
+      }
+    },
+    "marcellus": {
+      "name": "Marcellus-Regular",
+      "font": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/marcellus/Marcellus-Regular.ttf",
+        "sha256": "1cf0cd10b17d35e852729962cc1ffaffed94514895972458345e2df34abb2f81"
+      },
+      "license": {
+        "url": "https://raw.githubusercontent.com/google/fonts/cc39c4c2c304bc368c9b7c311ea2bcc6013299fe/ofl/marcellus/OFL.txt",
+        "sha256": "715ba72697e14daa9b29a333545f69bde7c497b9f77d0a2a4c4a5a752d961801"
+      }
+    }
+  },
+  "themes": {
+    "copper": {
+      "body": {
+        "family": "librebaskerville",
+        "weight": 500,
+        "size": 9,
+        "baseline": 10,
+        "height": 12,
+        "edge_shift": 2
+      },
+      "heading": {
+        "family": "cinzel",
+        "weight": 650,
+        "size": 11,
+        "baseline": 14,
+        "height": 16,
+        "edge_shift": 2
+      }
+    },
+    "slate": {
+      "body": {
+        "family": "inter",
+        "weight": 500,
+        "size": 9,
+        "baseline": 10,
+        "height": 12,
+        "edge_shift": 2
+      },
+      "heading": {
+        "family": "barlowsemicondensed",
+        "size": 15,
+        "baseline": 14,
+        "height": 16,
+        "edge_shift": 2
+      }
+    },
+    "folio": {
+      "body": {
+        "family": "literata",
+        "weight": 500,
+        "size": 10,
+        "baseline": 10,
+        "height": 12,
+        "edge_shift": 2
+      },
+      "heading": {
+        "family": "kalam",
+        "size": 15,
+        "baseline": 14,
+        "height": 16,
+        "edge_shift": 2
+      }
+    },
+    "nocturne": {
+      "body": {
+        "family": "nunito",
+        "weight": 500,
+        "size": 10,
+        "baseline": 10,
+        "height": 12,
+        "edge_shift": 2
+      },
+      "heading": {
+        "family": "delius",
+        "size": 14,
+        "baseline": 14,
+        "height": 16,
+        "edge_shift": 2
+      }
+    },
+    "tide": {
+      "body": {
+        "family": "atkinsonhyperlegible",
+        "size": 12,
+        "baseline": 10,
+        "height": 12,
+        "edge_shift": 2
+      },
+      "heading": {
+        "family": "fraunces",
+        "weight": 650,
+        "size": 14,
+        "baseline": 14,
+        "height": 16,
+        "edge_shift": 2
+      }
+    },
+    "phosphor": {
+      "body": {
+        "family": "ibmplexsanscondensed",
+        "size": 12,
+        "baseline": 10,
+        "height": 12,
+        "edge_shift": 2
+      },
+      "heading": {
+        "family": "spacegrotesk",
+        "weight": 650,
+        "size": 14,
+        "baseline": 14,
+        "height": 16,
+        "edge_shift": 2
+      }
+    },
+    "eclipse": {
+      "body": {
+        "family": "outfit",
+        "weight": 500,
+        "size": 10,
+        "baseline": 10,
+        "height": 12,
+        "edge_shift": 2
+      },
+      "heading": {
+        "family": "cormorantgaramond",
+        "weight": 650,
+        "size": 14,
+        "baseline": 13,
+        "height": 16,
+        "edge_shift": 2
+      }
+    },
+    "prism": {
+      "body": {
+        "family": "quicksand",
+        "weight": 500,
+        "size": 12,
+        "baseline": 10,
+        "height": 12,
+        "edge_shift": 2
+      },
+      "heading": {
+        "family": "fredoka",
+        "weight": 650,
+        "size": 13,
+        "baseline": 14,
+        "height": 16,
+        "edge_shift": 2
+      }
+    },
+    "ember": {
+      "body": {
+        "family": "sourcesans3",
+        "weight": 500,
+        "size": 12,
+        "baseline": 10,
+        "height": 12,
+        "edge_shift": 2
+      },
+      "heading": {
+        "family": "bitter",
+        "weight": 650,
+        "size": 15,
+        "baseline": 13,
+        "height": 16,
+        "edge_shift": 2
+      }
+    },
+    "glacier": {
+      "body": {
+        "family": "publicsans",
+        "weight": 500,
+        "size": 12,
+        "baseline": 10,
+        "height": 12,
+        "edge_shift": 2
+      },
+      "heading": {
+        "family": "archivoblack",
+        "size": 15,
+        "baseline": 14,
+        "height": 16,
+        "edge_shift": 2
+      }
+    },
+    "garnet": {
+      "body": {
+        "family": "ebgaramond",
+        "weight": 500,
+        "size": 12,
+        "baseline": 10,
+        "height": 12,
+        "edge_shift": 2
+      },
+      "heading": {
+        "family": "marcellus",
+        "size": 14,
+        "baseline": 14,
+        "height": 16,
+        "edge_shift": 2
+      }
+    }
+  }
+}

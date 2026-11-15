@@ -29,7 +29,11 @@ python3 tools/pack_theme_font.py DejaVuSerif.ttf fonts/heading.dsfont --proporti
 These sizes are examples for those specific faces. Other fonts need their own
 baseline and size checks. The proportional exporter preserves grayscale ink,
 including negative bearings, and rejects horizontal or vertical overflow.
-It does not reduce or crop an offending glyph. Four coverage levels smooth
+It does not reduce or crop an offending glyph. The optional `--edge-shift 1` or
+`--edge-shift 2` permits that many pixels of vertical bearing adjustment only
+when ink would otherwise cross a line edge. Complete ink must still fit the
+line height; the default remains strict. `--weight` selects the Weight axis of
+a variable font and rejects static fonts or out-of-range values. Four coverage levels smooth
 edges against the actual screen surface; there is no RGB subpixel rendering.
 Keep full-coverage stems and inspect small punctuation on both light/dark LCDs.
 
@@ -91,3 +95,34 @@ Home sections and SD removal. Untranslated help and runtime diagnostics retain E
 Catalogs support up to 384 additional keys within the 32 KiB file limit; values
 share a 24 KiB text pool rather than allocating a full help buffer per key.
 Personal theme names, paths and custom tab labels are never translated as values.
+
+## Rebuilding the bundled faces
+
+Each theme has its own body/heading pairing, described by
+[`config/theme-fonts.json`](../../config/theme-fonts.json). All 22 families use
+the SIL Open Font License. To fetch the authoring inputs once and rebuild:
+
+```sh
+python3 tools/make_theme_samples.py --download-fonts
+```
+
+Use the pinned Pillow dependency from `requirements.txt`. Downloads use immutable
+Google Fonts URLs and verified SHA-256 digests. Full source faces and their OFL
+notices stay in ignored `build/theme-font-sources/`; prepared DSFONT03 packs and
+both license notices ship with each theme. Subsequent runs work offline and
+reject altered cache inputs. Normal firmware builds use the checked-in packs,
+require no source font download and add no font decoding to startup.
+
+| Theme | Body | Heading |
+| --- | --- | --- |
+| Copper | LibreBaskerville | Cinzel |
+| Slate | Inter | BarlowSemiCondensed-Bold |
+| Folio | Literata | Kalam-Regular |
+| Nocturne | Nunito | Delius-Regular |
+| Tide | AtkinsonHyperlegible-Regular | Fraunces |
+| Phosphor | IBMPlexSansCondensed-Regular | SpaceGrotesk |
+| Eclipse | Outfit | CormorantGaramond |
+| Prism | Quicksand | Fredoka |
+| Ember | SourceSans3 | Bitter |
+| Glacier | PublicSans | ArchivoBlack-Regular |
+| Garnet | EBGaramond | Marcellus-Regular |

@@ -2,7 +2,7 @@
 
 Visual direction: Painted coastal headland.
 
-Illustrations, material surfaces and smooth vector-style icons were created for
+Illustrations, material surfaces and individually illustrated icons were created for
 Gloam Shell NDX with agent assistance. The project offers its rights in these
 assets under CC0-1.0:
 https://creativecommons.org/publicdomain/zero/1.0/
@@ -12,7 +12,7 @@ package. Prepare backgrounds with `tools/make_theme_scenes.py`; Prism's vector
 composition is authored directly in that tool. No other launcher's artwork is
 included. Prompts and draft images are not distributed.
 
-The body and heading fonts use DejaVu with their included `fonts/LICENSE.txt`.
+The body face is AtkinsonHyperlegible-Regular; headings use Fraunces. Both use the SIL Open Font License, retained in `fonts/LICENSE.txt`. Source revisions and checksums are recorded in `config/theme-fonts.json`.
 `tools/make_theme_samples.py` reproduces those packs and the original synthesized
 UI cues. `tools/make_theme_icons.py` and `tools/make_theme_components.py` reproduce
 the sprites; `tools/pack_theme_assets.py <theme-folder>` rebuilds `assets.gfx`.
