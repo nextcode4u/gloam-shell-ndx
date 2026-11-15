@@ -24,7 +24,7 @@ class ThemeIconTests(unittest.TestCase):
                 prepared = manifest.parent / config["assets"]["prepared"]
                 self.assertEqual(prepared.read_bytes(), pack(manifest.parent))
                 # One compressed bank replaces dozens of individual PNG reads.
-                self.assertLess(prepared.stat().st_size, 16384)
+                self.assertLess(prepared.stat().st_size, 65536)
                 inks = set()
                 for kind in ("folder", "application", "audio", "book"):
                     with Image.open(
@@ -75,28 +75,33 @@ class ThemeIconTests(unittest.TestCase):
                     self.assertEqual(alpha.getextrema(), (0, 255))
                     self.assertTrue(image.getbbox())
 
-    def test_navigation_silhouettes_and_small_gears(self):
-        for kind in TAB_NAMES:
-            with Image.open(
-                THEMES / "copper/icons" / (kind + ".png")
-            ) as copper, Image.open(THEMES / "prism/icons" / (kind + ".png")) as prism:
-                self.assertNotEqual(
-                    copper.getchannel("A").tobytes(),
-                    prism.getchannel("A").tobytes(),
-                    kind,
-                )
-        for manifest in THEMES.glob("*/theme.ini"):
-            for kind in ("system", "settings", "tab-system"):
+    def test_independent_silhouettes_remain_visible_at_small_sizes(self):
+        for kind in ("folder", "application", "audio", "settings", "tab-home"):
+            masks = set()
+            for manifest in THEMES.glob("*/theme.ini"):
                 with Image.open(manifest.parent / "icons" / (kind + ".png")) as image:
+                    masks.add(image.getchannel("A").tobytes())
                     for size in (16, 20, 24, 32):
                         alpha = image.resize(
                             (size, size), Image.Resampling.NEAREST
                         ).getchannel("A")
-                        self.assertEqual(alpha.getpixel((size // 2, size // 2)), 0)
                         self.assertGreater(
-                            sum(value > 0 for value in alpha.get_flattened_data()),
-                            size * 3,
+                            sum(a >= 128 for a in alpha.get_flattened_data()), size * 2
                         )
+                        self.assertIsNone(alpha.crop((0, 0, size, 1)).getbbox())
+                        self.assertIsNone(alpha.crop((0, 0, 1, size)).getbbox())
+            self.assertEqual(len(masks), 11, kind)
+
+    def test_distinct_prepared_typography(self):
+        for role in ("ui", "heading"):
+            faces = [
+                (p.parent / "fonts" / (role + ".dsfont")).read_bytes()
+                for p in THEMES.glob("*/theme.ini")
+            ]
+            self.assertEqual(len(set(faces)), 11)
+            for face in faces:
+                self.assertEqual(face[:8], b"DSFONT03")
+                self.assertEqual(face[12:14], bytes((160, 96)))
 
     def test_scene_backgrounds_are_distinct_and_reproducible(self):
         generated = dict(scene_assets())

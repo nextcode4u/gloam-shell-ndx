@@ -12,9 +12,9 @@ from PIL import Image, ImageColor
 from functools import lru_cache
 
 if __package__:
-    from .make_theme_navigation import MATERIALS, SmoothDraw, smooth_export
+    from .make_theme_navigation import SmoothDraw, smooth_export
 else:
-    from make_theme_navigation import MATERIALS, SmoothDraw, smooth_export
+    from make_theme_navigation import SmoothDraw, smooth_export
 
 ROOT = Path(__file__).resolve().parents[1]
 THEMES = ROOT / "sdroot/_nds/dsi-frontend/themes"
@@ -59,7 +59,6 @@ def component_image(name, style, colors, theme="copper"):
     bg, face, accent, muted = (
         colors[k] for k in ("background", "surface", "accent", "muted")
     )
-    secondary = MATERIALS[theme][1]
     radius = {
         "copper": 3,
         "slate": 8,
@@ -103,7 +102,27 @@ def component_image(name, style, colors, theme="copper"):
             points = [(y, x) for x, y in points]
         elif name == "arrow-down":
             points = [(y, 32 - x) for x, y in points]
-        d.line(points, fill=accent, width=4)
+        if theme in ("prism", "nocturne", "eclipse"):
+            # Soft button caps rather than the expedition packs' open chevrons.
+            d.ellipse((1, 1, 30, 30), fill=face)
+            d.line(points, fill=accent, width=5)
+        elif theme in ("copper", "garnet", "ember"):
+            d.polygon(
+                [
+                    (1, 8),
+                    (8, 1),
+                    (24, 1),
+                    (31, 8),
+                    (31, 24),
+                    (24, 31),
+                    (8, 31),
+                    (1, 24),
+                ],
+                fill=face,
+            )
+            d.line(points, fill=accent, width=3)
+        else:
+            d.line(points, fill=accent, width=4)
     elif name.startswith("check-"):
         d.rounded_rectangle(
             (3, 3, 28, 28),
@@ -186,6 +205,41 @@ def component_image(name, style, colors, theme="copper"):
             d.polygon(points, fill=fill)
         elif theme == "phosphor":
             d.polygon([(5, 0), (31, 0), (31, 26), (26, 31), (0, 31), (0, 5)], fill=fill)
+        elif theme == "glacier":
+            # Folded travel-paper corners, distinct from a rounded glass card.
+            d.polygon([(0, 0), (24, 0), (31, 7), (31, 31), (7, 31), (0, 24)], fill=fill)
+            d.polygon([(24, 0), (24, 7), (31, 7)], fill=muted)
+        elif theme == "garnet":
+            # Arched shoulders and a flat foot echo the stained-glass icons.
+            d.rounded_rectangle((0, 0, 31, 31), radius=9, fill=fill)
+            d.rectangle((0, 8, 31, 31), fill=fill)
+        elif theme == "eclipse":
+            # One rounded end and one straight edge: an offset orbital capsule.
+            d.rounded_rectangle((0, 0, 31, 31), radius=12, fill=fill)
+            d.rectangle((0, 0, 16, 31), fill=fill)
+        elif theme == "ember":
+            d.rounded_rectangle((0, 0, 31, 31), radius=3, fill=fill)
+            for x, y in ((3, 3), (28, 3), (3, 28), (28, 28)):
+                d.ellipse((x - 1, y - 1, x + 1, y + 1), fill=muted)
+        elif theme == "copper":
+            d.polygon(
+                [
+                    (3, 0),
+                    (28, 0),
+                    (31, 3),
+                    (31, 28),
+                    (28, 31),
+                    (3, 31),
+                    (0, 28),
+                    (0, 3),
+                ],
+                fill=fill,
+            )
+        elif theme == "nocturne":
+            d.rounded_rectangle((0, 1, 31, 30), radius=7, fill=fill)
+            for x in (5, 26):
+                d.ellipse((x - 2, 0, x + 2, 4), fill=fill)
+                d.ellipse((x - 2, 27, x + 2, 31), fill=fill)
         else:
             d.rounded_rectangle((0, 0, 31, 31), radius=radius, fill=fill)
         if selected and theme != "prism":

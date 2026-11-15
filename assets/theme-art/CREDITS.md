@@ -1,4 +1,4 @@
-# Illustration masters
+# Theme artwork masters
 
 These ten illustration masters were created for Gloam Shell NDX with
 agent-assisted image generation. The project offers its rights in this artwork
@@ -11,3 +11,9 @@ implemented in that tool under the same CC0 dedication.
 
 No image, character, logo or skin from another launcher's theme is included.
 Generation prompts and working drafts remain outside the public source tree.
+
+Each of the eleven `*-icons.png` files is a separate original 512×512 RGBA
+atlas, with sixteen objects in a 4×4 grid. `tools/make_theme_icons.py` fits those
+objects into native 32×32 sprites and maps related entry points within each
+pack. They share the CC0 dedication above. The motifs, silhouettes and materials
+were authored independently for each theme; native title banners remain separate.

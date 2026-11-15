@@ -144,7 +144,7 @@ state. `theme_components.c` maps cached battery readings to artwork states;
 `ui/theme_components.c` draws those sprites. The update checker temporarily owns a network connection; idle artwork does not
 infer signal strength or radio power from the wireless LED.
 
-`tools/make_theme_scenes.py` owns eleven independent pixel-illustration functions.
+`tools/make_theme_scenes.py` prepares eleven independent scene compositions.
 Scene layout in `ui/renderer.c` keeps art separate from the item inspector.
 `theme_backgrounds.c` retains only a 94-line unshaded strip for each loaded Scene
 package, alongside the ordinary shaded dialog background.
@@ -153,7 +153,9 @@ Tab presentation helpers in `ui/renderer.c` draw labels, icon docks/tiles, numbe
 selectors and pagers from the existing tab model. Theme parsing validates bounded
 style, highlight, gap and visible-count settings; rendering never changes navigation.
 
-`tools/make_theme_navigation.py` authors dedicated navigation icons at dock resolution.
+`tools/make_theme_icons.py` prepares independent per-theme icon atlases from
+`assets/theme-art/*-icons.png`, including navigation objects at dock resolution.
+`make_theme_navigation.py` supplies shared supersampling primitives for components.
 The optional tab PNGs share the bounded theme icon cache, with independent fallback
 to existing file-type symbols. `make_theme_icons.py` exports both asset families.
 
@@ -179,3 +181,8 @@ Version 2 keeps motion in
 bounded per-layer metadata and uses fixed-point transforms with screen-local
 clipping; it does not bake effects into frame sequences or allocate while drawing.
 The contributor UI, project migration and matching preview stay in the theme repo.
+
+Bundled font authoring uses `config/theme-fonts.json` and
+`tools/theme_font_sources.py` for immutable, checksum-verified OFL sources.
+`make_theme_samples.py --download-fonts` explicitly populates an ignored cache;
+ordinary firmware builds consume the prepared per-theme DSFONT03 files.
