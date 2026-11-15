@@ -15,6 +15,12 @@ destination and length registers before clearing RAM. This backports the capture
 reset from [RocketRobz's Memory Pit fix](https://github.com/Deletecat/nds-bootloader/commit/ba79fa3592e56354ed68f9e6333d0720121eab73),
 preventing inherited capture activity from writing into the next application.
 
+Both CPU reset routines clear IPC sync, empty their outgoing FIFO and disable
+FIFO communication before handing over to the next application. These backport
+RocketRobz's [ARM7 reset](https://github.com/Deletecat/nds-bootloader/commit/3a251ec562f376ec8c44e539a3c90b7e88b75de1)
+and [ARM9 reset](https://github.com/Deletecat/nds-bootloader/commit/ba79fa3592e56354ed68f9e6333d0720121eab73),
+preventing stale messages and interrupt enables from carrying over.
+
 Return stub: devkitPro/nds-hb-menu at 3c1f64c12da157fdd14a2d594db139f50e283261, bootstub/bootstub.s. Its source notice and COPYING are retained.
 
 Local integration uses tools/build_homebrew_loader.py and arm9/source/launch_platform.c. The legacy loader is built with BlocksDS headers and links libnds7 for its now-external dmaSetParams function. No flashcart DLDI route is enabled by this integration. The wrapper bounds argument/VRAM/stub sizes and uses the DSi SD path only. This is a homebrew adapter, not retail-game compatibility.
