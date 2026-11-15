@@ -57,7 +57,7 @@ both directions. Bright shades suit dark backgrounds; deeper versions with light
 selection text suit light backgrounds. The original first three saved IDs stay
 unchanged. Expanded selections persist in state and named appearance snapshots. The value shows Theme until an override is selected. Reapplying a theme
 restores its accent. Other browser preferences remain independent of the package.
-Copper and Slate demonstrate a packed face and the built-in face respectively;
+Copper and Slate demonstrate serif and sans proportional faces respectively;
 Folio, Nocturne and Tide add light/dark layouts, wallpapers and original audio. All screens consume the resolved palette, including settings,
 file pickers and theme preview. PNG covers retain their existing neutral alpha
 matte; they are content artwork rather than theme backgrounds.
@@ -69,36 +69,41 @@ A, or cancel with B. The packages are ready to copy; no build step is needed.
 
 | Theme | Illustrated identity | Browser character |
 | --- | --- | --- |
-| Copper | Oxidized teal workshop, brass gears, red pressure wheel and ivory gauge. | Enamel faces, brass fasteners and warm selection edges. |
-| Slate | Navy city rain, coral neon and amber reflections. | Graphite panels, cyan symbols and salmon highlights. |
-| Folio | Pressed flowers, green leaves, blue tape and vermilion berries. | Cream paper, terracotta selection and colored notebook inks. |
-| Nocturne | Blue dusk, warm roofs, a butter-yellow moon and colored lanterns. | Smoky violet surfaces, gold selection and sea-glass symbols. |
-| Tide | Peach sky, blue sea, red-striped lighthouse and coral sail. | Cream charts, navy text and red pencil marks. |
-| Phosphor | Navy instrument enclosure, green radar, cyan controls and amber indicators. | Open brackets and compact instrument rows. |
-| Eclipse | Copper planet, turquoise rings and pink stellar points. | Plum cards, apricot selection and complementary category inks. |
-| Prism | Honey, rose and teal arcade cabinets over a checker floor. | Cream panels, cranberry selection and colored corner tabs. |
-| Ember | Pine-green forest, rose dusk, canvas tent and orange fire. | Olive surfaces, gold edges and pale teal equipment icons. |
-| Glacier | Violet-and-mint aurora, blue ice and safety-orange equipment. | Navy panels, peach highlights and colored instrument symbols. |
-| Garnet | Gold tracery around rose, jade and cobalt stained glass. | Burgundy panels, brass selection and cool secondary inks. |
+| Copper | Patinated copper, celadon paint, an ivory gauge and red enamel. | Warm serif headings and broad brushed-metal surfaces. |
+| Slate | Cinematic night rain, amber windows and coral reflections. | Rounded charcoal surfaces and clean proportional sans text. |
+| Folio | Tactile pressed flowers and torn botanical paper collage. | Irregular paper edges, serif type and terracotta marks. |
+| Nocturne | A painted cat, terracotta rooftops and a luminous dusk sky. | Soft violet shapes and warm gold accents. |
+| Tide | Gouache sea cliffs, peach sky and an ivory lighthouse. | Pale coastal surfaces and smooth navy typography. |
+| Phosphor | An expedition map, radar glass, ivory casing and indicator lamps. | Bold chamfered controls and compact sans text. |
+| Eclipse | A painted terracotta planet above a surreal violet landscape. | Rounded plum cards and apricot accents. |
+| Prism | Bold pink, cream and yellow cut-color shapes. | Bubble forms, lime selection and a centered artwork stage. |
+| Ember | An illustrated autumn campsite beneath a rose sky. | Canvas-colored labels, warm serif type and rust highlights. |
+| Glacier | Layered paper mountains, mint sky and an orange expedition hut. | Airy ice-colored surfaces and bold navy headings. |
+| Garnet | Art-nouveau jewel glass and aged brass in a quiet interior. | Soft aubergine shapes, serif headings and gold accents. |
 
 All eleven bundled packs require version-2 theme support. They include original
 native-resolution illustrations, independent screen shading and complementary
 file/tab colors. Prepared `assets.gfx` banks avoid individual sprite PNG reads;
-the editable PNG sources remain alongside them. Opaque rows protect text, while
-only the compact inspector Panel retains partial coverage (256 bytes of coverage
-per loaded pack). Repeated grid/shelf cards stay opaque. Screen shading is prepared during loading. These packs add no
+the editable PNG sources remain alongside them. Opaque row/card centers protect
+text; four-level coverage smooths their edges. Body faces use proportional
+DSFONT03 text, with separate 16-pixel heading faces. Supersampling, physical grain
+and palette reduction happen on the authoring PC. Native drawing uses finished
+32-pixel sprites and 256×192 backgrounds, with no live texture synthesis or blur.
+Separate reading surfaces protect the header/footer controls and dialog text
+while leaving the browser illustration visible. They are precomposited during
+loading and require no additional retained framebuffer. These packs add no
 animation scripts or per-frame file reads.
 
 Screen compositions are chosen to suit their character:
 
-- **Scene — Copper, Nocturne, Tide and Garnet:** illustration above a compact
+- **Scene — Copper, Folio, Nocturne, Tide, Glacier and Garnet:** illustration above a compact
   inspector and horizontal tabs. Tide uses a larger thumbnail; Garnet a portrait
   framed thumbnail beside its rose window.
-- **Poster — Eclipse, Prism and Ember:** large artwork beside title details,
+- **Poster — Eclipse and Ember:** large artwork beside title details,
   with horizontal tabs below.
-- **Journal — Folio and Slate:** compact portrait artwork beside a heading and
+- **Journal — Slate:** compact portrait artwork beside a heading and
   item facts, leaving the scenery visible around them.
-- **Gallery — Glacier:** navigation above artwork and item facts.
+- **Spotlight — Prism:** centered artwork with broad color shapes and navigation below.
 - **Right sidebar — Phosphor:** artwork and information on the left,
   with a persistent tab list on the right.
 
@@ -106,9 +111,12 @@ Icons, cover art, labels and status remain live; none are baked into the
 background. Ordinary dialogs keep a shaded reading surface. Personal view,
 audio and Reduced motion preferences still apply.
 
-The illustrations are CC0-1.0 and reproducible with
-`.venv/bin/python tools/make_theme_scenes.py`. No other launcher's theme artwork
-is redistributed. Existing music/font notices remain in each package.
+The agent-assisted illustration masters and their CC0-1.0 attribution are in
+[`assets/theme-art`](../../assets/theme-art/CREDITS.md). Native backgrounds and
+reading surfaces are reproducible from those masters with
+`.venv/bin/python tools/make_theme_scenes.py`; Prism's vector composition is
+authored directly in that tool. No other launcher's theme artwork is
+redistributed. Existing music/font notices remain in each package.
 
 [View all eleven rendered themes](../images/theme-personalities.png).
 Regenerate with `.venv/bin/python tools/make_screenshots.py --theme-variants personality`.
@@ -581,9 +589,10 @@ PNG colors are fixed and personal accent changes do not recolor them. The loader
 palette checks cannot certify contrast inside arbitrary artwork; inspect both
 screens, small/large icons, every view and settings before sharing a pack.
 
-All eleven supplied packs include components. Phosphor uses open selection
-brackets, Eclipse uses rounded panels, Prism uses folded corners, and Copper
-uses beveled edges. Regenerate them with:
+All eleven supplied packs include components. Folio uses torn-paper silhouettes,
+Slate and Eclipse use broad rounded surfaces, Prism uses bubble forms, and
+Phosphor uses bold chamfered shapes. The sprites are supersampled on the PC;
+the DSi loads their finished pixels. Regenerate them with:
 
 ```sh
 .venv/bin/python tools/make_theme_components.py
