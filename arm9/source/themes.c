@@ -1,8 +1,10 @@
 /* Bounded package discovery, validation and transactional preview. */
 #include "themes.h"
 #include "app.h"
+#include "artwork.h"
 #include "audio.h"
 #include "browser.h"
+#include "image_job.h"
 #include "paths.h"
 #include "theme_assets.h"
 #include "theme_composition.h"
@@ -489,23 +491,110 @@ static int compare_ids(const void *left, const void *right)
 {
     return strcmp(left, right);
 }
-static void preview(App *app)
+static bool preview_visible = true;
+bool themes_preview_visible(void)
+{
+    return preview_visible;
+}
+static void preview_assets_clear(void)
+{
+    theme_assets_end();
+    themes_background_cancel();
+    themes_icons_cancel();
+    themes_components_cancel();
+    preview_visible = true;
+}
+static void preview_stop(App *app)
+{
+    if (app->themes.loading) {
+        image_job_cancel();
+        /* Cancelled checkpoints stop yielding; the decoder unwinds its owned
+         * allocations before any bank is freed or another worker can start. */
+        image_job_step();
+        image_job_task_finish();
+        app->themes.loading = false;
+    }
+    preview_assets_clear();
+}
+static void preview_load(void *context)
+{
+    App *app = context;
+    ThemeState *state = &app->themes;
+    bool valid = load(app, state->ids[state->selected], &state->candidate);
+    if (valid && !image_job_cancelled()) {
+        themes_background_load(&state->candidate, true);
+        if (!image_job_cancelled()) {
+            theme_assets_begin(&state->candidate);
+            themes_icons_load(&state->candidate, true);
+            themes_components_load(&state->candidate, true);
+        }
+    }
+    theme_assets_end();
+    state->ready = valid && !image_job_cancelled();
+}
+static void preview_complete(App *app)
 {
     ThemeState *state = &app->themes;
-    state->ready = load(app, state->ids[state->selected], &state->candidate);
+    preview_visible = true;
     path_copy(state->status,
               state->ready ? "Preview only. A applies; B cancels."
                            : "Invalid package, font or contrast; retained current theme.",
               sizeof state->status);
     font_use(state->ready ? &state->candidate.font : &state->active.font);
-    themes_icons_cancel();
-    themes_components_cancel();
-    if (state->ready) {
-        themes_background_load(&state->candidate, true);
-        theme_assets_begin(&state->candidate);
-        themes_icons_load(&state->candidate, true);
-        themes_components_load(&state->candidate, true);
-        theme_assets_end();
+    if (!state->ready)
+        preview_assets_clear();
+    if (state->ready && state->apply_requested)
+        themes_apply(app);
+}
+static void preview(App *app, bool reuse_active)
+{
+    ThemeState *state = &app->themes;
+    preview_stop(app);
+    state->ready = state->pending = state->reuse_active = state->apply_requested = false;
+    font_use(&state->active.font);
+    if (reuse_active && !strcmp(state->ids[state->selected], state->active.id)) {
+        state->candidate = state->active;
+        state->ready = state->reuse_active = true;
+        preview_complete(app);
+    } else if (image_job_supported()) {
+        artwork_cache_cancel_pending();
+        state->pending = true;
+        state->preview_delay = 6; /* Coalesce quick navigation, not every passed row. */
+        path_copy(state->status, "Loading preview; keep browsing. A applies when ready.",
+                  sizeof state->status);
+    } else {
+        preview_load(app);
+        preview_complete(app);
+    }
+}
+void themes_tick(App *app)
+{
+    ThemeState *state = &app->themes;
+    if (!state->open || app->storage_lost)
+        return;
+    if (state->loading) {
+        image_job_step();
+        if (!image_job_task_finish())
+            return;
+        state->loading = false;
+        preview_complete(app);
+    } else if (state->pending && !image_job_busy()) {
+        if (state->preview_delay) {
+            state->preview_delay--;
+            return;
+        }
+        state->pending = false;
+        preview_visible = false;
+        state->loading = image_job_begin_task(preview_load, app);
+        if (!state->loading) {
+            path_copy(state->status, "Preview unavailable; select another theme.",
+                      sizeof state->status);
+            state->apply_requested = false;
+            preview_visible = true;
+        } else if (image_job_task_finish()) {
+            state->loading = false;
+            preview_complete(app);
+        }
     }
 }
 void themes_open(App *app)
@@ -538,7 +627,7 @@ void themes_open(App *app)
         if (!strcmp(state->ids[index], state->active.id))
             state->selected = index;
     state->scroll = state->selected >= 7 ? state->selected - 6 : 0;
-    preview(app);
+    preview(app, false);
 }
 void themes_move(App *app, int direction)
 {
@@ -550,20 +639,27 @@ void themes_move(App *app, int direction)
         state->scroll = state->selected;
     if (state->selected >= state->scroll + 7)
         state->scroll = state->selected - 6;
-    preview(app);
+    preview(app, true);
 }
 void themes_cancel(App *app)
 {
-    themes_background_cancel();
-    themes_icons_cancel();
-    themes_components_cancel();
+    preview_stop(app);
+    app->themes.ready = app->themes.pending = app->themes.apply_requested = false;
     app->themes.open = false;
     font_use(&app->themes.active.font);
 }
 void themes_apply(App *app)
 {
-    if (!app->themes.open || !app->themes.ready)
+    if (!app->themes.open)
         return;
+    if (!app->themes.ready) {
+        app->themes.apply_requested = app->themes.pending || app->themes.loading;
+        return;
+    }
+    if (app->themes.reuse_active) {
+        themes_cancel(app);
+        return;
+    }
     if (app->recovery_mode) {
         path_copy(app->themes.status, "Recovery session: restart to apply themes.",
                   sizeof app->themes.status);

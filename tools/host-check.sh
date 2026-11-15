@@ -287,6 +287,11 @@ cc "${common_flags[@]}" -DFRONTEND_ASYNC_TEST -O2 "${model_sources[@]}" \
     tests/artwork_async_test.c -o build/host/artwork-async-test
 build/host/artwork-async-test tests/fixtures/async.png tests/fixtures/async-progressive.jpg
 
+cc "${common_flags[@]}" -DFRONTEND_ASYNC_TEST -O2 "${model_sources[@]}" \
+    tests/theme_preview_async_test.c -o build/host/theme-preview-async-test
+mkdir "$fixture/theme-preview-async"
+build/host/theme-preview-async-test "$fixture/theme-preview-async" tests/fixtures/async.png
+
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" tests/configuration_reset_test.c -o build/host/configuration-reset-test
 mkdir "$fixture/configuration-reset"

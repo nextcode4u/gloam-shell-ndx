@@ -7,6 +7,11 @@ bool image_job_supported(void);
  * tools without a clock use a conservative work-unit limit. */
 void image_job_set_clock(unsigned (*clock)(void), unsigned period, unsigned budget);
 bool image_job_begin(const char *path, bool embedded);
+/* Share the bounded decoder worker with a controller-owned theme transaction.
+ * Task completions are separate from artwork results; only their owner takes them. */
+bool image_job_begin_task(void (*task)(void *), void *context);
+bool image_job_task_pending(void);
+bool image_job_task_finish(void);
 void image_job_step(void);
 bool image_job_busy(void);
 void image_job_cancel(void);

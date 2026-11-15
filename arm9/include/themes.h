@@ -56,6 +56,9 @@ const char *themes_accent_name(int index);
 void themes_init(App *app);
 void themes_open(App *app);
 void themes_move(App *app, int direction);
+void themes_tick(App *app);
+/* Partial preview banks stay hidden until their whole transaction is ready. */
+bool themes_preview_visible(void);
 void themes_cancel(App *app);
 void themes_apply(App *app);
 void themes_touch(App *app, int x, int y);

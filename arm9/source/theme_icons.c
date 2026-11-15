@@ -3,6 +3,7 @@
  * images retain the built-in symbol independently of the rest of the pack. */
 #include "app.h"
 #include "icons.h"
+#include "image_job.h"
 #include "paths.h"
 #include "theme_assets.h"
 #include "themes.h"
@@ -35,7 +36,7 @@ void themes_icons_load(const ThemePackage *package, bool preview)
     if (!*package->icon_directory)
         return;
     path_copy(bank->directory, package->icon_directory, PATH_CAP);
-    for (int i = 0; i < THEME_ICON_COUNT; i++) {
+    for (int i = 0; i < THEME_ICON_COUNT && !image_job_cancelled(); i++) {
         char filename[40], path[PATH_CAP];
         snprintf(filename, sizeof filename, "%s.png", names[i]);
         if (!path_join(path, bank->directory, filename))
@@ -65,7 +66,8 @@ const uint16_t *themes_icon(const ThemePackage *package, int index)
         return NULL;
     /* Preview wins when previewing the same directory after an on-disk edit. */
     for (int i = 1; i >= 0; i--)
-        if (!strcmp(banks[i].directory, package->icon_directory))
+        if ((!i || themes_preview_visible()) &&
+            !strcmp(banks[i].directory, package->icon_directory))
             return banks[i].images[index];
     return NULL;
 }

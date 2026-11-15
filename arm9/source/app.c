@@ -15,6 +15,7 @@
 #include "game_options.h"
 #include "grid.h"
 #include "icons.h"
+#include "image_job.h"
 #include "installed_titles.h"
 #include "item_preferences.h"
 #include "launch.h"
@@ -82,6 +83,7 @@ static App *loading_app;
 static void *loading_context;
 void app_loading_checkpoint(void)
 {
+    image_decode_checkpoint();
     if (loading_progress)
         loading_progress(loading_app, loading_context);
 }
@@ -792,6 +794,7 @@ void app_tick(App *app)
 {
     app->frame_count++;
     artwork_cache_update();
+    themes_tick(app);
     startup_tick(app);
     themes_motion_tick(app);
     if (!app->storage_lost && app->installed_catalog.scanning &&

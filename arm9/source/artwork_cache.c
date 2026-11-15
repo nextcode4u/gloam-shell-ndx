@@ -32,6 +32,8 @@ bool artwork_cache_pending(void)
 }
 bool artwork_cache_update(void)
 {
+    if (image_job_task_pending())
+        return false;
     image_job_step();
     const Artwork *result = image_job_take();
     if (!result)

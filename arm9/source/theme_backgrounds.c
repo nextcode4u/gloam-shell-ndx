@@ -1,6 +1,7 @@
 /* Two active and two preview surfaces. All decoding happens in controllers. */
 #include "app.h"
 #include "image_decode.h"
+#include "image_job.h"
 #include "paths.h"
 #include "themes.h"
 #include <stdio.h>
@@ -19,7 +20,7 @@ static Background surfaces[2][2];
 static bool decode_file(Background *background, bool surface)
 {
     const char *path = surface ? background->surface_path : background->path;
-    if (!*path || (!surface && !background->strength))
+    if (image_job_cancelled() || !*path || (!surface && !background->strength))
         return false;
     FILE *file = fopen(path, "rb");
     if (!file)
@@ -31,14 +32,15 @@ static bool decode_file(Background *background, bool surface)
     valid = encoded && !fseek(file, 0, SEEK_SET) &&
             fread(encoded, 1, (size_t)bytes, file) == (size_t)bytes;
     fclose(file);
-    if (valid) {
+    app_loading_checkpoint();
+    if (valid && !image_job_cancelled()) {
         unsigned opacity = background->content_opacity <= 100 ? background->content_opacity : 100;
         valid = surface ? image_decode_surface(background->pixels, encoded, (size_t)bytes, opacity)
                         : image_decode_background(background->pixels, encoded, (size_t)bytes,
                                                   background->matte, background->strength);
     }
     free(encoded);
-    return valid;
+    return valid && !image_job_cancelled();
 }
 
 static bool load_surface(Background *background, const ThemePackage *package, int screen)
@@ -95,7 +97,7 @@ static bool load_surface(Background *background, const ThemePackage *package, in
 }
 void themes_background_load(const ThemePackage *package, bool preview)
 {
-    for (int screen = 0; screen < 2; screen++) {
+    for (int screen = 0; screen < 2 && !image_job_cancelled(); screen++) {
         load_surface(&surfaces[preview ? 1 : 0][screen], package, screen);
         app_loading_checkpoint();
     }
@@ -124,9 +126,10 @@ void themes_background_draw(const ThemePackage *package, int screen, uint16_t *p
 {
     if (screen < 0 || screen >= 2)
         return;
-    for (int bank = 0; bank < 2; bank++) {
+    for (int bank = 1; bank >= 0; bank--) {
         const Background *background = &surfaces[bank][screen];
-        if (background->ready && !strcmp(background->path, package->backgrounds[screen]) &&
+        if ((!bank || themes_preview_visible()) && background->ready &&
+            !strcmp(background->path, package->backgrounds[screen]) &&
             !strcmp(background->surface_path, package->reading_surfaces[screen]) &&
             background->matte == package->palette.bg &&
             background->strength == package->background_strength &&
@@ -142,7 +145,7 @@ void themes_background_scene_draw(const ThemePackage *package, uint16_t *pixels)
 {
     for (int bank = 1; bank >= 0; bank--) {
         const Background *background = &surfaces[bank][0];
-        if (background->ready && background->scene &&
+        if ((!bank || themes_preview_visible()) && background->ready && background->scene &&
             !strcmp(background->path, package->backgrounds[0]) &&
             !strcmp(background->surface_path, package->reading_surfaces[0]) &&
             background->matte == package->palette.bg &&

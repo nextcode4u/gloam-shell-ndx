@@ -2,6 +2,7 @@
 #include "app.h"
 #include "icons.h"
 #include "image_decode.h"
+#include "image_job.h"
 #include "paths.h"
 #include "theme_assets.h"
 #include "themes.h"
@@ -96,7 +97,7 @@ static void prepare_materials(ComponentBank *bank, const ThemePackage *package)
 {
     if (!*package->component_material[0] && !*package->component_material[1])
         return;
-    for (unsigned i = 0; i < 2; i++) {
+    for (unsigned i = 0; i < 2 && !image_job_cancelled(); i++) {
         path_copy(bank->material_paths[i], package->component_material[i], PATH_CAP);
         if (!i || strcmp(bank->material_paths[0], bank->material_paths[1]))
             bank->materials[i] = load_material(bank->material_paths[i]);
@@ -125,7 +126,7 @@ void themes_components_load(const ThemePackage *package, bool preview)
     path_copy(bank->directory, package->component_directory, PATH_CAP);
     bank->use_coverage = package->component_coverage;
     unsigned count = package->control_assets ? THEME_COMPONENT_COUNT : THEME_CHECK_OFF;
-    for (unsigned i = 0; i < count; i++) {
+    for (unsigned i = 0; i < count && !image_job_cancelled(); i++) {
         char name[40], path[PATH_CAP];
         snprintf(name, sizeof name, "%s.png", names[i]);
         if (!path_join(path, bank->directory, name))
@@ -153,7 +154,8 @@ void themes_components_load(const ThemePackage *package, bool preview)
             free(image);
         app_loading_checkpoint();
     }
-    prepare_materials(bank, package);
+    if (!image_job_cancelled())
+        prepare_materials(bank, package);
     bank->ready = true;
 }
 void themes_components_cancel(void)
@@ -171,7 +173,7 @@ const uint16_t *themes_component(const ThemePackage *package, ThemeComponent com
     if ((unsigned)component >= THEME_COMPONENT_COUNT || !*package->component_directory)
         return NULL;
     for (int i = 1; i >= 0; i--)
-        if (bank_matches(&banks[i], package))
+        if ((!i || themes_preview_visible()) && bank_matches(&banks[i], package))
             return banks[i].images[component];
     return NULL;
 }
@@ -182,7 +184,7 @@ const uint8_t *themes_component_alpha(const ThemePackage *package, ThemeComponen
         !*package->component_directory)
         return NULL;
     for (int i = 1; i >= 0; i--)
-        if (bank_matches(&banks[i], package))
+        if ((!i || themes_preview_visible()) && bank_matches(&banks[i], package))
             return banks[i].coverage[component];
     return NULL;
 }
@@ -197,7 +199,7 @@ const uint8_t *themes_component_material(const ThemePackage *package, ThemeCompo
     unsigned selected = component == THEME_ROW_SELECTED || component == THEME_CARD_SELECTED;
     for (int i = 1; i >= 0; i--) {
         const ComponentBank *bank = &banks[i];
-        if (bank_matches(bank, package)) {
+        if ((!i || themes_preview_visible()) && bank_matches(bank, package)) {
             if (!bank->images[component] || !(bank->images[component][16 * 32 + 16] & 0x8000))
                 return NULL;
             const uint8_t *field = bank->materials[selected];

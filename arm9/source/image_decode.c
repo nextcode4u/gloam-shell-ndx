@@ -198,6 +198,13 @@ bool image_decode_surface(uint16_t pixels[256 * 192], const unsigned char *data,
     if (!rgba)
         return false;
     for (unsigned i = 0; i < 256 * 192; i++) {
+        if (!(i % 256)) {
+            image_decode_checkpoint();
+            if (image_decode_cancelled()) {
+                stbi_image_free(rgba);
+                return false;
+            }
+        }
         const unsigned char *pixel = rgba + i * 4;
         unsigned alpha = pixel[3] * opacity;
         if (!alpha)
@@ -237,7 +244,12 @@ bool image_decode_background(uint16_t pixels[256 * 192], const unsigned char *da
     unsigned origin_x = (width - crop_width) / 2, origin_y = (height - crop_height) / 2;
     unsigned bg[3] = {(matte & 31) * 255 / 31, ((matte >> 5) & 31) * 255 / 31,
                       ((matte >> 10) & 31) * 255 / 31};
-    for (unsigned y = 0; y < 192; y++)
+    for (unsigned y = 0; y < 192; y++) {
+        image_decode_checkpoint();
+        if (image_decode_cancelled()) {
+            stbi_image_free(rgba);
+            return false;
+        }
         for (unsigned x = 0; x < 256; x++) {
             const unsigned char *pixel = rgba + 4 * ((origin_y + y * crop_height / 192) * width +
                                                      origin_x + x * crop_width / 256);
@@ -247,6 +259,7 @@ bool image_decode_background(uint16_t pixels[256 * 192], const unsigned char *da
             unsigned b = (pixel[2] * alpha + bg[2] * (25500 - alpha)) / 25500;
             pixels[y * 256 + x] = rgb(r, g, b);
         }
+    }
     stbi_image_free(rgba);
     return true;
 }
