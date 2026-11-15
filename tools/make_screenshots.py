@@ -21,7 +21,12 @@ def main() -> None:
         choices=("boundary", "atmosphere", "personality"),
         help="Render a theme gallery",
     )
+    parser.add_argument(
+        "--theme-dialogs", action="store_true", help="Render settings and cover pickers"
+    )
     args = parser.parse_args()
+    if args.theme_dialogs and args.theme_variants:
+        parser.error("Choose either --theme-dialogs or --theme-variants")
     preview = ROOT / "build/host/preview"
     if not preview.is_file():
         raise SystemExit("Run tools/host-check.sh to build the host renderer first.")
@@ -57,7 +62,19 @@ def main() -> None:
                 )
             )
             examples = [(theme, theme, []) for theme in names]
-        columns = 4 if args.theme_variants == "personality" else 3
+        if args.theme_dialogs:
+            examples = [
+                (f"{theme}-{mode}", theme, [mode])
+                for mode in ("settings", "picker")
+                for theme in ("copper", "folio", "tide", "prism")
+            ]
+            artwork = card / "media/artwork"
+            artwork.mkdir(parents=True, exist_ok=True)
+            for filename in ("Botanical cover.png", "Coastal cover.png"):
+                shutil.copy2(
+                    ROOT / "tests/fixtures/cover-example.png", artwork / filename
+                )
+        columns = 4 if args.theme_dialogs or args.theme_variants == "personality" else 3
         rows = (len(examples) + columns - 1) // columns
         gallery = Image.new("RGB", (256 * columns, 420 * rows), "#090d12")
         for index, (name, theme, extra) in enumerate(examples):
@@ -81,15 +98,21 @@ def main() -> None:
             for screen, y in [("top", 0), ("bottom", 204)]:
                 with Image.open(str(prefix) + f"-{screen}.ppm") as image:
                     combined.paste(image, (0, y))
-            if args.theme_variants:
+            if args.theme_variants or args.theme_dialogs:
                 x, y = (index % columns) * 256, (index // columns) * 420
                 gallery.paste(combined, (x, y + 24))
                 ImageDraw.Draw(gallery).text(
-                    (x + 8, y + 6), theme.title(), fill="white"
+                    (x + 8, y + 6),
+                    (
+                        name.replace("-", " / ").title()
+                        if args.theme_dialogs
+                        else theme.title()
+                    ),
+                    fill="white",
                 )
             else:
                 combined.save(output / f"{name}.png", optimize=True)
-        if args.theme_variants:
+        if args.theme_variants or args.theme_dialogs:
             filename = (
                 "theme-personalities.png"
                 if args.theme_variants == "personality"
@@ -99,6 +122,8 @@ def main() -> None:
                     else "theme-variants.png"
                 )
             )
+            if args.theme_dialogs:
+                filename = "theme-controls.png"
             gallery.save(output / filename, optimize=True)
     print("Updated documentation screenshots from the host renderer.")
 

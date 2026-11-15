@@ -3,6 +3,7 @@
 #include "audio.h"
 #include "browser.h"
 #include "paths.h"
+#include "picker.h"
 #include "preferences.h"
 #include "renderer.h"
 #include "settings.h"
@@ -52,20 +53,31 @@ static size_t heap_bytes(void)
 int main(int argc, char **argv)
 {
     if (argc < 3) {
-        fprintf(stderr, "usage: preview <SD folder> <output prefix> [category] [quick|settings]\n");
+        fprintf(stderr,
+                "usage: preview <SD folder> <output prefix> [category] [quick|settings|picker]\n");
         return 1;
     }
     bool profile = argc > 4 && !strcmp(argv[4], "profile");
+    bool picker_preview = argc > 4 && !strcmp(argv[4], "picker");
     double started = milliseconds();
     app_init(&app, argv[1], true, true);
     if (argc > 3)
         app_category(&app, atoi(argv[3]));
     if (argc > 4 && !strcmp(argv[4], "settings")) {
         settings_open(&app);
-    } else if (argc > 4 && !profile)
+    } else if (argc > 4 && !profile && !picker_preview)
         app_panel(&app, PANEL_QUICK);
     for (int frame = 0; frame < 20; frame++)
         app_tick(&app);
+    if (picker_preview) {
+        if (!picker_open(&app, PICKER_COVER) ||
+            !path_join(app.picker.path, app.root, "media/artwork"))
+            return 2;
+        picker_scan_begin(&app);
+        for (int frame = 0; frame < 40; frame++)
+            app_tick(&app);
+        path_copy(app.picker.path, "sd:/media/artwork", sizeof app.picker.path);
+    }
     app.panel_age = 20;
     artwork_load(&app);
     if (profile) {

@@ -542,10 +542,10 @@ Inside that package-local directory, supply any of these **32×32 PNGs**:
 | --- | --- |
 | `header.png` | Browser and dialog headings on both screens. |
 | `footer.png` | Bottom control/status bands on both screens. |
-| `panel.png` | Quick-controls and item-action overlay surfaces. |
+| `panel.png` | Quick controls, item actions, settings explanations and picker inspectors. |
 | `row.png` | Ordinary browser rows; drawn beneath the moving selection. |
 | `icon-frame.png` | Transparent bezel around native/associated browser icons. |
-| `artwork-frame.png` | Transparent frame around resolved top-screen artwork. |
+| `artwork-frame.png` | Open frame around artwork, picker previews and settings/picker lists. |
 | `battery-empty.png`, `battery-low.png`, `battery-half.png`, `battery-high.png`, `battery-full.png` | Battery level sprites. |
 | `battery-charging.png`, `battery-unknown.png` | Charging or unavailable battery reading. |
 | `wireless-idle.png` | No active connection established by Gloam. |
@@ -563,6 +563,13 @@ the whole image. When a destination is too small for both corners, the corners
 shrink to fit. This keeps an outline or folded corner intact on a short row and
 a tall cover card. All output clips to the screen, including moving Shelf cards.
 Avoid words and icons inside these images: Gloam draws the live content over them.
+
+Keep the center stretch region of `artwork-frame.png` and `icon-frame.png`
+transparent. The bundled packs leave source pixels 8–23 clear in both directions;
+their material lives in the perimeter. Picker previews draw inside this frame,
+and settings/picker labels retain their usual clipping and touch bounds. Ordinary
+picker/settings choices use `row.png`; the focused choice uses `row-selected.png`.
+Older packs without those optional assets retain the standard drawing.
 
 Each PNG is at most 64 KiB. By default binary alpha and RGB555 follow the icon contract.
 Version-2 packs can add `alpha=coverage` in `[components]` to retain four levels:
@@ -623,6 +630,16 @@ Controls scale as whole sprites except the scrollbar, which uses nine-slice
 scaling. Keep small designs bold. Missing controls retain the standard drawing;
 touch bounds, input handling and text labels stay unchanged. All thirty component
 pixel buffers use at most 60 KiB per bank, plus optional coverage planes.
+
+All bundled packs opt into these controls. Material rims are prepared from the
+illustration masters during authoring, with opaque reading areas and open preview
+centers; the renderer does not sample textures or decode images while drawing.
+The UI asset bank remains one prepared file per theme.
+
+![Copper, Folio, Tide and Prism settings and cover pickers](../images/theme-controls.png)
+
+Regenerate this gallery with `.venv/bin/python tools/make_screenshots.py --theme-dialogs`
+after rebuilding the host preview.
 
 ### Lightweight feedback and accents
 
