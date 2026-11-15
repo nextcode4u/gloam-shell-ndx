@@ -204,6 +204,9 @@ void resetMemory_ARM7 (void)
 
 	arm7clearRAM();
 
+	// Local backport: the old ARM9 exception handler belongs to the unloaded app.
+	// Credit: RocketRobz / Epicpkmn11; see UPSTREAM.md.
+	*(vu32*)0x02FFFD9C = 0;
 	REG_IE = 0;
 	REG_IF = ~0;
 	(*(vu32*)(0x04000000-4)) = 0;  //IRQ_HANDLER ARM7 version
