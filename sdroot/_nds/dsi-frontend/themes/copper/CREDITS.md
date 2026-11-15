@@ -39,3 +39,8 @@ Reproduce with `tools/make_theme_scenes.py`; no third-party theme artwork is inc
 
 Dedicated navigation icons and revised System/Settings gears are original CC0-1.0
 artwork, reproduced by `tools/make_theme_navigation.py` and `tools/make_theme_icons.py`.
+
+The complementary material inks, environmental details and translucent inspector
+surfaces are original Gloam artwork under the same CC0-1.0 dedication.
+`assets.gfx` is a prepared copy of these PNGs; reproduce it with
+`tools/pack_theme_assets.py <theme-folder>`. No downloaded artwork was added.

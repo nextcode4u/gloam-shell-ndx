@@ -73,18 +73,18 @@ def gear(draw, x, y, r, color, inside):
 
 
 def draw_copper(d):
-    gradient(d, "#231917", "#513426")
+    gradient(d, "#153b3d", "#49746c")
     for y in range(25, 192, 18):
-        d.line((0, y, 255, y), fill="#64422c")
+        d.line((0, y, 255, y), fill="#61857b")
         for x in range((y // 18 % 2) * 32, 256, 64):
-            d.line((x, y, x, y + 18), fill="#3a281f")
-    d.rectangle((103, 30, 236, 115), fill="#211c1b", outline="#bd8150", width=2)
+            d.line((x, y, x, y + 18), fill="#244c4a")
+    d.rectangle((103, 30, 236, 115), fill="#183338", outline="#bd8150", width=2)
     for x, y, r, c in [
         (137, 72, 27, "#bd8150"),
         (184, 52, 19, "#e5b473"),
-        (200, 93, 25, "#936d42"),
+        (200, 93, 25, "#a85e45"),
     ]:
-        gear(d, x, y, r, c, "#211c1b")
+        gear(d, x, y, r, c, "#183338")
     d.line((119, 108, 227, 108), fill="#eecc99", width=2)
     for x in (107, 231):
         for y in (34, 111):
@@ -92,9 +92,20 @@ def draw_copper(d):
     for x in range(15, 250, 23):
         d.line((x, 154, x + 10, 164), fill="#9d6842", width=2)
 
+    # Red pressure wheel and ivory gauge against the oxidized teal wall.
+    d.line([(16, 118), (16, 41), (66, 41), (66, 117)], fill="#d4ad76", width=4)
+    d.line([(18, 118), (18, 43), (66, 43)], fill="#f8dc9e")
+    d.ellipse((33, 39, 57, 63), fill="#e9d9b3", outline="#243f42", width=2)
+    d.line((45, 51, 50, 45), fill="#b7493c", width=2)
+    d.ellipse((6, 88, 27, 109), outline="#e37d61", width=3)
+    d.line((8, 91, 25, 106), fill="#e37d61", width=2)
+    d.rectangle((113, 119, 241, 131), fill="#a76846")
+    for x in range(117, 238, 12):
+        d.line((x, 120, x + 3, 129), fill="#e1b575")
+
 
 def draw_slate(d):
-    gradient(d, "#111e2b", "#30465a")
+    gradient(d, "#152b43", "#73516b")
     stars(d, 18, "#547184", 25)
     rng = random.Random(10)
     for x in range(0, 256, 20):
@@ -103,20 +114,29 @@ def draw_slate(d):
         for yy in range(y + 7, 122, 11):
             for xx in (x + 4, x + 11):
                 if rng.randrange(3):
-                    d.rectangle((xx, yy, xx + 2, yy + 4), fill="#c6a477")
-    d.rectangle((166, 42, 200, 105), fill="#283b4b", outline="#8dbce8")
-    d.rectangle((172, 48, 194, 73), fill="#86b6c9")
+                    d.rectangle((xx, yy, xx + 2, yy + 4), fill="#f9d396")
+    d.rectangle((166, 42, 200, 105), fill="#324654", outline="#8dbce8")
+    d.rectangle((172, 48, 194, 73), fill="#e68b78")
     d.line((174, 53, 191, 53), fill="#243a4e", width=2)
     d.line((174, 59, 189, 59), fill="#243a4e", width=2)
     d.rectangle((179, 83, 188, 105), fill="#0c1620")
     for x in range(7, 256, 17):
-        d.line((x, 26, x - 9, 114), fill="#496379")
+        d.line((x, 26, x - 9, 114), fill="#537e8d")
     for y in range(145, 184, 6):
         d.line((70, y, 230 - (y % 4) * 12, y), fill="#54788b")
 
+    # Salmon neon, a teal tram shelter and yellow reflected shop lights.
+    d.rectangle((208, 53, 236, 77), fill="#e47e88", outline="#ffc4aa")
+    for y in (59, 65, 71):
+        d.line((213, y, 230, y), fill="#612d4d", width=2)
+    d.line([(103, 128), (103, 100), (147, 100), (153, 106)], fill="#80c7c6", width=2)
+    for x in (38, 84, 179, 224):
+        for y in range(148, 183, 6):
+            d.line((x, y, x + 9, y), fill="#b28777")
+
 
 def draw_folio(d):
-    gradient(d, "#efe8cc", "#cbbc95")
+    gradient(d, "#f7e9c7", "#e6d4ad")
     for y in range(32, 192, 10):
         d.line((0, y, 255, y), fill="#c8c2a7")
     d.line((82, 0, 82, 191), fill="#b27664")
@@ -132,31 +152,40 @@ def draw_folio(d):
                 (x + flip * 26, y - 5),
                 (x + flip * 12, y + 2),
             ],
-            fill="#73906a",
+            fill="#598568",
             outline="#455c3b",
         )
         d.line((x, y, x + flip * 23, y - 11), fill="#c3d0a0")
-    d.ellipse((169, 24, 189, 43), fill="#b66a57", outline="#7c4a3b")
-    d.ellipse((175, 30, 182, 37), fill="#e2be77")
+    d.ellipse((169, 24, 189, 43), fill="#c14840", outline="#7c4a3b")
+    d.ellipse((175, 30, 182, 37), fill="#f2bd53")
     d.ellipse((202, 83, 224, 100), outline="#7b7457")
     d.line((213, 86, 213, 96), fill="#7b7457")
     for x in range(95, 238, 8):
         d.line((x, 113, x, 117 if x % 16 else 120), fill="#847858")
 
+    # Field press: blue tape, vermilion berries and a pressed yellow bloom.
+    d.polygon([(195, 34), (230, 30), (232, 39), (198, 44)], fill="#95b6ba")
+    d.line((218, 81, 223, 55), fill="#597953", width=2)
+    for x, y in ((214, 53), (224, 48), (229, 57), (221, 61)):
+        d.ellipse((x - 4, y - 4, x + 4, y + 4), fill="#d2a039")
+    d.ellipse((219, 52, 225, 58), fill="#8f5738")
+    for x, y in ((146, 64), (141, 70), (149, 73)):
+        d.ellipse((x, y, x + 4, y + 4), fill="#b64e40")
+
 
 def draw_nocturne(d):
-    gradient(d, "#15162c", "#4b4569")
-    stars(d, 9, "#d8cfee")
-    d.ellipse((170, 28, 222, 80), fill="#c8c0e4")
-    d.ellipse((183, 23, 231, 70), fill="#25243e")
+    gradient(d, "#12334b", "#638589")
+    stars(d, 9, "#a8dbd3")
+    d.ellipse((170, 28, 222, 80), fill="#ffe7b1")
+    d.ellipse((183, 23, 231, 70), fill="#21445b")
     for x, y, w in [(75, 96, 42), (108, 80, 61), (172, 101, 76), (8, 121, 85)]:
-        d.rectangle((x, y + 12, x + w, 177), fill="#242238")
+        d.rectangle((x, y + 12, x + w, 177), fill="#60495a")
         d.polygon(
             [(x - 5, y + 12), (x + w // 2, y - 8), (x + w + 5, y + 12)],
-            fill="#121725",
+            fill="#203341",
         )
         for xx in range(x + 9, x + w - 5, 16):
-            d.rectangle((xx, y + 22, xx + 5, y + 31), fill="#d5b17b")
+            d.rectangle((xx, y + 22, xx + 5, y + 31), fill="#ffb578")
     # A small silhouetted roof guardian, drawn as part of this original scene.
     d.ellipse((133, 54, 149, 80), fill="#101321")
     d.ellipse((132, 48, 148, 63), fill="#101321")
@@ -165,59 +194,91 @@ def draw_nocturne(d):
     d.point((144, 54), fill="#efe4a5")
     d.arc((143, 64, 161, 82), 270, 90, fill="#101321", width=3)
 
+    # Warm tiles and a string of colored lanterns break the blue skyline.
+    for y in (116, 122, 128):
+        for x in range(82, 250, 17):
+            d.line((x, y, x + 10, y), fill="#896269")
+    d.arc((88, 68, 239, 116), 0, 180, fill="#375666")
+    for x, y, c in (
+        (99, 102, "#f4cf82"),
+        (129, 111, "#dc8b80"),
+        (165, 114, "#86cabb"),
+        (202, 108, "#d4b4db"),
+        (228, 98, "#efb378"),
+    ):
+        d.rectangle((x - 2, y, x + 2, y + 5), fill=c)
+
 
 def draw_tide(d):
-    gradient(d, "#a4d4cf", "#376f79")
+    gradient(d, "#e7ba91", "#275d78")
     for y in range(80, 192, 7):
         for x in range((y % 3) * 10, 256, 38):
-            d.arc((x, y, x + 30, y + 6), 0, 165, fill="#b9ded0")
-    d.polygon([(114, 112), (152, 90), (182, 95), (224, 115)], fill="#4c6960")
+            d.arc((x, y, x + 30, y + 6), 0, 165, fill="#a9d8d9")
+    d.polygon([(114, 112), (152, 90), (182, 95), (224, 115)], fill="#365e54")
     d.polygon(
         [(155, 98), (161, 46), (177, 46), (184, 98)],
         fill="#f5e9cb",
         outline="#647f78",
     )
-    d.rectangle((160, 61, 179, 69), fill="#c16c58")
-    d.rectangle((156, 82, 181, 90), fill="#c16c58")
+    d.rectangle((160, 61, 179, 69), fill="#c34836")
+    d.rectangle((156, 82, 181, 90), fill="#c34836")
     d.rectangle((159, 39, 180, 48), fill="#42646c")
     d.rectangle((163, 41, 175, 46), fill="#ffde94")
     d.polygon([(156, 39), (169, 29), (183, 39)], fill="#425866")
-    d.polygon([(180, 42), (244, 28), (244, 56)], fill="#d8e9c3")
+    d.polygon([(180, 42), (244, 28), (244, 56)], fill="#fff0bc")
     d.line([(98, 45), (103, 42), (108, 45), (113, 42), (118, 45)], fill="#4b7477")
     d.line([(199, 70), (203, 68), (208, 70)], fill="#4b7477")
 
+    # Distant coral sail and sunlit rocks; cool sea, warm sky and red paint.
+    d.ellipse((205, 58, 224, 77), fill="#f6dca4")
+    d.line((104, 72, 104, 93), fill="#304d60")
+    d.polygon([(102, 73), (102, 86), (88, 86)], fill="#bd6256")
+    d.line((88, 92, 111, 92), fill="#eedbc1", width=2)
+    for x, y in ((14, 134), (74, 158), (212, 143)):
+        d.ellipse((x, y, x + 28, y + 11), fill="#436a70")
+        d.arc((x, y, x + 28, y + 11), 180, 310, fill="#b4baa2", width=2)
+
 
 def draw_phosphor(d):
-    gradient(d, "#06170f", "#153726")
+    gradient(d, "#142935", "#37535a")
     for x in range(0, 256, 12):
-        d.line((x, 24, x, 191), fill="#1b412c")
+        d.line((x, 24, x, 191), fill="#335560")
     for y in range(24, 192, 12):
-        d.line((0, y, 255, y), fill="#1b412c")
+        d.line((0, y, 255, y), fill="#335560")
     for radius in (39, 28, 16):
         d.ellipse(
             (173 - radius, 71 - radius, 173 + radius, 71 + radius),
-            outline="#4b9563",
+            outline="#7b9d9d",
         )
-    d.line((130, 71, 216, 71), fill="#4b9563")
-    d.line((173, 28, 173, 114), fill="#4b9563")
-    d.pieslice((134, 32, 212, 110), 285, 315, fill="#367c50")
-    d.line((173, 71, 201, 44), fill="#c8ffd1", width=2)
+    d.line((130, 71, 216, 71), fill="#7b9d9d")
+    d.line((173, 28, 173, 114), fill="#7b9d9d")
+    d.pieslice((134, 32, 212, 110), 285, 315, fill="#356d6b")
+    d.line((173, 71, 201, 44), fill="#f3cf85", width=2)
     for x, y in [(153, 83), (187, 64), (162, 46)]:
-        d.ellipse((x - 2, y - 2, x + 2, y + 2), fill="#b4ffb9")
+        d.ellipse((x - 2, y - 2, x + 2, y + 2), fill="#eeb079")
     for x in range(87, 113, 6):
-        d.rectangle((x, 111 - (x % 7) * 5, x + 3, 112), fill="#57b975")
+        d.rectangle((x, 111 - (x % 7) * 5, x + 3, 112), fill="#70c9c9")
     for y in range(145, 180, 4):
-        d.line((15, y, 100 + (y % 11) * 7, y), fill="#285e3c")
+        d.line((15, y, 100 + (y % 11) * 7, y), fill="#58827f")
+
+    # A navy instrument enclosure, not a whole-screen green phosphor wash.
+    d.rectangle((122, 24, 223, 116), outline="#d2c9a3", width=2)
+    for x, c in ((128, "#e8ba72"), (137, "#8bdbd1"), (146, "#d67e77")):
+        d.rectangle((x, 120, x + 4, 124), fill=c)
+    for y in range(48, 104, 7):
+        d.line((232, y, 246, y), fill="#899b9d")
+    d.rectangle((231, 100, 248, 114), fill="#c6b793")
+    d.line((234, 108, 244, 104), fill="#b65f53", width=2)
 
 
 def draw_eclipse(d):
-    gradient(d, "#120c29", "#433256")
+    gradient(d, "#102e3c", "#416a72")
     stars(d, 44, "#ccb1e1", 70)
-    d.ellipse((153, 27, 211, 85), fill="#d6a5cc")
-    d.ellipse((165, 23, 214, 72), fill="#45264f")
-    d.ellipse((132, 46, 235, 68), outline="#f2cce8", width=2)
-    d.ellipse((137, 48, 230, 65), outline="#986eac")
-    d.rectangle((97, 91, 129, 113), fill="#332f48", outline="#927fa7")
+    d.ellipse((153, 27, 211, 85), fill="#df9c72")
+    d.ellipse((165, 23, 214, 72), fill="#8b5e61")
+    d.ellipse((132, 46, 235, 68), outline="#99ede0", width=2)
+    d.ellipse((137, 48, 230, 65), outline="#cda5d4")
+    d.rectangle((97, 91, 129, 113), fill="#35545e", outline="#927fa7")
     d.pieslice((92, 71, 134, 110), 180, 360, fill="#705d87", outline="#b4a2cc")
     d.line((114, 91, 125, 73), fill="#d6c4e6", width=3)
     d.polygon(
@@ -233,13 +294,23 @@ def draw_eclipse(d):
         fill="#211c36",
     )
 
+    # Copper cloud bands and ice-blue rings, pink nebula points.
+    for y in (39, 44, 72, 77):
+        d.arc((153, y - 5, 211, y + 7), 10, 165, fill="#edc299")
+    d.arc((132, 46, 235, 68), 0, 165, fill="#a3eddd", width=2)
+    for x, y in ((92, 35), (117, 55), (232, 95)):
+        d.line((x - 2, y, x + 2, y), fill="#df92ac")
+        d.line((x, y - 2, x, y + 2), fill="#df92ac")
+    d.line((222, 104, 242, 82), fill="#edb08d", width=3)
+    d.ellipse((230, 77, 246, 85), fill="#789c9f")
+
 
 def draw_prism(d):
-    gradient(d, "#ebe0f4", "#9aa5d2")
+    gradient(d, "#f6d6ac", "#97b8be")
     for x in range(0, 256, 24):
-        d.line((x, 24, x, 117), fill="#c2b3d9")
+        d.line((x, 24, x, 117), fill="#af7593")
     d.rectangle((81, 29, 238, 114), outline="#fff8ff", width=2)
-    for x, c in [(96, "#8b75bb"), (143, "#c285ae"), (190, "#77a8bc")]:
+    for x, c in [(96, "#e49f53"), (143, "#db6d86"), (190, "#4496a1")]:
         d.polygon(
             [
                 (x, 42),
@@ -254,26 +325,36 @@ def draw_prism(d):
             fill=c,
             outline="#faf3ff",
         )
-        d.rectangle((x + 3, 49, x + 26, 68), fill="#303856")
+        d.rectangle((x + 3, 49, x + 26, 68), fill="#253b53")
         d.rectangle((x + 7, 52, x + 22, 64), outline="#a4e4e8")
         d.line((x + 6, 76, x + 27, 76), fill="#fae5ff", width=2)
         d.rectangle((x + 11, 88, x + 20, 91), fill="#3b3d5a")
         d.ellipse((x + 8, 56, x + 12, 60), fill="#f7d394")
     for y in range(120, 192, 12):
-        d.line((0, y, 255, y), fill="#757cac")
+        d.line((0, y, 255, y), fill="#729596")
     for x in range(-150, 450, 35):
-        d.line((128, 112, x, 191), fill="#757cac")
+        d.line((128, 112, x, 191), fill="#729596")
+
+    # A three-color marquee, independent cabinet decals and checker floor.
+    for x, c in ((87, "#e8af58"), (137, "#df8098"), (187, "#69bcc4")):
+        d.rectangle((x, 31, x + 45, 37), fill=c)
+    for y in range(126, 192, 12):
+        for x in range(0, 256, 24):
+            if (x // 24 + y // 12) % 2:
+                d.rectangle((x, y, x + 23, y + 11), fill="#7d9caa")
+    for x, c in ((111, "#fee4a1"), (158, "#a8d9e1"), (205, "#f3adbe")):
+        d.ellipse((x, 72, x + 3, 75), fill=c)
 
 
 def draw_ember(d):
-    gradient(d, "#261c28", "#8c5940")
+    gradient(d, "#173643", "#b28072")
     stars(d, 8, "#e0bc83", 25)
     for x in range(8, 256, 28):
-        pine(d, x, 37 + (x % 17), 65, "#32332c")
+        pine(d, x, 37 + (x % 17), 65, "#416c66")
     for x in (13, 83, 225, 252):
-        pine(d, x, 42, 90, "#182827")
-    d.polygon([(118, 104), (148, 65), (177, 104)], fill="#d9a160", outline="#f0c986")
-    d.polygon([(148, 67), (151, 104), (169, 104)], fill="#784e34")
+        pine(d, x, 42, 90, "#193f3d")
+    d.polygon([(118, 104), (148, 65), (177, 104)], fill="#e9ca96", outline="#f0c986")
+    d.polygon([(148, 67), (151, 104), (169, 104)], fill="#9b6660")
     d.ellipse((168, 96, 210, 113), fill="#69432e")
     d.line((175, 108, 201, 103), fill="#b48857", width=3)
     d.line((176, 103, 198, 109), fill="#b48857", width=3)
@@ -293,40 +374,58 @@ def draw_ember(d):
     for x, y in [(182, 69), (193, 60), (201, 82)]:
         d.rectangle((x, y, x + 1, y + 2), fill="#f0bb73")
 
+    # Pine-green dusk, rose horizon, cream tent and orange fire.
+    d.rectangle((128, 89, 134, 100), fill="#48695d")
+    d.line((120, 103, 115, 113), fill="#e8d2a8")
+    d.line((176, 103, 181, 113), fill="#e8d2a8")
+    for x, y in ((104, 118), (216, 119), (75, 134)):
+        d.ellipse((x, y, x + 6, y + 3), fill="#81957a")
+    d.rectangle((215, 101, 222, 108), fill="#b65a4b")
+    d.arc((219, 101, 227, 107), 270, 90, fill="#d6b68c")
+
 
 def draw_glacier(d):
-    gradient(d, "#0e263a", "#549baf")
+    gradient(d, "#172942", "#a1c3c7")
     stars(d, 18, "#c2e8e8", 45)
-    for band, color in [(0, "#386e82"), (7, "#4e9d9e"), (13, "#80c6bc")]:
+    for band, color in [(0, "#755f9d"), (7, "#b681b9"), (13, "#8bddbf")]:
         points = [
             (x, 34 + band + round(9 * math.sin(x / 38))) for x in range(60, 256, 3)
         ]
         d.line(points, fill=color, width=3)
     d.polygon([(70, 111), (115, 64), (155, 108), (183, 82), (242, 115)], fill="#a2d1d4")
     d.polygon([(115, 64), (126, 94), (110, 88), (99, 98)], fill="#d5edf0")
-    d.rectangle((158, 86, 214, 109), fill="#44687f", outline="#c3e5e8")
+    d.rectangle((158, 86, 214, 109), fill="#c46c45", outline="#c3e5e8")
     d.polygon([(153, 86), (170, 76), (204, 76), (220, 86)], fill="#ebf1dc")
     for x in (165, 180, 195):
         d.rectangle((x, 91, x + 8, 98), fill="#efc481")
     d.line((225, 67, 225, 110), fill="#d1e5de")
-    d.polygon([(225, 67), (238, 70), (225, 75)], fill="#e8b894")
+    d.polygon([(225, 67), (238, 70), (225, 75)], fill="#ecaa5f")
     for y in range(126, 192, 16):
         d.line((0, y, 255, y - 8), fill="#8eb7c3")
 
+    # Safety-orange equipment and violet aurora over mint ice.
+    d.rectangle((166, 103, 206, 108), fill="#e5c991")
+    for x in (172, 186, 200):
+        d.line((x, 103, x + 3, 108), fill="#573f47", width=2)
+    d.rectangle((231, 113, 243, 120), fill="#dd8855")
+    d.line([(231, 122), (231, 126), (245, 126)], fill="#53798c", width=2)
+    for x, y in ((113, 132), (185, 151), (37, 157)):
+        d.line((x, y, x + 20, y + 2), fill="#e5eee0")
+
 
 def draw_garnet(d):
-    gradient(d, "#200f24", "#57253e")
+    gradient(d, "#17353c", "#625450")
     for x in range(72, 256, 38):
-        d.rectangle((x, 25, x + 5, 191), fill="#6b4253")
-        d.arc((x - 18, 22, x + 23, 84), 180, 360, fill="#9e6a7a", width=2)
+        d.rectangle((x, 25, x + 5, 191), fill="#46616a")
+        d.arc((x - 18, 22, x + 23, 84), 180, 360, fill="#9b9c8e", width=2)
     cx, cy = 177, 69
     d.ellipse(
         (cx - 40, cy - 40, cx + 40, cy + 40),
-        fill="#1d172a",
+        fill="#182d3d",
         outline="#d1a18c",
         width=3,
     )
-    colors = ["#c8758c", "#86578a", "#d6a17c", "#764e81"]
+    colors = ["#ce6985", "#4f8f9b", "#e6b86f", "#647cb8"]
     for petal in range(8):
         angle = petal * math.pi / 4
         x, y = cx + round(math.cos(angle) * 23), cy + round(math.sin(angle) * 23)
@@ -356,6 +455,17 @@ def draw_garnet(d):
         d.rectangle((x - 2, 96, x + 2, 113), fill="#bda18c")
         d.ellipse((x - 2, 90, x + 2, 96), fill="#f3cb94")
 
+    # Different pigments in each stained-glass lobe, with a brass tracery.
+    for x, y, c in (
+        (177, 44, "#d9b369"),
+        (200, 68, "#68b4b0"),
+        (177, 92, "#d77c98"),
+        (154, 68, "#8095c6"),
+    ):
+        d.ellipse((x - 4, y - 5, x + 4, y + 5), fill=c)
+    d.arc((139, 31, 215, 107), 190, 345, fill="#e8ca8d", width=2)
+    d.rectangle((92, 114, 244, 119), fill="#997b60")
+
 
 DRAWINGS = {
     "copper": draw_copper,
@@ -376,11 +486,14 @@ def scene(name, screen):
     image = Image.new("RGB", (256, 192))
     DRAWINGS[name](ImageDraw.Draw(image))
     if screen:
-        # Continue the same world beneath opaque row surfaces, with a calmer tone.
+        # Continue the landscape below the focal props, without repeating them.
+        image = image.crop((0, 112, 256, 192)).resize(
+            (256, 192), Image.Resampling.NEAREST
+        )
         config = configparser.ConfigParser()
         config.read(THEMES / name / "theme.ini")
         matte = Image.new("RGB", image.size, config["colors"]["background"])
-        image = Image.blend(image, matte, 0.35)
+        image = Image.blend(image, matte, 0.16)
     return image
 
 

@@ -14,6 +14,51 @@ TAB_NAMES = (
     "tab-folder",
 )
 
+# Material colors complement the reading palette. They are authoring inputs,
+# baked into small sprites; no extra palette or runtime logic is needed.
+MATERIALS = {
+    "copper": ("#e9b76b", "#71c6bd", "#ec866c", "#bdcfa2"),
+    "slate": ("#80d4d6", "#ff9583", "#f4ce7b", "#a9afdf"),
+    "folio": ("#9c4e38", "#456c50", "#536e9c", "#b38a32"),
+    "nocturne": ("#f4d99c", "#8ed8d0", "#ec9b9b", "#ada8eb"),
+    "tide": ("#a74434", "#256c80", "#397454", "#84588b"),
+    "phosphor": ("#b4ec91", "#7cd5d4", "#f0b96d", "#ec8d83"),
+    "eclipse": ("#edb08d", "#8cdddd", "#dda9d3", "#d6dba4"),
+    "prism": ("#a33c54", "#346e8d", "#66529a", "#467147"),
+    "ember": ("#f9c176", "#92cbbb", "#e49c9a", "#ded59d"),
+    "glacier": ("#ffc481", "#9fe8dc", "#e9a3d0", "#b7cbee"),
+    "garnet": ("#edc28b", "#90c9c9", "#df9aba", "#b1b8ed"),
+}
+
+
+def material_colors(theme, kind, colors):
+    """Give categories distinct inks while keeping their theme's shared shapes."""
+    groups = {
+        "audio": 2,
+        "sound": 2,
+        "video": 1,
+        "image": 2,
+        "book": 3,
+        "text": 3,
+        "save": 1,
+        "config": 1,
+        "system": 1,
+        "settings": 1,
+        "camera": 2,
+        "pictochat": 3,
+        "missing": 2,
+        "application": 1,
+        "archive": 3,
+        "tab-apps": 1,
+        "tab-media": 2,
+        "tab-system": 1,
+        "tab-files": 3,
+        "tab-folder": 3,
+    }
+    result = dict(colors)
+    result["accent"] = MATERIALS[theme][groups.get(kind, 0)]
+    return result
+
 
 def gear_image(colors, teeth=8):
     """A toothed ring with a transparent bore, readable at sixteen pixels."""

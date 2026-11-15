@@ -1,4 +1,5 @@
 """Production icon packs stay bounded, reproducible and complete."""
+
 import configparser
 import io
 import unittest
@@ -8,39 +9,82 @@ from tools.make_theme_icons import THEMES, assets
 from tools.make_theme_components import assets as component_assets, COMPONENTS
 from tools.make_theme_scenes import assets as scene_assets
 from tools.make_theme_navigation import TAB_NAMES
+from tools.pack_theme_assets import pack
 
 
 class ThemeIconTests(unittest.TestCase):
+    def test_category_colors_and_prepared_runtime_assets(self):
+        for manifest in THEMES.glob("*/theme.ini"):
+            config = configparser.ConfigParser()
+            config.read(manifest)
+            with self.subTest(theme=manifest.parent.name):
+                self.assertEqual(config["theme"]["version"], "2")
+                self.assertEqual(config["components"]["alpha"], "coverage")
+                prepared = manifest.parent / config["assets"]["prepared"]
+                self.assertEqual(prepared.read_bytes(), pack(manifest.parent))
+                # One compressed bank replaces dozens of individual PNG reads.
+                self.assertLess(prepared.stat().st_size, 16384)
+                inks = set()
+                for kind in ("folder", "application", "audio", "book"):
+                    with Image.open(
+                        manifest.parent / "icons" / (kind + ".png")
+                    ) as image:
+                        visible = [p[:3] for p in image.get_flattened_data() if p[3]]
+                        inks.add(max(set(visible), key=visible.count))
+                self.assertGreaterEqual(len(inks), 3)
+                # Only the compact inspector retains partial coverage. Repeated
+                # grid cards, rows and chrome keep the opaque drawing fast path.
+                partial = []
+                for kind in COMPONENTS:
+                    with Image.open(
+                        manifest.parent / "components" / (kind + ".png")
+                    ) as image:
+                        if any(
+                            a not in (0, 255)
+                            for a in image.getchannel("A").get_flattened_data()
+                        ):
+                            partial.append(kind)
+                self.assertEqual(partial, ["panel"])
+
     def test_shipped_packs(self):
         generated = dict(assets())
         self.assertEqual(len(generated), 11 * (22 + len(TAB_NAMES)))
-        for manifest in THEMES.glob('*/theme.ini'):
+        for manifest in THEMES.glob("*/theme.ini"):
             config = configparser.ConfigParser()
             config.read(manifest)
-            self.assertEqual(config['icons']['directory'], 'icons')
+            self.assertEqual(config["icons"]["directory"], "icons")
         for path, data in generated.items():
             with self.subTest(path=str(path)):
                 self.assertEqual(path.read_bytes(), data)
                 self.assertLessEqual(len(data), 65536)
                 with Image.open(io.BytesIO(data)) as image:
                     self.assertEqual(image.size, (32, 32))
-                    alpha = image.getchannel('A')
+                    alpha = image.getchannel("A")
                     self.assertEqual(alpha.getextrema(), (0, 255))
                     self.assertTrue(image.getbbox())
 
     def test_navigation_silhouettes_and_small_gears(self):
         for kind in TAB_NAMES:
-            with Image.open(THEMES / 'copper/icons' / (kind + '.png')) as copper, \
-                 Image.open(THEMES / 'prism/icons' / (kind + '.png')) as prism:
-                self.assertNotEqual(copper.getchannel('A').tobytes(),
-                                    prism.getchannel('A').tobytes(), kind)
-        for manifest in THEMES.glob('*/theme.ini'):
-            for kind in ('system', 'settings', 'tab-system'):
-                with Image.open(manifest.parent / 'icons' / (kind + '.png')) as image:
+            with Image.open(
+                THEMES / "copper/icons" / (kind + ".png")
+            ) as copper, Image.open(THEMES / "prism/icons" / (kind + ".png")) as prism:
+                self.assertNotEqual(
+                    copper.getchannel("A").tobytes(),
+                    prism.getchannel("A").tobytes(),
+                    kind,
+                )
+        for manifest in THEMES.glob("*/theme.ini"):
+            for kind in ("system", "settings", "tab-system"):
+                with Image.open(manifest.parent / "icons" / (kind + ".png")) as image:
                     for size in (16, 20, 24, 32):
-                        alpha = image.resize((size, size), Image.Resampling.NEAREST).getchannel('A')
+                        alpha = image.resize(
+                            (size, size), Image.Resampling.NEAREST
+                        ).getchannel("A")
                         self.assertEqual(alpha.getpixel((size // 2, size // 2)), 0)
-                        self.assertGreater(sum(value > 0 for value in alpha.get_flattened_data()), size * 3)
+                        self.assertGreater(
+                            sum(value > 0 for value in alpha.get_flattened_data()),
+                            size * 3,
+                        )
 
     def test_scene_backgrounds_are_distinct_and_reproducible(self):
         generated = dict(scene_assets())
@@ -60,14 +104,16 @@ class ThemeIconTests(unittest.TestCase):
             with Image.open(io.BytesIO(data)) as image:
                 self.assertEqual(image.size, (32, 32))
                 self.assertTrue(image.getbbox())
-        folders = [Image.open(THEMES / theme / 'icons/folder.png')
-                   for theme in ('phosphor','eclipse','prism','copper')]
+        folders = [
+            Image.open(THEMES / theme / "icons/folder.png")
+            for theme in ("phosphor", "eclipse", "prism", "copper")
+        ]
         # Families differ in shape, not just their palette.
-        masks = {image.getchannel('A').tobytes() for image in folders}
+        masks = {image.getchannel("A").tobytes() for image in folders}
         self.assertGreaterEqual(len(masks), 3)
         for image in folders:
             image.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

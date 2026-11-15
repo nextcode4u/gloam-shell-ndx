@@ -140,6 +140,9 @@ int main(int argc, char **argv)
     assert(!memcmp(themes_component(&app.themes.active, THEME_ROW_SELECTED), expected_component,
                    sizeof expected_component));
     write_text(root, "_nds/dsi-frontend/themes/copper/components/row-selected.png", "broken PNG");
+    /* Production packs may also have a prepared bank. A broken bank must fall
+     * back to the editable PNGs, where these per-sprite failures are isolated. */
+    write_text(root, "_nds/dsi-frontend/themes/copper/assets.gfx", "broken prepared bank");
     /* A bad or absent symbol must not reject the package or poison other icons. */
     write_text(root, "_nds/dsi-frontend/themes/copper/icons/folder.png", "broken PNG");
     assert(path_join(manifest, root, "_nds/dsi-frontend/themes/copper/icons/file.png"));

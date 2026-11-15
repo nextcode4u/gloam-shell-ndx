@@ -9,9 +9,19 @@ from pathlib import Path
 from PIL import Image, ImageColor, ImageDraw
 
 if __package__:
-    from .make_theme_navigation import TAB_NAMES, gear_image, navigation_image
+    from .make_theme_navigation import (
+        TAB_NAMES,
+        gear_image,
+        navigation_image,
+        material_colors,
+    )
 else:
-    from make_theme_navigation import TAB_NAMES, gear_image, navigation_image
+    from make_theme_navigation import (
+        TAB_NAMES,
+        gear_image,
+        navigation_image,
+        material_colors,
+    )
 
 ROOT = Path(__file__).resolve().parents[1]
 THEMES = ROOT / "sdroot/_nds/dsi-frontend/themes"
@@ -235,10 +245,11 @@ def assets():
         )
         for kind in ICON_NAMES + TAB_NAMES:
             output = io.BytesIO()
+            colors = material_colors(name, kind, config["colors"])
             image = (
-                navigation_image(kind, name, config["colors"])
+                navigation_image(kind, name, colors)
                 if kind in TAB_NAMES
-                else icon_image(kind, style, config["colors"])
+                else icon_image(kind, style, colors)
             )
             image.save(output, format="PNG", optimize=True)
             yield manifest.parent / "icons" / (kind + ".png"), output.getvalue()
