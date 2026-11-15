@@ -1,6 +1,8 @@
 #ifndef FRONTEND_IMAGE_DECODE_H
 #define FRONTEND_IMAGE_DECODE_H
 #include "types.h"
+/* A full-screen PNG quantized to two four-bit shade indices per byte. */
+bool image_decode_material(uint8_t shades[256 * 192 / 2], const unsigned char *data, size_t size);
 bool image_decode_zlib(unsigned char *out, size_t size, const unsigned char *data, size_t bytes);
 bool image_decode_zlib_frame(unsigned char *out, size_t size, const unsigned char *data,
                              size_t bytes);

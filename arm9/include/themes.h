@@ -48,6 +48,9 @@ void themes_components_cancel(void);
 const uint16_t *themes_component(const ThemePackage *package, ThemeComponent component);
 /* Optional packed 2-bit coverage. NULL keeps the binary-alpha fast path. */
 const uint8_t *themes_component_alpha(const ThemePackage *package, ThemeComponent component);
+/* Optional screen-anchored material and its 16 prepared RGB555 fill colors. */
+const uint8_t *themes_component_material(const ThemePackage *package, ThemeComponent component,
+                                         const uint16_t **palette);
 #define THEME_ACCENT_COUNT 16
 const char *themes_accent_name(int index);
 void themes_init(App *app);

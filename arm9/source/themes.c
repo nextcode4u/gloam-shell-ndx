@@ -348,7 +348,15 @@ static bool load(App *app, const char *id, ThemePackage *package)
             else
                 path_copy(package->prepared_assets, path, PATH_CAP);
         } else if (!strcmp(section, "[components]")) {
-            if (!strcmp(key, "fill")) {
+            if (!strcmp(key, "material") || !strcmp(key, "focus_material")) {
+                needs_v2 = true;
+                unsigned index = !strcmp(key, "focus_material");
+                if (!*value || *value == '/' || strchr(value, ':') ||
+                    !path_resolve_sd(path, directory, value))
+                    valid = false;
+                else
+                    path_copy(package->component_material[index], path, PATH_CAP);
+            } else if (!strcmp(key, "fill")) {
                 needs_v2 = true;
                 if (!strcmp(value, "tile"))
                     package->component_tiled = true;

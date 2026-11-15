@@ -27,6 +27,8 @@ bool draw_theme_component(const ThemePackage *package, uint16_t *pixels, ThemeCo
     if (!image || width <= 0 || height <= 0 || width > 512 || height > 384 ||
         package->component_border > 12 || x < -512 || x > 512 || y < -384 || y > 384)
         return false;
+    const uint16_t *material_colors;
+    const uint8_t *material = themes_component_material(package, component, &material_colors);
     int left = x < 0 ? -x : 0, top = y < 0 ? -y : 0;
     int right = x + width > 256 ? 256 - x : width;
     int bottom = y + height > 192 ? 192 - y : height;
@@ -41,7 +43,14 @@ bool draw_theme_component(const ThemePackage *package, uint16_t *pixels, ThemeCo
             unsigned index = source + columns[x + column];
             uint16_t color = image[index];
             if (color & 0x8000) {
-                uint16_t *destination = &pixels[(y + row) * 256 + x + column];
+                unsigned screen_index = (y + row) * 256 + x + column;
+                uint16_t *destination = &pixels[screen_index];
+                /* Only the plain fill changes. Trim, symbols, alpha and holes
+                 * retain their authored pixels. The field never wraps/repeats. */
+                if (material && color == material_colors[8]) {
+                    unsigned shade = (material[screen_index / 2] >> ((screen_index % 2) * 4)) & 15;
+                    color = material_colors[shade];
+                }
                 unsigned alpha = coverage ? (coverage[index / 4] >> ((index % 4) * 2)) & 3 : 3;
                 *destination = alpha == 3 ? color : draw_blend_coverage(color, *destination, alpha);
             }

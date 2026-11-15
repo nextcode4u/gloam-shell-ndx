@@ -86,6 +86,38 @@ static unsigned char *decode_rgba(const unsigned char *data, size_t size, unsign
     *out_height = height;
     return rgba;
 }
+bool image_decode_material(uint8_t shades[256 * 192 / 2], const unsigned char *data, size_t size)
+{
+    static const unsigned char dimensions[] = {0, 0, 1, 0, 0, 0, 0, 192};
+    if (!shades || !data || size < 24 || size > 256 * 1024 ||
+        memcmp(data, "\x89PNG\r\n\x1a\n", 8) || memcmp(data + 16, dimensions, sizeof dimensions))
+        return false;
+    unsigned width, height;
+    unsigned char *rgba = decode_rgba(data, size, &width, &height);
+    if (!rgba)
+        return false;
+    bool valid = width == 256 && height == 192;
+    for (unsigned i = 0; valid && i < 256 * 192; i += 2) {
+        if (!(i % 256)) {
+            image_decode_checkpoint();
+            if (image_decode_cancelled()) {
+                valid = false;
+                break;
+            }
+        }
+        unsigned pair = 0;
+        for (unsigned half = 0; half < 2; half++) {
+            const unsigned char *pixel = rgba + (i + half) * 4;
+            valid &= pixel[3] == 255;
+            unsigned luminance = (77u * pixel[0] + 150u * pixel[1] + 29u * pixel[2]) >> 8;
+            pair |= (luminance >> 4) << (half * 4);
+        }
+        shades[i / 2] = pair;
+    }
+    free(rgba);
+    return valid;
+}
+
 bool image_decode_icon(uint16_t pixels[32 * 32], const unsigned char *data, size_t size)
 {
     return image_decode_component(pixels, NULL, data, size);

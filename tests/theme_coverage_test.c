@@ -1,10 +1,12 @@
 #include "../arm9/source/ui/drawing.h"
 #include "app.h"
 #include "icons.h"
+#include "image_decode.h"
 #include "paths.h"
 #include "themes.h"
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static App app;
@@ -13,6 +15,80 @@ static struct {
     uint16_t pixels[256 * 192];
     unsigned after;
 } surface;
+
+static uint16_t expected_material(unsigned shade)
+{
+    int delta = (int)shade - 8;
+    return 0x8000 | (8 + delta) | ((12 + delta) << 5) | ((16 + delta) << 10);
+}
+
+static void material_surfaces(void)
+{
+    strcpy(app.theme_id, "material");
+    themes_init(&app);
+    assert(!strcmp(app.themes.active.id, "material"));
+    char source_path[PATH_CAP];
+    assert(path_preferences_file(source_path, app.root, "themes/material/normal.png"));
+    FILE *source_file = fopen(source_path, "rb");
+    assert(source_file && !fseek(source_file, 0, SEEK_END));
+    long bytes = ftell(source_file);
+    assert(bytes > 24 && !fseek(source_file, 0, SEEK_SET));
+    unsigned char *encoded = malloc((size_t)bytes);
+    assert(encoded && fread(encoded, 1, (size_t)bytes, source_file) == (size_t)bytes);
+    assert(!fclose(source_file));
+    static struct {
+        uint32_t before;
+        uint8_t pixels[256 * 192 / 2];
+        uint32_t after;
+    } packed;
+    packed.before = packed.after = 0xabcdef;
+    assert(image_decode_material(packed.pixels, encoded, (size_t)bytes));
+    assert(packed.pixels[0] == 0 && packed.pixels[127] == 0xfe);
+    assert(!image_decode_material(NULL, encoded, (size_t)bytes));
+    assert(!image_decode_material(packed.pixels, encoded, 23));
+    assert(!image_decode_material(packed.pixels, encoded, 256 * 1024 + 1));
+    encoded[19] = 255; /* Wrong dimensions reject before decompression. */
+    assert(!image_decode_material(packed.pixels, encoded, (size_t)bytes));
+    free(encoded);
+    assert(packed.before == 0xabcdef && packed.after == 0xabcdef);
+    for (unsigned i = 0; i < 256 * 192; i++)
+        surface.pixels[i] = 0xfc00;
+    assert(draw_theme_component(&app.themes.active, surface.pixels, THEME_ROW, 0, 0, 256, 192));
+    assert(surface.pixels[0] == 0xfc00);   /* The transparent corner remains a hole. */
+    assert(surface.pixels[257] == 0x801f); /* The red corner ornament is not recolored. */
+    assert(surface.pixels[50 * 256 + 50] == expected_material(50 * 15 / 255));
+    assert(surface.pixels[50 * 256 + 66] == expected_material(66 * 15 / 255));
+    assert(surface.pixels[50 * 256 + 50] != surface.pixels[50 * 256 + 66]);
+    assert(draw_theme_component(&app.themes.active, surface.pixels, THEME_ROW, -10, -5, 300, 210));
+    assert(surface.pixels[50 * 256 + 50] == expected_material(50 * 15 / 255));
+    assert(draw_theme_component(&app.themes.active, surface.pixels, THEME_ROW_SELECTED, 0, 0, 256,
+                                192));
+    assert(surface.pixels[50 * 256 + 50] == expected_material(15 - 50 * 15 / 191));
+    const uint16_t *palette;
+    const uint8_t *active = themes_component_material(&app.themes.active, THEME_ROW, &palette);
+    assert(active && palette[8] == expected_material(8));
+    assert(!themes_component_material(&app.themes.active, THEME_BATTERY_FULL, &palette) &&
+           !palette);
+    char path[PATH_CAP];
+    assert(path_preferences_file(path, app.root, "themes/material/theme.ini"));
+    FILE *file = fopen(path, "w");
+    assert(file && fputs("[theme]\nversion=2\n[components]\ndirectory=components\n"
+                         "material=neutral.png\nfocus_material=invalid.png\n",
+                         file) >= 0);
+    assert(!fclose(file));
+    themes_open(&app);
+    assert(app.themes.ready);
+    const uint8_t *candidate =
+        themes_component_material(&app.themes.candidate, THEME_ROW_SELECTED, &palette);
+    assert(candidate && candidate[0] == 0x88); /* Invalid focus image falls back to normal. */
+    assert(themes_component_material(&app.themes.active, THEME_ROW, &palette) == active);
+    themes_cancel(&app);
+    assert(themes_component_material(&app.themes.active, THEME_ROW, &palette) == active);
+    themes_open(&app);
+    themes_apply(&app);
+    assert(themes_component_material(&app.themes.active, THEME_ROW, &palette)[0] == 0x88);
+    assert(surface.before == 0xc0ffee && surface.after == 0xc0ffee);
+}
 
 int main(int argc, char **argv)
 {
@@ -81,6 +157,7 @@ int main(int argc, char **argv)
     themes_apply(&app);
     assert(!themes_component_alpha(&app.themes.active, THEME_ROW_SELECTED));
     assert(!app.themes.active.component_tiled);
+    material_surfaces();
     puts("PASS: four-level component coverage, opaque fast path, clipped slices and preview "
          "isolation");
 }

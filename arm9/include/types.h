@@ -270,6 +270,7 @@ typedef struct {
     char backgrounds[2][PATH_CAP];
     char reading_surfaces[2][PATH_CAP];
     char icon_directory[PATH_CAP], component_directory[PATH_CAP];
+    char component_material[2][PATH_CAP]; /* Ordinary/focused full-screen fields. */
     unsigned component_border;
     unsigned background_strength;
     char music[PATH_CAP], sounds[3][PATH_CAP];

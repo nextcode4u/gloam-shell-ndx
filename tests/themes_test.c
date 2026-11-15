@@ -104,10 +104,18 @@ int main(int argc, char **argv)
     memcpy(expected_component, component, sizeof expected_component);
     memset(top, 0, sizeof top);
     assert(draw_theme_component(&app.themes.candidate, top, THEME_ROW_SELECTED, 0, 0, 32, 32));
+    const uint16_t *material_colors;
+    const uint8_t *material =
+        themes_component_material(&app.themes.candidate, THEME_ROW_SELECTED, &material_colors);
     for (unsigned y = 0; y < 32; y++)
-        for (unsigned x = 0; x < 32; x++)
-            assert(top[y * 256 + x] == component_over_clear(expected_component[y * 32 + x],
-                                                            expected_coverage, y * 32 + x));
+        for (unsigned x = 0; x < 32; x++) {
+            uint16_t color = expected_component[y * 32 + x];
+            if (material && color == material_colors[8]) {
+                unsigned screen = y * 256 + x;
+                color = material_colors[(material[screen / 2] >> ((screen % 2) * 4)) & 15];
+            }
+            assert(top[y * 256 + x] == component_over_clear(color, expected_coverage, y * 32 + x));
+        }
     struct {
         uint32_t before;
         uint16_t pixels[256 * 192];
