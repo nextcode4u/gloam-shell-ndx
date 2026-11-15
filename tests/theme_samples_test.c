@@ -253,9 +253,11 @@ int main(int argc, char **argv)
         app.audio.mode = MUSIC_THEME;
         app.audio.effects_enabled = true;
         audio_reload(&app);
-        assert((app.audio.music.samples != NULL) == (theme != 0 && theme != 3));
-        if (theme != 0 && theme != 3)
-            assert(app.audio.music.bytes == 256000 && !*app.audio.status);
+        /* Every bundled pack now supplies arranged music. Its length varies by
+         * recording, but decoded PCM must remain bounded and DS-word aligned. */
+        assert(app.audio.music.samples && !*app.audio.status);
+        assert(app.audio.music.bytes > 0 && app.audio.music.bytes <= 1024 * 1024);
+        assert(app.audio.music.bytes % 4 == 0);
         for (int sound = 0; sound < 3; sound++) {
             assert(app.audio.effects[sound].samples && app.audio.effects[sound].bytes);
             audio_free_clip(&app.audio.effects[sound]);
