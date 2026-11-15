@@ -348,7 +348,15 @@ static bool load(App *app, const char *id, ThemePackage *package)
             else
                 path_copy(package->prepared_assets, path, PATH_CAP);
         } else if (!strcmp(section, "[components]")) {
-            if (!strcmp(key, "controls")) {
+            if (!strcmp(key, "fill")) {
+                needs_v2 = true;
+                if (!strcmp(value, "tile"))
+                    package->component_tiled = true;
+                else if (!strcmp(value, "stretch"))
+                    package->component_tiled = false;
+                else
+                    valid = false;
+            } else if (!strcmp(key, "controls")) {
                 needs_v2 = true;
                 if (!strcmp(value, "on"))
                     package->control_assets = true;

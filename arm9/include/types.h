@@ -263,6 +263,7 @@ typedef struct {
     unsigned tab_style, tab_highlight, tab_gap, tab_visible;
     unsigned scene_cover_x, scene_cover_y, scene_cover_width, scene_cover_height;
     bool minimal_chrome, component_coverage, focus_feedback, control_assets;
+    bool component_tiled;
     char ambient_path[PATH_CAP], prepared_assets[PATH_CAP];
     unsigned ambient_ticks;
     uint16_t selection_text, tab_text;

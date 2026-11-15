@@ -297,7 +297,8 @@ int main(int argc, char **argv)
         assert(app.themes.ready && !strcmp(app.themes.candidate.header, headers[i]));
         themes_cancel(&app);
     }
-    const char *bad_components[] = {"directory=../escape", "border=13", "border=-1", "border=bad"};
+    const char *bad_components[] = {"directory=../escape", "border=13", "border=-1",
+                                    "border=bad",          "fill=tile", "fill=unknown"};
     for (unsigned i = 0; i < sizeof bad_components / sizeof *bad_components; i++) {
         char content[160];
         snprintf(content, sizeof content, "[theme]\nversion=1\n[components]\n%s\n",

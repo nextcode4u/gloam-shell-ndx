@@ -1,9 +1,9 @@
-/* Stretch centers and edges while retaining the artwork's corner proportions. */
+/* Preserve corners; theme surfaces can stretch or repeat their material center. */
 #include "drawing.h"
 #include "theme_motion.h"
 #include "themes.h"
 
-static unsigned source_position(int position, int length, unsigned border)
+static unsigned source_position(int position, int length, unsigned border, bool tiled)
 {
     unsigned edge = border;
     if (edge > (unsigned)length / 2)
@@ -14,7 +14,10 @@ static unsigned source_position(int position, int length, unsigned border)
         return edge == 1
                    ? 31
                    : 32 - border + (unsigned)(position - length + edge) * (border - 1) / (edge - 1);
-    return border + (unsigned)(position - edge) * (32 - 2 * border) / (length - 2 * edge);
+    unsigned middle = 32 - 2 * border;
+    if (tiled)
+        return border + (unsigned)(position - edge) % middle;
+    return border + (unsigned)(position - edge) * middle / (length - 2 * edge);
 }
 bool draw_theme_component(const ThemePackage *package, uint16_t *pixels, ThemeComponent component,
                           int x, int y, int width, int height)
@@ -28,10 +31,12 @@ bool draw_theme_component(const ThemePackage *package, uint16_t *pixels, ThemeCo
     int right = x + width > 256 ? 256 - x : width;
     int bottom = y + height > 192 ? 192 - y : height;
     unsigned columns[256];
+    /* Small control glyphs and narrow scroll tracks retain their usual scaling. */
+    bool tiled = package->component_tiled && component <= THEME_ARTWORK_FRAME;
     for (int column = left; column < right; column++)
-        columns[x + column] = source_position(column, width, package->component_border);
+        columns[x + column] = source_position(column, width, package->component_border, tiled);
     for (int row = top; row < bottom; row++) {
-        unsigned source = source_position(row, height, package->component_border) * 32;
+        unsigned source = source_position(row, height, package->component_border, tiled) * 32;
         for (int column = left; column < right; column++) {
             unsigned index = source + columns[x + column];
             uint16_t color = image[index];

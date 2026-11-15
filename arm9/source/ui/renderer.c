@@ -428,7 +428,8 @@ static void draw_scene(const App *app, uint16_t *pixels, Palette colors, const c
                               colors.accent);
         }
     }
-    draw_rectangle(pixels, 6, 119, 244, 34, colors.bg);
+    if (!draw_theme_component(theme, pixels, THEME_PANEL, 6, 119, 244, 34))
+        draw_rectangle(pixels, 6, 119, 244, 34, colors.bg);
     draw_heading_scrolling(theme, pixels, 12, 121, name, colors.text, 232,
                            app->selection_idle_frames, !app->reduced_motion);
     char facts[80];
