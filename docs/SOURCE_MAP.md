@@ -186,3 +186,11 @@ Bundled font authoring uses `config/theme-fonts.json` and
 `tools/theme_font_sources.py` for immutable, checksum-verified OFL sources.
 `make_theme_samples.py --download-fonts` explicitly populates an ignored cache;
 ordinary firmware builds consume the prepared per-theme DSFONT03 files.
+
+`tools/theme_materials.py` prepares native material repeats from the original
+`assets/theme-art/materials.png` atlas. The component generator keeps textures
+inside existing alpha silhouettes; the scene generator bakes reading-band
+textures into existing background PNGs. Optional `[components] fill=tile` changes
+source-coordinate mapping in `ui/theme_components.c`, preserving corners and
+native repeat pitch without new image banks or per-frame allocations. Scene
+item summaries use `panel.png`, with a solid fallback when absent.

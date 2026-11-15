@@ -12,6 +12,11 @@ from pathlib import Path
 
 from PIL import Image, ImageColor, ImageDraw, ImageOps
 
+if __package__:
+    from .theme_materials import tinted_material
+else:
+    from theme_materials import tinted_material
+
 ROOT = Path(__file__).resolve().parents[1]
 THEMES = ROOT / "sdroot/_nds/dsi-frontend/themes"
 ART = ROOT / "assets/theme-art"
@@ -110,9 +115,13 @@ def assets():
             )
             color = ImageColor.getrgb(config["colors"]["background"])
             surface = Image.new("RGBA", (256, 192), color + (round(shade * 2.55),))
-            draw = ImageDraw.Draw(surface)
-            draw.rectangle((0, 0, 255, 33 if screen else 23), fill=color + (240,))
-            draw.rectangle((0, 176, 255, 191), fill=color + (245,))
+            # Baked material bands also work with minimal chrome. Preparation
+            # uses the existing reading surface; no runtime texture layer is kept.
+            material = tinted_material(name, color, (256, 192))
+            for top, bottom, alpha in ((0, 34 if screen else 24, 240), (176, 192, 245)):
+                band = material.crop((0, top, 256, bottom)).convert("RGBA")
+                band.putalpha(alpha)
+                surface.paste(band, (0, top))
             output = io.BytesIO()
             surface.save(output, format="PNG", optimize=True)
             yield THEMES / name / "backgrounds" / (

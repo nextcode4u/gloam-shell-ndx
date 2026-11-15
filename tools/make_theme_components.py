@@ -13,8 +13,10 @@ from functools import lru_cache
 
 if __package__:
     from .make_theme_navigation import SmoothDraw, smooth_export
+    from .theme_materials import texture_component
 else:
     from make_theme_navigation import SmoothDraw, smooth_export
+    from theme_materials import texture_component
 
 ROOT = Path(__file__).resolve().parents[1]
 THEMES = ROOT / "sdroot/_nds/dsi-frontend/themes"
@@ -275,7 +277,10 @@ def component_image(name, style, colors, theme="copper"):
     if name in ("panel", "card", "card-selected", "icon-frame", "artwork-frame"):
         finish_material(image, theme, colors, name)
     # Downsampling and alpha quantization happen here/on the PC, never at runtime.
-    return smooth_export(image)
+    native = smooth_export(image)
+    if name in COMPONENTS[:10]:
+        return texture_component(native, theme, name)
+    return native
 
 
 # Rims are authored into the existing 32px sprites. The central stretch region

@@ -542,7 +542,7 @@ Inside that package-local directory, supply any of these **32×32 PNGs**:
 | --- | --- |
 | `header.png` | Browser and dialog headings on both screens. |
 | `footer.png` | Bottom control/status bands on both screens. |
-| `panel.png` | Quick controls, item actions, settings explanations and picker inspectors. |
+| `panel.png` | Quick controls, item actions, settings explanations, picker inspectors and the Scene item-information strip. |
 | `row.png` | Ordinary browser rows; drawn beneath the moving selection. |
 | `icon-frame.png` | Transparent bezel around native/associated browser icons. |
 | `artwork-frame.png` | Open frame around artwork, picker previews and settings/picker lists. |
@@ -563,6 +563,27 @@ the whole image. When a destination is too small for both corners, the corners
 shrink to fit. This keeps an outline or folded corner intact on a short row and
 a tall cover card. All output clips to the screen, including moving Shelf cards.
 Avoid words and icons inside these images: Gloam draws the live content over them.
+
+Version-2 packs can set `fill=tile` in `[components]` to repeat the center and
+the length of each edge instead of stretching their texture. Corners keep the
+same border treatment. The repeat period is `32 - 2 * border` pixels: with
+`border=8`, a 16×16 material fills the center at native pitch. Make opposite
+edges of that center meet cleanly. Missing `fill` or `fill=stretch` retains the
+existing scaling. Status/control glyphs and scroll tracks keep their usual
+scaling, independent of this setting. Clipping does not restart the pattern.
+
+The bundled packs use original cloth, paper, metal, ceramic and leather texture
+samples in `assets/theme-art/materials.png`. `tools/theme_materials.py` prepares
+the native repeats; `make_theme_components.py` textures component fills while
+preserving their alpha, edges and cutouts. `make_theme_scenes.py` bakes matching
+header/footer bands into the existing reading-surface PNGs, so minimal-chrome
+themes can use material backdrops too. Those reading surfaces are preblended
+when loading the theme. No runtime texture decoding, extra texture bank or
+additional framebuffer is needed.
+
+Install the matching frontend binary with these updated bundled themes. Older
+binaries do not recognize the optional `fill` field and reject those packages;
+older packages without that field remain compatible with the new frontend.
 
 Keep the center stretch region of `artwork-frame.png` and `icon-frame.png`
 transparent. The bundled packs leave source pixels 8–23 clear in both directions;

@@ -17,3 +17,9 @@ atlas, with sixteen objects in a 4×4 grid. `tools/make_theme_icons.py` fits tho
 objects into native 32×32 sprites and maps related entry points within each
 pack. They share the CC0 dedication above. The motifs, silhouettes and materials
 were authored independently for each theme; native title banners remain separate.
+
+`materials.png` is an original agent-assisted 4×3 material atlas, offered under
+the same CC0 dedication. It contains painted metal, felt, rag paper, indigo
+cotton, sailcloth, canvas, satin, ceramic, leather, expedition paper, velvet and
+linen studies. It contains no texture copied from iOS or another product.
+`tools/theme_materials.py` prepares small, softly joined repeats from these scans.

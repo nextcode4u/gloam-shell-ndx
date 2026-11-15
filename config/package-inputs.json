@@ -1124,6 +1124,7 @@
     "assets/theme-art/garnet.png",
     "assets/theme-art/glacier-icons.png",
     "assets/theme-art/glacier.png",
+    "assets/theme-art/materials.png",
     "assets/theme-art/nocturne-icons.png",
     "assets/theme-art/nocturne.png",
     "assets/theme-art/phosphor-icons.png",
@@ -2188,6 +2189,7 @@
     "tests/test_theme_assets.py",
     "tests/test_theme_font_sources.py",
     "tests/test_theme_icons.py",
+    "tests/test_theme_materials.py",
     "tests/text_test.c",
     "tests/theme_asset_fixture.py",
     "tests/theme_assets_test.c",
@@ -2303,6 +2305,7 @@
     "tools/start_addon_installer.cmd",
     "tools/start_gloam_setup.cmd",
     "tools/theme_font_sources.py",
+    "tools/theme_materials.py",
     "tools/verify_release.py",
     "tools/write_build_info.py"
   ],
