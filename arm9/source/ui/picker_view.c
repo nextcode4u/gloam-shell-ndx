@@ -6,6 +6,12 @@
 #include <stdio.h>
 #include <string.h>
 
+static void draw_list_frame(const App *app, uint16_t *pixels)
+{
+    draw_theme_component(&app->themes.active, pixels, THEME_ARTWORK_FRAME, 4, PICKER_TOP - 2, 248,
+                         PICKER_VISIBLE_ROWS * PICKER_ROW_HEIGHT + 4);
+}
+
 static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
 {
     const PickerState *picker = &app->picker;
@@ -14,6 +20,8 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
+    draw_theme_component(&app->themes.active, top, THEME_PANEL, 6, 49, 244, 103);
+    draw_list_frame(app, bottom);
     draw_heading(&app->themes.active, top, 10, 8,
                  ui_translate(&app->language, "dialog.open_with", "OPEN WITH"), p.accent, 224);
     const char *name = strrchr(picker->target, '/');
@@ -55,9 +63,11 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
         int y = PICKER_TOP + row * PICKER_ROW_HEIGHT;
         bool selected = index == picker->selected;
         if (selected) {
-            draw_theme_selection(&app->themes.active, bottom, 6, y, 244, PICKER_ROW_HEIGHT);
-            draw_theme_focus(app, bottom, 6, y, 244, PICKER_ROW_HEIGHT, picker->idle_frames);
-        }
+            draw_theme_selection(&app->themes.active, bottom, 8, y, 240, PICKER_ROW_HEIGHT);
+            draw_theme_focus(app, bottom, 8, y, 240, PICKER_ROW_HEIGHT, picker->idle_frames);
+        } else
+            draw_theme_component(&app->themes.active, bottom, THEME_ROW, 8, y, 240,
+                                 PICKER_ROW_HEIGHT);
         draw_theme_icon(&app->themes.active, bottom, 14, y + 3, 12, PLACEHOLDER_APPLICATION,
                         selected ? p.accent : p.muted);
         draw_text_scrolling(bottom, 36, y + 3, picker->entries[index].name,
@@ -83,6 +93,8 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
+    draw_theme_component(&app->themes.active, top, THEME_PANEL, 6, 49, 244, 114);
+    draw_list_frame(app, bottom);
     draw_heading(&app->themes.active, top, 10, 8,
                  (picker->kind == PICKER_TOP_BACKGROUND || picker->kind == PICKER_BOTTOM_BACKGROUND)
                      ? "WALLPAPER"
@@ -99,6 +111,8 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
                         picker->idle_frames, !app->reduced_motion);
     if (picker->preview.ready) {
         int x = 10 + (96 - picker->preview.width) / 2, y = 54;
+        draw_theme_component(&app->themes.active, top, THEME_ARTWORK_FRAME, x - 2, y - 2,
+                             picker->preview.width + 4, picker->preview.height + 4);
         for (int row = 0; row < picker->preview.height; row++)
             memcpy(top + (y + row) * 256 + x, picker->preview.pixels + row * picker->preview.width,
                    picker->preview.width * sizeof *top);
@@ -163,9 +177,11 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
         int y = PICKER_TOP + row * PICKER_ROW_HEIGHT;
         bool selected = index == picker->selected;
         if (selected) {
-            draw_theme_selection(&app->themes.active, bottom, 6, y, 244, PICKER_ROW_HEIGHT);
-            draw_theme_focus(app, bottom, 6, y, 244, PICKER_ROW_HEIGHT, picker->idle_frames);
-        }
+            draw_theme_selection(&app->themes.active, bottom, 8, y, 240, PICKER_ROW_HEIGHT);
+            draw_theme_focus(app, bottom, 8, y, 240, PICKER_ROW_HEIGHT, picker->idle_frames);
+        } else
+            draw_theme_component(&app->themes.active, bottom, THEME_ROW, 8, y, 240,
+                                 PICKER_ROW_HEIGHT);
         const Entry *entry = &picker->entries[index];
         draw_theme_icon(&app->themes.active, bottom, 14, y + 3, 12, entry_file_type(entry).icon,
                         selected ? accent : muted);

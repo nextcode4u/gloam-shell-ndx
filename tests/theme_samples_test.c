@@ -4,6 +4,7 @@
 #include "audio.h"
 #include "browser.h"
 #include "layout.h"
+#include "picker.h"
 #include "preferences.h"
 #include "renderer.h"
 #include "settings.h"
@@ -39,6 +40,44 @@ static void draw(void)
     render_app(&app, top.pixels, bottom.pixels, "11:59 PM");
     assert(top.before == 0x12345678 && bottom.before == 0x12345678);
     assert(top.after == 0x87654321 && bottom.after == 0x87654321);
+}
+
+static void picker_material_bounds(void)
+{
+    PickerState saved = app.picker;
+    static Entry entries[2];
+    memset(entries, 0, sizeof entries);
+    strcpy(entries[0].name, "A long first cover or application name.png");
+    strcpy(entries[1].name, "Second choice.png");
+    memset(&app.picker, 0, sizeof app.picker);
+    app.picker.open = true;
+    app.picker.entries = entries;
+    app.picker.count = 2;
+    strcpy(app.picker.path, "sd:/media/artwork");
+    strcpy(app.picker.target, "sd:/roms/Example title.nds");
+    for (int kind = PICKER_COVER; kind <= PICKER_SPLASH; kind++) {
+        app.picker.kind = kind;
+        for (int selected = 0; selected < 2; selected++) {
+            app.picker.selected = selected;
+            draw();
+            assert(app.picker.selected == selected && app.picker.count == 2);
+        }
+    }
+    app.picker.kind = PICKER_COVER;
+    app.picker.preview.ready = true;
+    for (int size = 0; size < 2; size++) {
+        app.picker.preview.width = size ? 96 : 32;
+        app.picker.preview.height = size ? 104 : 32;
+        for (unsigned pixel = 0; pixel < 96 * 104; pixel++)
+            app.picker.preview.pixels[pixel] = 0x83e0;
+        draw();
+        int x = 10 + (96 - app.picker.preview.width) / 2;
+        assert(top.pixels[54 * 256 + x] == 0x83e0);
+        assert(
+            top.pixels[(53 + app.picker.preview.height) * 256 + x + app.picker.preview.width - 1] ==
+            0x83e0);
+    }
+    app.picker = saved;
 }
 
 /* Resolving a banner fallback must not replace the existing card with a
@@ -347,6 +386,7 @@ int main(int argc, char **argv)
             settings_section(&app, 1);
         }
         settings_close(&app);
+        picker_material_bounds();
         banner_preview_surface();
         composition_bounds();
     }

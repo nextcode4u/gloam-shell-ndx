@@ -18,6 +18,9 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_chrome(&app->themes.active, top, 22);
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
+    draw_theme_component(&app->themes.active, top, THEME_PANEL, 6, 27, 244, 148);
+    draw_theme_component(&app->themes.active, bottom, THEME_ARTWORK_FRAME, 4, SETTINGS_LIST_TOP - 2,
+                         248, SETTINGS_VISIBLE_ROWS * SETTINGS_ROW_HEIGHT + 4);
     draw_heading(
         &app->themes.active, top, 10, 8,
         app->simple_settings_lock
@@ -62,9 +65,11 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
         int y = SETTINGS_LIST_TOP + row * SETTINGS_ROW_HEIGHT;
         bool selected = index == state->selected;
         if (selected) {
-            draw_theme_selection(&app->themes.active, bottom, 6, y, 244, SETTINGS_ROW_HEIGHT);
-            draw_theme_focus(app, bottom, 6, y, 244, SETTINGS_ROW_HEIGHT, elapsed);
-        }
+            draw_theme_selection(&app->themes.active, bottom, 8, y, 240, SETTINGS_ROW_HEIGHT);
+            draw_theme_focus(app, bottom, 8, y, 240, SETTINGS_ROW_HEIGHT, elapsed);
+        } else
+            draw_theme_component(&app->themes.active, bottom, THEME_ROW, 8, y, 240,
+                                 SETTINGS_ROW_HEIGHT);
         const SettingsOption *item = settings_option(app, state->section, index);
         draw_text_scrolling(bottom, 14, y + 3, settings_option_text(app, item, false),
                             selected ? themes_selection_text(&app->themes.active) : palette.muted,
