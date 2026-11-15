@@ -35,6 +35,8 @@ Actual source reuse is identified separately below and in THIRD_PARTY.md.
 - TWiLight Menu++ / Arisotura: ROM save-memory table.
 - Lode Vandevenne / LodePNG and Sean Barrett / stb contributors: image decoding.
 - DejaVu / Bitstream font contributors: built-in and theme bitmap faces.
+- COZ / M+ FONTS PROJECT: shared Japanese bitmap fallback. Original sources,
+  permissive notices and revision pins are under `third_party/mplus-bitmap/`.
 - pixelpion: “Sentinel,” Copper's music, under the Pixabay Content License.
 - nextcode4u: supplied top/bottom animation artwork for the shared default splash;
   source GIFs and the conversion recipe are retained in `assets/`.

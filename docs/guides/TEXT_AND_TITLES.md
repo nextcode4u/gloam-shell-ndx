@@ -5,8 +5,9 @@ Invalid encodings produce safe fallback glyphs. Measurement and drawing use
 the active face's pixel advances; legacy fonts retain seven-pixel cells.
 Banner UTF-16 is converted without splitting a
 surrogate pair or truncating inside an encoded character. Unsupported glyphs
-remain a single `?`; this does not provide Japanese/Chinese/Korean glyph coverage
-or translate the frontend's interface.
+remain a single `?`. Japanese kana, JIS kanji and associated symbols now use a
+shared M+ bitmap fallback; full Unicode CJK/Korean and RTL shaping remain unsupported.
+Displaying a title does not change the frontend interface language.
 
 The existing 7×12 ASCII font appearance is unchanged. A built-in Latin-1 fallback
 covers U+00A0–U+00FF, including accented Western European letters, even for older
@@ -81,8 +82,9 @@ tab rail. Selected filenames, paths and tab names retain their scrolling loop.
 
 `/_nds/dsi-frontend/language.ini` is an optional UTF-8 catalog independent of the
 banner-title language and theme font. It currently covers built-in tab labels,
-Settings, reading-folder text and browser/footer hints. Other dialogs and
-settings remain English; this is localization groundwork, not a full translation.
+Settings, reading-folder text, browser/footer hints, settings labels/help and
+common dialog controls. Untranslated entries retain English; catalogs remain
+partial rather than complete interface translations.
 
 ```ini
 version=1
@@ -99,11 +101,11 @@ Files are bounded to 32 KiB. Navigation and label values allow 95 UTF-8 bytes (6
 namespaces, duplicate keys, control characters and unsupported versions discard the whole
 catalog. Early recovery bypasses it. Configuration export/import includes the
 catalog, and configuration reset archives it. No language file is read while
-rendering. Existing fonts still determine script coverage; CJK/RTL needs more work.
+rendering. The shared Japanese fallback works with every theme; other unsupported CJK and RTL scripts still need more work.
 
 Settings labels and help use stable `setting.<option>.label` and
 `setting.<option>.help` keys. Section names, settings-dialog hints and common
-values use `section.*`, `dialog.*` and `value.*`. Up to 192 additional entries
+values use `section.*`, `dialog.*` and `value.*`. Up to 384 additional entries
 are allowed. Missing entries retain English; language files cannot change any
 setting values or launch behavior. Keep help within six display lines and test
 long labels with scrolling enabled and Reduced motion.
@@ -114,3 +116,24 @@ navigation, settings labels, sections and common hints/values; most help and
 runtime errors still fall back to English. Copy the desired file to
 `/_nds/dsi-frontend/language.ini` and restart. These are interface catalogs,
 not the separate language passed to games or used for their title banners.
+
+## Japanese titles and interface
+
+Japanese names work automatically in both English and translated interfaces.
+No theme conversion, SD font installation or console-language change is needed.
+A shared read-only M+ bitmap table supplies 6,817 kana, JIS kanji, punctuation
+and halfwidth katakana glyphs at the existing 12-pixel body height. Fullwidth
+glyphs advance 12 pixels, halfwidth kana advance six, and headings align this
+fallback to their baseline. Wrapping, clipping and scrolling use those widths.
+Rare characters outside the supplied set still use the fallback question mark.
+
+The optional [Japanese starter catalog](../../config/languages/japanese.ini)
+translates navigation, settings labels, common values and dialog controls.
+Copy it to `/_nds/dsi-frontend/language.ini` and restart to enable it; omitted
+help and runtime messages retain English. Leave that file absent to keep English
+menus while still displaying Japanese titles. Title language in settings selects
+which banner field to read; it does not select the interface language.
+
+[Font attribution and source details](../../third_party/mplus-bitmap/UPSTREAM.md).
+Regenerate the shared table with `python3 tools/make_japanese_font.py`; `--check`
+verifies the pinned input hashes and generated data without network access.

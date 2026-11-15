@@ -1,0 +1,23 @@
+{
+  "repository": "https://github.com/itouhiro/PixelMplus",
+  "commit": "d89b95f04eeb95bf98bb09cb9234a2f99d186df5",
+  "original_author": "M+ FONTS PROJECT / COZ",
+  "files": {
+    "mplus_j12r.bdf": {
+      "path": "src/bdf.d/mplus_j12r.bdf",
+      "sha256": "dc97aba9dda768bb7c3f65084ab027ef555d20e51beec61ff50eb0a51607eb8b"
+    },
+    "LICENSE_E": {
+      "path": "misc/mplus_bitmap_fonts/LICENSE_E",
+      "sha256": "907e9f5ac24cba6ce2523cd2a66d6ba143e082c685344dfa8d30ef12f67410a0"
+    },
+    "LICENSE_J": {
+      "path": "misc/mplus_bitmap_fonts/LICENSE_J",
+      "sha256": "b831d51b4b20640091a3e6e6947a209f7a4287c7d384638a907ea838399b3405"
+    },
+    "mplus_f12r-jisx0201.bdf": {
+      "path": "src/bdf.d/mplus_f12r-jisx0201.bdf",
+      "sha256": "2ed6d3534e098dd2f45cb5a0558bca10c824f1f48f4d2e4ac9d013a925402d19"
+    }
+  }
+}

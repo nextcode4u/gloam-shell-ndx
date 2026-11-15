@@ -48,6 +48,8 @@ Text measurement and drawing share UTF-8 decoding and pixel advances; unsupporte
 scripts fall back to `?`. A shared built-in face supplies Latin Extended-A,
 Greek and Cyrillic characters beyond a theme pack's Latin-1 range. These
 characters keep their 7×12 cells, aligned to the bottom of a taller heading line.
+Japanese uses a separate shared M+ bitmap fallback: 12-pixel fullwidth kana/kanji
+and six-pixel halfwidth kana, with the same baseline alignment and measured clipping.
 Missing or invalid external fonts reject the theme
 candidate, keeping the current face. The built-in face is always available,
 and SELECT-at-start recovery bypasses external appearance.
@@ -87,7 +89,7 @@ the same face. Reduced motion retains a static shortened label. Legacy drawing
 call widths are seven-pixel layout units, not character counts; they preserve
 existing screen geometry while allowing more narrow letters to fit.
 
-PCF, CJK/RTL shaping and full UI localization are not supported by this format.
+PCF, arbitrary CJK/RTL shaping and full UI localization are not supported by this format. A shared 12-pixel Japanese fallback supplies kana/JIS kanji independently of theme packs; see [text and titles](TEXT_AND_TITLES.md).
 
 The Spanish catalog includes every settings label and help entry, plus common
 settings values. Overlay headings and controls cover themes, associations, game options, cheats,

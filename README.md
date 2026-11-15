@@ -39,6 +39,8 @@ Each theme includes previews, installation instructions and asset credits.
 - nds-bootstrap integration with game options, save slots and cheat selection.
 - System application shortcuts, installed DSiWare discovery, cartridge icons
   and Slot-1 launching through Simple DS Slot-1 Launcher.
+- Japanese title glyphs across all themes, plus optional Japanese and Spanish
+  [interface catalogs](docs/guides/TEXT_AND_TITLES.md).
 - Favorites and recent items, configuration export/import, recovery mode,
   hidden/save/BIOS folder filters and adjustable scrolling.
 

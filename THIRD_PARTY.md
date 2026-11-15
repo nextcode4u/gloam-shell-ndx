@@ -240,3 +240,10 @@ The delayed release checker also uses BlocksDS DSWifi and Mbed TLS 3.6.4.
 Their full notices and source references are retained under
 [linked SDK notices](third_party/blocksds/UPSTREAM.md). HTTPS hostname and CA
 verification remain enabled.
+
+Japanese fallback glyphs use **M+ BITMAP FONTS**, by COZ / M+ FONTS PROJECT.
+The permissive font license allows modified/unmodified commercial and
+noncommercial redistribution. Full English/Japanese notices, original BDF
+sources, immutable source revision and hashes are retained under
+[third_party/mplus-bitmap](third_party/mplus-bitmap/UPSTREAM.md). This shared
+12-pixel fallback is independent of each theme font and the optional interface catalog.

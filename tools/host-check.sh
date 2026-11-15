@@ -192,6 +192,11 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
 ASAN_OPTIONS=detect_leaks=1 build/host/text-test
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
+    "${model_objects[@]}" "${ui_objects[@]}" tests/japanese_text_test.c -o build/host/japanese-text-test
+ASAN_OPTIONS=detect_leaks=1 build/host/japanese-text-test
+python3 tools/make_japanese_font.py --check
+
+cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" tests/title_metadata_test.c -o build/host/title-metadata-test
 mkdir "$fixture/title-metadata"
 ASAN_OPTIONS=detect_leaks=1 build/host/title-metadata-test "$fixture/title-metadata"
