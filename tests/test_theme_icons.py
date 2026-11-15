@@ -20,6 +20,7 @@ class ThemeIconTests(unittest.TestCase):
             with self.subTest(theme=manifest.parent.name):
                 self.assertEqual(config["theme"]["version"], "2")
                 self.assertEqual(config["components"]["alpha"], "coverage")
+                self.assertEqual(config["components"]["controls"], "on")
                 prepared = manifest.parent / config["assets"]["prepared"]
                 self.assertEqual(prepared.read_bytes(), pack(manifest.parent))
                 # One compressed bank replaces dozens of individual PNG reads.
@@ -44,6 +45,18 @@ class ThemeIconTests(unittest.TestCase):
                             a not in (0, 255) for a in alpha.get_flattened_data()
                         )
                         self.assertLess(partial, 320)
+                for kind in ("icon-frame", "artwork-frame"):
+                    with Image.open(
+                        manifest.parent / "components" / (kind + ".png")
+                    ) as image:
+                        self.assertIsNone(
+                            image.getchannel("A").crop((8, 8, 24, 24)).getbbox()
+                        )
+                for off, on in (("check-off", "check-on"), ("toggle-off", "toggle-on")):
+                    self.assertNotEqual(
+                        (manifest.parent / "components" / (off + ".png")).read_bytes(),
+                        (manifest.parent / "components" / (on + ".png")).read_bytes(),
+                    )
 
     def test_shipped_packs(self):
         generated = dict(assets())

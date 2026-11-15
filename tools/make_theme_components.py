@@ -5,9 +5,11 @@ import argparse
 import configparser
 import io
 import random
+import math
 from pathlib import Path
 
-from PIL import Image, ImageColor, ImageDraw
+from PIL import Image, ImageColor
+from functools import lru_cache
 
 if __package__:
     from .make_theme_navigation import MATERIALS, SmoothDraw, smooth_export
@@ -35,6 +37,18 @@ COMPONENTS = (
     "battery-charging",
     "battery-unknown",
     "wireless-idle",
+    "update-available",
+    "check-off",
+    "check-on",
+    "toggle-off",
+    "toggle-on",
+    "arrow-left",
+    "arrow-right",
+    "arrow-up",
+    "arrow-down",
+    "scroll-track",
+    "scroll-thumb",
+    "busy",
 )
 
 
@@ -81,13 +95,56 @@ def component_image(name, style, colors, theme="copper"):
         # with an access point merely because the hardware radio is available.
         d.line((23, 22, 29, 28), fill=accent, width=2)
         d.line((29, 22, 23, 28), fill=accent, width=2)
-    elif name in ("icon-frame", "artwork-frame"):
-        # Open center and a soft, broad shadow. Native banners remain untouched.
+    elif name.startswith("arrow-"):
+        points = [(21, 5), (10, 16), (21, 27)]
+        if name == "arrow-right":
+            points = [(32 - x, y) for x, y in points]
+        elif name == "arrow-up":
+            points = [(y, x) for x, y in points]
+        elif name == "arrow-down":
+            points = [(y, 32 - x) for x, y in points]
+        d.line(points, fill=accent, width=4)
+    elif name.startswith("check-"):
+        d.rounded_rectangle(
+            (3, 3, 28, 28),
+            radius=min(radius, 7),
+            fill=accent if name == "check-on" else face,
+            outline=muted,
+            width=2,
+        )
+        if name == "check-on":
+            d.line([(8, 16), (13, 22), (24, 10)], fill=colors["ink"], width=4)
+    elif name.startswith("toggle-"):
+        enabled = name == "toggle-on"
+        d.rounded_rectangle(
+            (1, 5, 30, 26),
+            radius=max(3, min(radius, 10)),
+            fill=accent if enabled else muted,
+        )
+        x = 19 if enabled else 3
+        knob = colors["ink"] if enabled else face
         if theme in ("folio", "copper", "ember"):
-            d.rounded_rectangle((1, 2, 31, 31), radius=radius, outline=muted, width=2)
-            d.rounded_rectangle((0, 0, 29, 29), radius=radius, outline=face, width=2)
+            d.rounded_rectangle((x, 7, x + 9, 24), radius=2, fill=knob)
         else:
-            d.rounded_rectangle((1, 1, 30, 30), radius=radius, outline=face, width=2)
+            d.ellipse((x, 7, x + 9, 24), fill=knob)
+    elif name.startswith("scroll-"):
+        d.rounded_rectangle(
+            (0, 0, 31, 31), radius=4, fill=accent if name == "scroll-thumb" else face
+        )
+    elif name == "update-available":
+        d.ellipse((1, 1, 30, 30), fill=accent)
+        d.line([(9, 15), (16, 8), (23, 15)], fill=colors["ink"], width=3)
+        d.line((16, 9, 16, 24), fill=colors["ink"], width=3)
+    elif name == "busy":
+
+        for i in range(8):
+            x = 16 + 10 * math.cos(i * math.tau / 8)
+            y = 16 + 10 * math.sin(i * math.tau / 8)
+            d.ellipse((x - 2, y - 2, x + 2, y + 2), fill=accent if i < 3 else muted)
+    elif name in ("icon-frame", "artwork-frame"):
+        # A wide material rim with an empty center protects live cover/banner art.
+        d.rounded_rectangle((0, 0, 31, 31), radius=min(radius, 7), fill=face)
+        d.rounded_rectangle((4, 4, 27, 27), radius=2, fill=(0, 0, 0, 0))
     else:
         fill = accent if name == "tab-selected" else face
         if name in ("header", "footer"):
@@ -156,13 +213,74 @@ def component_image(name, style, colors, theme="copper"):
         for y in range(128):
             for x in range(128):
                 r, g, b, a = pixels[x, y]
-                if a:
+                if a and min(x, y, 127 - x, 127 - y) < 14:
                     grain = rng.choice((-2, -1, 0, 0, 1, 2))
                     pixels[x, y] = tuple(
                         max(0, min(255, c + grain)) for c in (r, g, b)
                     ) + (a,)
+    if name in ("panel", "card", "card-selected", "icon-frame", "artwork-frame"):
+        finish_material(image, theme, colors, name)
     # Downsampling and alpha quantization happen here/on the PC, never at runtime.
     return smooth_export(image)
+
+
+# Rims are authored into the existing 32px sprites. The central stretch region
+# stays quiet; only the perimeter carries texture, highlights and material color.
+RIMS = {
+    "copper": ("#b38c59", "#72563f"),
+    "slate": ("#4d505d", "#20232e"),
+    "folio": ("#c6a66b", "#9e7b46"),
+    "nocturne": ("#6d657f", "#24233f"),
+    "tide": ("#b8d7ce", "#64989e"),
+    "phosphor": ("#718575", "#263d3d"),
+    "eclipse": ("#af85a9", "#513c67"),
+    "prism": ("#ffd0e0", "#e873a0"),
+    "ember": ("#c3a471", "#96734c"),
+    "glacier": ("#e9f7f4", "#8bbdc9"),
+    "garnet": ("#c8a26a", "#77604d"),
+}
+
+
+@lru_cache(maxsize=11)
+def material_grain(theme):
+    path = ROOT / "assets/theme-art" / (theme + ".png")
+    if not path.exists():
+        return [128] * (128 * 128)
+    with Image.open(path) as master:
+        # Quiet left-hand material, without stamping a miniature hero picture
+        # into each corner. Only its broad tonal variation is used.
+        sample = master.crop((0, 40, 160, 200)).convert("L")
+        return list(
+            sample.resize((128, 128), Image.Resampling.LANCZOS).get_flattened_data()
+        )
+
+
+def finish_material(image, theme, colors, name):
+    light, shadow = (ImageColor.getrgb(c) for c in RIMS[theme])
+    grain = material_grain(theme)
+    pixels = image.load()
+    for y in range(128):
+        for x in range(128):
+            r, g, b, a = pixels[x, y]
+            if not a:
+                continue
+            edge = min(x, y, 127 - x, 127 - y) / 4
+            # A broad three-pixel rim; no repeated hairline outlines.
+            weight = max(0, (3.5 - edge) / 3.5)
+            target = light if y < 64 else shadow
+            texture = (grain[y * 128 + x] - 128) * (0.12 if weight else 0)
+            rgb = tuple(
+                max(0, min(255, round(c * (1 - weight) + t * weight + texture)))
+                for c, t in zip((r, g, b), target)
+            )
+            pixels[x, y] = rgb + (a,)
+    if theme == "ember" and name == "panel":
+        # Sparse seam marks remain in the corners, outside the stretch/text area.
+        d = SmoothDraw(image)
+        for x in (5, 9, 23, 27):
+            d.line((x, 2, x + 1, 2), fill="#95764d", width=1)
+    if theme == "glacier" and name in ("panel", "card-selected"):
+        SmoothDraw(image).polygon([(25, 0), (31, 0), (31, 6)], fill=colors["accent"])
 
 
 def assets():
