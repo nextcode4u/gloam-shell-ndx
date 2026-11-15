@@ -23,14 +23,20 @@ MATERIALS = {
 }
 
 
-@lru_cache(maxsize=11)
-def material_tile(theme):
+@lru_cache(maxsize=22)
+def material_tile(theme, selected=False):
     """Keep a small, native-scale grain; soften both joins before palette reduction."""
     cell, _ = MATERIALS[theme]
+    if selected:
+        # Focus changes the physical surface as well as its trim: frosted
+        # ceramic over Slate's felt, linen applique over Nocturne's denim,
+        # and a satin inset over Garnet's velvet. Others use a separate sample.
+        cell = {"slate": 7, "nocturne": 11, "garnet": 6}.get(theme, cell)
     with Image.open(ROOT / "assets/theme-art/materials.png") as master:
         if master.size != (1024, 768):
             raise ValueError("Material master must be a 4x3 atlas of 256px squares")
-        x, y = (cell % 4) * 256 + 112, (cell // 4) * 256 + 112
+        offset_x, offset_y = (48, 160) if selected else (112, 112)
+        x, y = (cell % 4) * 256 + offset_x, (cell // 4) * 256 + offset_y
         tile = master.crop((x, y, x + 32, y + 32)).convert("RGB")
     tile = tile.resize((16, 16), Image.Resampling.LANCZOS)
     # Remove broad photographic lighting before repeating a small sample. It
@@ -65,9 +71,9 @@ def material_tile(theme):
     return tile
 
 
-def tinted_material(theme, color, size, strength=1.0):
+def tinted_material(theme, color, size, strength=1.0, *, selected=False):
     """Tint a real material while keeping its mean under the theme's text palette."""
-    tile = material_tile(theme)
+    tile = material_tile(theme, selected)
     mean = ImageStat.Stat(tile).mean
     deviation = max(1, math.sqrt(sum(ImageStat.Stat(tile).var) / 3))
     amplitude = MATERIALS[theme][1] * strength
@@ -95,7 +101,10 @@ def texture_component(image, theme, name):
     output = image.load()
     # Less contrast in modal text areas; slightly stronger in short chrome bands.
     strength = 1.1 if name in ("header", "footer") else 0.8
-    grain = tinted_material(theme, (128, 128, 128), (32, 32), strength).load()
+    selected = name in ("row-selected", "card-selected")
+    grain = tinted_material(
+        theme, (128, 128, 128), (32, 32), strength, selected=selected
+    ).load()
     for y in range(32):
         for x in range(32):
             r, g, b, alpha = source[x, y]

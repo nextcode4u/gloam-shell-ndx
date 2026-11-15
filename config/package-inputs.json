@@ -1184,6 +1184,7 @@
     "docs/images/theme-controls.png",
     "docs/images/theme-icons.png",
     "docs/images/theme-personalities.png",
+    "docs/images/theme-selections.png",
     "docs/images/theme-variants.png",
     "forwarder/Makefile",
     "forwarder/arm9/include/target.h",
@@ -2306,6 +2307,7 @@
     "tools/start_gloam_setup.cmd",
     "tools/theme_font_sources.py",
     "tools/theme_materials.py",
+    "tools/theme_selections.py",
     "tools/verify_release.py",
     "tools/write_build_info.py"
   ],

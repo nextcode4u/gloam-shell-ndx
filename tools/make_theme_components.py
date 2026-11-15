@@ -14,9 +14,11 @@ from functools import lru_cache
 if __package__:
     from .make_theme_navigation import SmoothDraw, smooth_export
     from .theme_materials import texture_component
+    from .theme_selections import selection_surface
 else:
     from make_theme_navigation import SmoothDraw, smooth_export
     from theme_materials import texture_component
+    from theme_selections import selection_surface
 
 ROOT = Path(__file__).resolve().parents[1]
 THEMES = ROOT / "sdroot/_nds/dsi-frontend/themes"
@@ -74,7 +76,6 @@ def component_image(name, style, colors, theme="copper"):
         "glacier": 8,
         "garnet": 10,
     }[theme]
-    selected = name in ("row-selected", "card-selected")
     if name.startswith("battery-"):
         d.rounded_rectangle((2, 7, 27, 24), radius=3, fill=muted)
         d.rectangle((27, 12, 30, 19), fill=muted)
@@ -162,6 +163,8 @@ def component_image(name, style, colors, theme="copper"):
             x = 16 + 10 * math.cos(i * math.tau / 8)
             y = 16 + 10 * math.sin(i * math.tau / 8)
             d.ellipse((x - 2, y - 2, x + 2, y + 2), fill=accent if i < 3 else muted)
+    elif name in ("row-selected", "card-selected"):
+        image = selection_surface(theme)
     elif name in ("icon-frame", "artwork-frame"):
         # A wide material rim with an empty center protects live cover/banner art.
         d.rounded_rectangle((0, 0, 31, 31), radius=min(radius, 7), fill=face)
@@ -170,14 +173,6 @@ def component_image(name, style, colors, theme="copper"):
         fill = accent if name == "tab-selected" else face
         if name in ("header", "footer"):
             fill = bg
-        if selected:
-            fill = {
-                "prism": "#c5e864",
-                "folio": "#f8e9c9",
-                "tide": "#fff3dc",
-                "glacier": "#d0e5eb",
-                "ember": "#f7e7c7",
-            }.get(theme, face)
         if theme == "folio":
             # Fibrous torn-paper silhouette, broad enough for nine-slice corners.
             points = [
@@ -244,14 +239,6 @@ def component_image(name, style, colors, theme="copper"):
                 d.ellipse((x - 2, 27, x + 2, 31), fill=fill)
         else:
             d.rounded_rectangle((0, 0, 31, 31), radius=radius, fill=fill)
-        if selected and theme != "prism":
-            # Broad selection marks reserve the live icon/text area.
-            if theme in ("tide", "nocturne", "eclipse"):
-                d.rounded_rectangle((0, 8, 3, 24), radius=2, fill=accent)
-            elif theme == "garnet":
-                d.polygon([(1, 10), (4, 16), (1, 22)], fill=accent)
-            else:
-                d.rounded_rectangle((1, 5, 4, 26), radius=1, fill=accent)
         if theme == "copper" and name in ("card", "card-selected"):
             d.rounded_rectangle((3, 3, 28, 6), radius=1, fill="#d8ba88")
         if theme == "ember" and name == "tab-selected":
@@ -274,7 +261,7 @@ def component_image(name, style, colors, theme="copper"):
                     pixels[x, y] = tuple(
                         max(0, min(255, c + grain)) for c in (r, g, b)
                     ) + (a,)
-    if name in ("panel", "card", "card-selected", "icon-frame", "artwork-frame"):
+    if name in ("panel", "card", "icon-frame", "artwork-frame"):
         finish_material(image, theme, colors, name)
     # Downsampling and alpha quantization happen here/on the PC, never at runtime.
     native = smooth_export(image)

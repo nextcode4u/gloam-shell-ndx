@@ -194,3 +194,9 @@ textures into existing background PNGs. Optional `[components] fill=tile` change
 source-coordinate mapping in `ui/theme_components.c`, preserving corners and
 native repeat pitch without new image banks or per-frame allocations. Scene
 item summaries use `panel.png`, with a solid fallback when absent.
+
+`tools/theme_selections.py` owns each bundled pack's full focus silhouette and
+trim. `make_theme_components.py` exports it into the existing selected-row/card
+slots; `theme_materials.py` prepares separate focus samples. Runtime rendering
+and touch geometry stay shared. `make_screenshots.py --theme-selections` compares
+focused and ordinary rows through the host renderer at native size.

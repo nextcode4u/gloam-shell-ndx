@@ -2,7 +2,7 @@
 
 import unittest
 
-from PIL import Image
+from PIL import Image, ImageStat
 
 from tools.theme_materials import (
     MATERIALS,
@@ -13,6 +13,20 @@ from tools.theme_materials import (
 
 
 class MaterialTests(unittest.TestCase):
+    def test_focus_changes_the_fill_and_material_not_only_a_leading_marker(self):
+        from tools.make_theme_components import THEMES
+
+        for name in MATERIALS:
+            self.assertNotEqual(
+                material_tile(name).tobytes(), material_tile(name, True).tobytes(), name
+            )
+            with Image.open(THEMES / name / "components/row.png") as plain, Image.open(
+                THEMES / name / "components/row-selected.png"
+            ) as selected:
+                a = ImageStat.Stat(plain.crop((8, 8, 24, 24)).convert("RGB")).mean
+                b = ImageStat.Stat(selected.crop((8, 8, 24, 24)).convert("RGB")).mean
+                self.assertGreater(max(abs(x - y) for x, y in zip(a, b)), 8, name)
+
     def test_each_material_is_independent_and_has_soft_repeat_joins(self):
         tiles = set()
         for name in MATERIALS:

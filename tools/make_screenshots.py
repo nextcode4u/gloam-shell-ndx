@@ -2,6 +2,7 @@
 """Capture the actual host renderer with authored SD content for documentation."""
 
 import argparse
+import configparser
 import shutil
 import subprocess
 import tempfile
@@ -10,6 +11,35 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def selection_gallery(preview, output):
+    """Compare focused and ordinary rows through the native renderer at 1:1 size."""
+    names = sorted(
+        p.parent.name
+        for p in (ROOT / "sdroot/_nds/dsi-frontend/themes").glob("*/theme.ini")
+    )
+    gallery = Image.new("RGB", (512, ((len(names) + 1) // 2) * 116), "#090d12")
+    with tempfile.TemporaryDirectory(
+        prefix="selection-previews-", dir=ROOT / "build"
+    ) as temporary:
+        card = Path(temporary) / "sd"
+        shutil.copytree(ROOT / "sdroot", card)
+        for index, name in enumerate(names):
+            (card / "_nds/dsi-frontend/state.ini").write_text(
+                f"version=1\ntheme_id={name}\nbrowser_style=1\nicon_size=0\n"
+            )
+            prefix = Path(temporary) / name
+            subprocess.run([str(preview), str(card), str(prefix), "1"], check=True)
+            config = configparser.ConfigParser()
+            config.read(card / "_nds/dsi-frontend/themes" / name / "theme.ini")
+            height = 34 + config.getint("layout", "row_padding", fallback=0)
+            x, y = (index % 2) * 256, (index // 2) * 116
+            ImageDraw.Draw(gallery).text((x + 8, y + 3), name.title(), fill="white")
+            with Image.open(str(prefix) + "-bottom.ppm") as image:
+                gallery.paste(image.crop((0, 41, 256, 41 + height * 2)), (x, y + 20))
+    gallery.save(output / "theme-selections.png", optimize=True)
+    print("Updated native selection comparison.")
 
 
 def main() -> None:
@@ -24,14 +54,32 @@ def main() -> None:
     parser.add_argument(
         "--theme-dialogs", action="store_true", help="Render settings and cover pickers"
     )
+    parser.add_argument(
+        "--theme-selections",
+        action="store_true",
+        help="Compare focused and ordinary rows",
+    )
     args = parser.parse_args()
-    if args.theme_dialogs and args.theme_variants:
-        parser.error("Choose either --theme-dialogs or --theme-variants")
+    if (
+        sum(
+            bool(option)
+            for option in (
+                args.theme_dialogs,
+                args.theme_variants,
+                args.theme_selections,
+            )
+        )
+        > 1
+    ):
+        parser.error("Choose one theme preview mode")
     preview = ROOT / "build/host/preview"
     if not preview.is_file():
         raise SystemExit("Run tools/host-check.sh to build the host renderer first.")
     output = ROOT / "docs/images"
     output.mkdir(parents=True, exist_ok=True)
+    if args.theme_selections:
+        selection_gallery(preview, output)
+        return
     with tempfile.TemporaryDirectory(
         prefix="screenshots-", dir=ROOT / "build"
     ) as temporary:

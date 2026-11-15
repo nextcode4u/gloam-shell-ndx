@@ -809,3 +809,24 @@ Source atlases never load on the console. The icon count and native pixel cache
 size stay unchanged; the richer RGB555 artwork changes compressed package size,
 not the per-frame drawing path. See [theme fonts](THEME_FONTS.md) for the separate
 OFL face inputs and offline preparation.
+
+### Independent focus artwork
+
+The bundled packs use full selected-row and selected-card artwork instead of a
+common leading stripe. Focus changes both the material sample and the fill:
+brass/enamel plates in Copper, taped paper in Folio, a stitched linen applique
+in Nocturne, a field tag in Phosphor, a folded ticket in Glacier and a satin
+jewel setting in Garnet. Slate, Tide, Eclipse, Prism and Ember have their own
+slab, nautical ticket, capsule, puffy sticker and leather-label treatments.
+
+`tools/theme_selections.py` authors these silhouettes and trim; the material
+preparer uses distinct focus samples. Corners fit inside the eight-pixel source
+border, keeping ornament outside live labels and native icons. The same
+`row-selected.png` skin applies to browser rows, settings and pickers;
+`card-selected.png` supplies Grid/Shelf focus. No additional runtime assets or
+custom drawing code are needed for each pack.
+
+![Focused and ordinary rows at native size](../images/theme-selections.png)
+
+Regenerate this comparison through the actual host renderer with
+`python3 tools/make_screenshots.py --theme-selections`.
