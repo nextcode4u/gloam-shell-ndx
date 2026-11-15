@@ -771,3 +771,20 @@ with its side navigation. L/R and X navigation keep their usual behavior.
 `tabs_position` applies only to these three presets; it rejects incompatible
 combinations rather than silently ignoring them. Existing `sidebar`,
 `sidebar_left`, `poster` and `scene` retain their original compositions.
+
+## Bundled visual sets
+
+The eleven bundled themes use independent illustrated icon atlases, different
+body/heading font families, and material-specific cards, tabs and controls.
+Navigation and related file types share objects within their own theme. Native
+DS/DSi banners and configured emulator icons retain their title artwork.
+
+![The bundled icon sets at 32 and 16 pixels](../images/theme-icons.png)
+
+Icon masters are in `assets/theme-art/*-icons.png`. Reproduce their native
+sprites with `python3 tools/make_theme_icons.py`, then run
+`python3 tools/pack_theme_assets.py <theme-folder>` to rebuild the prepared bank.
+Source atlases never load on the console. The icon count and native pixel cache
+size stay unchanged; the richer RGB555 artwork changes compressed package size,
+not the per-frame drawing path. See [theme fonts](THEME_FONTS.md) for the separate
+OFL face inputs and offline preparation.
