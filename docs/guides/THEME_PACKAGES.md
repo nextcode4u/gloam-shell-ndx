@@ -69,29 +69,37 @@ A, or cancel with B. The packages are ready to copy; no build step is needed.
 
 | Theme | Illustrated identity | Browser character |
 | --- | --- | --- |
-| Copper | Riveted clockwork workshop, meshing brass gears. | Warm metal faces and amber selection edges. |
-| Slate | Rain over a lit city archive. | Blue steel and restrained technical lines. |
-| Folio | Botanical field notebook with a pressed flower. | Warm paper, graphite and folded corners. |
-| Nocturne | Moonlit rooftops with a watchful cat. | Indigo surfaces and soft lunar corners. |
-| Tide | A lighthouse above a quiet coast. | Sea-glass colors and pale chart-like panels. |
-| Phosphor | Radar sweep and instrument grid. | Terminal green, bracket selections and compact rows. |
-| Eclipse | Ringed planet above an observatory. | Dark plum and wide, spacious grid tiles. |
-| Prism | Pastel arcade at closing time. | Bright cabinets, folded panels and dense grid tiles. |
-| Ember | A tent and campfire beneath pine trees. | Canvas-brown rows and warm amber highlights. |
-| Glacier | Polar research outpost beneath an aurora. | Ice-blue panels and larger grid tiles. |
-| Garnet | Rose window and candlelit gothic hall. | Burgundy surfaces and a text-first browser. |
+| Copper | Oxidized teal workshop, brass gears, red pressure wheel and ivory gauge. | Enamel faces, brass fasteners and warm selection edges. |
+| Slate | Navy city rain, coral neon and amber reflections. | Graphite panels, cyan symbols and salmon highlights. |
+| Folio | Pressed flowers, green leaves, blue tape and vermilion berries. | Cream paper, terracotta selection and colored notebook inks. |
+| Nocturne | Blue dusk, warm roofs, a butter-yellow moon and colored lanterns. | Smoky violet surfaces, gold selection and sea-glass symbols. |
+| Tide | Peach sky, blue sea, red-striped lighthouse and coral sail. | Cream charts, navy text and red pencil marks. |
+| Phosphor | Navy instrument enclosure, green radar, cyan controls and amber indicators. | Open brackets and compact instrument rows. |
+| Eclipse | Copper planet, turquoise rings and pink stellar points. | Plum cards, apricot selection and complementary category inks. |
+| Prism | Honey, rose and teal arcade cabinets over a checker floor. | Cream panels, cranberry selection and colored corner tabs. |
+| Ember | Pine-green forest, rose dusk, canvas tent and orange fire. | Olive surfaces, gold edges and pale teal equipment icons. |
+| Glacier | Violet-and-mint aurora, blue ice and safety-orange equipment. | Navy panels, peach highlights and colored instrument symbols. |
+| Garnet | Gold tracery around rose, jade and cobalt stained glass. | Burgundy panels, brass selection and cool secondary inks. |
 
-All eleven packs include original native-resolution illustrations, with four
-screen compositions chosen to suit their character:
+All eleven bundled packs require version-2 theme support. They include original
+native-resolution illustrations, independent screen shading and complementary
+file/tab colors. Prepared `assets.gfx` banks avoid individual sprite PNG reads;
+the editable PNG sources remain alongside them. Opaque rows protect text, while
+only the compact inspector Panel retains partial coverage (256 bytes of coverage
+per loaded pack). Repeated grid/shelf cards stay opaque. Screen shading is prepared during loading. These packs add no
+animation scripts or per-frame file reads.
+
+Screen compositions are chosen to suit their character:
 
 - **Scene — Copper, Nocturne, Tide and Garnet:** illustration above a compact
   inspector and horizontal tabs. Tide uses a larger thumbnail; Garnet a portrait
   framed thumbnail beside its rose window.
 - **Poster — Eclipse, Prism and Ember:** large artwork beside title details,
   with horizontal tabs below.
-- **Left sidebar — Folio and Glacier:** navigation on the left, artwork and
-  information on the right.
-- **Right sidebar — Slate and Phosphor:** artwork and information on the left,
+- **Journal — Folio and Slate:** compact portrait artwork beside a heading and
+  item facts, leaving the scenery visible around them.
+- **Gallery — Glacier:** navigation above artwork and item facts.
+- **Right sidebar — Phosphor:** artwork and information on the left,
   with a persistent tab list on the right.
 
 Icons, cover art, labels and status remain live; none are baked into the
@@ -134,6 +142,10 @@ or verify only these sample assets with the pinned authoring environment:
 ```sh
 .venv/bin/python tools/make_theme_samples.py
 .venv/bin/python tools/make_theme_samples.py --check
+.venv/bin/python tools/make_theme_icons.py
+.venv/bin/python tools/make_theme_components.py
+# Repeat for each edited package after regenerating its PNGs:
+.venv/bin/python tools/pack_theme_assets.py sdroot/_nds/dsi-frontend/themes/copper
 ```
 
 The generator leaves Copper's licensed music and all personal settings alone.
