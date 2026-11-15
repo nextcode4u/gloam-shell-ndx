@@ -301,7 +301,7 @@ $displayNames = @{
     'dsxp'='DSXP'; 'scummvm'='ScummVM'; 'gimlids'='GimliDS'; 'hachibitto'='Hachibitto';
     'picodrivetwl'='PicoDriveTWL'; 'snemulds'='SNEmulDS'; 'snemulds-shim'='SNEmulDS Shim';
     's8ds'='S8DS'; 'nitrografx'='NitroGrafx'; 'nitroswan'='NitroSwan'; 'ngpds'='NGPDS';
-    'fastvideods'='FastVideoDS'; 'tuna-vids'='tuna-viDS'; 'rocketvideoplayer'='Rocket Video Player';
+    'fastvideods'='FastVideoDSPlayer 2'; 'tuna-vids'='tuna-viDS'; 'rocketvideoplayer'='Rocket Video Player';
     'nintv-ds'='Nintellivision'; 'jenesisdsplus'='jEnesisDS Plus'; 'a5200ds'='A5200DS';
     'a7800ds'='A7800DS'; 'a8ds'='A8DS'; 'stellads'='StellaDS'; 'colecods'='ColecoDS';
     'dracods'='DracoDS'; 'ds994a'='DS994a'; 'lodjurds'='LodjurDS'; 'microds'='MicroDS';

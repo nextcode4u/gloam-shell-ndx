@@ -216,6 +216,26 @@ The following catalog records audited source behavior, not a physical-DSi
 compatibility guarantee. `direct` means the content-loading path consumes argv;
 it does not mean that just declaring argc/argv was counted as support.
 
+FastVideoDS uses the temporary [nextcode4u compatibility release of FastVideoDSPlayer 2](https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/tag/v2.3-intrwait.1).
+New installs and reviewed updates use the same fixed binary, keeping the ID
+`fastvideods` and `/_nds/dsi-frontend/plugins/apps/FastVideoDS.nds` path. Existing
+`.fv` profiles continue to work. Already-installed players can be replaced with
+**Update selected** in Setup or `--update --only fastvideods` / `-Update -Only fastvideods`.
+The update backs up the previous executable and preserves personal profiles.
+
+The fix corrects the player's legacy libnds 1.8 interrupt-wait return path,
+which can stall playback after launch from newer launchers. Keep this fork until
+an upstream player release includes the correction and passes launch/playback
+checks; updating Gloam's BlocksDS SDK alone cannot fix an existing player binary.
+See [upstream PR #18](https://github.com/Mathos42/FastVideoDSPlayer-2/pull/18).
+Emulator playback and pause/resume pass; the corrected build still needs physical
+DSi, full-length playback, audio-quality, EOF and return validation.
+
+The player accepts `argv[1]`; launching it alone opens its browser. Use
+[FastVideoDS Encoder 2](https://github.com/Mathos42/FastVideoDSEncoder-2) for conversion.
+No BIOS is needed. Source and notices accompany the compatibility release.
+The installer downloads the player directly; it is not embedded in `addons.zip`.
+
 | App / pinned version | Argv | Delivery / terms |
 | --- | --- | --- |
 | [a5200ds 3.9](https://github.com/wavemotion-dave/A5200DS/releases/tag/3.9) | [direct](https://github.com/wavemotion-dave/A5200DS/blob/b7bba6ca9ea2a4e411753ed2d54e33c8bc93fd1a/arm9/source/main.c) | Noncommercial opt-in; Custom noncommercial redistribution |
@@ -226,7 +246,7 @@ it does not mean that just declaring argc/argv was counted as support.
 | [ds994a 2.9](https://github.com/wavemotion-dave/DS994a/releases/tag/2.9) | [direct](https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/arm9/source/DS99.c) | Direct upstream download; Noncommercial redistribution with constituent permissions/notices |
 | [dslibris v1.6.0-blocksds-argv.2](https://github.com/nextcode4u/dslibris/releases/tag/v1.6.0-blocksds-argv.2) | [direct](https://github.com/nextcode4u/dslibris/blob/0df16f99a5ce4da385bc2685e3b1e7c40d012d8d/ARGUMENT_LAUNCH.md) | Bundled when pinned; GPL-3.0-or-later combined reader; SIL OFL-1.1 Liberation Fonts; dependency notices retained |
 | [dsxp v1.1.0-sd-argv.1](https://github.com/nextcode4u/DSXP/releases/tag/v1.1.0-sd-argv.1) | [direct](https://github.com/nextcode4u/DSXP/blob/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/source/main.c) | Bundled when pinned; GPL-2.0-or-later |
-| [fastvideods v0.0.1](https://github.com/Gericom/FastVideoDSPlayer/releases/tag/v0.0.1) | [direct](https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/arm9/source/main.cpp) | Direct upstream download; Project license not stated |
+| [fastvideods v2.3-intrwait.1](https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/tag/v2.3-intrwait.1) | [direct](https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/ffd40b2eeb64f4fa475209c81336725eed1c81f2/arm9/source/main.cpp) | Direct upstream download; zlib for Mathos42 additions; libnds notice; original player code unlicensed |
 | [gameyob-dsi v0.5.3b-mavica](https://github.com/Lana-chan/GameYob/releases/tag/v0.5.3b-mavica) | [direct](https://github.com/Lana-chan/GameYob/blob/04f88d96ca653c60fd1b110ce7011db7e8e906a3/arm9/source/main.cpp) | Bundled when pinned; MIT |
 | [gbarunner3 hicode (third-party snapshot)](https://files.deletecat.com/GBARunner3-hicode.zip) | [direct](https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/code/core/arm9/source/main.cpp) | Direct upstream download; Project-wide license not established |
 | [gimlids v1.7a-argv.2](https://github.com/nextcode4u/GimliDS/releases/tag/v1.7a-argv.2) | [direct](https://github.com/nextcode4u/GimliDS/blob/46dc6270da424d6ae638ff9aee2ec3bc0d17873e/ARGUMENT_LAUNCH.md) | Bundled when pinned; GPL-2.0-or-later |
@@ -270,7 +290,7 @@ custom profiles remain preserved by both installers.
 - **[ds994a](https://github.com/wavemotion-dave/DS994a/tree/85098fcfcaa176a919fa4f2162706ac7814ea263):** Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs. The application has no-profit terms; its embedded speech samples have no separately established grant.
 - **[dslibris](https://github.com/nextcode4u/dslibris/tree/argv-launch):** The BlocksDS fork accepts selected-book argv and supports the [document formats listed upstream](https://github.com/nextcode4u/dslibris/blob/argv-launch/DOCUMENT_FORMATS.md). The runtime includes five unmodified Liberation Fonts. GPLv3, OFL and dependency notices and matching source accompany the add-on in the companion archives.
 - **[dsxp](https://github.com/nextcode4u/DSXP/tree/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0):** Use nextcode4u/DSXP SD-argv prerelease; matching release source includes libmad.
-- **[fastvideods](https://github.com/Gericom/FastVideoDSPlayer/tree/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab):** Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.
+- **[fastvideods](https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/ffd40b2eeb64f4fa475209c81336725eed1c81f2/readme.md):** Direct download from nextcode4u's compatibility release of Mathos42's FastVideoDSPlayer 2, not bundled. Mathos42's zlib grant covers their additions only; Gericom's original code has no explicit license. The legacy libnds wait routine retains its own notice. Source and licenses accompany the fork release.
 - **[gameyob-dsi](https://github.com/Lana-chan/GameYob/tree/04f88d96ca653c60fd1b110ce7011db7e8e906a3):** Retain the Drenn/contributor notice and both DS/DSi variants.
 - **[gbarunner3](https://github.com/Gericom/GBARunner3/tree/ecaa817815d9761745606592f04affe5ee9c3731):** Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs. The exact corresponding source revision of the supplied hicode build is unidentified. Direct argv handling is statically verified.
 - **[gimlids](https://github.com/nextcode4u/GimliDS/tree/argv-launch):** The v1.7a-argv.2 BlocksDS release opens selected PRG, CRT and D64 files directly. It is bundled with matching source/notices and available through the shared downloader. External C64 firmware remains user-supplied.
@@ -313,7 +333,7 @@ payload and DSP/S-DD1 variants are not silently substituted.
 - **[ds994a](https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/README.md):** Requires 994aROM.bin and 994aGROM.bin in /roms/bios or /roms/ti99; 994aDISK.bin is needed for disk support.
 - **[dslibris](https://github.com/nextcode4u/dslibris/blob/argv-launch/README.md):** No BIOS required. Supplied fonts use `/data/dslibris/font/`; books default to `/media/books/`. New settings use `/data/dslibris/dslibris.xml`; existing legacy settings remain in use unless a managed file exists.
 - **[dsxp](https://github.com/nextcode4u/DSXP/blob/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/README.md):** No emulator BIOS required.
-- **[fastvideods](https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/readme.md):** No BIOS required; convert videos with the matching FastVideoDS encoder.
+- **[fastvideods](https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/ffd40b2eeb64f4fa475209c81336725eed1c81f2/readme.md):** No BIOS required. Use the matching FastVideoDS Encoder 2 to convert ordinary videos to .fv.
 - **[gameyob-dsi](https://github.com/Lana-chan/GameYob/blob/04f88d96ca653c60fd1b110ce7011db7e8e906a3/README.txt):** No BIOS required for normal GB/GBC play. Optional GBC boot ROM affects boot/palettes; not included.
 - **[gbarunner3](https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/README.md):** Requires original 16 KiB GBA BIOS at /_gba/bios.bin. Fixed-offset relocation/patches prevent assuming a replacement BIOS is compatible.
 - **[gimlids](https://github.com/wavemotion-dave/GimliDS/blob/e99a7e8b2ad65b7dcb93dd5d9feb217eaccc5740/README.md):** Requires KERNAL.ROM, BASIC.ROM, CHAR.ROM and 1541.ROM in /roms/bios or /roms/c64. MEGA65 Open ROMs are not a verified complete replacement set for GimliDS.

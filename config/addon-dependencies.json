@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "reviewed": "2026-11-13",
+  "reviewed": "2026-11-14",
   "default_policy": "bundle approved entries with confirmed coverage; --noncommercial adds permitted no-profit packages; unconfirmed entries are direct-download only",
   "application_directory": "_nds/dsi-frontend/plugins/apps",
   "applications": [
@@ -856,56 +856,86 @@
     },
     {
       "id": "fastvideods",
-      "repository": "https://github.com/Gericom/FastVideoDSPlayer",
-      "version": "v0.0.1",
-      "commit": "62c909ebf6e509b11eedc2ad4e4549a717f0f6ab",
-      "release": "https://github.com/Gericom/FastVideoDSPlayer/releases/tag/v0.0.1",
+      "repository": "https://github.com/nextcode4u/FastVideoDSPlayer-2",
+      "version": "v2.3-intrwait.1",
+      "commit": "ffd40b2eeb64f4fa475209c81336725eed1c81f2",
+      "release": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/tag/v2.3-intrwait.1",
       "release_assets": [
         {
           "name": "FastVideoDS.nds",
-          "url": "https://github.com/Gericom/FastVideoDSPlayer/releases/download/v0.0.1/FastVideoDS.nds"
+          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.3-intrwait.1/FastVideoDS.nds"
+        },
+        {
+          "name": "licenses.zip",
+          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.3-intrwait.1/licenses.zip"
+        },
+        {
+          "name": "source.zip",
+          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.3-intrwait.1/source.zip"
+        },
+        {
+          "name": "SHA256SUMS",
+          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.3-intrwait.1/SHA256SUMS"
         }
       ],
       "argv": "direct",
-      "argv_evidence": "https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/arm9/source/main.cpp",
+      "argv_evidence": "https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/ffd40b2eeb64f4fa475209c81336725eed1c81f2/arm9/source/main.cpp",
       "redistribution": "download-only",
-      "license": "Project license not stated",
-      "distribution_notes": "Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.",
-      "bios": "No BIOS required; convert videos with the matching FastVideoDS encoder.",
-      "bios_evidence": "https://github.com/Gericom/FastVideoDSPlayer/blob/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/readme.md",
-      "license_evidence": "https://github.com/Gericom/FastVideoDSPlayer/tree/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab",
+      "license": "zlib for Mathos42 additions; libnds notice; original player code unlicensed",
+      "distribution_notes": "Direct download from nextcode4u's compatibility release of Mathos42's FastVideoDSPlayer 2, not bundled. Mathos42's zlib grant covers their additions only; Gericom's original code has no explicit license. The legacy libnds wait routine retains its own notice. Source and licenses accompany the fork release.",
+      "bios": "No BIOS required. Use the matching FastVideoDS Encoder 2 to convert ordinary videos to .fv.",
+      "bios_evidence": "https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/ffd40b2eeb64f4fa475209c81336725eed1c81f2/readme.md",
+      "license_evidence": "https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/ffd40b2eeb64f4fa475209c81336725eed1c81f2/readme.md",
       "permission_confirmed": false,
-      "license_findings": "Argv is explicit, but upstream issue #15 requests the missing license. A public repository does not establish redistribution permission.",
+      "license_findings": "The upstream README explicitly excludes Gericom's original code from Mathos42's zlib license. FatFS R0.16 and the libnds interrupt-wait override retain their own permissive notices; no whole-player redistribution permission is established.",
       "package": {
         "source": {
-          "asset": "fastvideods-source.tar.gz",
-          "url": "https://codeload.github.com/Gericom/FastVideoDSPlayer/tar.gz/62c909ebf6e509b11eedc2ad4e4549a717f0f6ab",
-          "sha256": "4d9bc4aac4b47620049b83fd75089e0190313e45bf52005acda5884f6c080de6"
+          "asset": "fastvideods2-v2.3-intrwait.1-source.tar.gz",
+          "url": "https://codeload.github.com/nextcode4u/FastVideoDSPlayer-2/tar.gz/ffd40b2eeb64f4fa475209c81336725eed1c81f2",
+          "sha256": "f019f92dfc0567bf14b65854d8bc40cd405a71138ea9a8fcf6b825da86fce0b3"
         },
         "files": [
           {
             "download": {
-              "asset": "fastvideods-FastVideoDS.nds",
-              "url": "https://github.com/Gericom/FastVideoDSPlayer/releases/download/v0.0.1/FastVideoDS.nds",
-              "sha256": "a891bd68617688e43c1f8b7e5d46a79d87e84eefa9cc4b794f83f17a4d4155a3"
+              "asset": "fastvideods2-v2.3-intrwait.1-FastVideoDS.nds",
+              "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.3-intrwait.1/FastVideoDS.nds",
+              "sha256": "0cab76a275ac16e326c581f67e084e8b4d9e2dc6e915db9db6ddd3edafa17b9a"
             },
             "format": "raw",
             "destination": "_nds/dsi-frontend/plugins/apps/FastVideoDS.nds",
-            "sha256": "a891bd68617688e43c1f8b7e5d46a79d87e84eefa9cc4b794f83f17a4d4155a3"
+            "sha256": "0cab76a275ac16e326c581f67e084e8b4d9e2dc6e915db9db6ddd3edafa17b9a"
           }
         ],
         "notices": [
           {
-            "member": "FastVideoDSPlayer-62c909ebf6e509b11eedc2ad4e4549a717f0f6ab/readme.md",
+            "member": "FastVideoDSPlayer-2-ffd40b2eeb64f4fa475209c81336725eed1c81f2/readme.md",
             "destination": "readme.md"
+          },
+          {
+            "member": "FastVideoDSPlayer-2-ffd40b2eeb64f4fa475209c81336725eed1c81f2/LICENSE",
+            "destination": "LICENSE"
+          },
+          {
+            "member": "FastVideoDSPlayer-2-ffd40b2eeb64f4fa475209c81336725eed1c81f2/arm7/source/fat/ff.c",
+            "destination": "FatFS.txt",
+            "header_only": true
+          },
+          {
+            "member": "FastVideoDSPlayer-2-ffd40b2eeb64f4fa475209c81336725eed1c81f2/arm9/source/IntrWait.s",
+            "destination": "libnds-IntrWait.s"
+          },
+          {
+            "member": "FastVideoDSPlayer-2-ffd40b2eeb64f4fa475209c81336725eed1c81f2/BUILDING.md",
+            "destination": "BUILDING.md"
           }
         ],
         "extra_sources": [],
         "runtime_notices": []
       },
-      "source_coverage": "Published project source plus source submodules at their recorded commits.",
-      "content_guidance": "media/videos/: .fv (FastVideoDS encoder)",
-      "bios_mode": "none"
+      "source_coverage": "Exact compatibility-fork source revision, including the legacy libnds interrupt-wait override and original notices. The fork release source.zip also supplies matching libnds and startup-library sources; licenses.zip carries the build dependency notices.",
+      "content_guidance": "media/videos/: .fv (convert with FastVideoDS Encoder 2; MP4/MKV/AVI are not played directly)",
+      "bios_mode": "none",
+      "argv_notes": "Temporary nextcode4u compatibility fork of Mathos42/FastVideoDSPlayer 2 v2.3. Fixes the legacy libnds 1.8 ARM9 swiIntrWait immediate-return path that can stall playback after launch. Accepts argv[1]; standalone launch opens its browser. Retain until a replacement player release includes the fix and passes launch/playback checks; changing the launcher SDK alone does not repair existing player binaries. Emulator playback and pause/resume passed; fixed-build physical DSi, full-length playback, audio quality, EOF and return remain unverified."
     },
     {
       "id": "gameyob-dsi",

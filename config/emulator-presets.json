@@ -293,8 +293,9 @@
     },
     {
       "folder": "media/videos",
-      "application": "tuna-vids / FastVideoDS / RocketVideoPlayer",
-      "formats": ".avi / .fv / .rvid, converted for the matching player"
+      "application": "tuna-vids / FastVideoDSPlayer 2 / RocketVideoPlayer",
+      "formats": ".avi / .fv / .rvid, converted for the matching player",
+      "notes": "For .fv use the nextcode4u compatibility release of FastVideoDSPlayer-2 with Mathos42/FastVideoDSEncoder-2. Gloam passes the selected video through argv; opening the player directly shows its own browser. No BIOS is required for FastVideoDSPlayer 2."
     },
     {
       "folder": "media/books",
@@ -394,7 +395,7 @@
     },
     {
       "id": "fastvideods",
-      "application_name": "FastVideoDS",
+      "application_name": "FastVideoDSPlayer 2",
       "extensions": [
         "fv"
       ],
@@ -402,7 +403,10 @@
         "argv": "1",
         "bootstrap": "0",
         "path": "_nds/dsi-frontend/plugins/apps/FastVideoDS.nds"
-      }
+      },
+      "repository": "https://github.com/nextcode4u/FastVideoDSPlayer-2",
+      "release": "v2.3-intrwait.1",
+      "notes": "Temporary nextcode4u interrupt-wait fix for Mathos42 FastVideoDSPlayer 2; direct .fv argv and standalone browser. Keep FastVideoDS.nds at the existing plugin path. No BIOS is required."
     },
     {
       "id": "gameyob-dsi",

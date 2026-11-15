@@ -61,7 +61,7 @@ These are default collection folders and configured formats, not every format ea
 | `apps/Homebrew Apps/` | Homebrew application/utility | .nds, .dsi, supported native containers |
 | `roms/Homebrew Games/` | Homebrew game | .nds, .dsi, supported native containers |
 | `media/music/` | [DSXP SD-argv fork](https://github.com/nextcode4u/DSXP) | .mp3 |
-| `media/videos/` | tuna-vids / FastVideoDS / RocketVideoPlayer | .avi / .fv / .rvid, converted for the matching player |
+| `media/videos/` | tuna-vids / FastVideoDSPlayer 2 / RocketVideoPlayer | .avi / .fv / .rvid, converted for the matching player |
 | `media/books/` | DSLibris BlocksDS argv fork | EPUB/MOBI/FB2, PDF text, documents, OPF/OEB, PML/TCR and text archives |
 
 `roms/bios/` is a support location, not a game system. The Atari folder has separate 2600, 5200, 7800, 8-bit and Lynx collections. No old `gb`, `gba`, `nds`, `Music`, `Videos` or mixed `DS(i) Homebrew` aliases are added by this template.
@@ -93,7 +93,7 @@ Paths in the next table are relative to `_nds/dsi-frontend/plugins/apps/`. Full 
 | `dslibris-books.ini` | EPUB/Kepub, FB2/ZIP, MOBI/AZW, OPF/OEB, PML/TCR | `dslibris-blocksds.nds` | — |
 | `dslibris-documents.ini` | TXT/TEXT/MD/MARKDOWN, PDF/HTML, RTF/DOCX/ODT, HTMLZ/TXTZ | `dslibris-blocksds.nds` | — |
 | `dsxp.ini` | `.mp3` | `DSXP.nds` | — |
-| `fastvideods.ini` | `.fv` | `FastVideoDS.nds` | — |
+| `fastvideods.ini` | `.fv` | `FastVideoDS.nds` (Player 2 compatibility fork) | — |
 | `gameyob-dsi.ini` | `.gb`, `.gbc`, `.sgb` | `gameyob_dsi.nds` | `gameyob.nds` |
 | `gbarunner3.ini` | `.gba` | `GBARunner3.nds` | — |
 | `gimlids.ini` | `.crt`, `.d64`, `.prg` | `GimliDS.nds` | — |
