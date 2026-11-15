@@ -52,6 +52,20 @@ The settings records are `splash_mode=0|1|2`, `splash_once=0|1`,
 `splash_sound=0|1` and `splash_path=sd:/...`. Configuration export/import includes
 these records through the existing state file. User artwork stays in place.
 
+## Included theme intros
+
+The eleven bundled themes each include a 1.2-second, silent intro built from
+that theme’s artwork and fonts. They use three single-frame layers with bounded
+motion, each below 128 KiB; no full-screen frame sequence is needed. Select
+**Startup splash → Theme**, then use **Preview splash** to try the active pack.
+While loading can finish early; Play once shows the complete intro.
+
+The shared default remains the fallback for Built-in or packs without a splash.
+Copy the complete theme folders from the matching SD package to install the
+intros; a `BOOT.NDS`-only update does not replace SD assets. The reproducible
+[collection authoring tool](https://github.com/nextcode4u/gloam-shell-theme-directory/blob/main/tools/build_theme_splashes.py)
+lives with the separate theme tools and supports `--gloam` for these packs.
+
 ## Creating a splash
 
 The graphical Splash Builder, converter, contributor instructions and Python
