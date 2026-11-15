@@ -35,6 +35,7 @@ Helpful information:
 
 #include <nds/ndstypes.h>
 #include <nds/dma.h>
+#include <nds/ndma.h>
 #include <nds/system.h>
 #include <nds/ipc.h>
 #include <nds/interrupts.h>
@@ -209,6 +210,20 @@ void resetMemory_ARM7 (void)
 		DMA_DEST(i) = 0;
 		TIMER_CR(i) = 0;
 		TIMER_DATA(i) = 0;
+	}
+
+	// Local backport: stop every NDMA channel before changing transfer registers.
+	// Credit: RocketRobz; disable-first ordering is local. See UPSTREAM.md.
+	for (i=0; i<NDMA_MAX_CHANNELS; i++) {
+		REG_NDMA_CR(i) = 0;
+	}
+	for (i=0; i<NDMA_MAX_CHANNELS; i++) {
+		REG_NDMA_SRC(i) = 0;
+		REG_NDMA_DEST(i) = 0;
+		REG_NDMA_LENGTH(i) = 0;
+		REG_NDMA_BLENGTH(i) = 0;
+		REG_NDMA_BDELAY(i) = 0;
+		REG_NDMA_FILL(i) = 0;
 	}
 
 	// Local backport: discard the previous application's FIFO and sync state.

@@ -21,6 +21,12 @@ RocketRobz's [ARM7 reset](https://github.com/Deletecat/nds-bootloader/commit/3a2
 and [ARM9 reset](https://github.com/Deletecat/nds-bootloader/commit/ba79fa3592e56354ed68f9e6333d0720121eab73),
 preventing stale messages and interrupt enables from carrying over.
 
+Both CPU reset routines clear all four DSi NDMA channels, based on
+[RocketRobz's NDMA reset](https://github.com/Deletecat/nds-bootloader/commit/d5171eeba7fb36370015ba8098656a1876ec25cc).
+The local adaptation uses the SDK register names and disables every channel
+before clearing any source, destination, length, block, delay or fill registers.
+This keeps inherited transfers from running while their configuration changes.
+
 Return stub: devkitPro/nds-hb-menu at 3c1f64c12da157fdd14a2d594db139f50e283261, bootstub/bootstub.s. Its source notice and COPYING are retained.
 
 Local integration uses tools/build_homebrew_loader.py and arm9/source/launch_platform.c. The legacy loader is built with BlocksDS headers and links libnds7 for its now-external dmaSetParams function. No flashcart DLDI route is enabled by this integration. The wrapper bounds argument/VRAM/stub sizes and uses the DSi SD path only. This is a homebrew adapter, not retail-game compatibility.
