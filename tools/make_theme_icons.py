@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate original, theme-specific pixel icon artwork (CC0)."""
+"""Generate original vector-style icons, supersampled for native DS display (CC0)."""
 
 import argparse
 import configparser
@@ -11,6 +11,8 @@ from PIL import Image, ImageColor, ImageDraw
 if __package__:
     from .make_theme_navigation import (
         TAB_NAMES,
+        SmoothDraw,
+        smooth_export,
         gear_image,
         navigation_image,
         material_colors,
@@ -18,6 +20,8 @@ if __package__:
 else:
     from make_theme_navigation import (
         TAB_NAMES,
+        SmoothDraw,
+        smooth_export,
         gear_image,
         navigation_image,
         material_colors,
@@ -55,12 +59,12 @@ ICON_NAMES = (
 
 def icon_image(kind, style, colors):
     """Original 32px artwork; no enlarged launcher mask or badge overlay."""
-    image = Image.new("RGBA", (32, 32))
-    d = ImageDraw.Draw(image)
+    image = Image.new("RGBA", (128, 128))
+    d = SmoothDraw(image)
     accent, text, surface, line = (
         colors[k] for k in ("accent", "text", "surface", "line")
     )
-    outline = style == "terminal"
+    outline = False
     fill = surface if outline else accent
     ink = accent if outline else surface
     radius = 5 if style == "lunar" else 1
@@ -222,7 +226,7 @@ def icon_image(kind, style, colors):
         else:
             for y, w in ((14, 12), (19, 12), (24, 8)):
                 stroke([(10, y), (10 + w, y)], ink, 1 if outline else 2)
-    return image
+    return smooth_export(image)
 
 
 def assets():

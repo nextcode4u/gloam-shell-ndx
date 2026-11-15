@@ -81,7 +81,11 @@ int main(void)
     draw_text(screen.pixels, -8, 185, "\xF0\x9F\x8E\xAE \xC3\x98", 0xFFFF, 10);
     assert(screen.before == 0xDEADBEEF && screen.after == 0xDEADBEEF);
     assert(font_pack_load(&font, "sdroot/_nds/dsi-frontend/themes/copper/fonts/ui.dsfont") &&
-           font.glyph_count == 95);
+           font.proportional && font.glyph_count == FONT_GLYPHS);
+    /* Keep the legacy fallback/scroll fixture independent of a theme's chosen
+     * face. An ASCII-only fixed face must still use safe extended fallbacks. */
+    font_builtin(&font);
+    font.glyph_count = FONT_ASCII_GLYPHS;
     font_use(&font);
     ink = false;
     for (int row = 0; row < 12; row++)

@@ -164,7 +164,7 @@ int main(int argc, char **argv)
         themes_apply(&app);
         assert(!strcmp(app.theme_id, ids[theme]) && app.browser_style == views[theme]);
         assert(app.icon_size == sizes[theme]);
-        assert(app.themes.active.external_font == (theme != 0 && theme != 3));
+        assert(app.themes.active.external_font);
         if (theme == 1 || theme == 4 || theme >= 6)
             assert(app.themes.active.font.glyph_count == FONT_GLYPHS);
         assert(app.themes.active.row_padding == padding[theme]);

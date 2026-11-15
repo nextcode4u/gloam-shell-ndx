@@ -93,18 +93,37 @@ def assets() -> dict[Path, bytes]:
             )
         if name not in ("folio", "phosphor"):
             result[Path(name) / "sounds/loop.wav"] = music(name)
-    result[Path("nocturne/fonts/ui.dsfont")] = pack_font(
-        FONT_DIRECTORY / "DejaVuSansMono.ttf", 10, 10, latin1=True
-    )
-    result[Path("tide/fonts/ui.dsfont")] = pack_font(
-        FONT_DIRECTORY / "DejaVuSansMono-Bold.ttf", 11, 9
-    )
-    result[Path("eclipse/fonts/ui.dsfont")] = result[Path("nocturne/fonts/ui.dsfont")]
-    result[Path("prism/fonts/ui.dsfont")] = result[Path("tide/fonts/ui.dsfont")]
-    for name in ("ember", "glacier", "garnet"):
-        result[Path(name) / "fonts/ui.dsfont"] = result[
-            Path("nocturne/fonts/ui.dsfont")
-        ]
+    # Four-level proportional faces replace fixed-cell terminal typography.
+    for name, face in {
+        "copper": "DejaVuSerif",
+        "slate": "DejaVuSans",
+        "folio": "DejaVuSerif",
+        "nocturne": "DejaVuSans",
+        "tide": "DejaVuSans",
+        "phosphor": "DejaVuSans-Bold",
+        "eclipse": "DejaVuSans",
+        "prism": "DejaVuSans-Bold",
+        "ember": "DejaVuSerif",
+        "glacier": "DejaVuSans-Bold",
+        "garnet": "DejaVuSerif",
+    }.items():
+        serif = face == "DejaVuSerif"
+        result[Path(name) / "fonts/ui.dsfont"] = pack_font(
+            FONT_DIRECTORY / (face + ".ttf"),
+            10,
+            9 if serif else 10,
+            latin1=True,
+            proportional=True,
+        )
+        heading = "DejaVuSerif" if serif else "DejaVuSans-Bold"
+        result[Path(name) / "fonts/heading.dsfont"] = pack_font(
+            FONT_DIRECTORY / (heading + ".ttf"),
+            13,
+            13,
+            latin1=True,
+            proportional=True,
+            height=16,
+        )
     result.update({path.relative_to(THEMES): data for path, data in scene_assets()})
     return result
 

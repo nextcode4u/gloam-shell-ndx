@@ -32,19 +32,18 @@ class ThemeIconTests(unittest.TestCase):
                         visible = [p[:3] for p in image.get_flattened_data() if p[3]]
                         inks.add(max(set(visible), key=visible.count))
                 self.assertGreaterEqual(len(inks), 3)
-                # Only the compact inspector retains partial coverage. Repeated
-                # grid cards, rows and chrome keep the opaque drawing fast path.
-                partial = []
-                for kind in COMPONENTS:
+                # Smoothing is confined to shape edges. Repeated card/row
+                # centers must remain opaque instead of blending a full tile.
+                for kind in ("row", "row-selected", "card", "card-selected", "panel"):
                     with Image.open(
                         manifest.parent / "components" / (kind + ".png")
                     ) as image:
-                        if any(
-                            a not in (0, 255)
-                            for a in image.getchannel("A").get_flattened_data()
-                        ):
-                            partial.append(kind)
-                self.assertEqual(partial, ["panel"])
+                        alpha = image.getchannel("A")
+                        self.assertEqual(alpha.getpixel((16, 16)), 255)
+                        partial = sum(
+                            a not in (0, 255) for a in alpha.get_flattened_data()
+                        )
+                        self.assertLess(partial, 320)
 
     def test_shipped_packs(self):
         generated = dict(assets())
@@ -88,8 +87,8 @@ class ThemeIconTests(unittest.TestCase):
 
     def test_scene_backgrounds_are_distinct_and_reproducible(self):
         generated = dict(scene_assets())
-        self.assertEqual(len(generated), 22)
-        self.assertEqual(len(set(generated.values())), 22)
+        self.assertEqual(len(generated), 44)
+        self.assertEqual(len(set(generated.values())), 44)
         for path, data in generated.items():
             self.assertEqual(path.read_bytes(), data)
             with Image.open(io.BytesIO(data)) as image:

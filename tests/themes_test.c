@@ -13,6 +13,16 @@
 
 static App app, restored, recovery;
 static uint16_t top[256 * 192], bottom[256 * 192];
+static uint16_t component_over_clear(uint16_t pixel, const uint8_t *coverage, unsigned index)
+{
+    if (!(pixel & 0x8000))
+        return 0;
+    unsigned alpha = coverage ? (coverage[index / 4] >> ((index % 4) * 2)) & 3 : 3;
+    unsigned result = 0x8000;
+    for (unsigned shift = 0; shift < 15; shift += 5)
+        result |= ((((pixel >> shift) & 31) * alpha + 1) / 3) << shift;
+    return alpha ? result : 0;
+}
 static void write_text(const char *root, const char *relative, const char *text)
 {
     char path[PATH_CAP];
@@ -55,7 +65,9 @@ int main(int argc, char **argv)
     assert(path_join(manifest, root, "_nds/dsi-frontend/themes/copper/theme.ini"));
     FILE *layout = fopen(manifest, "a");
     assert(layout &&
-           fputs("\n[layout]\nview=grid\nicon_size=large\nrow_padding=6\nlarge_grid_columns=3\ntop_"
+           fputs("\n[theme]\nheader=Header "
+                 "override\n[layout]\nview=grid\nicon_size=large\nrow_padding=6\nlarge_grid_"
+                 "columns=3\ntop_"
                  "layout=sidebar_left\nchrome=minimal\ncontent_opacity=40\n[colors]\nselection_"
                  "text=#ffffff\ntab_text=#000000\n",
                  layout) >= 0 &&
@@ -66,7 +78,7 @@ int main(int argc, char **argv)
     assert(app.themes.count == 4 && app.themes.ready);
     themes_move(&app, 1);
     assert(!strcmp(app.themes.candidate.id, "copper") && app.themes.candidate.external_font);
-    assert(!strcmp(app.themes.candidate.header, "COPPERWORKS"));
+    assert(!strcmp(app.themes.candidate.header, "Header override"));
     assert(!memcmp(&original, &app.themes.active, sizeof original) && !app.preferences_dirty);
     assert(memcmp(&original.font, &app.themes.candidate.font, sizeof original.font));
     assert(app.themes.candidate.top_layout == 1 && app.themes.candidate.minimal_chrome);
@@ -87,12 +99,15 @@ int main(int argc, char **argv)
     const uint16_t *component = themes_component(&app.themes.candidate, THEME_ROW_SELECTED);
     assert(component && !themes_component(&original, THEME_ROW_SELECTED));
     uint16_t expected_component[32 * 32];
+    const uint8_t *expected_coverage =
+        themes_component_alpha(&app.themes.candidate, THEME_ROW_SELECTED);
     memcpy(expected_component, component, sizeof expected_component);
     memset(top, 0, sizeof top);
     assert(draw_theme_component(&app.themes.candidate, top, THEME_ROW_SELECTED, 0, 0, 32, 32));
     for (unsigned y = 0; y < 32; y++)
         for (unsigned x = 0; x < 32; x++)
-            assert(top[y * 256 + x] == expected_component[y * 32 + x]);
+            assert(top[y * 256 + x] == component_over_clear(expected_component[y * 32 + x],
+                                                            expected_coverage, y * 32 + x));
     struct {
         uint32_t before;
         uint16_t pixels[256 * 192];
@@ -113,8 +128,9 @@ int main(int argc, char **argv)
     app.themes.candidate.component_border = 8;
     memset(top, 0, sizeof top);
     assert(draw_theme_component(&app.themes.candidate, top, THEME_ROW_SELECTED, 0, 0, 32, 2));
-    assert(top[8] == expected_component[8]);
-    assert(top[256 + 8] == expected_component[31 * 32 + 8]);
+    assert(top[8] == component_over_clear(expected_component[8], expected_coverage, 8));
+    assert(top[256 + 8] ==
+           component_over_clear(expected_component[31 * 32 + 8], expected_coverage, 31 * 32 + 8));
     const uint16_t *folder = themes_icon(&app.themes.candidate, PLACEHOLDER_FOLDER);
     assert(folder && themes_icon(&app.themes.candidate, PLACEHOLDER_COUNT + 6));
     uint16_t expected[32 * 32];

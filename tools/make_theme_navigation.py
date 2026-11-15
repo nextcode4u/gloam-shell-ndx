@@ -4,6 +4,42 @@ import math
 
 from PIL import Image, ImageDraw
 
+
+class SmoothDraw:
+    """Draw the existing vector coordinates at 4x, then export at native size.
+
+    Supersampling is an authoring step. The DSi only sees the finished sprite.
+    """
+
+    def __init__(self, image):
+        self.draw = ImageDraw.Draw(image)
+
+    def __getattr__(self, name):
+        def scaled(coordinates, *args, **kwargs):
+            def expand(value):
+                if isinstance(value, (tuple, list)):
+                    return tuple(expand(part) for part in value)
+                return value * 4
+
+            if name in ("line", "arc"):
+                kwargs.setdefault("width", 1)
+            for key in ("width", "radius"):
+                if key in kwargs:
+                    kwargs[key] *= 4
+            return getattr(self.draw, name)(expand(coordinates), *args, **kwargs)
+
+        return scaled
+
+
+def smooth_export(image):
+    """Keep antialiased edges without Lanczos ringing in empty/solid areas."""
+    image = image.resize((32, 32), Image.Resampling.LANCZOS)
+    image.putalpha(
+        image.getchannel("A").point(lambda a: 0 if a < 16 else 255 if a > 239 else a)
+    )
+    return image
+
+
 TAB_NAMES = (
     "tab-home",
     "tab-games",
@@ -62,8 +98,8 @@ def material_colors(theme, kind, colors):
 
 def gear_image(colors, teeth=8):
     """A toothed ring with a transparent bore, readable at sixteen pixels."""
-    image = Image.new("RGBA", (16, 16))
-    draw = ImageDraw.Draw(image)
+    image = Image.new("RGBA", (64, 64))
+    draw = SmoothDraw(image)
     if teeth == 8:
         draw.ellipse((3, 3, 12, 12), fill=colors["accent"])
         for bounds in (
@@ -91,15 +127,15 @@ def gear_image(colors, teeth=8):
                 )
         draw.polygon(points, fill=colors["accent"])
     draw.ellipse((5, 5, 10, 10), fill=(0, 0, 0, 0))
-    return image.resize((32, 32), Image.Resampling.NEAREST)
+    return smooth_export(image)
 
 
 def navigation_image(kind, theme, colors):
     """Theme subjects alter silhouettes, rather than just swapping palettes."""
     if kind == "tab-system":
         return gear_image(colors, 6 if theme in ("prism", "folio", "tide") else 8)
-    image = Image.new("RGBA", (16, 16))
-    d = ImageDraw.Draw(image)
+    image = Image.new("RGBA", (64, 64))
+    d = SmoothDraw(image)
     accent, ink, light, edge = (
         colors[k] for k in ("accent", "surface", "text", "line")
     )
@@ -325,4 +361,4 @@ def navigation_image(kind, theme, colors):
                 outline=accent,
             )
             d.line((2, 7, 13, 7), fill=light if not terminal else accent)
-    return image.resize((32, 32), Image.Resampling.NEAREST)
+    return smooth_export(image)

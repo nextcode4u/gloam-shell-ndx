@@ -22,7 +22,7 @@ Licenses apply per component, not simply according to Gloam's root LICENSE.
 | Packed/built-in fonts | [DejaVu fonts](https://dejavu-fonts.github.io/) | Bitstream Vera font terms / public-domain DejaVu changes; full notice below and alongside theme fonts. |
 | Copper music | [Sentinel by pixelpion](https://pixabay.com/music/video-games-sentinel-455122/) | Pixabay Content License, integrated theme music; not GPL or CC0. Credits/terms/conversion hashes retained. |
 | Optional SameBoot GBC firmware | [SameBoy v1.0.5, ea667ad7](https://github.com/LIJI32/SameBoy/tree/ea667ad79aa28409f034b1fd6da7304e1844750d) | MIT/Expat; unmodified cgb_boot.bin staged as roms/bios/gbc_bios.bin by the optional GameYob package. Source and notices accompany it. |
-| Original theme art and synthesized cues | Authored tools/assets in this tree | Per-theme CC0 notices; external fonts and Copper music retain their own terms. |
+| Theme art and synthesized cues | Original authored tools/sprites and agent-assisted illustration masters in [assets/theme-art](assets/theme-art/CREDITS.md) | Per-theme CC0 notices; external fonts and Copper music retain their own terms. |
 
 The optional Gloam DSi Menu tile is authored source under the project's license;
 its linked SDK/runtime dependencies retain the notices above. Optional emulators/players and their free replacement firmware are distributed
@@ -42,7 +42,10 @@ and upstream source references. The modified SD driver retains its separate noti
 
 ## DejaVu Sans Mono
 
-Copper, Tide and Prism bundle native bitmap packs generated from DejaVu Sans Mono Bold. Nocturne, Eclipse, Ember, Glacier and Garnet bundle Latin-1 packs from DejaVu Sans Mono. Each external font has its full license beside the pack.
+All eleven bundled themes include proportional Latin-1 body and heading packs.
+Copper, Folio, Ember and Garnet use DejaVu Serif; the other packs use DejaVu Sans
+or DejaVu Sans Bold. Each theme retains the full font license beside its packs.
+The built-in fallback remains based on DejaVu Sans Mono Bold.
 
 `arm9/source/ui/font.h` is rasterized from DejaVu Sans Mono by `tools/make_font.py`. Font license follows.
 

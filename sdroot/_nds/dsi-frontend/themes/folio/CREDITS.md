@@ -1,25 +1,21 @@
 # Folio
 
-Original pixel artwork and synthesized audio by the Gloam Shell NDX project.
-Rebuild with `python tools/make_theme_samples.py` using the pinned Pillow version.
-These original theme assets may be used, modified and redistributed under CC0 1.0:
+Visual direction: Pressed botanical paper collage.
+
+Illustrations, material surfaces and smooth vector-style icons were created for
+Gloam Shell NDX with agent assistance. The project offers its rights in these
+assets under CC0-1.0:
 https://creativecommons.org/publicdomain/zero/1.0/
 
-Uses the built-in font. No wallpaper or music buffer is needed.
+Background masters and their attribution are in `assets/theme-art/` in the source
+package. Prepare backgrounds with `tools/make_theme_scenes.py`; Prism's vector
+composition is authored directly in that tool. No other launcher's artwork is
+included. Prompts and draft images are not distributed.
 
-The original icons in `icons/` are dedicated to the public domain under CC0-1.0.
-Reproduce them with `tools/make_theme_icons.py`; the artwork is authored for each visual family.
+The body and heading fonts use DejaVu with their included `fonts/LICENSE.txt`.
+`tools/make_theme_samples.py` reproduces those packs and the original synthesized
+UI cues. `tools/make_theme_icons.py` and `tools/make_theme_components.py` reproduce
+the sprites; `tools/pack_theme_assets.py <theme-folder>` rebuilds `assets.gfx`.
+All smoothing, texture preparation and resampling happen on the authoring PC.
 
-The modular UI images in `components/` are original CC0-1.0 artwork.
-Reproduce them with `tools/make_theme_components.py`.
-
-Scene: Botanical field notebook. Original CC0-1.0 pixel illustration by the Gloam project.
-Reproduce with `tools/make_theme_scenes.py`; no third-party theme artwork is included.
-
-Dedicated navigation icons and revised System/Settings gears are original CC0-1.0
-artwork, reproduced by `tools/make_theme_navigation.py` and `tools/make_theme_icons.py`.
-
-The complementary material inks, environmental details and translucent inspector
-surfaces are original Gloam artwork under the same CC0-1.0 dedication.
-`assets.gfx` is a prepared copy of these PNGs; reproduce it with
-`tools/pack_theme_assets.py <theme-folder>`. No downloaded artwork was added.
+Synthesized music/cues retain the same CC0-1.0 dedication.
