@@ -549,7 +549,7 @@ function Test-GloamTheme([string]$Source) {
                  'scene_cover_x','scene_cover_y','scene_cover_width','scene_cover_height',
                  'tab_style','tab_highlight','tab_gap','tab_visible')
         icons=@('directory')
-        components=@('directory','border','alpha','controls')
+        components=@('directory','border','alpha','controls','fill','material','focus_material')
         motion=@('ambient','ambient_ticks','focus')
         assets=@('prepared')
     }
@@ -581,7 +581,7 @@ function Test-GloamTheme([string]$Source) {
         } }
     }
     $needsV2=$false
-    foreach ($pair in @(@('fonts','heading'),@('components','alpha'),@('components','controls'),@('layout','top_content_opacity'),@('layout','bottom_content_opacity'),@('layout','tabs_position'),@('backgrounds','top_surface'),@('backgrounds','bottom_surface'),@('assets','prepared'),@('motion','ambient'),@('motion','ambient_ticks'),@('motion','focus'))) {
+    foreach ($pair in @(@('fonts','heading'),@('components','alpha'),@('components','controls'),@('components','fill'),@('components','material'),@('components','focus_material'),@('layout','top_content_opacity'),@('layout','bottom_content_opacity'),@('layout','tabs_position'),@('backgrounds','top_surface'),@('backgrounds','bottom_surface'),@('assets','prepared'),@('motion','ambient'),@('motion','ambient_ticks'),@('motion','focus'))) {
         if ($data.Contains($pair[0]) -and $data[$pair[0]].Contains($pair[1])) { $needsV2=$true }
     }
     if ($data.Contains('layout')) {
@@ -592,6 +592,7 @@ function Test-GloamTheme([string]$Source) {
     if ($needsV2 -and (-not $data.Contains('theme') -or $data['theme']['version'] -ne '2')) { $errors.Add('These theme fields require version 2.') }
     if ($data.Contains('components') -and $data['components'].Contains('controls') -and $data['components']['controls'] -notin @('on','off')) { $errors.Add('Component controls must be on or off.') }
     if ($data.Contains('components') -and $data['components'].Contains('alpha') -and $data['components']['alpha'] -notin @('binary','coverage')) { $errors.Add('Component alpha must be binary or coverage.') }
+    if ($data.Contains('components') -and $data['components'].Contains('fill') -and $data['components']['fill'] -notin @('tile','stretch')) { $errors.Add('Component fill must be tile or stretch.') }
     foreach ($section in @('fonts','audio','backgrounds','assets','motion')) { if ($data.Contains($section)) {
         foreach ($key in $data[$section].Keys) {
             $value=$data[$section][$key]
@@ -608,10 +609,18 @@ function Test-GloamTheme([string]$Source) {
             catch { $errors.Add("Unsafe asset path: $section/$key") }
         }
     } }
-    if ($data.Contains('backgrounds')) { foreach ($key in @('top_surface','bottom_surface')) {
-        if (-not $data['backgrounds'].Contains($key)) { continue }
+    foreach ($surfaceSet in @(@('backgrounds',@('top_surface','bottom_surface')),@('components',@('material','focus_material')))) {
+      $section=$surfaceSet[0]
+      if (-not $data.Contains($section)) { continue }
+      foreach ($key in $surfaceSet[1]) {
+        if (-not $data[$section].Contains($key)) { continue }
+        try { $path=Get-GloamPath $root $data[$section][$key] }
+        catch { $errors.Add("Unsafe asset path: $section/$key"); continue }
         try {
-            $path=Get-GloamPath $root $data['backgrounds'][$key]
+            if (-not [IO.File]::Exists($path)) {
+                if ($section -eq 'components') { $warnings.Add("Missing $section asset: $($data[$section][$key]) (fallback)") }
+                continue
+            }
             if (-not [IO.File]::Exists($path)) { continue } # Already reported above.
             if (([IO.FileInfo]::new($path)).Length -gt 262144) { throw 'larger than 256 KiB' }
             Add-Type -AssemblyName PresentationCore

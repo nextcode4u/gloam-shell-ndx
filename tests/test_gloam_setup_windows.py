@@ -1013,16 +1013,16 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         source = self.root / 'theme-check'
         shutil.copytree(ROOT / 'sdroot/_nds/dsi-frontend/themes/ember', source)
         command = '$r=Test-GloamTheme ' + literal(win(source))
-        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 47 -or $r.Warnings.Count) { throw ($r | ConvertTo-Json) }')
+        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 59 -or $r.Warnings.Count) { throw ($r | ConvertTo-Json) }')
         (source / 'icons/folder.png').write_bytes(b'broken')
-        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 46 -or $r.Warnings.Count -ne 1) { throw "fallback missing" }')
+        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 58 -or $r.Warnings.Count -ne 1) { throw "fallback missing" }')
         (source / 'components/card.png').write_bytes(b'broken')
-        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 45 -or $r.Warnings.Count -ne 2) { throw "component fallback missing" }')
+        self.run_ps(command + '; if (-not $r.Valid -or $r.Icons.Count -ne 57 -or $r.Warnings.Count -ne 2) { throw "component fallback missing" }')
         manifest = source / 'theme.ini'
         original = manifest.read_text()
         manifest.write_text(re.sub(r'^header=.*$', 'header=' + 'x' * 64, original, flags=re.M))
         self.run_ps(command + '; if ($r.Valid) { throw "oversized header accepted" }')
-        expanded = re.sub(r'^(top_layout|chrome|content_opacity|tab_style|tab_highlight|tab_visible|tab_gap)=.*\n', '', original, flags=re.M).replace('[layout]', '[layout]\ntop_layout=poster\nchrome=minimal\ncontent_opacity=40\ntab_style=icons\ntab_highlight=outline\ntab_visible=5\ntab_gap=8')
+        expanded = re.sub(r'^(top_layout|chrome|content_opacity|tab_style|tab_highlight|tab_visible|tab_gap|tabs_position)=.*\n', '', original, flags=re.M).replace('[layout]', '[layout]\ntop_layout=poster\nchrome=minimal\ncontent_opacity=40\ntab_style=icons\ntab_highlight=outline\ntab_visible=5\ntab_gap=8')
         manifest.write_text(expanded)
         self.run_ps(command + '; if (-not $r.Valid) { throw "expanded theme rejected" }')
         for old, new in [('tab_style=icons', 'tab_style=unknown'),
@@ -1034,7 +1034,7 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.run_ps(command + '; if ($r.Valid) { throw "bad opacity accepted" }')
         manifest.write_text(expanded.replace('top_layout=poster', 'top_layout=unknown'))
         self.run_ps(command + '; if ($r.Valid) { throw "bad composition accepted" }')
-        manifest.write_text(original.replace('border=8', 'border=13'))
+        manifest.write_text(re.sub(r'^border=.*$', 'border=13', original, flags=re.M))
         self.run_ps(command + '; if ($r.Valid) { throw "bad border accepted" }')
         manifest.write_text(original.replace('directory=components', 'directory=../outside'))
         self.run_ps(command + '; if ($r.Valid) { throw "unsafe component path accepted" }')
@@ -1066,13 +1066,30 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
             manifest.write_text(original.replace(old, new))
             self.run_ps(command + '; if ($r.Valid) { throw "invalid version-2 theme accepted" }')
 
+    def test_material_import_requires_safe_paths_and_supported_version(self):
+        source = self.root / 'material-theme'
+        source.mkdir()
+        shutil.copyfile(ROOT / 'sdroot/_nds/dsi-frontend/themes/ember/components/material.png', source / 'paper.png')
+        manifest = source / 'theme.ini'
+        original = '[theme]\nversion=2\n[components]\nfill=stretch\nmaterial=paper.png\nfocus_material=paper.png\n'
+        manifest.write_text(original)
+        command = '$r=Test-GloamTheme ' + literal(win(source))
+        self.run_ps(command + '; if (-not $r.Valid -or $r.Warnings.Count) { throw ($r | ConvertTo-Json) }')
+        for old, new in [('version=2', 'version=1'), ('fill=stretch', 'fill=unknown'),
+                         ('material=paper.png', 'material=../outside.png')]:
+            manifest.write_text(original.replace(old, new))
+            self.run_ps(command + '; if ($r.Valid) { throw "unsafe material accepted" }')
+        manifest.write_text(original.replace('fill=stretch', 'fill=tile'))
+        (source / 'paper.png').write_bytes(b'broken PNG')
+        self.run_ps(command + '; if (-not $r.Valid -or $r.Warnings.Count -ne 2) { throw "material fallback missing" }')
+
     def test_legacy_theme_without_navigation_icons_keeps_its_fallbacks(self):
         source = self.root / 'legacy-theme'
         shutil.copytree(ROOT / 'sdroot/_nds/dsi-frontend/themes/copper', source)
         for icon in (source / 'icons').glob('tab-*.png'):
             icon.unlink()
         self.run_ps('$r=Test-GloamTheme ' + literal(win(source)) +
-                    '; if (-not $r.Valid -or $r.Icons.Count -ne 40 -or $r.Warnings.Count) { throw "legacy fallback failed" }')
+                    '; if (-not $r.Valid -or $r.Icons.Count -ne 52 -or $r.Warnings.Count) { throw "legacy fallback failed" }')
 
     def test_theme_selection_and_music_match_launcher_constraints(self):
         import wave
