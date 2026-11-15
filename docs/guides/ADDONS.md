@@ -216,7 +216,7 @@ The following catalog records audited source behavior, not a physical-DSi
 compatibility guarantee. `direct` means the content-loading path consumes argv;
 it does not mean that just declaring argc/argv was counted as support.
 
-FastVideoDS uses the temporary [nextcode4u compatibility release of FastVideoDSPlayer 2](https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/tag/v2.3-intrwait.1).
+FastVideoDS uses the [nextcode4u v2.4 release of FastVideoDSPlayer 2](https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/tag/v2.4).
 New installs and reviewed updates use the same fixed binary, keeping the ID
 `fastvideods` and `/_nds/dsi-frontend/plugins/apps/FastVideoDS.nds` path. Existing
 `.fv` profiles continue to work. Already-installed players can be replaced with
@@ -231,6 +231,9 @@ See [upstream PR #18](https://github.com/Mathos42/FastVideoDSPlayer-2/pull/18).
 Emulator playback and pause/resume pass; the corrected build still needs physical
 DSi, full-length playback, audio-quality, EOF and return validation.
 
+Version 2.4 also adds English/French controls, Fit/Stretch, lid pause, saved
+preferences, resume/bookmarks, playlists and subtitles. Its new addition/font
+notices were reviewed without changing the download-only distribution status.
 The player accepts `argv[1]`; launching it alone opens its browser. Use
 [FastVideoDS Encoder 2](https://github.com/Mathos42/FastVideoDSEncoder-2) for conversion.
 No BIOS is needed. Source and notices accompany the compatibility release.
@@ -246,7 +249,7 @@ The installer downloads the player directly; it is not embedded in `addons.zip`.
 | [ds994a 2.9](https://github.com/wavemotion-dave/DS994a/releases/tag/2.9) | [direct](https://github.com/wavemotion-dave/DS994a/blob/85098fcfcaa176a919fa4f2162706ac7814ea263/arm9/source/DS99.c) | Direct upstream download; Noncommercial redistribution with constituent permissions/notices |
 | [dslibris v1.6.0-blocksds-argv.2](https://github.com/nextcode4u/dslibris/releases/tag/v1.6.0-blocksds-argv.2) | [direct](https://github.com/nextcode4u/dslibris/blob/0df16f99a5ce4da385bc2685e3b1e7c40d012d8d/ARGUMENT_LAUNCH.md) | Bundled when pinned; GPL-3.0-or-later combined reader; SIL OFL-1.1 Liberation Fonts; dependency notices retained |
 | [dsxp v1.1.0-sd-argv.1](https://github.com/nextcode4u/DSXP/releases/tag/v1.1.0-sd-argv.1) | [direct](https://github.com/nextcode4u/DSXP/blob/485805cffae5ad2cfa32efd6946cc7ec6aa94ae0/source/main.c) | Bundled when pinned; GPL-2.0-or-later |
-| [fastvideods v2.3-intrwait.1](https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/tag/v2.3-intrwait.1) | [direct](https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/ffd40b2eeb64f4fa475209c81336725eed1c81f2/arm9/source/main.cpp) | Direct upstream download; zlib for Mathos42 additions; libnds notice; original player code unlicensed |
+| [fastvideods v2.4](https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/tag/v2.4) | [direct](https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/2d42737a8bc6a1a34845ae895bbe2fc5463f60cc/arm9/source/main.cpp) | Direct upstream download; zlib for Mathos42/nextcode4u additions; Apache-2.0 font; libnds notice; original player code unlicensed |
 | [gameyob-dsi v0.5.3b-mavica](https://github.com/Lana-chan/GameYob/releases/tag/v0.5.3b-mavica) | [direct](https://github.com/Lana-chan/GameYob/blob/04f88d96ca653c60fd1b110ce7011db7e8e906a3/arm9/source/main.cpp) | Bundled when pinned; MIT |
 | [gbarunner3 hicode (third-party snapshot)](https://files.deletecat.com/GBARunner3-hicode.zip) | [direct](https://github.com/Gericom/GBARunner3/blob/ecaa817815d9761745606592f04affe5ee9c3731/code/core/arm9/source/main.cpp) | Direct upstream download; Project-wide license not established |
 | [gimlids v1.7a-argv.2](https://github.com/nextcode4u/GimliDS/releases/tag/v1.7a-argv.2) | [direct](https://github.com/nextcode4u/GimliDS/blob/46dc6270da424d6ae638ff9aee2ec3bc0d17873e/ARGUMENT_LAUNCH.md) | Bundled when pinned; GPL-2.0-or-later |

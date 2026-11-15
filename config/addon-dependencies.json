@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "reviewed": "2026-11-14",
+  "reviewed": "2026-11-15",
   "default_policy": "bundle approved entries with confirmed coverage; --noncommercial adds permitted no-profit packages; unconfirmed entries are direct-download only",
   "application_directory": "_nds/dsi-frontend/plugins/apps",
   "applications": [
@@ -857,76 +857,96 @@
     {
       "id": "fastvideods",
       "repository": "https://github.com/nextcode4u/FastVideoDSPlayer-2",
-      "version": "v2.3-intrwait.1",
-      "commit": "ffd40b2eeb64f4fa475209c81336725eed1c81f2",
-      "release": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/tag/v2.3-intrwait.1",
+      "version": "v2.4",
+      "commit": "2d42737a8bc6a1a34845ae895bbe2fc5463f60cc",
+      "release": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/tag/v2.4",
       "release_assets": [
         {
+          "name": "BUILD-INFO.json",
+          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.4/BUILD-INFO.json"
+        },
+        {
           "name": "FastVideoDS.nds",
-          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.3-intrwait.1/FastVideoDS.nds"
+          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.4/FastVideoDS.nds"
         },
         {
           "name": "licenses.zip",
-          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.3-intrwait.1/licenses.zip"
+          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.4/licenses.zip"
         },
         {
-          "name": "source.zip",
-          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.3-intrwait.1/source.zip"
+          "name": "PLAYBACK.md",
+          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.4/PLAYBACK.md"
         },
         {
           "name": "SHA256SUMS",
-          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.3-intrwait.1/SHA256SUMS"
+          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.4/SHA256SUMS"
+        },
+        {
+          "name": "source.zip",
+          "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.4/source.zip"
         }
       ],
       "argv": "direct",
-      "argv_evidence": "https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/ffd40b2eeb64f4fa475209c81336725eed1c81f2/arm9/source/main.cpp",
+      "argv_evidence": "https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/2d42737a8bc6a1a34845ae895bbe2fc5463f60cc/arm9/source/main.cpp",
       "redistribution": "download-only",
-      "license": "zlib for Mathos42 additions; libnds notice; original player code unlicensed",
+      "license": "zlib for Mathos42/nextcode4u additions; Apache-2.0 font; libnds notice; original player code unlicensed",
       "distribution_notes": "Direct download from nextcode4u's compatibility release of Mathos42's FastVideoDSPlayer 2, not bundled. Mathos42's zlib grant covers their additions only; Gericom's original code has no explicit license. The legacy libnds wait routine retains its own notice. Source and licenses accompany the fork release.",
       "bios": "No BIOS required. Use the matching FastVideoDS Encoder 2 to convert ordinary videos to .fv.",
-      "bios_evidence": "https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/ffd40b2eeb64f4fa475209c81336725eed1c81f2/readme.md",
-      "license_evidence": "https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/ffd40b2eeb64f4fa475209c81336725eed1c81f2/readme.md",
+      "bios_evidence": "https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/2d42737a8bc6a1a34845ae895bbe2fc5463f60cc/readme.md",
+      "license_evidence": "https://github.com/nextcode4u/FastVideoDSPlayer-2/blob/2d42737a8bc6a1a34845ae895bbe2fc5463f60cc/readme.md",
       "permission_confirmed": false,
-      "license_findings": "The upstream README explicitly excludes Gericom's original code from Mathos42's zlib license. FatFS R0.16 and the libnds interrupt-wait override retain their own permissive notices; no whole-player redistribution permission is established.",
+      "license_findings": "The upstream README explicitly excludes Gericom's original code from Mathos42's zlib license. FatFS R0.16 and the libnds interrupt-wait override retain their own permissive notices; no whole-player redistribution permission is established. v2.4 adds a zlib grant for nextcode4u additions and an Apache-2.0 notice for the inherited Roboto font; these do not grant a license for the original player.",
       "package": {
         "source": {
-          "asset": "fastvideods2-v2.3-intrwait.1-source.tar.gz",
-          "url": "https://codeload.github.com/nextcode4u/FastVideoDSPlayer-2/tar.gz/ffd40b2eeb64f4fa475209c81336725eed1c81f2",
-          "sha256": "f019f92dfc0567bf14b65854d8bc40cd405a71138ea9a8fcf6b825da86fce0b3"
+          "asset": "fastvideods2-v2.4-source.tar.gz",
+          "url": "https://codeload.github.com/nextcode4u/FastVideoDSPlayer-2/tar.gz/2d42737a8bc6a1a34845ae895bbe2fc5463f60cc",
+          "sha256": "4ab168059218bc4cdb58febe2ffe4b070fde26ee2da9c1a513140edee1443f99"
         },
         "files": [
           {
             "download": {
-              "asset": "fastvideods2-v2.3-intrwait.1-FastVideoDS.nds",
-              "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.3-intrwait.1/FastVideoDS.nds",
-              "sha256": "0cab76a275ac16e326c581f67e084e8b4d9e2dc6e915db9db6ddd3edafa17b9a"
+              "asset": "fastvideods2-v2.4-FastVideoDS.nds",
+              "url": "https://github.com/nextcode4u/FastVideoDSPlayer-2/releases/download/v2.4/FastVideoDS.nds",
+              "sha256": "13d6fc9ff75ecf4983e7c6bdbd97007ce46b3c6e4e4a5c6b3b4b6b4b614e6d92"
             },
             "format": "raw",
             "destination": "_nds/dsi-frontend/plugins/apps/FastVideoDS.nds",
-            "sha256": "0cab76a275ac16e326c581f67e084e8b4d9e2dc6e915db9db6ddd3edafa17b9a"
+            "sha256": "13d6fc9ff75ecf4983e7c6bdbd97007ce46b3c6e4e4a5c6b3b4b6b4b614e6d92"
           }
         ],
         "notices": [
           {
-            "member": "FastVideoDSPlayer-2-ffd40b2eeb64f4fa475209c81336725eed1c81f2/readme.md",
+            "member": "FastVideoDSPlayer-2-2d42737a8bc6a1a34845ae895bbe2fc5463f60cc/readme.md",
             "destination": "readme.md"
           },
           {
-            "member": "FastVideoDSPlayer-2-ffd40b2eeb64f4fa475209c81336725eed1c81f2/LICENSE",
+            "member": "FastVideoDSPlayer-2-2d42737a8bc6a1a34845ae895bbe2fc5463f60cc/LICENSE",
             "destination": "LICENSE"
           },
           {
-            "member": "FastVideoDSPlayer-2-ffd40b2eeb64f4fa475209c81336725eed1c81f2/arm7/source/fat/ff.c",
+            "member": "FastVideoDSPlayer-2-2d42737a8bc6a1a34845ae895bbe2fc5463f60cc/arm7/source/fat/ff.c",
             "destination": "FatFS.txt",
             "header_only": true
           },
           {
-            "member": "FastVideoDSPlayer-2-ffd40b2eeb64f4fa475209c81336725eed1c81f2/arm9/source/IntrWait.s",
+            "member": "FastVideoDSPlayer-2-2d42737a8bc6a1a34845ae895bbe2fc5463f60cc/arm9/source/IntrWait.s",
             "destination": "libnds-IntrWait.s"
           },
           {
-            "member": "FastVideoDSPlayer-2-ffd40b2eeb64f4fa475209c81336725eed1c81f2/BUILDING.md",
+            "member": "FastVideoDSPlayer-2-2d42737a8bc6a1a34845ae895bbe2fc5463f60cc/BUILDING.md",
             "destination": "BUILDING.md"
+          },
+          {
+            "member": "FastVideoDSPlayer-2-2d42737a8bc6a1a34845ae895bbe2fc5463f60cc/LICENSE.enhancements",
+            "destination": "LICENSE.enhancements"
+          },
+          {
+            "member": "FastVideoDSPlayer-2-2d42737a8bc6a1a34845ae895bbe2fc5463f60cc/LICENSE.roboto",
+            "destination": "LICENSE.roboto"
+          },
+          {
+            "member": "FastVideoDSPlayer-2-2d42737a8bc6a1a34845ae895bbe2fc5463f60cc/PLAYBACK.md",
+            "destination": "PLAYBACK.md"
           }
         ],
         "extra_sources": [],
@@ -935,7 +955,7 @@
       "source_coverage": "Exact compatibility-fork source revision, including the legacy libnds interrupt-wait override and original notices. The fork release source.zip also supplies matching libnds and startup-library sources; licenses.zip carries the build dependency notices.",
       "content_guidance": "media/videos/: .fv (convert with FastVideoDS Encoder 2; MP4/MKV/AVI are not played directly)",
       "bios_mode": "none",
-      "argv_notes": "Temporary nextcode4u compatibility fork of Mathos42/FastVideoDSPlayer 2 v2.3. Fixes the legacy libnds 1.8 ARM9 swiIntrWait immediate-return path that can stall playback after launch. Accepts argv[1]; standalone launch opens its browser. Retain until a replacement player release includes the fix and passes launch/playback checks; changing the launcher SDK alone does not repair existing player binaries. Emulator playback and pause/resume passed; fixed-build physical DSi, full-length playback, audio quality, EOF and return remain unverified."
+      "argv_notes": "nextcode4u FastVideoDSPlayer 2 v2.4 retains the legacy libnds interrupt-wait fix and adds English/French controls, Fit/Stretch, lid pause, saved preferences, resume/bookmarks, playlists and subtitles. Accepts argv[1]; standalone launch opens its browser. Emulator checks passed; long-duration synchronization, physical lid behavior, slow-card recovery and launcher-specific return stubs remain unverified on hardware."
     },
     {
       "id": "gameyob-dsi",

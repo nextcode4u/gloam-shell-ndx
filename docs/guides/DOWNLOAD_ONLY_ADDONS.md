@@ -10,7 +10,7 @@ permission is inferred from availability, age or the absence of an explicit ban.
 | Application | Version | Delivery |
 | --- | --- | --- |
 | ds994a | 2.9 | Direct download; not bundled. |
-| fastvideods | v2.3-intrwait.1 | nextcode4u/FastVideoDSPlayer-2 compatibility fork; direct download, not bundled. |
+| fastvideods | v2.4 | nextcode4u/FastVideoDSPlayer-2 compatibility fork; direct download, not bundled. |
 | gbarunner3 | hicode (third-party snapshot) | Direct download; not bundled. |
 | jenesisdsplus | v0.8.1 | Direct download; not bundled. |
 | lodjurds | v0.1.5 | Direct download; not bundled. |
