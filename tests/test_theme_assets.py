@@ -34,7 +34,7 @@ class ThemeAssetsTests(unittest.TestCase):
                 root / "icons/folder.png"
             )
             data = pack(root)
-            self.assertEqual(data[:8], b"GLMART01")
+            self.assertEqual(data[:8], b"GLMART02")
             raw_size, count = struct.unpack_from("<II", data, 8)
             self.assertEqual((raw_size, count), (2056, 1))
             raw = zlib.decompress(data[16:])
@@ -44,6 +44,27 @@ class ThemeAssetsTests(unittest.TestCase):
             Image.new("RGBA", (64, 32)).save(root / "icons/folder.png")
             with self.assertRaises(ValueError):
                 pack(root)
+
+    def test_jpeg_remains_on_native_decoder_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "theme.ini").write_text(
+                "[icons]\ndirectory=icons\n[backgrounds]\ntop=photo.jpg\n"
+            )
+            (root / "icons").mkdir()
+            Image.new("RGBA", (32, 32), "red").save(root / "icons/folder.png")
+            Image.new("RGB", (256, 192), "blue").save(root / "photo.jpg")
+            data = pack(root)
+            self.assertEqual(struct.unpack_from("<I", data, 12)[0], 1)
+
+    def test_material_sources_require_opaque_native_geometry(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "theme.ini").write_text("[components]\nmaterial=map.png\n")
+            for size, alpha in (((32, 32), 255), ((256, 192), 170)):
+                Image.new("RGBA", size, (128, 128, 128, alpha)).save(root / "map.png")
+                with self.assertRaises(ValueError):
+                    pack(root)
 
     def test_output_cannot_leave_theme(self):
         with tempfile.TemporaryDirectory() as directory:

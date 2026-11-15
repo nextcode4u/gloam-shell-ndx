@@ -2245,6 +2245,8 @@
     "tests/theme_coverage_test.c",
     "tests/theme_preview_async_test.c",
     "tests/theme_samples_test.c",
+    "tests/theme_surface_fixture.py",
+    "tests/theme_surfaces_test.c",
     "tests/themes_test.c",
     "tests/title_metadata_test.c",
     "tests/ui_strings_test.c",
@@ -2362,6 +2364,7 @@
     "tools/start_gloam_setup.cmd",
     "tools/theme_font_sources.py",
     "tools/theme_materials.py",
+    "tools/theme_prepared_surfaces.py",
     "tools/theme_selections.py",
     "tools/verify_release.py",
     "tools/write_build_info.py"

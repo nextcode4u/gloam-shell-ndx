@@ -735,7 +735,9 @@ python tools/pack_theme_assets.py /path/to/theme
 Add `[assets] prepared=assets.gfx` to a version-2 manifest. The tool uses Pillow
 only on the computer. Gloam then reads one compressed bundle instead of opening
 and decoding each sprite PNG. Missing records or an invalid/unavailable bundle
-fall back to the corresponding PNGs. Fonts, backgrounds and audio remain separate.
+fall back to the corresponding PNGs. Fonts and audio remain separate. The current
+converter also prepares full-screen backgrounds, reading-surface blends and
+material maps, avoiding those PNG decodes during startup and preview.
 
 **Rebuild the bundle after editing a source PNG**, or remove the `prepared` key
 while authoring. The prepared copy takes precedence; Gloam does not scan source
@@ -747,7 +749,7 @@ record contains group (0 icon, 1 component), zero reserved byte, uint16 index,
 uint32 payload length, then its pixels. Indices follow the packer's `ICONS` and
 `COMPONENTS` lists. Icons contain 2,048 RGB555 bytes; components append a 256-byte
 coverage plane. Duplicate indices, unknown groups/indices, invalid lengths and
-truncated streams reject the bundle. Decoded data is capped at 192 KiB and
+truncated streams reject the bundle. Legacy decoded data is capped at 192 KiB and
 compressed data at decoded size plus 1,024 bytes.
 
 Preparation temporarily retains the compressed and decoded data while copying
@@ -862,3 +864,34 @@ detail. Packs need no custom renderer code.
 
 Regenerate this comparison through the actual host renderer with
 `python3 tools/make_screenshots.py --theme-selections`.
+
+## Prepared screen and material records
+
+The current converter writes `GLMART02`, retaining the original 16-byte header
+and icon/component records. Group 2, indices 0/1, adds top/bottom screen records:
+a uint32 signature, uint32 flags (ready=1, source wallpaper=2, scene strip=4),
+98,304 RGB555 bytes and, when flagged, the 48,128-byte top scene strip. Group 3,
+indices 0/1, adds ordinary/focused material records: a uint32 signature followed
+by 24,576 packed four-bit shade bytes. Reserved bits, duplicate entries and
+incorrect lengths reject the entire bundle and retain PNG fallback.
+
+Signatures use FNV-1a over blend parameters and theme-relative source paths/sizes,
+with integers encoded little endian. Screens include background color, strength,
+resolved content opacity and scene mode. The fast path is skipped when personal
+wallpapers, blend settings or source sizes differ. JPEG backgrounds remain on
+the native decoder path to preserve its exact rounding.
+
+**Repack after any PNG edit, including same-size edits.** These are prepared
+assets rather than a content-addressed disk cache; source timestamps and full
+image hashes are not scanned on every preview. The zlib checksum validates the
+prepared payload. PNGs remain required editable sources and fallbacks.
+
+Decoded bundles are bounded to 512 KiB, with compressed input bounded to that
+decoded size plus 1,024 bytes. Temporary packed/decoded buffers are freed after
+copying into the existing active/preview banks; no extra retained framebuffer
+is introduced. This trades bounded temporary memory for fewer SD opens and
+no runtime PNG conversion/blending when default assets match.
+
+Older Gloam builds reject `GLMART02` and use the included PNGs; new builds also
+accept `GLMART01`. No theme.ini or theme-format version change is required.
+Update both BOOT.NDS and assets.gfx to benefit from prepared surfaces.

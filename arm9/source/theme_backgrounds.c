@@ -3,6 +3,7 @@
 #include "image_decode.h"
 #include "image_job.h"
 #include "paths.h"
+#include "theme_assets.h"
 #include "themes.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,6 +59,11 @@ static bool load_surface(Background *background, const ThemePackage *package, in
     background->pixels = malloc(256 * 192 * sizeof *background->pixels);
     if (!background->pixels)
         return false;
+    if (theme_assets_background(package, screen, background->pixels, &background->scene,
+                                &background->wallpaper_ready)) {
+        background->ready = true;
+        return true;
+    }
     for (int i = 0; i < 256 * 192; i++)
         background->pixels[i] = background->matte;
     background->wallpaper_ready = decode_file(background, false);

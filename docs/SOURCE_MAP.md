@@ -27,6 +27,11 @@ Except where a path is stated, filenames in the table are under `arm9/source/`
 or `arm9/include/`. Rendering consumes state: it does not access the filesystem,
 change settings or perform hardware calls. The frame loop owns those operations.
 
+`theme_assets.c` accepts legacy sprite bundles and prepared screen/material
+records. `theme_prepared_surfaces.py` reproduces native integer blending at
+authoring time; mismatched personal overrides and invalid bundles retain PNG
+fallback. Temporary bundle data is released after populating the existing banks.
+
 `tabs.c` resolves library/custom-tab browsing roots before preferences load.
 Saved locations, directory entry handoff and scan startup enforce those roots;
 Back stops at each assigned root. Files retains SD-wide browsing.

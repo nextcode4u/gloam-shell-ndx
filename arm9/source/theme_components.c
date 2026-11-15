@@ -62,10 +62,15 @@ static void clear_bank(ComponentBank *bank)
     memset(bank, 0, sizeof *bank);
 }
 
-static uint8_t *load_material(const char *path)
+static uint8_t *load_material(const ThemePackage *package, unsigned index)
 {
+    const char *path = package->component_material[index];
     if (!*path)
         return NULL;
+    uint8_t *prepared_field = malloc(256 * 192 / 2);
+    if (prepared_field && theme_assets_material(package, index, prepared_field))
+        return prepared_field;
+    free(prepared_field);
     FILE *file = fopen(path, "rb");
     if (!file)
         return NULL;
@@ -100,7 +105,7 @@ static void prepare_materials(ComponentBank *bank, const ThemePackage *package)
     for (unsigned i = 0; i < 2 && !image_job_cancelled(); i++) {
         path_copy(bank->material_paths[i], package->component_material[i], PATH_CAP);
         if (!i || strcmp(bank->material_paths[0], bank->material_paths[1]))
-            bank->materials[i] = load_material(bank->material_paths[i]);
+            bank->materials[i] = load_material(package, i);
         app_loading_checkpoint();
     }
     for (unsigned component = 0; component <= THEME_ROW; component++) {

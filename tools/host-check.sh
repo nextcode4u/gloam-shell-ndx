@@ -35,6 +35,13 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
 fixture=$(mktemp -d /tmp/gloam-shell-ndx-test.XXXXXX)
 trap 'rm -rf "$fixture"' EXIT
 python3 tests/theme_asset_fixture.py "$fixture/theme-assets"
+"${FRONTEND_TEST_PYTHON:-python3}" tests/theme_surface_fixture.py "$fixture/prepared-surfaces"
+cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
+    "${model_objects[@]}" "${ui_objects[@]}" tests/theme_surfaces_test.c \
+    -Wl,--wrap=image_decode_background,--wrap=image_decode_surface,--wrap=image_decode_material \
+    -o build/host/theme-surfaces-test
+ASAN_OPTIONS=detect_leaks=1 build/host/theme-surfaces-test "$fixture/prepared-surfaces"
+
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/theme_assets_test.c -o build/host/theme-assets-test
 ASAN_OPTIONS=detect_leaks=1 build/host/theme-assets-test "$fixture/theme-assets"

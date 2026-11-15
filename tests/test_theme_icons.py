@@ -24,7 +24,7 @@ class ThemeIconTests(unittest.TestCase):
                 prepared = manifest.parent / config["assets"]["prepared"]
                 self.assertEqual(prepared.read_bytes(), pack(manifest.parent))
                 # One compressed bank replaces dozens of individual PNG reads.
-                self.assertLess(prepared.stat().st_size, 65536)
+                self.assertLess(prepared.stat().st_size, 256 * 1024)
                 inks = set()
                 for kind in ("folder", "application", "audio", "book"):
                     with Image.open(

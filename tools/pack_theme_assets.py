@@ -3,11 +3,24 @@
 
 import argparse
 import configparser
+import importlib.util
 from pathlib import Path
 import struct
 import zlib
 
 from PIL import Image
+
+if __package__:
+    from .theme_prepared_surfaces import screens, materials
+else:
+    # Authoring repositories also load this converter by file path.
+    spec = importlib.util.spec_from_file_location(
+        "gloam_prepared_surfaces",
+        Path(__file__).with_name("theme_prepared_surfaces.py"),
+    )
+    helper = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(helper)
+    screens, materials = helper.screens, helper.materials
 
 ICONS = "file folder game application audio video book text image save config archive shortcut system missing settings camera sound pictochat download-play system-menu slot1 tab-home tab-games tab-apps tab-media tab-system tab-files tab-folder".split()
 COMPONENTS = "header footer panel row-selected tab-selected card card-selected row icon-frame artwork-frame battery-empty battery-low battery-half battery-high battery-full battery-charging battery-unknown wireless-idle update-available check-off check-on toggle-off toggle-on arrow-left arrow-right arrow-up arrow-down scroll-track scroll-thumb busy".split()
@@ -52,10 +65,16 @@ def pack(root):
                 data = sprite(image, bool(group))
             payload += struct.pack("<BBHI", group, 0, index, len(data)) + data
             count += 1
-    if not count or len(payload) > 192 * 1024:
-        raise ValueError("Prepared asset set is empty or exceeds 192 KiB")
+    for group, index, data in (
+        *screens(root, config, inside),
+        *materials(root, config, inside),
+    ):
+        payload += struct.pack("<BBHI", group, 0, index, len(data)) + data
+        count += 1
+    if not count or len(payload) > 512 * 1024:
+        raise ValueError("Prepared asset set is empty or exceeds 512 KiB")
     return (
-        b"GLMART01"
+        b"GLMART02"
         + struct.pack("<II", len(payload), count)
         + zlib.compress(payload, 9)
     )

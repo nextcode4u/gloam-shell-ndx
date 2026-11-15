@@ -450,6 +450,7 @@ static bool load(App *app, const char *id, ThemePackage *package)
             if (*app->custom_backgrounds[screen])
                 path_copy(package->backgrounds[screen], app->custom_backgrounds[screen], PATH_CAP);
     path_copy(package->id, id, sizeof package->id);
+    path_copy(package->directory, directory, PATH_CAP);
     return true;
 }
 ThemePalette themes_palette(const App *app)
@@ -479,10 +480,10 @@ void themes_init(App *app)
     if (app->theme_accent_override)
         themes_accent_override(app);
     font_use(&app->themes.active.font);
-    themes_background_load(&app->themes.active, false);
     themes_icons_cancel();
     themes_components_cancel();
     theme_assets_begin(&app->themes.active);
+    themes_background_load(&app->themes.active, false);
     themes_icons_load(&app->themes.active, false);
     themes_components_load(&app->themes.active, false);
     theme_assets_end();
@@ -522,9 +523,9 @@ static void preview_load(void *context)
     ThemeState *state = &app->themes;
     bool valid = load(app, state->ids[state->selected], &state->candidate);
     if (valid && !image_job_cancelled()) {
+        theme_assets_begin(&state->candidate);
         themes_background_load(&state->candidate, true);
         if (!image_job_cancelled()) {
-            theme_assets_begin(&state->candidate);
             themes_icons_load(&state->candidate, true);
             themes_components_load(&state->candidate, true);
         }

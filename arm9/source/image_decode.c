@@ -22,7 +22,7 @@
  * buffer; verify the stream's Adler checksum as well as its exact output size. */
 bool image_decode_zlib(unsigned char *out, size_t size, const unsigned char *data, size_t bytes)
 {
-    if (!out || !data || !size || size > 256u * 1024 || bytes < 6 || bytes > size + 1024)
+    if (!out || !data || !size || size > 512u * 1024 || bytes < 6 || bytes > size + 1024)
         return false;
     if (stbi_zlib_decode_buffer((char *)out, (int)size, (const char *)data, (int)bytes) !=
         (int)size)
