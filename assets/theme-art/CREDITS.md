@@ -22,4 +22,5 @@ were authored independently for each theme; native title banners remain separate
 the same CC0 dedication. It contains painted metal, felt, rag paper, indigo
 cotton, sailcloth, canvas, satin, ceramic, leather, expedition paper, velvet and
 linen studies. It contains no texture copied from iOS or another product.
-`tools/theme_materials.py` prepares small, softly joined repeats from these scans.
+`tools/theme_materials.py` prepares complete native-size image crops from these studies,
+with separate ordinary/focus material fields. It does not repeat small patches.

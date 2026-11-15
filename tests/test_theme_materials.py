@@ -6,8 +6,8 @@ from PIL import Image, ImageStat
 
 from tools.theme_materials import (
     MATERIALS,
-    material_tile,
-    texture_component,
+    material_image,
+    material_field,
     tinted_material,
 )
 
@@ -18,7 +18,9 @@ class MaterialTests(unittest.TestCase):
 
         for name in MATERIALS:
             self.assertNotEqual(
-                material_tile(name).tobytes(), material_tile(name, True).tobytes(), name
+                material_image(name).tobytes(),
+                material_image(name, True).tobytes(),
+                name,
             )
             with Image.open(THEMES / name / "components/row.png") as plain, Image.open(
                 THEMES / name / "components/row-selected.png"
@@ -27,36 +29,36 @@ class MaterialTests(unittest.TestCase):
                 b = ImageStat.Stat(selected.crop((8, 8, 24, 24)).convert("RGB")).mean
                 self.assertGreater(max(abs(x - y) for x, y in zip(a, b)), 8, name)
 
-    def test_each_material_is_independent_and_has_soft_repeat_joins(self):
-        tiles = set()
+    def test_materials_use_full_native_images_instead_of_repeated_patches(self):
+        images = set()
         for name in MATERIALS:
-            tile = material_tile(name)
-            self.assertEqual(tile.size, (16, 16))
-            tiles.add(tile.tobytes())
-            self.assertEqual(
-                tile.crop((0, 0, 1, 16)).tobytes(), tile.crop((15, 0, 16, 16)).tobytes()
-            )
-            self.assertEqual(
-                tile.crop((0, 0, 16, 1)).tobytes(), tile.crop((0, 15, 16, 16)).tobytes()
-            )
-        self.assertEqual(len(tiles), 11)
+            image = material_image(name)
+            self.assertEqual(image.size, (256, 192))
+            images.add(image.tobytes())
+            for x in (16, 32, 64):
+                self.assertNotEqual(
+                    image.crop((0, 0, 16, 16)).tobytes(),
+                    image.crop((x, 0, x + 16, 16)).tobytes(),
+                    name,
+                )
+        self.assertEqual(len(images), 11)
 
-    def test_tint_repeats_at_native_pitch_and_survives_rgb555(self):
+    def test_tinted_artwork_and_fields_preserve_nonrepeating_detail(self):
         for name in MATERIALS:
-            image = tinted_material(name, "#30384c", (48, 32))
-            self.assertEqual(
+            image = tinted_material(name, "#30384c", (256, 192))
+            self.assertNotEqual(
                 image.crop((0, 0, 16, 16)).tobytes(),
                 image.crop((16, 16, 32, 32)).tobytes(),
+                name,
             )
-            colors = {tuple(c >> 3 for c in p) for p in image.get_flattened_data()}
-            self.assertGreaterEqual(len(colors), 3, name)
-            # The cloth/paper detail must remain subordinate to bright text.
-            self.assertLess(max(max(p) for p in image.get_flattened_data()), 160)
-
-    def test_material_does_not_fill_alpha_cutouts_or_make_fills_translucent(self):
-        image = Image.new("RGBA", (32, 32), (50, 60, 70, 255))
-        image.paste((0, 0, 0, 0), (8, 8, 24, 24))
-        alpha = image.getchannel("A").tobytes()
-        textured = texture_component(image, "nocturne", "panel")
-        self.assertEqual(textured.getchannel("A").tobytes(), alpha)
-        self.assertIsNone(textured.crop((8, 8, 24, 24)).getbbox())
+            self.assertLess(max(max(p) for p in image.get_flattened_data()), 180)
+            field = material_field(name)
+            self.assertEqual(field.size, (256, 192))
+            values = set(field.get_flattened_data())
+            self.assertGreaterEqual(len(values), 3, name)
+            self.assertLessEqual(max(values), 15)
+            self.assertNotEqual(
+                field.crop((0, 0, 16, 16)).tobytes(),
+                field.crop((16, 0, 32, 16)).tobytes(),
+                name,
+            )

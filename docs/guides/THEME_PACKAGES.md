@@ -572,18 +572,48 @@ edges of that center meet cleanly. Missing `fill` or `fill=stretch` retains the
 existing scaling. Status/control glyphs and scroll tracks keep their usual
 scaling, independent of this setting. Clipping does not restart the pattern.
 
-The bundled packs use original cloth, paper, metal, ceramic and leather texture
-samples in `assets/theme-art/materials.png`. `tools/theme_materials.py` prepares
-the native repeats; `make_theme_components.py` textures component fills while
-preserving their alpha, edges and cutouts. `make_theme_scenes.py` bakes matching
-header/footer bands into the existing reading-surface PNGs, so minimal-chrome
-themes can use material backdrops too. Those reading surfaces are preblended
-when loading the theme. No runtime texture decoding, extra texture bank or
-additional framebuffer is needed.
+The bundled packs use complete material images from the original
+`assets/theme-art/materials.png` studies. `make_theme_scenes.py` bakes full-width
+header/footer artwork into the existing reading-surface PNGs. No additional
+framebuffer is retained for these bands.
+
+For resizable rows, cards and panels, version-2 packs can supply optional
+**256×192 opaque PNG** shade fields:
+
+```ini
+[components]
+directory=components
+border=8
+fill=stretch
+material=components/material.png
+focus_material=components/focus-material.png
+```
+
+A field is a full-screen grayscale image, sampled at screen coordinates without
+wrapping or tiling. It affects the flat fill color matching the component's center
+pixel; borders, ornament, cutouts and coverage remain authored in the 32×32 PNG.
+Status glyphs and open artwork/icon frames are excluded. A transparent center
+disables material shading for that component. Mid-gray (128–143) leaves the fill
+unchanged; darker/lighter levels select prepared RGB555 shades. Full black/white
+correspond to offsets −8/+7 per five-bit channel, with saturation at either end.
+Keep contrast low behind text. `tools/theme_materials.py` prepares these fields,
+including a distinct focus image, and keeps their full-image detail.
+
+Each field is packed into **24 KiB** during theme loading. Ordinary and focus
+fields therefore add at most **48 KiB per active or preview bank**, plus a small
+prepared color table. The decoder uses bounded transient RGBA storage. No PNG
+decoding, file access or allocation occurs during rendering; pixels use cached
+shade lookups. Physical-console timing still needs measurement.
+
+Omit `focus_material` to reuse the ordinary field with the selection's fill
+color. Missing, malformed, oversized or translucent fields fall back to the
+ordinary field or untextured component fill. Identical ordinary/focus paths share
+one cached field. Cancel/apply follow the existing isolated theme-bank lifecycle.
 
 Install the matching frontend binary with these updated bundled themes. Older
-binaries do not recognize the optional `fill` field and reject those packages;
-older packages without that field remain compatible with the new frontend.
+binaries reject these optional fields; older packages without them retain their
+existing drawing behavior. The optional `fill=tile` mode remains available for
+intentional repeating motifs, but the bundled material artwork uses full images.
 
 Keep the center stretch region of `artwork-frame.png` and `icon-frame.png`
 transparent. The bundled packs leave source pixels 8–23 clear in both directions;
@@ -823,8 +853,9 @@ slab, nautical ticket, capsule, puffy sticker and leather-label treatments.
 preparer uses distinct focus samples. Corners fit inside the eight-pixel source
 border, keeping ornament outside live labels and native icons. The same
 `row-selected.png` skin applies to browser rows, settings and pickers;
-`card-selected.png` supplies Grid/Shelf focus. No additional runtime assets or
-custom drawing code are needed for each pack.
+`card-selected.png` supplies Grid/Shelf focus. Focus ornament stays in those
+existing sprite slots; the optional full-image fields above supply material
+detail. Packs need no custom renderer code.
 
 ![Focused and ordinary rows at native size](../images/theme-selections.png)
 

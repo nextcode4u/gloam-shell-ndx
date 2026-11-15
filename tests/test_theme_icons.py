@@ -114,12 +114,19 @@ class ThemeIconTests(unittest.TestCase):
 
     def test_modular_components_are_reproducible_and_bounded(self):
         generated = dict(component_assets())
-        self.assertEqual(len(generated), 11 * len(COMPONENTS))
+        self.assertEqual(len(generated), 11 * (len(COMPONENTS) + 2))
         for path, data in generated.items():
             self.assertEqual(path.read_bytes(), data)
             self.assertLessEqual(len(data), 65536)
             with Image.open(io.BytesIO(data)) as image:
-                self.assertEqual(image.size, (32, 32))
+                self.assertEqual(
+                    image.size,
+                    (
+                        (256, 192)
+                        if path.stem in ("material", "focus-material")
+                        else (32, 32)
+                    ),
+                )
                 self.assertTrue(image.getbbox())
         folders = [
             Image.open(THEMES / theme / "icons/folder.png")

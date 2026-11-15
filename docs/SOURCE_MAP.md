@@ -187,13 +187,15 @@ Bundled font authoring uses `config/theme-fonts.json` and
 `make_theme_samples.py --download-fonts` explicitly populates an ignored cache;
 ordinary firmware builds consume the prepared per-theme DSFONT03 files.
 
-`tools/theme_materials.py` prepares native material repeats from the original
-`assets/theme-art/materials.png` atlas. The component generator keeps textures
-inside existing alpha silhouettes; the scene generator bakes reading-band
-textures into existing background PNGs. Optional `[components] fill=tile` changes
-source-coordinate mapping in `ui/theme_components.c`, preserving corners and
-native repeat pitch without new image banks or per-frame allocations. Scene
-item summaries use `panel.png`, with a solid fallback when absent.
+`tools/theme_materials.py` prepares full-image material artwork from the original
+`assets/theme-art/materials.png` studies. Scene generation bakes complete reading
+bands into background PNGs. Optional component `material`/`focus_material` PNGs
+are decoded into screen-anchored four-bit fields by `image_decode_material`.
+`theme_components.c` owns up to two 24-KiB fields and prepared shade tables per
+bank; `ui/theme_components.c` applies them to flat fills while preserving trim,
+coverage and cutouts. Missing fields retain plain fills. Banks become visible
+only after all sprites, fields and palettes finish preparation. Scene item
+summaries use `panel.png`, with a solid fallback when absent.
 
 `tools/theme_selections.py` owns each bundled pack's full focus silhouette and
 trim. `make_theme_components.py` exports it into the existing selected-row/card

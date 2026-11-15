@@ -13,11 +13,11 @@ from functools import lru_cache
 
 if __package__:
     from .make_theme_navigation import SmoothDraw, smooth_export
-    from .theme_materials import texture_component
+    from .theme_materials import assets as material_assets
     from .theme_selections import selection_surface
 else:
     from make_theme_navigation import SmoothDraw, smooth_export
-    from theme_materials import texture_component
+    from theme_materials import assets as material_assets
     from theme_selections import selection_surface
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -264,10 +264,7 @@ def component_image(name, style, colors, theme="copper"):
     if name in ("panel", "card", "icon-frame", "artwork-frame"):
         finish_material(image, theme, colors, name)
     # Downsampling and alpha quantization happen here/on the PC, never at runtime.
-    native = smooth_export(image)
-    if name in COMPONENTS[:10]:
-        return texture_component(native, theme, name)
-    return native
+    return smooth_export(image)
 
 
 # Rims are authored into the existing 32px sprites. The central stretch region
@@ -330,6 +327,7 @@ def finish_material(image, theme, colors, name):
 
 
 def assets():
+    yield from material_assets()
     for manifest in sorted(THEMES.glob("*/theme.ini")):
         config = configparser.ConfigParser()
         config.read(manifest)
