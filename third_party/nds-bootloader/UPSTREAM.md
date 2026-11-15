@@ -27,6 +27,12 @@ The local adaptation uses the SDK register names and disables every channel
 before clearing any source, destination, length, block, delay or fill registers.
 This keeps inherited transfers from running while their configuration changes.
 
+The ARM9 reset writes zero to `GFX_STATUS`, backporting
+[RocketRobz's graphics-status reset](https://github.com/Deletecat/nds-bootloader/commit/63d313003c3ac607601894f345a63e441b91acd7)
+to disable inherited geometry FIFO interrupt settings. This is not a complete
+geometry FIFO flush. Gloam retains coderkei's 16-bit video-register clearing
+loop that skips `VCOUNT`, together with the existing linker and return-stub layout.
+
 Return stub: devkitPro/nds-hb-menu at 3c1f64c12da157fdd14a2d594db139f50e283261, bootstub/bootstub.s. Its source notice and COPYING are retained.
 
 Local integration uses tools/build_homebrew_loader.py and arm9/source/launch_platform.c. The legacy loader is built with BlocksDS headers and links libnds7 for its now-external dmaSetParams function. No flashcart DLDI route is enabled by this integration. The wrapper bounds argument/VRAM/stub sizes and uses the DSi SD path only. This is a homebrew adapter, not retail-game compatibility.
