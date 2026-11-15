@@ -9,7 +9,7 @@ PIXELS = 256 * 192
 
 
 class UnsupportedPreparedImage(ValueError):
-    """JPEG remains on the native path to avoid decoder rounding differences."""
+    """Unsupported conversions retain the native decoder quantization."""
 
 
 def signature(values=(), paths=(), root=None):
@@ -40,6 +40,12 @@ def rgba(root, relative, inside):
     path = inside(root, relative)
     if not path.is_file():
         raise ValueError("Missing prepared surface input: " + relative)
+    with path.open("rb") as source:
+        header = source.read(25)
+    # Pillow and the native decoder can quantize 16-bit channels differently.
+    # Keep those sources on the established runtime path, as with JPEG.
+    if len(header) < 25 or header[:8] != b"\x89PNG\r\n\x1a\n" or header[24] == 16:
+        raise UnsupportedPreparedImage(relative)
     with Image.open(path) as image:
         if image.format != "PNG":
             raise UnsupportedPreparedImage(relative)
@@ -151,7 +157,10 @@ def materials(root, config, inside):
         path = config.get("components", option, fallback="")
         if not path:
             continue
-        image = rgba(root, path, inside)
+        try:
+            image = rgba(root, path, inside)
+        except UnsupportedPreparedImage:
+            continue
         if image.size != (256, 192):
             raise ValueError("Material maps must be 256x192")
         packed = bytearray(PIXELS // 2)

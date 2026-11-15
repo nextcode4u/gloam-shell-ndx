@@ -878,7 +878,7 @@ incorrect lengths reject the entire bundle and retain PNG fallback.
 Signatures use FNV-1a over blend parameters and theme-relative source paths/sizes,
 with integers encoded little endian. Screens include background color, strength,
 resolved content opacity and scene mode. The fast path is skipped when personal
-wallpapers, blend settings or source sizes differ. JPEG backgrounds remain on
+wallpapers, blend settings or source sizes differ. JPEG backgrounds and high-depth PNGs remain on
 the native decoder path to preserve its exact rounding.
 
 **Repack after any PNG edit, including same-size edits.** These are prepared

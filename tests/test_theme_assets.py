@@ -57,6 +57,18 @@ class ThemeAssetsTests(unittest.TestCase):
             data = pack(root)
             self.assertEqual(struct.unpack_from("<I", data, 12)[0], 1)
 
+    def test_high_depth_png_keeps_native_quantization(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "theme.ini").write_text(
+                "[icons]\ndirectory=icons\n[backgrounds]\ntop=deep.png\n[components]\nmaterial=deep.png\n"
+            )
+            (root / "icons").mkdir()
+            Image.new("RGBA", (32, 32), "red").save(root / "icons/folder.png")
+            Image.new("I;16", (256, 192), 32000).save(root / "deep.png")
+            data = pack(root)
+            self.assertEqual(struct.unpack_from("<I", data, 12)[0], 1)
+
     def test_material_sources_require_opaque_native_geometry(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
