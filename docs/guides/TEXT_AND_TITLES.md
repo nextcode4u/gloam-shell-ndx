@@ -175,5 +175,16 @@ or hyphens. Settings discovers up to 16 external catalogs from a bounded scan of
 malformed. Extra scripts still require a matching shared font pack; adding a
 translation does not imply complete Unicode coverage or RTL shaping.
 
+## Contributor catalog audit
+
+Run `python3 tools/audit_localization.py` for the shipped catalogs, or pass catalog
+paths, `--themes` and `--fonts` for another collection. It reports registered-key
+coverage, missing/unused keys, native byte/storage bounds, unavailable glyphs and
+potential fixed-control width overflow against prepared body-font advances.
+Coverage refers to registered translation keys, not every English runtime message.
+Width warnings need native review: some labels intentionally loop. `--strict`
+also rejects incomplete/unknown keys or missing glyphs. Partial starter catalogs
+use normal mode. The JSON report defaults to ignored `build/localization-audit.json`.
+
 UTF-8 catalogs accept an optional initial BOM and LF/CRLF lines. Embedded NULs,
 invalid UTF-8 and oversized input are rejected before catalog state is applied.
