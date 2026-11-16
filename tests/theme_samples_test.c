@@ -7,6 +7,7 @@
 #include "picker.h"
 #include "preferences.h"
 #include "renderer.h"
+#include "script_fonts.h"
 #include "settings.h"
 #include "theme_composition.h"
 #include "themes.h"
@@ -182,15 +183,16 @@ static int luminance(uint16_t color)
 int main(int argc, char **argv)
 {
     assert(argc == 2);
-    const char *ids[] = {"folio", "nocturne", "tide",    "phosphor", "eclipse",
-                         "prism", "ember",    "glacier", "garnet"};
-    int views[] = {BROWSER_LIST, BROWSER_EXTENDED, BROWSER_GRID, BROWSER_CLASSIC, BROWSER_GRID,
-                   BROWSER_GRID, BROWSER_EXTENDED, BROWSER_GRID, BROWSER_LIST};
-    int sizes[] = {ICON_SMALL, ICON_SMALL, ICON_LARGE, ICON_SMALL, ICON_LARGE,
-                   ICON_LARGE, ICON_LARGE, ICON_LARGE, ICON_SMALL};
-    int columns[] = {4, 4, 3, 4, 2, 4, 4, 3, 4};
-    int padding[] = {0, 2, 6, 0, 12, 0, 4, 4, 2};
-    for (int theme = 0; theme < 9; theme++) {
+    const char *ids[] = {"folio", "nocturne", "tide",   "phosphor", "eclipse", "prism",
+                         "ember", "glacier",  "garnet", "copper",   "slate"};
+    int views[] = {BROWSER_LIST, BROWSER_EXTENDED, BROWSER_GRID,     BROWSER_CLASSIC,
+                   BROWSER_GRID, BROWSER_GRID,     BROWSER_EXTENDED, BROWSER_GRID,
+                   BROWSER_LIST, BROWSER_CLASSIC,  BROWSER_CLASSIC};
+    int sizes[] = {ICON_SMALL, ICON_SMALL, ICON_LARGE, ICON_SMALL, ICON_LARGE, ICON_LARGE,
+                   ICON_LARGE, ICON_LARGE, ICON_SMALL, ICON_SMALL, ICON_SMALL};
+    int columns[] = {4, 4, 3, 4, 2, 4, 4, 3, 4, 4, 4};
+    int padding[] = {0, 2, 6, 0, 12, 0, 4, 4, 2, 0, 0};
+    for (unsigned theme = 0; theme < sizeof ids / sizeof *ids; theme++) {
         app_init(&app, argv[1], true, true);
         ThemePackage previous = app.themes.active;
         int previous_view = app.browser_style, previous_size = app.icon_size;
@@ -201,12 +203,14 @@ int main(int argc, char **argv)
         themes_cancel(&app);
         assert(!memcmp(&previous, &app.themes.active, sizeof previous));
         assert(app.browser_style == previous_view && app.icon_size == previous_size);
+        app.browser_style = BROWSER_CLASSIC;
+        app.icon_size = ICON_SMALL;
         choose(ids[theme]);
         themes_apply(&app);
         assert(!strcmp(app.theme_id, ids[theme]) && app.browser_style == views[theme]);
         assert(app.icon_size == sizes[theme]);
         assert(app.themes.active.external_font);
-        if (theme == 1 || theme == 4 || theme >= 6)
+        if (theme == 1 || theme == 4 || (theme >= 6 && theme <= 8))
             assert(app.themes.active.font.glyph_count == FONT_GLYPHS);
         assert(app.themes.active.row_padding == padding[theme]);
         if (sizes[theme] == ICON_LARGE && views[theme] == BROWSER_GRID)
@@ -259,7 +263,10 @@ int main(int argc, char **argv)
         assert(app.audio.music.bytes > 0 && app.audio.music.bytes <= 1024 * 1024);
         assert(app.audio.music.bytes % 4 == 0);
         for (int sound = 0; sound < 3; sound++) {
-            assert(app.audio.effects[sound].samples && app.audio.effects[sound].bytes);
+            if (*app.themes.active.sounds[sound])
+                assert(app.audio.effects[sound].samples && app.audio.effects[sound].bytes);
+            else
+                assert(!app.audio.effects[sound].samples);
             audio_free_clip(&app.audio.effects[sound]);
         }
         audio_free_clip(&app.audio.music);
@@ -285,14 +292,27 @@ int main(int argc, char **argv)
                            32 * 256 * sizeof *top.pixels));
         }
         app.artwork = previous_artwork;
+        /* Shared script faces must remain usable with every theme's body/heading metrics. */
+        script_fonts_prepare_text("本体設定");
+        assert(font_advance(&app.themes.active.font, 0x672c) == 12);
         /* Shared geometry must still fit with every personal view/size override. */
         for (int category = 0; category <= CATEGORY_SYSTEM; category++) {
             app_category(&app, category);
+            char saved_name[256] = "";
+            if (app.entry_count) {
+                strcpy(saved_name, app.entries[0].name);
+                strcpy(app.entries[0].name, "本体設定 Japanese long title for clipping checks.nds");
+            }
             for (int view = 0; view < BROWSER_STYLE_COUNT; view++)
                 for (int size = 0; size < 2; size++) {
                     app.browser_style = view;
                     app.icon_size = size;
                     browser_reflow(&app);
+                    for (int labels = 0; labels < 2; labels++) {
+                        app.show_icon_labels = labels;
+                        draw();
+                    }
+                    app.show_icon_labels = true;
                     if (!layout_is_grid(&app)) {
                         int text_height = view == BROWSER_EXTENDED ? 26 : 12;
                         assert(layout_row_height(&app) >= text_height + 8);
@@ -324,6 +344,8 @@ int main(int argc, char **argv)
                         app.rail_focus = false;
                     }
                 }
+            if (app.entry_count)
+                strcpy(app.entries[0].name, saved_name);
         }
         /* Exercise every tab presentation with long custom labels and both ends
          * of a full tab collection; renderers must never change selection. */

@@ -128,3 +128,9 @@ require no source font download and add no font decoding to startup.
 | Ember | SourceSans3 | Bitter |
 | Glacier | PublicSans | ArchivoBlack-Regular |
 | Garnet | EBGaramond | Marcellus-Regular |
+
+Shared Japanese/extended-script fallbacks are SD packs under the frontend's
+`fonts/` directory, independent of a theme's body and heading faces. Theme
+exporters should not copy these into each package. Install the matching frontend
+SD assets when upgrading from embedded-script builds; missing script packs keep
+ASCII/Latin-1 usable. See [text and title names](TEXT_AND_TITLES.md).
