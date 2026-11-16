@@ -5,6 +5,10 @@
 #include "image_job.h"
 #include "paths.h"
 #include "script_fonts.h"
+#include "update_checker.h"
+#ifndef FRONTEND_COLD_SIZE
+#define FRONTEND_COLD_SIZE 0
+#endif
 #include <stdio.h>
 #ifndef HOST_PREVIEW
 #include <blocksds_version.h>
@@ -107,6 +111,9 @@ bool diagnostics_export(const App *app)
             app->audio.effects_volume, app->system_catalog.attempted, app->system_catalog.ready,
             app->system_catalog.mount_error, app->launch.route, app->launch.arguments.count,
             (unsigned long)sizeof *app);
+    report_line(file, "frontend_version", GLOAM_VERSION);
+    report_line(file, "interface_language", app->interface_language);
+    fprintf(file, "cold_size_profile=%d\n", FRONTEND_COLD_SIZE);
     fprintf(file, "boot_complete=%d\nboot_total_ms=%lu\n", boot->complete,
             (unsigned long)boot->total_ms);
     for (int i = 0; i < BOOT_PHASE_COUNT; i++)

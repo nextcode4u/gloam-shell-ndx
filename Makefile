@@ -20,6 +20,30 @@ override SOURCES_C := $(sort $(shell find -L $(SOURCEDIRS) -name "*.c"))
 override SOURCES_CPP := $(sort $(shell find -L $(SOURCEDIRS) -name "*.cpp"))
 include $(BLOCKSDS)/sys/default_makefiles/rom_arm9/Makefile
 
+# Optional size experiment for configuration/launch paths. Rendering, image/text
+# decoding and directory sorting retain the SDK's speed optimization.
+SIZE_OPTIMIZE_COLD ?= 0
+ifneq ($(SIZE_OPTIMIZE_COLD),0)
+ifneq ($(SIZE_OPTIMIZE_COLD),1)
+$(error SIZE_OPTIMIZE_COLD must be 0 or 1)
+endif
+endif
+COLD_MODULES := arguments association_editor bootstrap cheat_backend cheat_editor cheats \
+    configuration configuration_reset dashboard diagnostics dsiware game_editor game_options \
+    homebrew installed_titles item_preferences launch localization picker preferences scummvm \
+    settings startup system_catalog system_routes tabs update_checker update_transport
+COLD_OBJECTS := $(addprefix build/$(NAME)/arm9/source/,$(addsuffix .c.o,$(COLD_MODULES)))
+COLD_PROFILE := build/compiler-profile/cold-$(SIZE_OPTIMIZE_COLD).stamp
+$(COLD_PROFILE):
+	@mkdir -p $(@D)
+	@rm -f build/compiler-profile/cold-0.stamp build/compiler-profile/cold-1.stamp
+	@touch $@
+$(COLD_OBJECTS): $(COLD_PROFILE) Makefile
+$(COLD_OBJECTS): CFLAGS += -DFRONTEND_COLD_SIZE=$(SIZE_OPTIMIZE_COLD)
+ifeq ($(SIZE_OPTIMIZE_COLD),1)
+$(COLD_OBJECTS): CFLAGS += -Os
+endif
+
 $(ELF): Makefile
 
 $(ROM): $(ARM7ELF) $(GAME_ICON)

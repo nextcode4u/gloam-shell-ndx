@@ -200,6 +200,17 @@ versions. SD packages include both packs. Theme fonts are unchanged. Generate
 and verify packs using `tools/make_japanese_font.py` and `tools/pack_script_fonts.py`;
 font licenses/source notices remain in the combined source and license archives.
 
+## Optional cold-path size profile
+
+`make SIZE_OPTIMIZE_COLD=1` applies `-Os` only to the explicit configuration,
+launch and maintenance modules listed in the Makefile. Drawing, image decoding,
+font/text work and sorting keep speed optimization; linked SDK libraries are
+unchanged. Default `0` remains the release baseline. Profile stamps force the
+selected objects to rebuild when changing modes, including switching back.
+Diagnostics record `cold_size_profile` alongside the observed frontend version.
+Measure boot and launch latency on hardware before adopting a size profile.
+This flag reduces code size; it does not establish a boot-time improvement.
+
 For a transition soak, use `tools/profile_frontend.py --items 10000 --mixed
 --cycles 960`. The profiler verifies real preview/apply/cancel and language
 transitions, reloads audio and alternates icon labels. Compare retained heap
