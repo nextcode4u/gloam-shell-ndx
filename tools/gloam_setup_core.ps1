@@ -539,7 +539,7 @@ function Test-GloamTheme([string]$Source) {
     if (-not [IO.File]::Exists($manifest) -or ([IO.FileInfo]::new($manifest)).Length -gt 4096) { throw 'Theme manifest is missing or exceeds 4 KiB.' }
     $data=Read-GloamIni $manifest
     $allowed=@{
-        theme=@('version','name','header')
+        theme=@('version','name','header','min_frontend')
         colors=@('background','surface','line','text','muted','accent','ink','selection_text','tab_text','header_text','footer_text','header_link_text')
         fonts=@('ui','heading')
         audio=@('music','cursor','confirm','back')
@@ -579,6 +579,12 @@ function Test-GloamTheme([string]$Source) {
             $value=0; $minimum=if ($key -eq 'large_grid_columns') {2} else {0}; $maximum=if ($key -eq 'row_padding') {12} elseif ($key.EndsWith('content_opacity')) {100} else {4}
             if (-not [int]::TryParse($data['layout'][$key],[ref]$value) -or $value -lt $minimum -or $value -gt $maximum) { $errors.Add("Invalid layout: $key") }
         } }
+    }
+    if ($data.Contains('theme') -and $data['theme'].Contains('min_frontend')) {
+        $minimum = $data['theme']['min_frontend']
+        if ($minimum -cnotmatch '^v(0|[1-9][0-9]{0,5})\.(0|[1-9][0-9]{0,5})\.(0|[1-9][0-9]{0,5})(-(preview|rc)\.(0|[1-9][0-9]{0,5}))?$') {
+            $errors.Add('Invalid min_frontend; use a Gloam tag such as v1.2.0.')
+        } else { $warnings.Add("Requires Gloam $minimum or newer. Check the version installed on the SD card.") }
     }
     $needsV2=$false
     foreach ($pair in @(@('fonts','heading'),@('components','alpha'),@('components','controls'),@('components','fill'),@('components','material'),@('components','focus_material'),@('layout','top_content_opacity'),@('layout','bottom_content_opacity'),@('layout','tabs_position'),@('backgrounds','top_surface'),@('backgrounds','bottom_surface'),@('assets','prepared'),@('motion','ambient'),@('motion','ambient_ticks'),@('motion','focus'))) {

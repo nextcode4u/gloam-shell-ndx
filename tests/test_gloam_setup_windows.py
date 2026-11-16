@@ -937,6 +937,16 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.assertIn('Demo BIOS', log)
         self.assertEqual(before, {p.relative_to(self.sd).as_posix(): p.read_bytes() for p in self.sd.rglob('*') if p.is_file()})
 
+    def test_theme_minimum_frontend_is_reported_and_validated(self):
+        theme = self.root / 'future-theme'
+        theme.mkdir()
+        (theme / 'theme.ini').write_text('[theme]\nversion=1\nmin_frontend=v9.0.0\n')
+        self.run_ps("$report=Test-GloamTheme " + literal(win(theme)) +
+                    "; if (@($report.Errors).Count -or ($report.Warnings -join ';') -notmatch 'v9.0.0') { throw 'Minimum version missing' }")
+        (theme / 'theme.ini').write_text('[theme]\nversion=1\nmin_frontend=v01.0.0\n')
+        self.run_ps("$report=Test-GloamTheme " + literal(win(theme)) +
+                    "; if (-not @($report.Errors).Count) { throw 'Invalid minimum accepted' }")
+
     def test_external_language_choices_preserve_missing_selection(self):
         folder = self.sd / '_nds/dsi-frontend/languages'
         folder.mkdir(parents=True)

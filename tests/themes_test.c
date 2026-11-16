@@ -169,6 +169,28 @@ int main(int argc, char **argv)
     assert(!memcmp(themes_icon(&app.themes.active, PLACEHOLDER_FOLDER), expected, sizeof expected));
     assert(!memcmp(themes_component(&app.themes.active, THEME_ROW_SELECTED), expected_component,
                    sizeof expected_component));
+    /* Minimum versions are checked before asset decoding and never replace the active pack. */
+    char saved_manifest[4097] = {0};
+    FILE *requirements = fopen(manifest, "r");
+    assert(requirements);
+    size_t manifest_size = fread(saved_manifest, 1, sizeof saved_manifest - 1, requirements);
+    assert(manifest_size && !fclose(requirements));
+    const char *minimums[] = {"v999999.0.0", "v1.0.0", "v01.0.0"};
+    for (unsigned requirement = 0; requirement < 3; requirement++) {
+        write_text(root, "_nds/dsi-frontend/themes/copper/theme.ini", saved_manifest);
+        requirements = fopen(manifest, "a");
+        assert(requirements &&
+               fprintf(requirements, "\n[theme]\nmin_frontend=%s\n", minimums[requirement]) > 0 &&
+               !fclose(requirements));
+        themes_open(&app);
+        themes_preview(&app);
+        assert(app.themes.ready == (requirement == 1));
+        if (!requirement)
+            assert(strstr(app.themes.status, "Needs Gloam v999999.0.0"));
+        assert(!strcmp(app.theme_id, "copper"));
+        themes_cancel(&app);
+    }
+    write_text(root, "_nds/dsi-frontend/themes/copper/theme.ini", saved_manifest);
     write_text(root, "_nds/dsi-frontend/themes/copper/components/row-selected.png", "broken PNG");
     /* Production packs may also have a prepared bank. A broken bank must fall
      * back to the editable PNGs, where these per-sprite failures are isolated. */

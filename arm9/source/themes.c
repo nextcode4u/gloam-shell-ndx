@@ -9,6 +9,7 @@
 #include "theme_assets.h"
 #include "theme_composition.h"
 #include "theme_motion.h"
+#include "update_checker.h"
 #include <ctype.h>
 #include <dirent.h>
 #include <stdio.h>
@@ -131,7 +132,7 @@ static bool load(App *app, const char *id, ThemePackage *package)
         return false;
     char line[1024], section[32] = "", font[PATH_CAP] = "", heading[PATH_CAP] = "";
     size_t size = 0;
-    bool version = false, valid = true, needs_v2 = false;
+    bool version = false, valid = true, needs_v2 = false, minimum_seen = false;
     while (fgets(line, sizeof line, file)) {
         size += strlen(line);
         if (size > 4096 || (!strchr(line, '\n') && !feof(file))) {
@@ -162,6 +163,10 @@ static bool load(App *app, const char *id, ThemePackage *package)
             if (!strcmp(key, "version")) {
                 version = !strcmp(value, "1") || !strcmp(value, "2");
                 package->format_version = !strcmp(value, "2") ? 2 : 1;
+            } else if (!strcmp(key, "min_frontend")) {
+                valid = valid && !minimum_seen && update_version_valid(value);
+                minimum_seen = true;
+                path_copy(package->min_frontend, value, sizeof package->min_frontend);
             } else if (!strcmp(key, "header") && strlen(value) < sizeof package->header)
                 path_copy(package->header, value, sizeof package->header);
             else if (!strcmp(key, "name") && *value && strlen(value) < sizeof package->name)
@@ -431,6 +436,11 @@ static bool load(App *app, const char *id, ThemePackage *package)
     fclose(file);
     if (!valid)
         return false;
+    if (*package->min_frontend &&
+        update_version_compare(package->min_frontend, GLOAM_VERSION) > 0) {
+        package->incompatible = true;
+        return false;
+    }
     if (*font && strcmp(font, "builtin")) {
         if (*font == '/' || strchr(font, ':') || !path_resolve_sd(path, directory, font) ||
             !font_pack_load(&package->font, path))
@@ -479,9 +489,16 @@ void themes_init(App *app)
     if (app->recovery_mode)
         id[0] = 0;
     if (!load(app, id, &app->themes.active)) {
+        char required[48] = "";
+        if (app->themes.active.incompatible)
+            path_copy(required, app->themes.active.min_frontend, sizeof required);
         builtin(&app->themes.active, app->accent_index);
-        path_copy(app->themes.status, "Theme unavailable; using built-in",
-                  sizeof app->themes.status);
+        if (*required)
+            snprintf(app->themes.status, sizeof app->themes.status,
+                     "Needs Gloam %.47s; using built-in", required);
+        else
+            path_copy(app->themes.status, "Theme unavailable; using built-in",
+                      sizeof app->themes.status);
     }
     if (app->theme_accent_override)
         themes_accent_override(app);
@@ -543,10 +560,14 @@ static void preview_complete(App *app)
 {
     ThemeState *state = &app->themes;
     preview_visible = true;
-    path_copy(state->status,
-              state->ready ? "Preview ready."
-                           : "Invalid package, font or contrast; retained current theme.",
-              sizeof state->status);
+    if (!state->ready && state->candidate.incompatible)
+        snprintf(state->status, sizeof state->status, "Needs Gloam %.47s; current theme retained.",
+                 state->candidate.min_frontend);
+    else
+        path_copy(state->status,
+                  state->ready ? "Preview ready."
+                               : "Invalid package, font or contrast; retained current theme.",
+                  sizeof state->status);
     font_use(state->ready ? &state->candidate.font : &state->active.font);
     if (!state->ready)
         preview_assets_clear();

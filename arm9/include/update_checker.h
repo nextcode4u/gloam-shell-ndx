@@ -16,6 +16,7 @@ typedef struct {
     time_t checked_at;
 } UpdateState;
 /* A bounded, read-only release notice. Never downloads or installs executable data. */
+bool update_version_valid(const char *text);
 int update_version_compare(const char *left, const char *right);
 bool update_response_tag(char *response, size_t size, char tag[UPDATE_TAG_CAP]);
 /* Cheap preflight before initializing the radio; TLS still validates the PEM. */

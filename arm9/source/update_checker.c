@@ -88,6 +88,12 @@ static bool version(const char *text, unsigned out[5])
     return number(&text, &out[4]) && !*text;
 }
 
+bool update_version_valid(const char *text)
+{
+    unsigned parts[5];
+    return version(text, parts);
+}
+
 int update_version_compare(const char *left, const char *right)
 {
     unsigned a[5], b[5];

@@ -258,6 +258,8 @@ typedef struct {
     char id[THEME_ID_CAP], name[THEME_ID_CAP];
     char directory[PATH_CAP];
     char header[64];
+    char min_frontend[48];
+    bool incompatible;
     ThemePalette palette;
     FontPack font, heading_font;
     bool external_font, custom_heading;

@@ -913,3 +913,14 @@ Source downloads stay under ignored build storage. Each pack retains its track
 credit/adaptation notes in MUSIC.md and full terms in MUSIC-LICENSE.txt; release
 packaging moves both into licenses.zip. Copper retains the earlier user-selected
 Sentinel track and its existing Pixabay notice. No runtime audio limit is raised.
+
+## Minimum frontend version
+
+A theme may declare `[theme] min_frontend=v1.2.0` (or a numeric preview/RC tag).
+Use the first released frontend supporting its required features. New frontends
+reject a newer requirement before decoding assets and show the required version;
+the active appearance is retained. Startup uses built-in appearance if the saved
+package is too new. Omitted requirements preserve existing package behavior.
+This key requires a source build after 1.1.0; older parsers report it as an invalid
+package. Desktop inspection validates/displays the requirement but does not infer
+an installed binary's version from its filename.
