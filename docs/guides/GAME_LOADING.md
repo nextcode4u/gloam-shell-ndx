@@ -19,13 +19,22 @@ open. Per-title `Use default` resolves through global defaults, then built-in
 Auto values. Effective options are captured during launch preflight.
 
 Options are mode, CPU/VRAM boosts, DMA/asynchronous reads, language, save slot,
-save size and the nds-bootstrap in-game menu hotkey. These options apply to the
+save size, the nds-bootstrap in-game menu hotkey, menu language and screen-swap hotkey. These options apply to the
 backend route, not arbitrary applications launched directly. Auto mode uses
 the backend's default DSi-enabled policy; pure DS titles still need backend
 compatibility. For retail and SD DSiWare, nds-bootstrap's in-game menu →
 **Quit Game** requests return to Gloam using `QUIT_PATH=sd:/BOOT.NDS`. Each
 launch replaces any previous loader's quit target. Keep Gloam's `BOOT.NDS` at
 the SD root; the game's own Quit command may only return to its title screen.
+
+**Menu language** controls the backend overlay independently of the game's
+language; it offers the 31 language codes supported by the backend. **Screen
+swap** offers L+R+Up+X (the backend default), L+R+Up or L+R+X. These two controls
+apply to retail/SD DSiWare only. Their initial **Keep INI** value leaves existing
+`GUI_LANGUAGE`/`SCREEN_SWAP_HOTKEY` entries intact, including custom values;
+selecting an explicit option replaces that key on launch. Keep INI deliberately
+retains the last written value rather than resetting the backend. Global options
+and per-title inheritance use the same rules. Native homebrew launches are unchanged.
 
 A correct quit target does not guarantee a successful backend handoff. If
 confirming Quit Game resumes the game or leaves black screens, record the

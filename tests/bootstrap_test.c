@@ -139,10 +139,30 @@ int main(int argc, char **argv)
     assert(bootstrap_commit(root, &plan, error));
     read_text(ini, text);
     assert(!strstr(text, "BOOST_VRAM="));
+    /* Optional overlay controls replace duplicate backend keys only when selected. */
+    const char *custom_overlay = "[NDS-BOOTSTRAP]\nGUI_LANGUAGE=fr\nSCREEN_SWAP_HOTKEY=123\n";
+    write_file(ini, custom_overlay, strlen(custom_overlay));
+    assert(bootstrap_commit(root, &plan, error));
+    read_text(ini, text);
+    assert(strstr(text, "GUI_LANGUAGE=fr\n") && strstr(text, "SCREEN_SWAP_HOTKEY=123\n"));
+    plan.options.values[GAME_OVERLAY_LANGUAGE] = 1;
+    for (int swap = 0; swap < 3; swap++) {
+        plan.options.values[GAME_SCREEN_SWAP] = swap;
+        assert(bootstrap_commit(root, &plan, error));
+        read_text(ini, text);
+        char expected[48];
+        snprintf(expected, sizeof expected, "SCREEN_SWAP_HOTKEY=%X\n",
+                 game_option_screen_swap(swap));
+        assert(strstr(text, "GUI_LANGUAGE=ja\n") && !strstr(text, "GUI_LANGUAGE=fr\n"));
+        assert(strstr(text, expected) && !strstr(text, "SCREEN_SWAP_HOTKEY=123\n"));
+        assert(!strstr(strstr(text, "GUI_LANGUAGE=") + 1, "GUI_LANGUAGE="));
+    }
     GameOptions defaults, item, effective;
     game_options_defaults(&defaults, false);
     defaults.values[GAME_CPU] = 1;
     defaults.values[GAME_LANGUAGE] = 2;
+    defaults.values[GAME_OVERLAY_LANGUAGE] = 30;
+    defaults.values[GAME_SCREEN_SWAP] = 2;
     assert(game_options_write(root, "", &defaults));
     game_options_defaults(&item, true);
     item.values[GAME_CPU] = 0;
@@ -150,7 +170,8 @@ int main(int argc, char **argv)
     assert(game_options_write(root, game, &item));
     game_options_effective(root, game, &effective);
     assert(effective.values[GAME_CPU] == 0 && effective.values[GAME_LANGUAGE] == 2 &&
-           effective.values[GAME_SLOT] == 2);
+           effective.values[GAME_SLOT] == 2 && effective.values[GAME_OVERLAY_LANGUAGE] == 30 &&
+           effective.values[GAME_SCREEN_SWAP] == 2);
     assert(launch_prepare(&app, game, &plan, error) && strstr(plan.save, ".sav2"));
     assert(bootstrap_commit(root, &plan, error));
     assert(!stat(plan.save, &status) && status.st_size == 8192);

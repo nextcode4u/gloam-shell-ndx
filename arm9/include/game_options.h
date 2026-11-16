@@ -17,4 +17,6 @@ const char *game_option_label(int option);
 void game_option_value(const GameOptions *options, int option, char output[48]);
 uint32_t game_option_save_bytes(int choice);
 unsigned game_option_hotkey(int choice);
+unsigned game_option_screen_swap(int choice);
+const char *game_option_overlay_language(int choice);
 #endif

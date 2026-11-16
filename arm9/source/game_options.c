@@ -8,10 +8,11 @@
 #include <string.h>
 #include <sys/stat.h>
 
-static const char *keys[] = {"mode",     "cpu",  "vram",      "dma",   "async",
-                             "language", "slot", "save_size", "hotkey"};
-static const int minimum[] = {-1, -1, -1, -1, -1, -1, 0, -1, 0};
-static const int maximum[] = {1, 1, 1, 1, 1, 7, 9, 10, 5};
+static const char *keys[] = {"mode",       "cpu",  "vram",      "dma",    "async",
+                             "language",   "slot", "save_size", "hotkey", "overlay_language",
+                             "screen_swap"};
+static const int minimum[] = {-1, -1, -1, -1, -1, -1, 0, -1, 0, -1, -1};
+static const int maximum[] = {1, 1, 1, 1, 1, 7, 9, 10, 5, 30, 2};
 void game_options_defaults(GameOptions *options, bool inherit)
 {
     for (int i = 0; i < GAME_OPTION_COUNT; i++)
@@ -156,11 +157,24 @@ unsigned game_option_hotkey(int choice)
     static const unsigned masks[] = {0x284, 0x308, 0x304, 0x383, 0xB82, 0xF03};
     return masks[choice >= 0 && choice < 6 ? choice : 0];
 }
+unsigned game_option_screen_swap(int choice)
+{
+    static const unsigned masks[] = {0x740, 0x340, 0x700};
+    return masks[choice >= 0 && choice < 3 ? choice : 0];
+}
+const char *game_option_overlay_language(int choice)
+{
+    static const char *codes[] = {"en",    "ja", "fr",    "de", "it", "es",  "zh-CN", "ko",
+                                  "zh-TW", "pt", "pt-BR", "ar", "ca", "cs",  "da",    "el",
+                                  "fi",    "he", "hu",    "id", "nl", "no",  "pl",    "ro",
+                                  "ru",    "ry", "sv",    "tr", "uk", "val", "vi"};
+    return choice >= 0 && choice < 31 ? codes[choice] : "";
+}
 const char *game_option_label(int option)
 {
-    static const char *labels[] = {"Run mode",  "CPU boost",   "VRAM boost",
-                                   "Card DMA",  "Async reads", "Language",
-                                   "Save slot", "Save size",   "In-game menu"};
+    static const char *labels[] = {"Run mode",     "CPU boost",     "VRAM boost", "Card DMA",
+                                   "Async reads",  "Language",      "Save slot",  "Save size",
+                                   "In-game menu", "Menu language", "Screen swap"};
     return option >= 0 && option < GAME_OPTION_COUNT ? labels[option] : "";
 }
 void game_option_value(const GameOptions *options, int option, char output[48])
@@ -170,7 +184,7 @@ void game_option_value(const GameOptions *options, int option, char output[48])
     if (value == GAME_INHERIT)
         text = "Use default";
     else if (value == -1)
-        text = "Auto";
+        text = option == GAME_OVERLAY_LANGUAGE || option == GAME_SCREEN_SWAP ? "Keep INI" : "Auto";
     else if (option == GAME_MODE)
         text = value ? "DSi" : "DS";
     else if (option <= GAME_ASYNC)
@@ -191,6 +205,18 @@ void game_option_value(const GameOptions *options, int option, char output[48])
     } else if (option == GAME_HOTKEY) {
         static const char *hotkeys[] = {"L+Down+Select", "L+R+Start",    "L+R+Select",
                                         "L+R+A+B+Down",  "L+R+B+Y+Down", "L+R+A+B+X+Y"};
+        text = hotkeys[value];
+    } else if (option == GAME_OVERLAY_LANGUAGE) {
+        static const char *names[] = {
+            "English",     "Japanese",   "French",      "German",     "Italian",      "Spanish",
+            "Chinese (S)", "Korean",     "Chinese (T)", "Portuguese", "Brazilian PT", "Arabic",
+            "Catalan",     "Czech",      "Danish",      "Greek",      "Finnish",      "Hebrew",
+            "Hungarian",   "Indonesian", "Dutch",       "Norwegian",  "Polish",       "Romanian",
+            "Russian",     "Ryukyuan",   "Swedish",     "Turkish",    "Ukrainian",    "Valencian",
+            "Vietnamese"};
+        text = names[value];
+    } else if (option == GAME_SCREEN_SWAP) {
+        static const char *hotkeys[] = {"L+R+Up+X", "L+R+Up", "L+R+X"};
         text = hotkeys[value];
     } else {
         snprintf(output, 48, "%d", value);

@@ -148,6 +148,8 @@ enum {
     GAME_SLOT,
     GAME_SAVE_SIZE,
     GAME_HOTKEY,
+    GAME_OVERLAY_LANGUAGE,
+    GAME_SCREEN_SWAP,
     GAME_OPTION_COUNT
 };
 typedef struct {

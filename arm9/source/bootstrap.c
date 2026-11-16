@@ -311,9 +311,13 @@ static bool valid_ini_text(FILE *file)
     }
     return !ferror(file) && fseek(file, 0, SEEK_SET) == 0;
 }
-static bool owned_key(const char *key, LaunchRoute route)
+static bool owned_key(const char *key, const LaunchPlan *plan)
 {
-    if (route == LAUNCH_BOOTSTRAP_HB &&
+    if (plan->route != LAUNCH_BOOTSTRAP_HB &&
+        ((!strcasecmp(key, "GUI_LANGUAGE") && plan->options.values[GAME_OVERLAY_LANGUAGE] >= 0) ||
+         (!strcasecmp(key, "SCREEN_SWAP_HOTKEY") && plan->options.values[GAME_SCREEN_SWAP] >= 0)))
+        return true;
+    if (plan->route == LAUNCH_BOOTSTRAP_HB &&
         (!strcasecmp(key, "RAM_DRIVE_PATH") || !strcasecmp(key, "RAM_DRIVE_SIZE")))
         return true;
     static const char *keys[] = {
@@ -394,7 +398,7 @@ bool bootstrap_commit(const char *root, const LaunchPlan *plan, char error[160])
             char *equals = strchr(text, '=');
             if (equals) {
                 *equals = 0;
-                if (owned_key(trim(text), plan->route))
+                if (owned_key(trim(text), plan))
                     continue;
             }
         }
@@ -435,6 +439,14 @@ bool bootstrap_commit(const char *root, const LaunchPlan *plan, char error[160])
     fprintf(output, "LANGUAGE=%d\nCARD_READ_DMA=%d\nASYNC_CARD_READ=%d\nHOTKEY=%X\n",
             o->values[GAME_LANGUAGE], o->values[GAME_DMA], o->values[GAME_ASYNC],
             game_option_hotkey(o->values[GAME_HOTKEY]));
+    if (plan->route != LAUNCH_BOOTSTRAP_HB) {
+        if (o->values[GAME_OVERLAY_LANGUAGE] >= 0)
+            fprintf(output, "GUI_LANGUAGE=%s\n",
+                    game_option_overlay_language(o->values[GAME_OVERLAY_LANGUAGE]));
+        if (o->values[GAME_SCREEN_SWAP] >= 0)
+            fprintf(output, "SCREEN_SWAP_HOTKEY=%X\n",
+                    game_option_screen_swap(o->values[GAME_SCREEN_SWAP]));
+    }
     if (plan->route == LAUNCH_DSIWARE)
         fprintf(output, "APP_PATH=%s\nPRV_PATH=%s\nBNR_PATH=\nDSIWARE_SLOT1_MODE=0\n", app_alias,
                 private_alias);
