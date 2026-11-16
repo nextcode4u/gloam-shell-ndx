@@ -174,13 +174,26 @@ bool system_launch_notice_ready(App *app)
     int target = app->system_menu_requested ? 1 : app->system_title_requested == 0 ? 0 : -1;
     if (target < 0 || !app->system_catalog.patched_launcher_present ||
         !app->system_catalog.patched_launcher_valid) {
-        app->system_notice_active = false;
+        app->system_notice_active = app->system_notice_confirmed = false;
         return true;
     }
     if (!app->system_notice_active || app->system_notice_target != target) {
         app->system_notice_active = true;
-        app->system_notice_started = app->frame_count;
+        app->system_notice_confirmed = false;
         app->system_notice_target = target;
     }
-    return (unsigned)(app->frame_count - app->system_notice_started) >= 180;
+    return app->system_notice_confirmed;
+}
+
+void system_launch_notice_input(App *app, bool confirm, bool cancel)
+{
+    if (!app->system_notice_active)
+        return;
+    if (cancel) {
+        app->system_title_requested = -1;
+        app->system_menu_requested = false;
+        app->system_notice_active = app->system_notice_confirmed = false;
+    } else if (confirm) {
+        app->system_notice_confirmed = true;
+    }
 }

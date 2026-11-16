@@ -458,11 +458,7 @@ int main(int argc, char **argv)
             down = repeat = 0; /* The cancelling press does not also launch an item. */
         }
         if (app.system_notice_active) {
-            if (down & KEY_B) {
-                app.system_title_requested = -1;
-                app.system_menu_requested = false;
-                app.system_notice_active = false;
-            }
+            system_launch_notice_input(&app, (down & KEY_A) != 0, (down & KEY_B) != 0);
             down = repeat = 0; /* Keep the requested destination stable. */
         }
         if (app.launch_requested) {
@@ -773,8 +769,9 @@ int main(int argc, char **argv)
             nandInit(true))
             system_catalog_scan(&app.system_catalog, "nand:/");
         bool system_notice_ready = system_launch_notice_ready(&app);
+        /* Release the confirming press before entering Unlaunch. */
         if (app.system_notice_active && keysHeld())
-            system_notice_ready = false; /* Do not carry the opening press into Unlaunch. */
+            system_notice_ready = false;
         if (app.system_title_requested >= 0 && boot_keys_released && system_notice_ready) {
             int title = app.system_title_requested;
             app.system_title_requested = -1;

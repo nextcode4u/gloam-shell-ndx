@@ -49,8 +49,10 @@ comparison remains unresolved. That option changes Unlaunch behavior beyond
 Gloam and has not been validated on the tested physical console. Gloam does not
 modify Unlaunch, rewrite the patched menu's title ID or simulate confirmation
 input; pressing a button remains the tested workaround. Before Settings or menu
-return through a validated `nand:/launcher.dsi`, Gloam shows a three-second
-notice: “Press A shortly after launch to continue.” B cancels the pending launch.
+return through a validated `nand:/launcher.dsi`, Gloam shows a confirmation
+notice: A continues immediately after release; B cancels. The notice explains
+that a blank screen after launch may require pressing A again. It does not
+automatically launch after a timeout.
 Stock-menu launches and direct system-title launches have no added delay.
 
 The release script packages unmodified upstream nds-bootstrap and Slot-1 Launcher

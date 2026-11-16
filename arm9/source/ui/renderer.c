@@ -1119,7 +1119,7 @@ void render_app(const App *app, uint16_t *top, uint16_t *bottom, const char *clo
     draw_rectangle(bottom, 10, 108, 236, 66, colors.surface);
     draw_rectangle(bottom, 10, 108, 236, 1, colors.accent);
     draw_text(bottom, 16, 113, "Language-patched menu", colors.accent, 30);
-    draw_text_wrapped(bottom, 16, 130, "Press A shortly after launch to continue.", colors.text, 30,
-                      2);
-    draw_text(bottom, 16, 159, "B: cancel", colors.muted, 30);
+    draw_text_wrapped(bottom, 16, 130, "If the screen stays blank, press A again after launch.",
+                      colors.text, 30, 2);
+    draw_text(bottom, 16, 159, "A: continue  B: cancel", colors.muted, 30);
 }

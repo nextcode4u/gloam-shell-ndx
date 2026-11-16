@@ -24,6 +24,7 @@ bool system_menu_handoff(uint32_t warmboot[8], unsigned char autoload[0x400],
 bool native_title_content(const char *directory, uint32_t high, uint32_t low,
                           uint32_t *boot_content, bool allow_unsigned);
 void system_catalog_scan(SystemCatalog *catalog, const char *nand_root);
-/* Nonblocking three-second notice, only for a valid patched-menu request. */
+/* Explicit confirmation, only for a valid patched-menu request. */
 bool system_launch_notice_ready(App *app);
+void system_launch_notice_input(App *app, bool confirm, bool cancel);
 #endif

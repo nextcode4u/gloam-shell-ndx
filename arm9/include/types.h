@@ -375,8 +375,7 @@ typedef struct {
     bool system_menu_requested;
     bool system_discovery_requested, slot1_requested;
     int system_title_requested;
-    bool system_notice_active;
-    unsigned system_notice_started;
+    bool system_notice_active, system_notice_confirmed;
     int system_notice_target;
     SystemCatalog system_catalog;
     Slot1Metadata slot1;

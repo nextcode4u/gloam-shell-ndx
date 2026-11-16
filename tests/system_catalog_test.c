@@ -200,15 +200,23 @@ static void launch_notice_test(void)
     app.system_catalog.patched_launcher_valid = true;
     app.frame_count = 100;
     assert(!system_launch_notice_ready(&app) && app.system_notice_active);
-    app.frame_count = 279;
+    app.frame_count += 6000;
+    assert(!system_launch_notice_ready(&app)); /* Time alone never confirms. */
+    system_launch_notice_input(&app, false, false);
     assert(!system_launch_notice_ready(&app));
-    app.frame_count = 280;
-    assert(system_launch_notice_ready(&app));
+    system_launch_notice_input(&app, true, false);
+    assert(system_launch_notice_ready(&app)); /* No minimum wait. */
     app.system_menu_requested = false;
-    assert(system_launch_notice_ready(&app) && !app.system_notice_active);
     app.system_title_requested = 0;
-    assert(!system_launch_notice_ready(&app)); /* Settings starts a fresh notice. */
-    app.frame_count += 180;
+    assert(!system_launch_notice_ready(&app)); /* A new target needs fresh consent. */
+    system_launch_notice_input(&app, true, true);
+    assert(!app.system_notice_active && !app.system_notice_confirmed);
+    assert(app.system_title_requested == -1 && !app.system_menu_requested);
+    assert(system_launch_notice_ready(&app));      /* B wins over simultaneous A. */
+    system_launch_notice_input(&app, true, false); /* Inactive input is ignored. */
+    app.system_title_requested = 0;
+    assert(!system_launch_notice_ready(&app));
+    system_launch_notice_input(&app, true, false);
     assert(system_launch_notice_ready(&app));
     app.system_title_requested = 2;
     assert(system_launch_notice_ready(&app) && !app.system_notice_active);
@@ -217,7 +225,12 @@ static void launch_notice_test(void)
     app.frame_count = UINT32_MAX - 80;
     assert(!system_launch_notice_ready(&app));
     app.frame_count += 180;
-    assert(system_launch_notice_ready(&app)); /* Frame-counter wrap is harmless. */
+    assert(!system_launch_notice_ready(&app)); /* Wrap cannot bypass confirmation. */
+    system_launch_notice_input(&app, false, true);
+    app.system_menu_requested = true;
+    assert(!system_launch_notice_ready(&app)); /* Reopening after B starts fresh. */
+    system_launch_notice_input(&app, true, false);
+    assert(system_launch_notice_ready(&app));
 }
 
 int main(int argc, char **argv)
