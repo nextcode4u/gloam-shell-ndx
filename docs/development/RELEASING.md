@@ -15,6 +15,41 @@ Python and GitHub CLI as packaging tools. Frontend execution does not depend on
 Python. Neither job uses private firmware, NAND, commercial titles or emulator
 runtime data. Downloaded dependencies and build output remain ignored.
 
+## Version numbering
+
+Use Semantic Versioning: `MAJOR.MINOR.PATCH`, with Git tags such as `v1.1.0`.
+Choose the highest required increment across all changes since the last release;
+release size, time spent and number of commits do not determine the version.
+
+| Increment | Gloam policy | Example after 1.1.0 |
+| --- | --- | --- |
+| Patch | Backward-compatible bug fixes, performance fixes, documentation or asset corrections; no new features. | `1.1.1` |
+| Minor | New features that preserve existing supported configurations and interfaces. Reset patch to zero. | `1.2.0` |
+| Major | Incompatible changes to supported public contracts, without a compatible migration or fallback. Reset minor and patch to zero. | `2.0.0` |
+
+Gloam's public compatibility surface includes documented settings/configuration,
+SD paths, theme formats, file-association profiles, argv and loader/forwarder
+interfaces. Internal source refactors alone do not require a major release.
+An automatic migration that preserves existing behavior can keep an update
+backward-compatible; requiring users to rewrite configurations or convert all
+existing themes is a breaking change.
+
+Compatibility is assessed in the upgrade direction: existing supported packs
+and settings must continue working in the newer frontend. A newly authored theme
+requiring a new renderer feature does not itself make that frontend release
+breaking, provided older supported themes still load. State its minimum frontend
+version separately. Theme-format versions and upstream dependency/fork versions
+are independent of Gloam's release number.
+
+Use `v1.2.0-preview.1` or `v1.2.0-rc.1` for prereleases of the intended version.
+Publish the final release as `v1.2.0`, without a suffix. Never replace an already
+published tag or change its artifacts; corrections receive a new version.
+Set `GLOAM_VERSION` to the exact intended tag before building, and explain any
+migration in the release notes. Apply this policy to future releases; existing
+published versions remain unchanged.
+
+## Preparing a release
+
 Run **Prepare release** manually from the main branch to prepare a new
 `vX.Y.Z`, `vX.Y.Z-preview.N` or `vX.Y.Z-rc.N` tag. It first runs all check jobs, optionally
 checks and packages reviewed add-ons, downloads the resulting artifact and

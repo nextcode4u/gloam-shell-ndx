@@ -29,6 +29,9 @@ and [the build guide](docs/development/BUILDING.md) before changing the project.
   Keep fixes, features and unrelated cleanup in focused commits; do not accumulate
   a session's work into one large commit or squash independent changes together.
   Do not commit user changes as part of an unrelated task.
+- Follow Semantic Versioning for future releases: compatible fixes use patch,
+  compatible features use minor, and incompatible public-contract changes use
+  major. See `docs/development/RELEASING.md`; never replace published artifacts.
 - Every release must include standalone `BOOT.NDS`, `sd.zip`, required licenses
   and notices, a combined `source.zip` (including dependency source) and checksums.
   Include the forwarder and matching TMD in `sd.zip`; no separate dependency-source
