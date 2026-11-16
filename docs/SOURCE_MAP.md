@@ -225,7 +225,7 @@ and yield between complete filesystem operations.
 
 `boot_profile.c` collects bounded startup regions against a clock supplied by
 `main.c`. ARM9 timers 0/1 are released after the first completed browser scan and
-frame. Diagnostics export the observations on demand; startup writes no timing
+frame, or canceled before an earlier handoff/reload. Diagnostics export the observations on demand; startup writes no timing
 file. Host tests inject a deterministic clock. Theme preparation includes splash
 checkpoints, and splash-wait/folder regions can overlap; their values must not be
 summed. Total time starts at frontend entry, excluding the previous loader's read

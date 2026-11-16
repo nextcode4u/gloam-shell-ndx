@@ -55,6 +55,7 @@ static int previous_music_volume = -1, previous_effect_volume = -1;
 
 /* No network allocation or radio initialization occurs on the boot path. */
 static bool update_cancel;
+static bool boot_timer_active;
 static unsigned update_started;
 static time_t update_started_time;
 static bool update_network_initialized, update_network_attempted;
@@ -133,6 +134,13 @@ static int update_worker(void *unused)
 }
 static void stop_update_checker(void)
 {
+    /* A handoff/reload can be requested before the first scan finishes. Release
+     * the profiling timers even on that early path, without claiming a full boot. */
+    if (boot_timer_active) {
+        boot_profile_begin(NULL);
+        cpuEndTiming();
+        boot_timer_active = false;
+    }
     update_cancel = true;
     while (update_thread >= 0)
         cothread_yield();
@@ -420,6 +428,7 @@ int main(int argc, char **argv)
     /* ARM9 timers 0/1 are reserved only until the first browser frame. Wi-Fi
      * starts later; no project subsystem uses these timers during startup. */
     cpuStartTiming(0);
+    boot_timer_active = true;
     boot_profile_begin(boot_clock_ms);
     boot_profile_enter(BOOT_HARDWARE);
     /* Cooperative UI/network workers both wait for this IRQ. BIOS-only waits
@@ -939,12 +948,15 @@ int main(int argc, char **argv)
         dmaCopy(top, bgGetGfxPtr(mainbg), sizeof top);
         dmaCopy(bottom, bgGetGfxPtr(subbg), sizeof bottom);
         if (!boot_finished && !app.scan_directory) {
-            /* The 32-bit bus-clock counter wraps after about 128 seconds. */
-            if (splash_clock < 120 * 60)
-                boot_profile_finish();
-            else
-                boot_profile_begin(NULL);
-            cpuEndTiming();
+            if (boot_timer_active) {
+                /* The 32-bit bus-clock counter wraps after about 128 seconds. */
+                if (splash_clock < 120 * 60)
+                    boot_profile_finish();
+                else
+                    boot_profile_begin(NULL);
+                cpuEndTiming();
+                boot_timer_active = false;
+            }
             boot_finished = true;
         }
         cothread_yield();
