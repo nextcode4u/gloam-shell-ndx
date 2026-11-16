@@ -79,7 +79,11 @@ with SD access is required; Gloam does not install or configure Unlaunch.
 
 For frontend-only updates, replace `/BOOT.NDS` using the standalone `BOOT.NDS`
 release download. This leaves settings, themes, backends and libraries untouched.
-Read the release notes for any required asset/backend updates.
+Read the release notes for any required asset/backend updates. Builds using external
+script fonts also need `japanese.gsf` and `extended.gsf` from the matching SD
+package in `/_nds/dsi-frontend/fonts/`. The setup tool’s Maintenance → Check setup
+reports missing packs; Repair shared assets restores them without replacing valid
+customized files. See [language and font support](docs/guides/TEXT_AND_TITLES.md#external-script-fonts).
 
 The SD folder `/_nds/dsi-frontend/` was established before we chose the Gloam
 name. It was kept after naming the project to preserve existing settings,

@@ -187,13 +187,6 @@ For existing installations updated using only BOOT.NDS, also install
 `/_nds/dsi-frontend/update-ca.pem` from the SD package to enable HTTPS checks.
 Without that trust bundle, checks fail quietly and browsing still works.
 
-For mixed suffixes, sidecar images and nested folders, use
-`python3 tools/profile_frontend.py --items 10000 --mixed --cycles 36`.
-Cycles exercise repeated theme changes and selection movement. On glibc hosts,
-heap samples report retained allocations after warm-up, at the end and the
-largest sampled value; these exclude transient peaks between samples and are
-not DS memory measurements.
-
 External-script-font builds require the matching `sdroot/_nds/dsi-frontend/fonts/`
 files on existing cards, including BOOT.NDS-only upgrades from embedded-font
 versions. SD packages include both packs. Theme fonts are unchanged. Generate
@@ -211,7 +204,9 @@ Diagnostics record `cold_size_profile` alongside the observed frontend version.
 Measure boot and launch latency on hardware before adopting a size profile.
 This flag reduces code size; it does not establish a boot-time improvement.
 
-For a transition soak, use `tools/profile_frontend.py --items 10000 --mixed
+## Host transition profiling
+
+For mixed suffixes, sidecar artwork and nested folders in a transition soak, use `tools/profile_frontend.py --items 10000 --mixed
 --cycles 960`. The profiler verifies real preview/apply/cancel and language
 transitions, reloads audio and alternates icon labels. Compare retained heap
 samples only when `heap_comparable` is true: snapshots then share theme, language,
