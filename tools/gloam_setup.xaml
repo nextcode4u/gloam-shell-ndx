@@ -523,6 +523,7 @@
                 <CheckBox x:Name="SettingHideSaves" Content="Hide save folders"/>
                 <CheckBox x:Name="SettingHideBios" Content="Hide BIOS folders"/>
                 <CheckBox x:Name="SettingExtensions" Content="Show file extensions"/>
+                <CheckBox x:Name="SettingIconLabels" Content="Show bottom-screen icon labels"/>
                 <CheckBox x:Name="SettingKnown" Content="Recognized file types only"/>
                 <CheckBox x:Name="SettingHidden" Content="Show hidden files"/>
                 <CheckBox x:Name="SettingSystem" Content="Show system files"/>

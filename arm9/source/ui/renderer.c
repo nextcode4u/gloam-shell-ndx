@@ -888,8 +888,9 @@ static void draw_shelf(const App *app, uint16_t *pixels, Palette colors)
     snprintf(position, sizeof position, "%d / %d", location->selected + 1, app->entry_count);
     draw_text(pixels, 12, top - 14, position, colors.muted, 24);
     browser_display_name(app, &app->entries[location->selected], name);
-    draw_text_scrolling(pixels, 12, base + 11, name, colors.text, 230, app->selection_idle_frames,
-                        !app->reduced_motion);
+    if (app->show_icon_labels)
+        draw_text_scrolling(pixels, 12, base + 11, name, colors.text, 230,
+                            app->selection_idle_frames, !app->reduced_motion);
     draw_rectangle(pixels, 12, base + 28, 232, 1, colors.line);
     int progress = app->entry_count > 1 ? 224 * location->selected / (app->entry_count - 1) : 112;
     draw_rectangle(pixels, 12 + progress, base + 27, 8, 3, colors.accent);
@@ -917,7 +918,11 @@ static void draw_grid(const App *app, uint16_t *pixels, Palette colors)
                              app->selection_idle_frames);
         char name[256];
         browser_display_name(app, &app->entries[index], name);
-        if (app->icon_size == ICON_SMALL) {
+        if (!app->show_icon_labels) {
+            draw_browser_icon(app, pixels, index, x + (layout_grid_cell_width(app) - size) / 2,
+                              y + (height - size) / 2, size,
+                              selected ? colors.accent : colors.muted);
+        } else if (app->icon_size == ICON_SMALL) {
             draw_browser_icon(app, pixels, index, x + 4, y + 2, size,
                               selected ? colors.accent : colors.muted);
             draw_text_scrolling(pixels, x + 24, y + 4, name,
@@ -1056,13 +1061,14 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
                 int text_y = extended ? y + (row_height - 26) / 2 : y + (row_height - 12) / 2;
                 char display_name[256];
                 browser_display_name(app, entry, display_name);
-                draw_text_scrolling(bottom, text_x, text_y, display_name,
-                                    i == location->selected
-                                        ? themes_selection_text(&app->themes.active)
-                                        : colors.muted,
-                                    234 - text_x, app->selection_idle_frames,
-                                    i == location->selected && !app->reduced_motion);
-                if (extended) {
+                if (app->show_icon_labels || !layout_has_icons(app))
+                    draw_text_scrolling(bottom, text_x, text_y, display_name,
+                                        i == location->selected
+                                            ? themes_selection_text(&app->themes.active)
+                                            : colors.muted,
+                                        234 - text_x, app->selection_idle_frames,
+                                        i == location->selected && !app->reduced_motion);
+                if (extended && app->show_icon_labels) {
                     char metadata[64];
                     if (entry->kind != ITEM_FILE)
                         snprintf(metadata, sizeof metadata, "%s", entry_type(entry));

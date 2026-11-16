@@ -101,6 +101,7 @@ void app_init_progress(App *app, const char *root, bool storage, bool dsi, bool 
     app->audio.effects_volume = 70;
     app->audio.effects_enabled = true;
     app->show_extensions = true;
+    app->show_icon_labels = true;
     app->updates.enabled = true;
     app->hide_save_folders = app->hide_bios_folders = true;
     app->title_language = 1;
@@ -136,12 +137,14 @@ void app_init_progress(App *app, const char *root, bool storage, bool dsi, bool 
         app->recovery_preferences.reduced_motion = app->reduced_motion;
         app->recovery_preferences.accent_override = app->theme_accent_override;
         app->recovery_preferences.show_covers = app->show_covers;
+        app->recovery_preferences.show_icon_labels = app->show_icon_labels;
         app->recovery_preferences.clock_12_hour = app->clock_12_hour;
         app->accent_index = 0;
         app->icon_size = ICON_SMALL;
         app->browser_style = BROWSER_CLASSIC;
         app->reduced_motion = true;
         app->show_covers = false;
+        app->show_icon_labels = true;
     }
     artwork_disk_cache_configure(root, app->storage_ready && !recovery);
     loading_progress = progress;

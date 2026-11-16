@@ -14,6 +14,7 @@ $GloamSettingRules = [ordered]@{
     hide_bios_folders = @{ Default = '1'; Choices = @('0','1') }
     show_extensions = @{ Default = '1'; Choices = @('0','1') }
     filter_recognized = @{ Default = '0'; Choices = @('0','1') }
+    show_icon_labels = @{ Default = '1'; Choices = @('0','1') }
     show_covers = @{ Default = '1'; Choices = @('0','1') }
     internal_titles = @{ Default = '0'; Choices = @('0','1') }
     title_language = @{ Default = '1'; Choices = @('0','1','2','3','4','5','6','7') }

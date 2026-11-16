@@ -13,6 +13,7 @@
 #include <utime.h>
 
 static App app, restored;
+static uint16_t labels_top[256 * 192], labels_bottom[256 * 192];
 static struct {
     unsigned before;
     uint16_t pixels[256 * 192];
@@ -160,12 +161,34 @@ int main(int argc, char **argv)
     assert(utime(path, &time) == 0);
     app_init(&app, root, true, true);
     app_category(&app, CATEGORY_GAMES);
-    assert(app.show_covers && app.show_extensions && !app.show_hidden);
+    assert(app.show_covers && app.show_extensions && app.show_icon_labels && !app.show_hidden);
+    /* Hiding labels affects every icon view, leaves List readable and never alters the top. */
+    for (int variant = 0; variant < BROWSER_STYLE_COUNT * ICON_SIZE_COUNT; variant++) {
+        int style = variant / ICON_SIZE_COUNT;
+        app.browser_style = style;
+        app.icon_size = variant % ICON_SIZE_COUNT;
+        browser_reflow(&app);
+        app.show_icon_labels = true;
+        render_app(&app, labels_top, labels_bottom, "12:00");
+        app.show_icon_labels = false;
+        render_app(&app, top.pixels, bottom.pixels, "12:00");
+        assert(!memcmp(labels_top, top.pixels, sizeof labels_top));
+        assert((memcmp(labels_bottom, bottom.pixels, sizeof labels_bottom) == 0) ==
+               (style == BROWSER_LIST));
+    }
+    app.browser_style = BROWSER_CLASSIC;
+    app.icon_size = ICON_SMALL;
+    app.show_icon_labels = true;
+    browser_reflow(&app);
     assert(find(".hidden.txt") == -1);
     app_move(&app, find("Alpha.nds") - app.locations[1].selected);
     app.advanced_settings = true;
     settings_open(&app);
     assert(app.settings.open && app.settings.section == 0);
+    assert(select_setting(&app, "Icon labels"));
+    settings_adjust(&app, 1);
+    assert(!app.show_icon_labels);
+    option(0, 0);
     settings_section(&app, 1);
     assert(app.settings.section == 1);
     option(1, 0);
@@ -218,8 +241,14 @@ int main(int argc, char **argv)
     assert(!app.settings.open && app.category == origin && !app.preferences_dirty);
     app_init(&restored, root, true, true);
     assert(restored.category == CATEGORY_HOME && restored.clock_12_hour && !restored.show_covers);
-    assert(restored.show_hidden && restored.show_system && !restored.show_extensions);
+    assert(restored.show_hidden && restored.show_system && !restored.show_extensions &&
+           !restored.show_icon_labels);
     assert(restored.filter_recognized && restored.sort_mode == SORT_MODIFIED);
+    app_init_mode(&restored, root, true, true, true);
+    assert(restored.show_icon_labels);
+    assert(app_save(&restored));
+    app_init(&restored, root, true, true);
+    assert(!restored.show_icon_labels);
     app.category = CATEGORY_GAMES;
     app_scan(&app);
     app.advanced_settings = true;

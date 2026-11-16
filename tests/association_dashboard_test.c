@@ -192,6 +192,7 @@ int main(int argc, char **argv)
     app.icon_size = ICON_LARGE;
     app.reduced_motion = true;
     app.wallpaper_strength = 17;
+    app.show_icon_labels = false;
     assert(appearance_save(&app, 1));
     app.settings.preset_slot = 1;
     char displayed[64];
@@ -206,14 +207,18 @@ int main(int argc, char **argv)
 
     Location location = app.locations[CATEGORY_HOME];
     appearance_reset(&app);
-    assert(app.browser_style == BROWSER_CLASSIC && app.wallpaper_strength == -1);
+    assert(app.browser_style == BROWSER_CLASSIC && app.wallpaper_strength == -1 &&
+           app.show_icon_labels);
     assert(appearance_load(&app, 1));
     assert(app.browser_style == BROWSER_GRID && app.icon_size == ICON_LARGE && app.reduced_motion);
-    assert(app.wallpaper_strength == 17);
+    assert(app.wallpaper_strength == 17 && !app.show_icon_labels);
     assert(!strcmp(location.path, app.locations[CATEGORY_HOME].path));
     text(root, "_nds/dsi-frontend/appearance-3.ini",
          "version=1\nname=Bad\ntheme=../escape\nvalues=0,0,0,0,0,0,0,-1\ntop=\nbottom=\n");
     assert(!appearance_load(&app, 2) && app.browser_style == BROWSER_GRID);
+    text(root, "_nds/dsi-frontend/appearance-3.ini",
+         "version=1\nname=Legacy\ntheme=\nvalues=0,0,0,1,3,1,0,-1\ntop=\nbottom=\n");
+    assert(appearance_load(&app, 2) && app.show_icon_labels);
     app.recovery_mode = true;
     assert(!appearance_load(&app, 1) && !appearance_save(&app, 1));
     appearance_reset(&app);

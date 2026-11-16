@@ -169,6 +169,8 @@ static bool read_state_file(App *app, const char *filename)
             app->title_language = value;
         else if (sscanf(line, "show_extensions=%d", &value) == 1)
             app->show_extensions = value != 0;
+        else if (sscanf(line, "show_icon_labels=%d", &value) == 1)
+            app->show_icon_labels = value != 0;
         else if (sscanf(line, "show_covers=%d", &value) == 1)
             app->show_covers = value != 0;
         else if (sscanf(line, "filter_recognized=%d", &value) == 1)
@@ -292,6 +294,9 @@ bool app_save(App *app)
             app->filter_recognized,
             app->recovery_mode ? app->recovery_preferences.clock_12_hour : app->clock_12_hour,
             app->startup_tab);
+    fprintf(file, "show_icon_labels=%d\n",
+            app->recovery_mode ? app->recovery_preferences.show_icon_labels
+                               : app->show_icon_labels);
     char splash_reference[PATH_CAP] = "";
     if (*app->splash_path && path_is_within_root(app->splash_path, app->root)) {
         const char *relative = app->splash_path + strlen(app->root);

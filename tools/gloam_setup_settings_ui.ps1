@@ -12,7 +12,7 @@ $settingCombos = @(
 )
 $settingChecks = [ordered]@{ SimpleLock='simple_settings_lock'; SettingCovers='show_covers'; SettingMotion='reduced_motion';
     SettingUpdates='background_updates'; SettingClock='clock_12_hour'; SettingHideSaves='hide_save_folders'; SettingHideBios='hide_bios_folders';
-    SettingHidden='show_hidden'; SettingSystem='show_system'; SettingExtensions='show_extensions';
+    SettingHidden='show_hidden'; SettingSystem='show_system'; SettingExtensions='show_extensions'; SettingIconLabels='show_icon_labels';
     SettingKnown='filter_recognized'; SettingTitles='internal_titles'; SettingSounds='theme_sounds' }
 $script:SettingsSnapshot = $null; $script:LoadingSettings = $false; $script:SettingsDirty = $false
 foreach ($item in $settingCombos) { $ui[$item.Control].ItemsSource = $item.Labels }

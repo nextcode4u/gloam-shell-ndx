@@ -356,6 +356,7 @@ typedef struct {
     ScrollSpeed scroll_speed;
     SortMode sort_mode;
     bool show_hidden, show_system, show_extensions, show_covers, filter_recognized, clock_12_hour;
+    bool show_icon_labels;
     bool hide_save_folders, hide_bios_folders;
     char startup_tab[TAB_ID_CAP];
     bool internal_titles;
@@ -371,7 +372,7 @@ typedef struct {
         int accent_index;
         IconSize icon_size;
         BrowserStyle browser_style;
-        bool reduced_motion, accent_override, show_covers, clock_12_hour;
+        bool reduced_motion, accent_override, show_covers, clock_12_hour, show_icon_labels;
     } recovery_preferences;
     bool theme_accent_override;
     LaunchPlan launch;

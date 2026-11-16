@@ -120,3 +120,13 @@ Item information and assignment/availability messages return to the same menu;
 press Back again to close SELECT. The association editor retains its own
 options/list levels before returning to SELECT. File pickers still use B to
 visit parent folders and START to cancel directly back to their originating view.
+
+## Bottom-screen icon labels
+
+START → Appearance → **Icon labels** hides or shows names and detail text in
+icon-based browser views, including Home and System. Grid icons are centered
+when labels are hidden; tile sizes and touch targets stay the same. Text-only
+List view keeps its names, and top-screen title information is unaffected.
+Labels default to On. The choice is saved with settings and appearance presets;
+older presets without this field restore labels to On. The desktop setup tool
+also exposes the setting. Recovery shows labels without replacing the saved choice.
