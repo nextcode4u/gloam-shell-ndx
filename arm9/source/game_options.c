@@ -8,11 +8,11 @@
 #include <string.h>
 #include <sys/stat.h>
 
-static const char *keys[] = {"mode",       "cpu",  "vram",      "dma",    "async",
-                             "language",   "slot", "save_size", "hotkey", "overlay_language",
-                             "screen_swap"};
-static const int minimum[] = {-1, -1, -1, -1, -1, -1, 0, -1, 0, -1, -1};
-static const int maximum[] = {1, 1, 1, 1, 1, 7, 9, 10, 5, 30, 2};
+static const char *keys[] = {"mode",        "cpu",   "vram",      "dma",    "async",
+                             "language",    "slot",  "save_size", "hotkey", "overlay_language",
+                             "screen_swap", "manual"};
+static const int minimum[] = {-1, -1, -1, -1, -1, -1, 0, -1, 0, -1, -1, -1};
+static const int maximum[] = {1, 1, 1, 1, 1, 7, 9, 10, 5, 30, 2, 1};
 void game_options_defaults(GameOptions *options, bool inherit)
 {
     for (int i = 0; i < GAME_OPTION_COUNT; i++)
@@ -172,9 +172,9 @@ const char *game_option_overlay_language(int choice)
 }
 const char *game_option_label(int option)
 {
-    static const char *labels[] = {"Run mode",     "CPU boost",     "VRAM boost", "Card DMA",
-                                   "Async reads",  "Language",      "Save slot",  "Save size",
-                                   "In-game menu", "Menu language", "Screen swap"};
+    static const char *labels[] = {"Run mode",     "CPU boost",     "VRAM boost",  "Card DMA",
+                                   "Async reads",  "Language",      "Save slot",   "Save size",
+                                   "In-game menu", "Menu language", "Screen swap", "Game manual"};
     return option >= 0 && option < GAME_OPTION_COUNT ? labels[option] : "";
 }
 void game_option_value(const GameOptions *options, int option, char output[48])
@@ -184,7 +184,7 @@ void game_option_value(const GameOptions *options, int option, char output[48])
     if (value == GAME_INHERIT)
         text = "Use default";
     else if (value == -1)
-        text = option == GAME_OVERLAY_LANGUAGE || option == GAME_SCREEN_SWAP ? "Keep INI" : "Auto";
+        text = option >= GAME_OVERLAY_LANGUAGE ? "Keep INI" : "Auto";
     else if (option == GAME_MODE)
         text = value ? "DSi" : "DS";
     else if (option <= GAME_ASYNC)
@@ -218,6 +218,8 @@ void game_option_value(const GameOptions *options, int option, char output[48])
     } else if (option == GAME_SCREEN_SWAP) {
         static const char *hotkeys[] = {"L+R+Up+X", "L+R+Up", "L+R+X"};
         text = hotkeys[value];
+    } else if (option == GAME_MANUAL) {
+        text = value ? "Sidecar .txt" : "Off";
     } else {
         snprintf(output, 48, "%d", value);
         return;

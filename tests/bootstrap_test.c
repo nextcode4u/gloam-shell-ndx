@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 static const char *probe_save;
 static unsigned probe_checks, fail_check;
 int __real_stat(const char *, struct stat *);
@@ -157,12 +158,52 @@ int main(int argc, char **argv)
         assert(strstr(text, expected) && !strstr(text, "SCREEN_SWAP_HOTKEY=123\n"));
         assert(!strstr(strstr(text, "GUI_LANGUAGE=") + 1, "GUI_LANGUAGE="));
     }
+    /* Sidecar discovery never reuses another game's manual, and fails closed on I/O errors. */
+    char manual[PATH_CAP];
+    assert(path_join(manual, root, "roms/Game with spaces.txt"));
+    const char *custom_manual = "[NDS-BOOTSTRAP]\nMANUAL_PATH=sd:/custom.txt\n";
+    write_file(ini, custom_manual, strlen(custom_manual));
+    assert(bootstrap_commit(root, &plan, error));
+    read_text(ini, text);
+    assert(strstr(text, "MANUAL_PATH=sd:/custom.txt\n"));
+    plan.options.values[GAME_MANUAL] = 1;
+    assert(bootstrap_commit(root, &plan, error));
+    read_text(ini, text);
+    assert(strstr(text, "MANUAL_PATH=\n") && !strstr(text, "sd:/custom.txt"));
+    write_file(manual, "A title manual\n", 15);
+    assert(bootstrap_commit(root, &plan, error));
+    read_text(ini, text);
+    assert(strstr(text, "MANUAL_PATH=sd:/roms/Game with spaces.txt\n"));
+    char before_manual_failure[sizeof text];
+    strcpy(before_manual_failure, text);
+    probe_save = manual;
+    probe_checks = 0;
+    fail_check = 1;
+    assert(!bootstrap_commit(root, &plan, error) && strstr(error, "manual"));
+    probe_save = NULL;
+    read_text(ini, text);
+    assert(!strcmp(text, before_manual_failure));
+    write_file(manual, "", 0);
+    assert(bootstrap_commit(root, &plan, error));
+    read_text(ini, text);
+    assert(strstr(text, "MANUAL_PATH=\n"));
+    assert(!remove(manual) && !mkdir(manual, 0777));
+    assert(bootstrap_commit(root, &plan, error));
+    read_text(ini, text);
+    assert(strstr(text, "MANUAL_PATH=\n"));
+    assert(!rmdir(manual));
+    write_file(manual, "A title manual\n", 15);
+    plan.options.values[GAME_MANUAL] = 0;
+    assert(bootstrap_commit(root, &plan, error));
+    read_text(ini, text);
+    assert(strstr(text, "MANUAL_PATH=\n"));
     GameOptions defaults, item, effective;
     game_options_defaults(&defaults, false);
     defaults.values[GAME_CPU] = 1;
     defaults.values[GAME_LANGUAGE] = 2;
     defaults.values[GAME_OVERLAY_LANGUAGE] = 30;
     defaults.values[GAME_SCREEN_SWAP] = 2;
+    defaults.values[GAME_MANUAL] = 1;
     assert(game_options_write(root, "", &defaults));
     game_options_defaults(&item, true);
     item.values[GAME_CPU] = 0;
@@ -171,7 +212,7 @@ int main(int argc, char **argv)
     game_options_effective(root, game, &effective);
     assert(effective.values[GAME_CPU] == 0 && effective.values[GAME_LANGUAGE] == 2 &&
            effective.values[GAME_SLOT] == 2 && effective.values[GAME_OVERLAY_LANGUAGE] == 30 &&
-           effective.values[GAME_SCREEN_SWAP] == 2);
+           effective.values[GAME_SCREEN_SWAP] == 2 && effective.values[GAME_MANUAL] == 1);
     assert(launch_prepare(&app, game, &plan, error) && strstr(plan.save, ".sav2"));
     assert(bootstrap_commit(root, &plan, error));
     assert(!stat(plan.save, &status) && status.st_size == 8192);

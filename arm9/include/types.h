@@ -150,6 +150,7 @@ enum {
     GAME_HOTKEY,
     GAME_OVERLAY_LANGUAGE,
     GAME_SCREEN_SWAP,
+    GAME_MANUAL,
     GAME_OPTION_COUNT
 };
 typedef struct {

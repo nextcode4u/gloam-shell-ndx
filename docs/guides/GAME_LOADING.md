@@ -19,7 +19,7 @@ open. Per-title `Use default` resolves through global defaults, then built-in
 Auto values. Effective options are captured during launch preflight.
 
 Options are mode, CPU/VRAM boosts, DMA/asynchronous reads, language, save slot,
-save size, the nds-bootstrap in-game menu hotkey, menu language and screen-swap hotkey. These options apply to the
+save size, the nds-bootstrap in-game menu hotkey, menu language, screen-swap hotkey and sidecar manuals. These options apply to the
 backend route, not arbitrary applications launched directly. Auto mode uses
 the backend's default DSi-enabled policy; pure DS titles still need backend
 compatibility. For retail and SD DSiWare, nds-bootstrap's in-game menu →
@@ -35,6 +35,15 @@ apply to retail/SD DSiWare only. Their initial **Keep INI** value leaves existin
 selecting an explicit option replaces that key on launch. Keep INI deliberately
 retains the last written value rather than resetting the backend. Global options
 and per-title inheritance use the same rules. Native homebrew launches are unchanged.
+
+**Game manual** offers **Sidecar .txt**, **Off** and **Keep INI**. Sidecar uses
+`Game.txt` beside `Game.nds` (also `.dsi`/`.srl`) and passes its SD path through
+`MANUAL_PATH` to the backend's manual viewer. A missing, empty or non-file sidecar
+clears the previous manual instead of showing another title's document. Off also
+clears the path; Keep INI preserves a manually configured path. An SD I/O error
+stops preparation without replacing the backend INI. This does not affect native
+homebrew routes or add a document viewer to Gloam; text display and encoding
+support belong to nds-bootstrap.
 
 A correct quit target does not guarantee a successful backend handoff. If
 confirming Quit Game resumes the game or leaves black screens, record the

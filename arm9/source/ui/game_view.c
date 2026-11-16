@@ -42,14 +42,16 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
         "Language for nds-bootstrap's in-game menu, independent of the game's language. "
         "Keep INI preserves a manually configured backend value or its default.",
         "Hold this combination to swap screens through nds-bootstrap. Keep INI preserves "
-        "the configured combination or the backend default L+R+Up+X."};
+        "the configured combination or the backend default L+R+Up+X.",
+        "Sidecar .txt uses Game.txt beside Game.nds in the backend menu. Missing or empty "
+        "manuals clear the previous title's path. Off clears it; Keep INI leaves it unchanged."};
     static const char *help_keys[] = {
-        "dialog.game_mode.help",       "dialog.game_cpu.help",
-        "dialog.game_vram.help",       "dialog.game_dma.help",
-        "dialog.game_async.help",      "dialog.game_language.help",
-        "dialog.game_slot.help",       "dialog.game_size.help",
-        "dialog.game_hotkey.help",     "dialog.game_overlay_language.help",
-        "dialog.game_screen_swap.help"};
+        "dialog.game_mode.help",        "dialog.game_cpu.help",
+        "dialog.game_vram.help",        "dialog.game_dma.help",
+        "dialog.game_async.help",       "dialog.game_language.help",
+        "dialog.game_slot.help",        "dialog.game_size.help",
+        "dialog.game_hotkey.help",      "dialog.game_overlay_language.help",
+        "dialog.game_screen_swap.help", "dialog.game_manual.help"};
     draw_text_wrapped(
         top, 10, 77,
         ui_translate(&app->language, help_keys[editor->selected], help[editor->selected]), p.text,
@@ -67,12 +69,12 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
               ui_translate(&app->language, "dialog.change_reset", "< > change  Y reset"), p.muted,
               33);
     static const char *label_keys[] = {
-        "dialog.game_mode_label",       "dialog.game_cpu_label",
-        "dialog.game_vram_label",       "dialog.game_dma_label",
-        "dialog.game_async_label",      "dialog.game_language_label",
-        "dialog.game_slot_label",       "dialog.game_size_label",
-        "dialog.game_hotkey_label",     "dialog.game_overlay_language_label",
-        "dialog.game_screen_swap_label"};
+        "dialog.game_mode_label",        "dialog.game_cpu_label",
+        "dialog.game_vram_label",        "dialog.game_dma_label",
+        "dialog.game_async_label",       "dialog.game_language_label",
+        "dialog.game_slot_label",        "dialog.game_size_label",
+        "dialog.game_hotkey_label",      "dialog.game_overlay_language_label",
+        "dialog.game_screen_swap_label", "dialog.game_manual_label"};
     for (int row = 0; row < 7; row++) {
         int option = editor->scroll + row;
         if (option >= GAME_OPTION_COUNT)

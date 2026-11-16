@@ -315,7 +315,8 @@ static bool owned_key(const char *key, const LaunchPlan *plan)
 {
     if (plan->route != LAUNCH_BOOTSTRAP_HB &&
         ((!strcasecmp(key, "GUI_LANGUAGE") && plan->options.values[GAME_OVERLAY_LANGUAGE] >= 0) ||
-         (!strcasecmp(key, "SCREEN_SWAP_HOTKEY") && plan->options.values[GAME_SCREEN_SWAP] >= 0)))
+         (!strcasecmp(key, "SCREEN_SWAP_HOTKEY") && plan->options.values[GAME_SCREEN_SWAP] >= 0) ||
+         (!strcasecmp(key, "MANUAL_PATH") && plan->options.values[GAME_MANUAL] >= 0)))
         return true;
     if (plan->route == LAUNCH_BOOTSTRAP_HB &&
         (!strcasecmp(key, "RAM_DRIVE_PATH") || !strcasecmp(key, "RAM_DRIVE_SIZE")))
@@ -329,19 +330,46 @@ static bool owned_key(const char *key, const LaunchPlan *plan)
             return true;
     return false;
 }
+/* Resolve only the selected title's sidecar. No directory scan or document read. */
+static bool manual_path(const char *root, const LaunchPlan *plan, char output[PATH_CAP])
+{
+    output[0] = 0;
+    if (plan->route == LAUNCH_BOOTSTRAP_HB || plan->options.values[GAME_MANUAL] != 1)
+        return true;
+    char path[PATH_CAP];
+    path_copy(path, plan->target, sizeof path);
+    char *dot = strrchr(path, '.');
+    char *slash = strrchr(path, '/');
+    if (!dot || (slash && dot < slash))
+        return false;
+    size_t stem = (size_t)(dot - path);
+    if (stem + 5 > sizeof path)
+        return false;
+    memcpy(path + stem, ".txt", 5);
+    struct stat info;
+    if (stat(path, &info))
+        return errno == ENOENT; /* Missing manuals are optional; I/O errors are not. */
+    if (!S_ISREG(info.st_mode) || info.st_size <= 0)
+        return true;
+    return sd_path(output, root, path);
+}
 bool bootstrap_commit(const char *root, const LaunchPlan *plan, char error[160])
 {
     if (plan->route == LAUNCH_DIRECT)
         return true;
     error[0] = 0;
-    char target[PATH_CAP], save[PATH_CAP] = "", current[PATH_CAP], temporary[PATH_CAP],
-                           backup[PATH_CAP];
+    char target[PATH_CAP], save[PATH_CAP] = "", manual[PATH_CAP], current[PATH_CAP],
+                           temporary[PATH_CAP], backup[PATH_CAP];
     if (!sd_path(target, root, plan->target) || (*plan->save && !sd_path(save, root, plan->save)) ||
         !path_join(current, root, "_nds/nds-bootstrap.ini") ||
         !path_prepare_preferences_directory(root) ||
         !path_preferences_file(temporary, root, "bootstrap-next.ini") ||
         !path_preferences_file(backup, root, "bootstrap-previous.ini"))
         goto failure;
+    if (!manual_path(root, plan, manual)) {
+        snprintf(error, 160, "Could not check the title manual. Check its path and SD card.");
+        return false;
+    }
     char app_alias[64] = "", private_alias[64] = "", public_alias[64] = "";
     if (plan->route == LAUNCH_DSIWARE) {
         if (!dsiware_create_save(plan->save, plan->save_bytes, error) ||
@@ -446,6 +474,8 @@ bool bootstrap_commit(const char *root, const LaunchPlan *plan, char error[160])
         if (o->values[GAME_SCREEN_SWAP] >= 0)
             fprintf(output, "SCREEN_SWAP_HOTKEY=%X\n",
                     game_option_screen_swap(o->values[GAME_SCREEN_SWAP]));
+        if (o->values[GAME_MANUAL] >= 0)
+            fprintf(output, "MANUAL_PATH=%s\n", manual);
     }
     if (plan->route == LAUNCH_DSIWARE)
         fprintf(output, "APP_PATH=%s\nPRV_PATH=%s\nBNR_PATH=\nDSIWARE_SLOT1_MODE=0\n", app_alias,
