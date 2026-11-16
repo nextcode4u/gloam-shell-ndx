@@ -19,6 +19,38 @@ bool update_trust_available(const char *path)
     return fclose(file) == 0;
 }
 
+/* Read in the main context: the network worker must never access a volume. */
+bool update_trust_load(const char *path, unsigned char **data, size_t *size)
+{
+    *data = NULL;
+    *size = 0;
+    struct stat info;
+    if (stat(path, &info) || !S_ISREG(info.st_mode) || info.st_size <= 0 ||
+        info.st_size > UPDATE_TRUST_CAP)
+        return false;
+    size_t length = (size_t)info.st_size;
+    unsigned char *buffer = malloc(length + 1);
+    if (!buffer)
+        return false;
+    FILE *file = fopen(path, "rb");
+    if (!file) {
+        free(buffer);
+        return false;
+    }
+    bool valid = fread(buffer, 1, length, file) == length;
+    valid = valid && fgetc(file) == EOF && !ferror(file);
+    if (fclose(file))
+        valid = false;
+    if (!valid || memchr(buffer, 0, length)) {
+        free(buffer);
+        return false;
+    }
+    buffer[length] = 0;
+    *data = buffer;
+    *size = length + 1; /* Mbed TLS PEM input includes the terminating NUL. */
+    return true;
+}
+
 /* Only our published numeric version forms are accepted, not arbitrary URLs or text. */
 static bool number(const char **text, unsigned *out)
 {

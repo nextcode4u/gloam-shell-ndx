@@ -125,6 +125,10 @@ int main(int argc, char **argv)
     }
     char trust[1024];
     snprintf(trust, sizeof trust, "%s/trust.pem", argv[1]);
+    unsigned char *pem = NULL;
+    size_t pem_size = 123;
+    assert(!update_trust_load(trust, &pem, &pem_size) && !pem && !pem_size);
+    assert(!update_trust_load(argv[1], &pem, &pem_size) && !pem && !pem_size);
     assert(!update_trust_available(trust));
     assert(!update_trust_available(argv[1]));
     file = fopen(trust, "wb");
@@ -133,7 +137,15 @@ int main(int argc, char **argv)
     assert(file && fputs("Preflight only; TLS must reject invalid PEM", file) >= 0 &&
            !fclose(file));
     assert(update_trust_available(trust));
+    assert(update_trust_load(trust, &pem, &pem_size));
+    assert(pem_size == strlen("Preflight only; TLS must reject invalid PEM") + 1);
+    assert(!strcmp((char *)pem, "Preflight only; TLS must reject invalid PEM"));
+    free(pem);
+    file = fopen(trust, "wb");
+    assert(file && fwrite("PEM\0hidden", 1, 10, file) == 10 && !fclose(file));
+    assert(!update_trust_load(trust, &pem, &pem_size) && !pem && !pem_size);
     assert(!truncate(trust, UPDATE_TRUST_CAP + 1) && !update_trust_available(trust));
+    assert(!update_trust_load(trust, &pem, &pem_size) && !pem && !pem_size);
     puts("PASS: bounded release parsing, numeric version ordering, startup/idle gates, daily "
          "cache, cancellation state and stale notice preservation");
 }

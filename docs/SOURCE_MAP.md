@@ -214,3 +214,11 @@ trim. `make_theme_components.py` exports it into the existing selected-row/card
 slots; `theme_materials.py` prepares separate focus samples. Runtime rendering
 and touch geometry stay shared. `make_screenshots.py --theme-selections` compares
 focused and ordinary rows through the host renderer at native size.
+
+Update checks load their bounded PEM trust bundle in the main context after the
+idle gate. The detached worker owns network/TLS work only and returns a prepared
+tag; the main context publishes the result and writes the cache. Cancellation
+joins that work before releasing its trust data and discards any pending result.
+This keeps updater I/O from overlapping SD/NAND operations on SDKs with shared
+disk-cache scratch storage. Image jobs use the main context's cooperative decoder
+and yield between complete filesystem operations.

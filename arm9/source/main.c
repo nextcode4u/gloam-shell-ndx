@@ -58,6 +58,26 @@ static unsigned update_started;
 static time_t update_started_time;
 static bool update_network_initialized, update_network_attempted;
 static cothread_t update_thread = -1;
+static unsigned char *update_trust;
+static size_t update_trust_size;
+static char update_result[UPDATE_TAG_CAP];
+static bool update_result_pending;
+
+/* All filesystem work stays in the main context, including completion writes.
+ * SDK 1.25 shares disk-cache scratch storage between volumes. */
+static void finish_update_checker(void)
+{
+    if (!update_result_pending || update_thread >= 0)
+        return;
+    update_result_pending = false;
+    free(update_trust);
+    update_trust = NULL;
+    update_trust_size = 0;
+    if (!update_cancel && app.updates.enabled && app.storage_ready && !app.storage_lost)
+        update_complete(&app.updates, app.root, *update_result ? update_result : NULL, time(NULL));
+    else
+        app.updates.busy = app.updates.connected = false;
+}
 static bool update_wait(void)
 {
     do {
@@ -72,13 +92,7 @@ static bool update_wait(void)
 static int update_worker(void *unused)
 {
     (void)unused;
-    char tag[UPDATE_TAG_CAP] = "", ca[PATH_CAP];
-    if (!path_join(ca, app.root, "_nds/dsi-frontend/update-ca.pem") ||
-        !update_trust_available(ca)) {
-        update_complete(&app.updates, app.root, NULL, time(NULL));
-        update_thread = -1;
-        return 0;
-    }
+    update_result[0] = 0;
     if (!update_network_attempted) {
         update_network_attempted = true;
         update_network_initialized = Wifi_InitDefault(INIT_ONLY | WIFI_ATTEMPT_DSI_MODE);
@@ -96,8 +110,9 @@ static int update_worker(void *unused)
             /* BlocksDS dswifi writes all four outputs, including unused ones. */
             struct in_addr gateway = {0}, subnet = {0}, dns = {0}, secondary_dns = {0};
             Wifi_GetIPInfo(&gateway, &subnet, &dns, &secondary_dns);
-            if (!update_fetch(ca, dns.s_addr, update_wait, tag))
-                tag[0] = 0;
+            if (!update_fetch(update_trust, update_trust_size, dns.s_addr, update_wait,
+                              update_result))
+                update_result[0] = 0;
             break;
         }
     }
@@ -109,10 +124,7 @@ static int update_worker(void *unused)
         /* SDK 1.25.0 wifi_lwip_deinit deliberately crashes. Keep the initialized
          * stack for reuse; only the radio and this request are shut down. */
     }
-    if (!update_cancel && app.storage_ready && !app.storage_lost)
-        update_complete(&app.updates, app.root, *tag ? tag : NULL, time(NULL));
-    else
-        app.updates.busy = app.updates.connected = false;
+    update_result_pending = true;
     /* Detached workers are reclaimed by the SDK scheduler. Deleting another
      * thread here can invalidate its saved next-thread pointer in SDK 1.25. */
     update_thread = -1;
@@ -123,9 +135,11 @@ static void stop_update_checker(void)
     update_cancel = true;
     while (update_thread >= 0)
         cothread_yield();
+    finish_update_checker();
 }
 static void update_checker_tick(void)
 {
+    finish_update_checker();
     if (update_thread >= 0)
         return;
     if (app.recovery_mode || !app.dsi_mode || !app.storage_ready || app.storage_lost ||
@@ -139,9 +153,18 @@ static void update_checker_tick(void)
     update_cancel = false;
     update_started = app.frame_count;
     update_started_time = time(NULL);
-    update_thread = cothread_create(update_worker, NULL, 24 * 1024, COTHREAD_DETACHED);
-    if (update_thread < 0)
+    char ca[PATH_CAP];
+    if (!path_join(ca, app.root, "_nds/dsi-frontend/update-ca.pem") ||
+        !update_trust_load(ca, &update_trust, &update_trust_size)) {
         update_complete(&app.updates, app.root, NULL, time(NULL));
+        return;
+    }
+    update_thread = cothread_create(update_worker, NULL, 24 * 1024, COTHREAD_DETACHED);
+    if (update_thread < 0) {
+        update_result[0] = 0;
+        update_result_pending = true;
+        finish_update_checker();
+    }
 }
 
 static unsigned artwork_clock(void)

@@ -20,6 +20,8 @@ int update_version_compare(const char *left, const char *right);
 bool update_response_tag(char *response, size_t size, char tag[UPDATE_TAG_CAP]);
 /* Cheap preflight before initializing the radio; TLS still validates the PEM. */
 bool update_trust_available(const char *path);
+/* Main-context read. Caller frees data; size includes the PEM terminator. */
+bool update_trust_load(const char *path, unsigned char **data, size_t *size);
 bool update_should_start(UpdateState *state, unsigned frames, unsigned idle_frames, bool allowed,
                          time_t now);
 void update_cache_load(UpdateState *state, const char *root);

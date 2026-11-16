@@ -93,11 +93,12 @@ static bool pending(int result)
 {
     return result == MBEDTLS_ERR_SSL_WANT_READ || result == MBEDTLS_ERR_SSL_WANT_WRITE;
 }
-bool update_fetch(const char *ca_file, uint32_t dns, bool (*wait)(void), char tag[UPDATE_TAG_CAP])
+bool update_fetch(const unsigned char *ca_data, size_t ca_size, uint32_t dns, bool (*wait)(void),
+                  char tag[UPDATE_TAG_CAP])
 {
     bool success = false;
     tag[0] = 0;
-    if (!update_trust_available(ca_file))
+    if (!ca_data || ca_size < 2 || ca_size > UPDATE_TRUST_CAP + 1 || ca_data[ca_size - 1])
         return false;
     char *response = malloc(UPDATE_RESPONSE_CAP);
     if (!response)
@@ -114,7 +115,7 @@ bool update_fetch(const char *ca_file, uint32_t dns, bool (*wait)(void), char ta
     mbedtls_x509_crt_init(&ca);
     mbedtls_entropy_init(&entropy);
     mbedtls_ctr_drbg_init(&random);
-    if (!wait() || mbedtls_x509_crt_parse_file(&ca, ca_file) != 0)
+    if (!wait() || mbedtls_x509_crt_parse(&ca, ca_data, ca_size) != 0)
         goto done;
     uint32_t address = resolve(dns, wait);
     if (!address)
