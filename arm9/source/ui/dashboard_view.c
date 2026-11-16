@@ -12,8 +12,8 @@ void dashboard_render(const App *app, uint16_t *top, uint16_t *bottom)
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
     draw_heading(&app->themes.active, top, 10, 8,
-                 ui_translate(&app->language, "dialog.dashboard", "PERSONAL DASHBOARD"), p.accent,
-                 224);
+                 ui_translate(&app->language, "dialog.dashboard", "PERSONAL DASHBOARD"),
+                 themes_header_color(&app->themes.active, p.accent), 224);
     draw_text_wrapped(top, 10, 37,
                       "Choose which sections appear on Home and their order. Press START to "
                       "open frontend settings.",
@@ -23,8 +23,8 @@ void dashboard_render(const App *app, uint16_t *top, uint16_t *bottom)
                       "Hiding Recent stops recording new requests.",
                       p.muted, 33, 6);
     draw_heading(&app->themes.active, bottom, 10, 7,
-                 ui_translate(&app->language, "dialog.home_sections", "Home sections"), p.text,
-                 224);
+                 ui_translate(&app->language, "dialog.home_sections", "Home sections"),
+                 themes_header_color(&app->themes.active, p.text), 224);
     draw_text(bottom, 10, 24,
               ui_translate(&app->language, "dialog.reorder_hint", "< > reorder  A show/hide"),
               p.muted, 33);
@@ -55,5 +55,5 @@ void dashboard_render(const App *app, uint16_t *top, uint16_t *bottom)
     draw_text_wrapped(bottom, 10, 135, app->dashboard.status, p.muted, 33, 3);
     draw_text(bottom, 10, 177,
               ui_translate(&app->language, "dialog.clear_recent_hint", "B back  Y clear recent"),
-              p.muted, 33);
+              themes_footer_color(&app->themes.active, p.muted), 33);
 }

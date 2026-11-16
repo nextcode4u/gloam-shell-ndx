@@ -143,9 +143,9 @@ void draw_theme_status(const App *app, uint16_t *pixels)
         draw_rectangle(pixels, 156, 9, 10, 5, package->palette.bg);
         draw_rectangle(pixels, 168, 10, 2, 3, color);
         if (battery == THEME_BATTERY_UNKNOWN)
-            draw_text(pixels, 158, 6, "?", color, 1);
+            draw_text(pixels, 158, 6, "?", themes_header_color(package, color), 1);
         else if (app->battery_charging)
-            draw_text(pixels, 158, 6, "+", color, 1);
+            draw_text(pixels, 158, 6, "+", themes_header_color(package, color), 1);
         else if (app->battery_level > 0)
             draw_rectangle(pixels, 156, 9, (app->battery_level * 10 + 14) / 15, 5, color);
     }
@@ -161,11 +161,11 @@ void draw_theme_status(const App *app, uint16_t *pixels)
         return;
     }
     if (app->updates.connected) {
-        draw_text(pixels, 176, 6, "W", package->palette.accent, 1);
+        draw_text(pixels, 176, 6, "W", themes_header_color(package, package->palette.accent), 1);
         return;
     }
     if (!draw_theme_sprite(package, pixels, THEME_WIRELESS_IDLE, 176, 4, 16, 16)) {
-        draw_text(pixels, 176, 6, "W", package->palette.muted, 1);
+        draw_text(pixels, 176, 6, "W", themes_header_color(package, package->palette.muted), 1);
         draw_rectangle(pixels, 184, 14, 6, 1, package->palette.muted);
     }
 }

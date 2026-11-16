@@ -376,6 +376,15 @@ when loading the theme, adds no image allocation and does no blending per frame.
 The default is 0, preserving existing packages. Personal wallpaper strength
 remains a separate user override.
 
+Source builds after 1.1.0 also accept optional `[colors] header_text`,
+`footer_text` and `header_link_text` RGB colors. They separate title-bar text,
+status/footer legends and the browser's Settings link from body text. Each
+omitted field retains its existing per-view fallback. `header_text` also covers
+title-bar counters and paths inside the taller browser header. These colors do
+not recolor icon PNGs; authors should provide suitable status glyphs for their
+header artwork. A pack using these fields requires a build that supports them;
+the original 1.1.0 parser rejects the new keys.
+
 Optional `[colors] selection_text` sets focused browser-row, quick/action-menu,
 settings-label and picker-label text. `[colors] tab_text` sets active navigation
 text. Omitted values inherit `text` and `ink`, respectively. Secondary metadata,

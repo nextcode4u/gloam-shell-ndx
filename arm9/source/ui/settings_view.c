@@ -28,7 +28,7 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
         : settings_is_simple(app)
             ? ui_translate(&app->language, "dialog.settings_simple", "SIMPLE SETTINGS")
             : ui_translate(&app->language, "dialog.settings_advanced", "ADVANCED SETTINGS"),
-        palette.accent, 231);
+        themes_header_color(&app->themes.active, palette.accent), 231);
     draw_rectangle(top, 10, 23, 236, 1, palette.line);
     draw_text_clipped(top, 10, 31, settings_option_text(app, option, false), palette.text, 33);
     char value[96];
@@ -46,12 +46,12 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
         palette.muted, 231, elapsed, !app->reduced_motion);
     draw_text(top, 10, 179,
               ui_translate(&app->language, "dialog.settings_close", "L/R pages  B / START close"),
-              palette.muted, 33);
+              themes_footer_color(&app->themes.active, palette.muted), 33);
     draw_heading(&app->themes.active, bottom, 10, 7, settings_section_name(app, state->section),
-                 palette.text, 182);
+                 themes_header_color(&app->themes.active, palette.text), 182);
     char page[24];
     snprintf(page, sizeof page, "%d/%d", state->section + 1, settings_section_count(app));
-    draw_text(bottom, 222, 7, page, palette.accent, 4);
+    draw_text(bottom, 222, 7, page, themes_header_color(&app->themes.active, palette.accent), 4);
     draw_text(bottom, 10, 24, ui_translate(&app->language, "dialog.previous_page", "< L previous"),
               palette.muted, 14);
     draw_text(bottom, 178, 24, ui_translate(&app->language, "dialog.next_page", "R next >"),
@@ -94,5 +94,5 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
                                                 "< > change  A next  B close")
                                  : ui_translate(&app->language, "dialog.settings_select",
                                                 "A select  B close  L/R pages"),
-              palette.muted, 34);
+              themes_footer_color(&app->themes.active, palette.muted), 34);
 }

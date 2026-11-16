@@ -23,7 +23,8 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
     draw_theme_component(&app->themes.active, top, THEME_PANEL, 6, 49, 244, 103);
     draw_list_frame(app, bottom);
     draw_heading(&app->themes.active, top, 10, 8,
-                 ui_translate(&app->language, "dialog.open_with", "OPEN WITH"), p.accent, 224);
+                 ui_translate(&app->language, "dialog.open_with", "OPEN WITH"),
+                 themes_header_color(&app->themes.active, p.accent), 224);
     const char *name = strrchr(picker->target, '/');
     draw_text_scrolling(top, 10, 31, name ? name + 1 : picker->target, p.text, 231,
                         picker->idle_frames, !app->reduced_motion);
@@ -51,7 +52,7 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
                       p.muted, 33, 3);
     draw_heading(&app->themes.active, bottom, 10, 7,
                  ui_translate(&app->language, "dialog.choose_application", "Choose application"),
-                 p.text, 224);
+                 themes_header_color(&app->themes.active, p.text), 224);
     draw_text(bottom, 10, 24,
               ui_translate(&app->language, "dialog.ambiguous_folder",
                            "Folder rules could not select one"),
@@ -76,7 +77,7 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
     }
     draw_text(bottom, 10, 176,
               ui_translate(&app->language, "dialog.launch_cancel", "A launch  B / START cancel"),
-              p.muted, 33);
+              themes_footer_color(&app->themes.active, p.muted), 33);
 }
 
 void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
@@ -105,7 +106,7 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
                  : picker->kind == PICKER_AUDIO         ? "LAUNCHER MUSIC"
                  : picker->kind == PICKER_COVER         ? "COVER ASSIGNMENT"
                                                         : "APPLICATION FOR FILE",
-                 accent, 231);
+                 themes_header_color(&app->themes.active, accent), 231);
     const char *target = strrchr(picker->target, '/');
     draw_text_scrolling(top, 10, 31, target ? target + 1 : picker->target, text, 231,
                         picker->idle_frames, !app->reduced_motion);
@@ -161,13 +162,13 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
         : picker->kind == PICKER_COVER
             ? "Choose cover"
             : ui_translate(&app->language, "dialog.choose_application", "Choose application"),
-        text, 210);
+        themes_header_color(&app->themes.active, text), 210);
     if (themes_component(&app->themes.active, THEME_ARROW_LEFT) &&
         themes_component(&app->themes.active, THEME_ARROW_RIGHT)) {
         draw_theme_arrow(&app->themes.active, bottom, 210, 7, THEME_ARROW_LEFT, muted);
         draw_theme_arrow(&app->themes.active, bottom, 230, 7, THEME_ARROW_RIGHT, muted);
     } else
-        draw_text(bottom, 210, 7, "< >", muted, 5);
+        draw_text(bottom, 210, 7, "< >", themes_header_color(&app->themes.active, muted), 5);
     draw_text_scrolling(bottom, 10, 24, picker->path, muted, 231, picker->idle_frames,
                         !app->reduced_motion);
     for (int row = 0; row < PICKER_VISIBLE_ROWS; row++) {

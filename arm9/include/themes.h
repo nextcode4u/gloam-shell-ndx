@@ -86,4 +86,17 @@ static inline uint16_t themes_tab_text(const ThemePackage *package)
 {
     return package->tab_text ? package->tab_text : package->palette.ink;
 }
+/* Optional chrome inks preserve each caller's legacy fallback when omitted. */
+static inline uint16_t themes_header_color(const ThemePackage *package, uint16_t fallback)
+{
+    return package->header_text ? package->header_text : fallback;
+}
+static inline uint16_t themes_footer_color(const ThemePackage *package, uint16_t fallback)
+{
+    return package->footer_text ? package->footer_text : fallback;
+}
+static inline uint16_t themes_header_link_color(const ThemePackage *package)
+{
+    return package->header_link_text ? package->header_link_text : package->palette.accent;
+}
 #endif

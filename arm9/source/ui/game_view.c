@@ -16,7 +16,7 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
                  editor->defaults
                      ? ui_translate(&app->language, "dialog.game_defaults_title", "GAME DEFAULTS")
                      : ui_translate(&app->language, "dialog.title_options_title", "TITLE OPTIONS"),
-                 p.accent, 224);
+                 themes_header_color(&app->themes.active, p.accent), 224);
     const char *name = strrchr(editor->path, '/');
     draw_text_wrapped(top, 10, 30,
                       editor->defaults ? "Applies to nds-bootstrap launches"
@@ -55,7 +55,7 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
                  editor->defaults
                      ? ui_translate(&app->language, "dialog.game_defaults", "Game defaults")
                      : ui_translate(&app->language, "dialog.title_options", "Title options"),
-                 p.text, 224);
+                 themes_header_color(&app->themes.active, p.text), 224);
     draw_text(bottom, 10, 24,
               ui_translate(&app->language, "dialog.change_reset", "< > change  Y reset"), p.muted,
               33);
@@ -88,6 +88,6 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
     }
     draw_text_clipped(bottom, 10, 170, editor->status, p.muted, 33);
     draw_text(bottom, 10, 182,
-              ui_translate(&app->language, "dialog.save_back", "B / START save and back"), p.muted,
-              33);
+              ui_translate(&app->language, "dialog.save_back", "B / START save and back"),
+              themes_footer_color(&app->themes.active, p.muted), 33);
 }

@@ -172,6 +172,12 @@ static bool load(App *app, const char *id, ThemePackage *package)
             valid = color(value, &package->selection_text) && valid;
         } else if (!strcmp(section, "[colors]") && !strcmp(key, "tab_text")) {
             valid = color(value, &package->tab_text) && valid;
+        } else if (!strcmp(section, "[colors]") && !strcmp(key, "header_text")) {
+            valid = color(value, &package->header_text) && valid;
+        } else if (!strcmp(section, "[colors]") && !strcmp(key, "footer_text")) {
+            valid = color(value, &package->footer_text) && valid;
+        } else if (!strcmp(section, "[colors]") && !strcmp(key, "header_link_text")) {
+            valid = color(value, &package->header_link_text) && valid;
         } else if (!strcmp(section, "[colors]")) {
             static const char *names[] = {"background", "surface", "line", "text",
                                           "muted",      "accent",  "ink"};

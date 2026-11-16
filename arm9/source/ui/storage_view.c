@@ -10,7 +10,7 @@ void storage_render(const App *app, uint16_t *top, uint16_t *bottom)
     themes_background_draw(&app->themes.active, 1, bottom);
     draw_theme_chrome(&app->themes.active, bottom, 22);
     draw_text(top, 10, 10, ui_translate(&app->language, "dialog.sd_removed", "SD CARD REMOVED"),
-              p.accent, 32);
+              themes_header_color(&app->themes.active, p.accent), 32);
     draw_text_wrapped(top, 10, 42,
                       "Browsing and audio are paused. New launches and preference writes are "
                       "blocked. Your saved configuration is unchanged.",
@@ -19,7 +19,7 @@ void storage_render(const App *app, uint16_t *top, uint16_t *bottom)
               app->storage_card_present
                   ? ui_translate(&app->language, "dialog.sd_detected", "Card detected again")
                   : ui_translate(&app->language, "dialog.sd_absent", "Card is absent"),
-              p.accent, 33);
+              themes_header_color(&app->themes.active, p.accent), 33);
     draw_text_wrapped(bottom, 10, 43,
                       "Insert the SD card, then restart the frontend to mount it safely. Unsaved "
                       "changes in this session cannot be saved here.",

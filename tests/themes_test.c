@@ -438,6 +438,32 @@ int main(int argc, char **argv)
             selected_ink |= bottom[y * 256 + x] == 0x801f;
     assert(selected_ink); /* A selected setting's value uses the same ink as its label. */
     settings_close(&app);
+    assert(themes_header_color(&app.themes.active, 0x8abc) == 0x8abc);
+    assert(themes_footer_color(&app.themes.active, 0x8abc) == 0x8abc);
+    assert(themes_header_link_color(&app.themes.active) == app.themes.active.palette.accent);
+    write_text(root, "_nds/dsi-frontend/themes/cap-63/theme.ini",
+               "[theme]\nversion=2\n[colors]\nheader_text=#00ff00\n"
+               "footer_text=#ff0000\nheader_link_text=#0000ff\n");
+    app_init(&restored, root, true, true);
+    assert(restored.themes.active.header_text == 0x83e0);
+    assert(restored.themes.active.footer_text == 0x801f);
+    assert(restored.themes.active.header_link_text == 0xfc00);
+    render_app(&restored, top, bottom, "12:00");
+    bool title_ink = false, link_ink = false, footer_ink = false;
+    for (int y = 7; y < 20; y++) {
+        for (int x = 10; x < 140; x++)
+            title_ink |= top[y * 256 + x] == 0x83e0;
+        for (int x = 188; x < 246; x++)
+            link_ink |= bottom[y * 256 + x] == 0xfc00;
+    }
+    for (int y = 179; y < 192; y++)
+        for (int x = 10; x < 65; x++)
+            footer_ink |= top[y * 256 + x] == 0x801f;
+    assert(title_ink && link_ink && footer_ink);
+    write_text(root, "_nds/dsi-frontend/themes/cap-63/theme.ini",
+               "[theme]\nversion=2\n[colors]\nheader_text=broken\n");
+    app_init(&restored, root, true, true);
+    assert(!*restored.themes.active.id); /* Malformed optional ink rejects the pack. */
     puts("PASS: theme preview/apply/cancel, validated fonts/contrast, persistence and recovery "
          "isolation");
 }

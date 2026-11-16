@@ -540,7 +540,7 @@ function Test-GloamTheme([string]$Source) {
     $data=Read-GloamIni $manifest
     $allowed=@{
         theme=@('version','name','header')
-        colors=@('background','surface','line','text','muted','accent','ink','selection_text','tab_text')
+        colors=@('background','surface','line','text','muted','accent','ink','selection_text','tab_text','header_text','footer_text','header_link_text')
         fonts=@('ui','heading')
         audio=@('music','cursor','confirm','back')
         backgrounds=@('top','bottom','strength','top_surface','bottom_surface')

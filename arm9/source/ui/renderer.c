@@ -521,13 +521,14 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     themes_background_draw(&app->themes.active, 0, pixels);
     draw_theme_chrome(&app->themes.active, pixels, 22);
     draw_heading_scrolling(theme, pixels, 10, 7, app->recovery_mode ? "RECOVERY" : theme->header,
-                           colors.text, *theme->ambient_path ? 122 : 138, app->frame_count,
+                           themes_header_color(theme, colors.text),
+                           *theme->ambient_path ? 122 : 138, app->frame_count,
                            !app->reduced_motion);
     draw_theme_ambient(app, pixels);
     draw_theme_status(app, pixels);
     char tab_position[16];
     snprintf(tab_position, sizeof tab_position, "%d/%d", app->category + 1, app->tab_count);
-    draw_text(pixels, 205, 7, tab_position, colors.muted, 6);
+    draw_text(pixels, 205, 7, tab_position, themes_header_color(theme, colors.muted), 6);
     if (!theme->minimal_chrome)
         draw_rectangle(pixels, 10, 23, 236, 1, colors.line);
     if (!poster && !scene && !composed && !theme->minimal_chrome)
@@ -645,12 +646,13 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
         draw_side_tabs(app, pixels, colors, rail);
     if (!theme->minimal_chrome)
         draw_rectangle(pixels, 10, 176, 236, 1, colors.line);
-    draw_text(pixels, 10, 179, clock, colors.muted, 11);
+    draw_text(pixels, 10, 179, clock, themes_footer_color(theme, colors.muted), 11);
     draw_text(pixels, app->clock_12_hour ? 76 : 54, 179, ui_text(&app->language, UI_TAB_HINT),
-              colors.muted, 15);
+              themes_footer_color(theme, colors.muted), 15);
     draw_text(pixels, 179, 179, app->storage_ready ? "SD OK" : "NO SD",
-              app->storage_ready ? colors.accent : colors.muted, 6);
-    draw_text(pixels, 226, 179, app->dsi_mode ? "DSi" : "DS", colors.muted, 3);
+              themes_footer_color(theme, app->storage_ready ? colors.accent : colors.muted), 6);
+    draw_text(pixels, 226, 179, app->dsi_mode ? "DSi" : "DS",
+              themes_footer_color(theme, colors.muted), 3);
 }
 static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
 {
@@ -977,10 +979,11 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
                            : app->category == CATEGORY_SYSTEM && app->installed_open
                                ? ui_text(&app->language, UI_INSTALLED_TITLES)
                                : tabs_label(app, app->category),
-                           colors.text, 161, app->frame_count - app->tab_text_started_frame,
-                           !app->reduced_motion);
-    draw_text_scrolling(bottom, 188, 7, ui_text(&app->language, UI_SETTINGS), colors.accent, 58,
-                        app->frame_count, !app->reduced_motion);
+                           themes_header_color(&app->themes.active, colors.text), 161,
+                           app->frame_count - app->tab_text_started_frame, !app->reduced_motion);
+    draw_text_scrolling(bottom, 188, 7, ui_text(&app->language, UI_SETTINGS),
+                        themes_header_link_color(&app->themes.active), 58, app->frame_count,
+                        !app->reduced_motion);
     const Location *location = &app->locations[app->category];
     int list_top = layout_list_top(app->category);
     int visible_rows = layout_visible_rows(app);
@@ -992,7 +995,8 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
                             app->scan_directory ? ui_text(&app->language, UI_READING_FOLDER)
                             : app->truncated    ? "512+ items / SELECT: folder batches"
                                                 : location->path,
-                            colors.muted, 231, app->selection_idle_frames, !app->reduced_motion);
+                            themes_header_color(&app->themes.active, colors.muted), 231,
+                            app->selection_idle_frames, !app->reduced_motion);
     }
     if (!app->themes.active.minimal_chrome)
         draw_rectangle(bottom, 10, list_top - 5, 236, 1, colors.line);
@@ -1101,7 +1105,7 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
               : app->rail_focus                     ? "Up/Down tabs  A choose  B/X back"
               : app->browser_style == BROWSER_INDEX ? "< > groups  A open  Y info  X tabs"
                                                     : ui_text(&app->language, UI_BROWSER_HINT),
-              colors.muted, 40);
+              themes_footer_color(&app->themes.active, colors.muted), 40);
     if (app->startup_countdown) {
         char countdown[40];
         snprintf(countdown, sizeof countdown, "Auto launch in %u seconds",

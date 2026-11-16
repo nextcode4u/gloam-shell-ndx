@@ -268,6 +268,7 @@ typedef struct {
     char ambient_path[PATH_CAP], prepared_assets[PATH_CAP];
     unsigned ambient_ticks;
     uint16_t selection_text, tab_text;
+    uint16_t header_text, footer_text, header_link_text; /* Zero inherits existing ink. */
     char backgrounds[2][PATH_CAP];
     char reading_surfaces[2][PATH_CAP];
     char icon_directory[PATH_CAP], component_directory[PATH_CAP];

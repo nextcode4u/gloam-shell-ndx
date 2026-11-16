@@ -1066,6 +1066,18 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
             manifest.write_text(original.replace(old, new))
             self.run_ps(command + '; if ($r.Valid) { throw "invalid version-2 theme accepted" }')
 
+    def test_optional_theme_chrome_inks_are_validated(self):
+        source = self.root / 'chrome-theme'
+        source.mkdir()
+        manifest = source / 'theme.ini'
+        original = '[theme]\nversion=2\n[colors]\nheader_text=#ffffff\nfooter_text=#f4f7ff\nheader_link_text=#ffffff\n'
+        manifest.write_text(original)
+        command = '$r=Test-GloamTheme ' + literal(win(source))
+        self.run_ps(command + '; if (-not $r.Valid -or $r.Warnings.Count) { throw "valid chrome inks rejected" }')
+        for key in ('header_text', 'footer_text', 'header_link_text'):
+            manifest.write_text(re.sub(r'^' + key + '=.*$', key + '=invalid', original, flags=re.M))
+            self.run_ps(command + '; if ($r.Valid) { throw "invalid chrome ink accepted" }')
+
     def test_material_import_requires_safe_paths_and_supported_version(self):
         source = self.root / 'material-theme'
         source.mkdir()
