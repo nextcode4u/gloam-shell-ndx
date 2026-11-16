@@ -19,7 +19,7 @@ a guarantee for every title, boot method or application build.
 | Home collections | Up to eight named shortcut groups sharing 32 targets; desktop editing, Home/back navigation and configuration interchange. No content moves or invented playtime. |
 | Configuration | On-console editors, checked imports/exports, scoped reset, early recovery and diagnostics. Standard hardware SD write commands resolved reported I/O errors on one DSi LL; this is not a broad card-compatibility claim. |
 
-Hardware results above are user-reported on one Japanese DSi LL with Unlaunch
+Initial hardware results above are user-reported on one Japanese DSi LL with Unlaunch
 and an English-patched menu, using preview 25 plus the update-checker fix in
 `53527a0`. Theme, music, icon-size and tab preferences persisted across restart.
 Lid sleep/resume passed while browsing and playing theme music, including input,
@@ -27,6 +27,12 @@ display and audio afterward. Settings and menu return passed with the new notice
 and button-press workaround. The repeated-update-request crash was reported
 resolved. Exact game, cartridge and emulator names were not recorded, so these
 results apply to the tested samples rather than every supported application.
+
+A subsequent user test on a separate Japanese DSi without the English language
+patch passed Return to DSi Menu, System Settings and installed Flipnote Studio
+launches from Gloam. Together with the stock-menu comparisons on the original
+console, this supports a language-patch interaction behind the earlier launch
+failures. The patched-menu workaround remains applicable to affected consoles.
 
 Still pending on that setup: extended browsing/theme switching, completion of an
 uninterrupted update check and one while browsing, an unavailable-access-point
