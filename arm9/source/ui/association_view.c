@@ -67,8 +67,8 @@ void association_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
             draw_theme_selection(&app->themes.active, bottom, 6, y, 244, 18);
         }
         draw_text_clipped(bottom, 14, y + 3,
-                          editor->option >= 0 ? options[index] : editor->extensions[index], p.text,
-                          32);
+                          editor->option >= 0 ? options[index] : editor->extensions[index],
+                          selected ? themes_selection_text(&app->themes.active) : p.text, 32);
     }
     if (!editor->count)
         draw_text(

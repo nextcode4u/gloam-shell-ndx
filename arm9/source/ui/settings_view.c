@@ -83,8 +83,10 @@ void settings_render(const App *app, uint16_t *top, uint16_t *bottom)
                               !strcmp(value, on) ? THEME_TOGGLE_ON : THEME_TOGGLE_OFF, 220, y + 3,
                               18, 12);
         draw_text_scrolling(bottom, 148, y + 3, value,
-                            item->adjustable ? palette.accent : palette.muted, toggle ? 68 : 91,
-                            elapsed, selected && !app->reduced_motion);
+                            selected           ? themes_selection_text(&app->themes.active)
+                            : item->adjustable ? palette.accent
+                                               : palette.muted,
+                            toggle ? 68 : 91, elapsed, selected && !app->reduced_motion);
     }
     draw_rectangle(bottom, 10, 176, 236, 1, palette.line);
     draw_text(bottom, 10, 179,

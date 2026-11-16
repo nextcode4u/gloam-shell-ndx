@@ -918,12 +918,15 @@ static void draw_grid(const App *app, uint16_t *pixels, Palette colors)
         if (app->icon_size == ICON_SMALL) {
             draw_browser_icon(app, pixels, index, x + 4, y + 2, size,
                               selected ? colors.accent : colors.muted);
-            draw_text_scrolling(pixels, x + 24, y + 4, name, colors.text, 13 * FONT_WIDTH,
-                                app->selection_idle_frames, selected && !app->reduced_motion);
+            draw_text_scrolling(pixels, x + 24, y + 4, name,
+                                selected ? themes_selection_text(&app->themes.active) : colors.text,
+                                13 * FONT_WIDTH, app->selection_idle_frames,
+                                selected && !app->reduced_motion);
         } else {
             draw_browser_icon(app, pixels, index, x + (layout_grid_cell_width(app) - size) / 2,
                               y + 4, size, selected ? colors.accent : colors.muted);
-            draw_text_scrolling(pixels, x + 5, y + height - 14, name, colors.text,
+            draw_text_scrolling(pixels, x + 5, y + height - 14, name,
+                                selected ? themes_selection_text(&app->themes.active) : colors.text,
                                 layout_grid_cell_width(app) - 10, app->selection_idle_frames,
                                 selected && !app->reduced_motion);
         }
@@ -1070,7 +1073,10 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
                             metadata, sizeof metadata, "%s / %lu.%lu MB", entry_type(entry),
                             (unsigned long)(entry->size / (1024 * 1024)),
                             (unsigned long)((entry->size % (1024 * 1024)) * 10 / (1024 * 1024)));
-                    draw_text_clipped(bottom, text_x, text_y + 13, metadata, colors.muted,
+                    draw_text_clipped(bottom, text_x, text_y + 13, metadata,
+                                      i == location->selected
+                                          ? themes_selection_text(&app->themes.active)
+                                          : colors.muted,
                                       (234 - text_x) / 7);
                 }
                 if (entry->kind == ITEM_DIRECTORY || entry->kind == ITEM_CATEGORY)

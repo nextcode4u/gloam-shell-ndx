@@ -1,10 +1,12 @@
 #include "../arm9/source/ui/drawing.h"
 #include "app.h"
+#include "browser.h"
 #include "font_pack.h"
 #include "layout.h"
 #include "paths.h"
 #include "preferences.h"
 #include "renderer.h"
+#include "settings.h"
 #include "themes.h"
 #include <assert.h>
 #include <stdio.h>
@@ -410,6 +412,32 @@ int main(int argc, char **argv)
     themes_move(&app, 1);
     assert(app.themes.selected == 0);
     themes_cancel(&app);
+    /* Both lines of a selected Extended row use its configured readable ink. */
+    app_category(&app, CATEGORY_HOME);
+    app.browser_style = BROWSER_EXTENDED;
+    app.settings.open = false;
+    app.panel = PANEL_NONE;
+    app.locations[CATEGORY_HOME].selected = app.locations[CATEGORY_HOME].scroll = 0;
+    font_builtin(&app.themes.active.font);
+    app.themes.active.selection_text = 0x801f;
+    app.themes.active.palette.muted = 0xfc00;
+    browser_reflow(&app);
+    render_app(&app, top, bottom, "12:00");
+    int metadata_y = layout_list_top(CATEGORY_HOME) + (layout_row_height(&app) - 26) / 2 + 13;
+    bool selected_ink = false;
+    for (int y = metadata_y; y < metadata_y + 12; y++)
+        for (int x = 14 + layout_icon_size(&app) + 6; x < 234; x++)
+            selected_ink |= bottom[y * 256 + x] == 0x801f;
+    assert(selected_ink);
+    app.advanced_settings = true;
+    settings_open(&app);
+    render_app(&app, top, bottom, "12:00");
+    selected_ink = false;
+    for (int y = 44; y < 56; y++)
+        for (int x = 148; x < 218; x++)
+            selected_ink |= bottom[y * 256 + x] == 0x801f;
+    assert(selected_ink); /* A selected setting's value uses the same ink as its label. */
+    settings_close(&app);
     puts("PASS: theme preview/apply/cancel, validated fonts/contrast, persistence and recovery "
          "isolation");
 }

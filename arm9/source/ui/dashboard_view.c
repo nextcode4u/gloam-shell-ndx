@@ -39,13 +39,15 @@ void dashboard_render(const App *app, uint16_t *top, uint16_t *bottom)
         if (row == app->dashboard.selected) {
             draw_theme_selection(&app->themes.active, bottom, 6, y, 244, 18);
         }
-        draw_text(bottom, 14, y + 3, names[section], p.text, 21);
+        uint16_t ink = themes_selection_text(&app->themes.active);
+        bool selected = row == app->dashboard.selected;
+        draw_text(bottom, 14, y + 3, names[section], selected ? ink : p.text, 21);
         char count[8] = "All";
         if (app->dashboard.config.limit[section])
             snprintf(count, sizeof count, "%u", app->dashboard.config.limit[section]);
-        draw_text(bottom, 180, y + 3, count, p.muted, 3);
+        draw_text(bottom, 180, y + 3, count, selected ? ink : p.muted, 3);
         draw_text(bottom, 222, y + 3, app->dashboard.config.enabled[section] ? "On" : "Off",
-                  p.accent, 3);
+                  selected ? ink : p.accent, 3);
     }
     draw_text(bottom, 10, 116,
               ui_translate(&app->language, "dialog.visible_count", "L/R: visible item count"),
