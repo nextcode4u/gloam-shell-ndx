@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 import re
+import struct
 from pathlib import Path
 import shutil
 import subprocess
@@ -25,6 +26,15 @@ def literal(value):
     return "'" + str(value).replace("'", "''") + "'"
 
 
+def shared_font(identifier):
+    code = 0x672c if identifier == 'japanese' else 0x100
+    data = struct.pack('<IB12H', code, 12 if identifier == 'japanese' else 7, 1, *([0] * 11))
+    checksum = 2166136261
+    for byte in data:
+        checksum = ((checksum ^ byte) * 16777619) & 0xffffffff
+    return struct.pack('<8sIIBB2x', b'GSFONT01', 1, checksum, 12, 1) + data
+
+
 @unittest.skipUnless(AVAILABLE, 'Requires native Windows PowerShell')
 class GloamSetupTests(unittest.TestCase):
     def setUp(self):
@@ -42,6 +52,7 @@ class GloamSetupTests(unittest.TestCase):
                                  ('gloam_setup_organizer.ps1', 'gloam-setup-organizer.ps1'),
                                  ('gloam_setup_organizer_ui.ps1', 'gloam-setup-organizer-ui.ps1'),
                                  ('gloam_setup_settings.ps1', 'gloam-setup-settings.ps1'),
+                                 ('gloam_setup_health.ps1', 'gloam-setup-health.ps1'),
                                  ('gloam_setup_settings_ui.ps1', 'gloam-setup-settings-ui.ps1'),
                                  ('gloam_setup_configuration.ps1', 'gloam-setup-configuration.ps1'),
                                  ('gloam_setup_worker.ps1', 'gloam-setup-worker.ps1'),
@@ -936,6 +947,86 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.assertIn('MISSING', log)
         self.assertIn('Demo BIOS', log)
         self.assertEqual(before, {p.relative_to(self.sd).as_posix(): p.read_bytes() for p in self.sd.rglob('*') if p.is_file()})
+
+    def test_setup_health_missing_invalid_fonts_and_startup_summary(self):
+        folder = self.sd / '_nds/dsi-frontend'
+        (folder / 'fonts').mkdir(parents=True)
+        (folder / 'fonts/extended.gsf').write_bytes(b'broken')
+        (folder / 'diagnostics.txt').write_text('Gloam Shell NDX diagnostics v1\nboot_complete=1\nboot_total_ms=750\nboot_theme_ms=210\n')
+        self.run_ps(r"""
+$before=@(Get-ChildItem -LiteralPath $root -Recurse -File | ForEach-Object { $_.FullName + (Get-GloamHash $_.FullName) })
+$rows=@(Get-GloamSetupHealth $root)
+if (($rows | Where-Object { $_.Area -eq 'Shared fonts' -and $_.Item -eq 'japanese' }).Status -ne 'Missing') { throw 'Missing font not reported' }
+if (($rows | Where-Object { $_.Area -eq 'Shared fonts' -and $_.Item -eq 'extended' }).Status -ne 'Invalid') { throw 'Bad font not reported' }
+if (($rows | Where-Object Item -eq 'Theme preparation').Details -notmatch '210 ms') { throw 'Startup summary missing' }
+$after=@(Get-ChildItem -LiteralPath $root -Recurse -File | ForEach-Object { $_.FullName + (Get-GloamHash $_.FullName) })
+if (Compare-Object $before $after) { throw 'Read-only health changed SD content' }
+""")
+
+    def test_setup_health_catalog_bom_and_hidden_binary(self):
+        good=self.root/'bom.ini'
+        good.write_bytes(b'\xef\xbb\xbfversion=1\r\nhome=Home\r\n')
+        self.run_ps('Test-GloamLanguageBytes ([IO.File]::ReadAllBytes(' + literal(win(good)) + ')) | Out-Null')
+        good.write_bytes(b'version=1\nhome=Home\x00hidden')
+        self.run_ps('Test-GloamLanguageBytes ([IO.File]::ReadAllBytes(' + literal(win(good)) + ')) | Out-Null', success=False)
+
+    def test_setup_health_font_validator_matches_real_japanese_pack(self):
+        path = literal(win(ROOT / 'sdroot/_nds/dsi-frontend/fonts/japanese.gsf'))
+        self.run_ps('$count=Test-GloamScriptFontBytes ([IO.File]::ReadAllBytes(' + path + ")) 'japanese'; if ($count -ne 6817) { throw 'Font validator disagrees' }")
+
+    def test_setup_health_import_validates_whole_selection_and_backs_up(self):
+        good = self.root / 'custom.ini'
+        bad = self.root / 'broken.ini'
+        good.write_text('version=1\nhome=Custom\n')
+        bad.write_text('version=9\n')
+        self.run_ps('Import-GloamLanguagePack $root @(' + literal(win(good)) + ',' + literal(win(bad)) + ')', success=False)
+        target = self.sd / '_nds/dsi-frontend/languages/custom.ini'
+        self.assertFalse(target.exists())
+        self.run_ps('Import-GloamLanguagePack $root @(' + literal(win(good)) + ')')
+        good.write_text('version=1\nhome=Changed\n')
+        self.run_ps('Import-GloamLanguagePack $root @(' + literal(win(good)) + ')')
+        self.assertIn('home=Changed', target.read_text())
+        backups=list((self.sd / '_nds/dsi-frontend/setup-backups').rglob('custom.ini'))
+        self.assertEqual(len(backups), 1)
+        self.assertIn('home=Custom', backups[0].read_text())
+
+    def test_setup_health_repair_preserves_custom_catalog_and_boot(self):
+        archive = self.archive('assets.zip', {
+            '_nds/dsi-frontend/fonts/japanese.gsf': shared_font('japanese'),
+            '_nds/dsi-frontend/fonts/extended.gsf': shared_font('extended'),
+            '_nds/dsi-frontend/languages/ja.ini': b'version=1\nhome=Bundled\n',
+            '_nds/dsi-frontend/languages/es.ini': b'version=1\nhome=Inicio\n',
+            'BOOT.NDS': b'Do not install this', 'roms/untouched.txt': b'Do not install this'})
+        folder=self.sd / '_nds/dsi-frontend'
+        (folder / 'languages').mkdir(parents=True)
+        (folder / 'fonts').mkdir()
+        (folder / 'fonts/extended.gsf').write_bytes(b'broken old font')
+        (folder / 'languages/ja.ini').write_text('version=1\nhome=Customized\n')
+        (self.sd / 'BOOT.NDS').write_bytes(b'Original boot')
+        self.run_ps('Repair-GloamSharedAssets $root ' + literal(win(archive)))
+        self.assertEqual((self.sd / 'BOOT.NDS').read_bytes(), b'Original boot')
+        self.assertFalse((self.sd / 'roms/untouched.txt').exists())
+        self.assertIn('Customized', (folder / 'languages/ja.ini').read_text())
+        self.assertEqual((folder / 'fonts/extended.gsf').read_bytes(), shared_font('extended'))
+        self.assertEqual(len(list((folder / 'setup-backups').rglob('extended.gsf'))), 1)
+        self.run_ps("$rows=@(Get-GloamSetupHealth $root); if (@($rows | Where-Object { $_.Area -eq 'Shared fonts' -and $_.Status -ne 'Ready' }).Count) { throw 'Fonts not repaired' }")
+
+    def test_setup_health_incomplete_repair_archive_cannot_write(self):
+        archive=self.archive('missing.zip', {'_nds/dsi-frontend/fonts/japanese.gsf': shared_font('japanese')})
+        self.run_ps('Repair-GloamSharedAssets $root ' + literal(win(archive)), success=False)
+        self.assertFalse((self.sd / '_nds/dsi-frontend/fonts/japanese.gsf').exists())
+
+    def test_setup_health_offline_package_miss_never_contacts_network(self):
+        folder=self.root / 'empty-cache'
+        folder.mkdir()
+        self.run_ps(r"""
+$script:network=0
+function Get-GloamRelease { $script:network++; throw 'Unexpected network access' }
+try { Get-GloamPackage """ + literal(win(folder)) + r""" 'sd.zip' -Offline; throw 'Expected cache failure' }
+catch { if ($_.Exception.Message -notmatch 'Offline') { throw } }
+if ($script:network) { throw 'Offline mode accessed the network' }
+Write-Output 'Offline cache miss checked.'
+""")
 
     def test_theme_minimum_frontend_is_reported_and_validated(self):
         theme = self.root / 'future-theme'

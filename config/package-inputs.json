@@ -2418,6 +2418,7 @@
     "tools/gloam_setup_artwork_ui.ps1",
     "tools/gloam_setup_configuration.ps1",
     "tools/gloam_setup_core.ps1",
+    "tools/gloam_setup_health.ps1",
     "tools/gloam_setup_identification.ps1",
     "tools/gloam_setup_organizer.ps1",
     "tools/gloam_setup_organizer_ui.ps1",

@@ -351,3 +351,25 @@ replace corrupt cached downloads; offline runs report them without staging their
 contents. Executable updates prepare a replacement beside the destination and
 retain the previous executable if replacement fails. Recovery copies are checked
 before updating, so an interrupted backup is repaired on retry.
+
+## Health, language packs and startup reports
+
+Maintenance → Check setup shows a read-only table for loaders, shared fonts,
+selected language/theme, handler references and exported startup measurements.
+File presence is not proof of game compatibility. Backend version text comes
+from the installed version file. Startup observations come from the console's
+`diagnostics.txt`; overlapping phase times must not be added, and total time
+excludes the previous loader's read of BOOT.NDS.
+
+Repair shared assets uses the selected release's checked SD archive to install
+missing/invalid shared fonts and starter catalogs. It retains valid customized
+files, backs up replacements, and never updates BOOT.NDS, games or themes. Older
+archives without both shared font packs are rejected before writes. Offline
+operations require matching cached packages and checksums and do not fetch them.
+
+Import language pack accepts one or more version-1 UTF-8 `.ini` catalogs and
+recognized `.gsf` shared fonts. The entire selection is checked before copying;
+replacements receive backups. Select the imported catalog under Interface
+language. Importing a catalog cannot add shaping or scripts the runtime does
+not support. Missing custom catalogs require their original source or English
+fallback; release repair only supplies the bundled starters.

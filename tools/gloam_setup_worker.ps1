@@ -16,7 +16,7 @@ try {
     $script:GloamCancelFile = Join-Path ([IO.Path]::GetDirectoryName($Request)) 'cancel'
     $root = Get-GloamRoot $job.Target
     $directory = [string]$job.ReleaseDirectory
-    if (-not $job.Offline -and $job.Action -in @('Install','UpdateRuntime','UpdateFrontend','InstallBundled')) {
+    if (-not $job.Offline -and $job.Action -in @('Install','UpdateRuntime','UpdateFrontend','InstallBundled','RepairAssets')) {
         $release = Get-GloamRelease (Join-Path ([IO.Path]::GetDirectoryName($Request)) 'lookup')
         if ($release.tag_name -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+(-(preview|rc)\.[0-9]+)?$') { throw 'Unexpected release version.' }
         $directory = Join-Path $env:LOCALAPPDATA ('Gloam/Setup/releases/' + $release.tag_name)
@@ -85,25 +85,27 @@ try {
         }
         'ApplyOrganization' { Invoke-GloamOrganization $root $job.Options.Plan $job.Options.Hash }
         'UndoOrganization' { Undo-GloamOrganization $root $job.Options.Journal }
-        'CheckSetup' { Test-GloamSetup $root }
+        'CheckSetup' { }
+        'RepairAssets' { Repair-GloamSharedAssets $root (Get-GloamPackage $directory 'sd.zip' -Offline:$job.Offline) }
+        'ImportLanguage' { Import-GloamLanguagePack $root ([string[]]$job.Sources) }
         'ExportConfiguration' { Export-GloamConfiguration $root $job.Options.Path }
         'ImportConfiguration' { Import-GloamConfiguration $root $job.Options.Path $job.Options.Hash }
         'CopyContent' { Copy-GloamContent $root ([string[]]$job.Sources) $job.ContentFolder }
         'Install' {
-            Get-GloamPackage $directory 'licenses.zip' | Out-Null
-            Install-GloamArchive $root (Get-GloamPackage $directory 'sd.zip')
-            if ($job.IncludeAddons) { Install-GloamArchive $root (Get-GloamPackage $directory 'addons.zip') }
+            Get-GloamPackage $directory 'licenses.zip' -Offline:$job.Offline | Out-Null
+            Install-GloamArchive $root (Get-GloamPackage $directory 'sd.zip' -Offline:$job.Offline)
+            if ($job.IncludeAddons) { Install-GloamArchive $root (Get-GloamPackage $directory 'addons.zip' -Offline:$job.Offline) }
         }
         'UpdateRuntime' {
-            Get-GloamPackage $directory 'licenses.zip' | Out-Null
-            Install-GloamArchive $root (Get-GloamPackage $directory 'sd.zip') $true
+            Get-GloamPackage $directory 'licenses.zip' -Offline:$job.Offline | Out-Null
+            Install-GloamArchive $root (Get-GloamPackage $directory 'sd.zip' -Offline:$job.Offline) $true
         }
         'UpdateFrontend' {
-            Get-GloamPackage $directory 'licenses.zip' | Out-Null
-            Write-GloamFile $root 'BOOT.NDS' ([IO.File]::ReadAllBytes((Get-GloamPackage $directory 'BOOT.NDS'))) $true | Out-Null
+            Get-GloamPackage $directory 'licenses.zip' -Offline:$job.Offline | Out-Null
+            Write-GloamFile $root 'BOOT.NDS' ([IO.File]::ReadAllBytes((Get-GloamPackage $directory 'BOOT.NDS' -Offline:$job.Offline))) $true | Out-Null
             Write-Host 'Updated BOOT.NDS. Existing assets, settings and saves were kept.'
         }
-        'InstallBundled' { Get-GloamPackage $directory 'licenses.zip' | Out-Null; Install-GloamArchive $root (Get-GloamPackage $directory 'addons.zip') }
+        'InstallBundled' { Get-GloamPackage $directory 'licenses.zip' -Offline:$job.Offline | Out-Null; Install-GloamArchive $root (Get-GloamPackage $directory 'addons.zip' -Offline:$job.Offline) }
         { $_ -in @('InstallAddons','UpdateAddons','CheckAddons','CheckSupport') } {
             if (-not @($job.Selected).Count -and $job.Action -ne 'CheckSupport') { throw 'Select at least one application.' }
             $arguments = @{ Target = $root; Manifest = $job.Manifest; Cache = $job.Cache }
@@ -124,6 +126,11 @@ try {
             if (-not $succeeded) { throw 'The add-on operation failed.' }
         }
         default { throw 'Unsupported setup action.' }
+    }
+    if ($job.Action -in @('CheckSetup','RepairAssets','ImportLanguage','Install','UpdateRuntime','UpdateFrontend')) {
+        $rows=@(Get-GloamSetupHealth $root)
+        [IO.File]::WriteAllText((Join-Path ([IO.Path]::GetDirectoryName($Request)) 'setup-health.json'), (ConvertTo-Json -InputObject $rows -Depth 8), [Text.UTF8Encoding]::new($false))
+        foreach ($row in $rows) { Write-Host ("$($row.Status): $($row.Item) - $($row.Details)") }
     }
     Write-Host 'Done.'
     exit 0

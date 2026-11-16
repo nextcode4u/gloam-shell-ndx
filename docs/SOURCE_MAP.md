@@ -230,3 +230,10 @@ file. Host tests inject a deterministic clock. Theme preparation includes splash
 checkpoints, and splash-wait/folder regions can overlap; their values must not be
 summed. Total time starts at frontend entry, excluding the previous loader's read
 of BOOT.NDS. Boot profiles over 120 seconds are discarded to avoid timer wrap.
+
+`tools/gloam_setup_health.ps1` owns read-only SD health rows, checked script-font/
+catalog imports, scoped repair and human-readable diagnostic timings. The worker
+writes health JSON into its PC job folder; the settings UI displays it without
+reloading unsaved settings. Repair validates incoming assets before writes and
+uses the common backup writer for replacements. New installer modules belong in
+the add-on installer map, source inventory and bootstrap allow-list together.

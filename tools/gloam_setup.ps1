@@ -162,9 +162,9 @@ $timer.Add_Tick({
             $finishedJob = $script:Job
             $code = $script:Job.Process.ExitCode; $script:Job.Process.Dispose(); $script:Job = $null
             $ui.Workspace.IsEnabled = $true; $ui.TargetBar.IsEnabled = $true; $ui.Progress.Visibility = 'Collapsed'; $ui.CancelArtwork.Visibility='Collapsed'
-            if ($code -eq 0) { Load-Sd; Complete-GloamOrganizerJob $finishedJob; Complete-GloamArtworkJob $finishedJob; $ui.Status.Text = 'Complete. You can safely remove the SD card after Windows finishes writing.' }
-            elseif ($code -eq 3) { Complete-GloamArtworkJob $finishedJob; $ui.Status.Text='Cancelled. Completed previews kept; SD artwork unchanged.' }
-            elseif ($code -eq 2) { Load-Sd; Complete-GloamArtworkJob $finishedJob; $ui.Status.Text = 'Completed with failures. See the activity log for installed, preserved and failed apps.' }
+            if ($code -eq 0) { Load-Sd; Complete-GloamOrganizerJob $finishedJob; Complete-GloamArtworkJob $finishedJob; $ui.Status.Text = 'Complete. You can safely remove the SD card after Windows finishes writing.'; Complete-GloamHealthJob $finishedJob }
+            elseif ($code -eq 3) { Complete-GloamArtworkJob $finishedJob; Complete-GloamHealthJob $finishedJob; $ui.Status.Text='Cancelled. Completed previews kept; SD artwork unchanged.' }
+            elseif ($code -eq 2) { Load-Sd; Complete-GloamArtworkJob $finishedJob; Complete-GloamHealthJob $finishedJob; $ui.Status.Text = 'Completed with failures. See the activity log for installed, preserved and failed apps.' }
             else { Reset-GloamOrganizerPreview; Load-GloamOrganizerJournals; $ui.Status.Text = 'Operation failed. See the activity log; existing backups were kept.' }
             if ($SmokeTest -and $SmokeAction) {
                 if ($SmokeDirtySettings -and (-not $script:SettingsDirty -or $ui.SettingMusicVolume.Value -ne 33)) { throw 'Pending settings were lost after a background check.' }

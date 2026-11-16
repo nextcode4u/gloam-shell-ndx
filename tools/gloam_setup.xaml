@@ -590,10 +590,25 @@
             <TextBlock Text="Check required loaders, settings, selected theme and optional emulator paths. Use Add-ons for the installed-app BIOS check." Style="{StaticResource Muted}"/>
             <WrapPanel>
               <Button x:Name="CheckSetup" Content="Check setup"/>
+              <Button x:Name="RepairAssets" Content="Repair shared assets"/>
+              <Button x:Name="ImportLanguage" Content="Import language pack..."/>
               <Button x:Name="RestoreConsoleSettings" Content="Restore last console settings"/>
               <Button x:Name="OpenConfig" Content="Open configuration folder"/>
               <Button x:Name="MaintenanceBackups" Content="Open setup backups"/>
             </WrapPanel>
+            <TextBlock x:Name="SetupHealthSummary" Text="Run Check setup for file, font, catalog and startup status." TextWrapping="Wrap" Margin="0,8,0,8"/>
+            <DataGrid x:Name="SetupHealthGrid" Height="300" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" Background="#17202C" Foreground="#111820" RowBackground="#E6E8EE" AlternatingRowBackground="#D7DCE5" GridLinesVisibility="None">
+              <DataGrid.ColumnHeaderStyle><Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#28313F"/><Setter Property="Foreground" Value="#E7E9F0"/><Setter Property="Padding" Value="8,5"/></Style></DataGrid.ColumnHeaderStyle>
+              <DataGrid.RowStyle><Style TargetType="DataGridRow"><Setter Property="Foreground" Value="#111820"/><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#B7C9E8"/><Setter Property="Foreground" Value="#111820"/></Trigger></Style.Triggers></Style></DataGrid.RowStyle>
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Area" Binding="{Binding Area}" Width="100"/>
+                <DataGridTextColumn Header="Item" Binding="{Binding Item}" Width="160"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="130"/>
+                <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="*"><DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap"/><Setter Property="Padding" Value="4"/></Style></DataGridTextColumn.ElementStyle></DataGridTextColumn>
+                <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="190"/>
+              </DataGrid.Columns>
+            </DataGrid>
+            <TextBlock Text="Repair downloads missing or invalid shared fonts and starter catalogs from the selected release. Valid customized files are kept. Imported .ini/.gsf files are checked before copying; replacements receive backups. Startup times come from an exported console diagnostics report, not the PC." TextWrapping="Wrap" Style="{StaticResource Muted}" Margin="0,8,0,0"/>
           </StackPanel>
         </ScrollViewer>
         <ScrollViewer x:Name="PageThemes" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

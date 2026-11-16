@@ -169,3 +169,20 @@ $ui.RestoreConsoleSettings.Add_Click({ Invoke-UiAction {
         Restore-GloamStateBackup $root; Load-GloamSettingsUi; Write-Activity 'Previous console settings restored.'
     }
 } })
+
+function Complete-GloamHealthJob($Job) {
+    if ($Job.Action -notin @('CheckSetup','RepairAssets','ImportLanguage','Install','UpdateRuntime','UpdateFrontend')) { return }
+    $file=Join-Path $Job.Folder 'setup-health.json'
+    if (-not [IO.File]::Exists($file)) { return }
+    $rows=@(Get-Content -LiteralPath $file -Raw -Encoding UTF8 | ConvertFrom-Json)
+    $ui.SetupHealthGrid.ItemsSource=$rows
+    $attention=@($rows | Where-Object { $_.Status -in @('Missing','Missing / invalid','Invalid','Warning') }).Count
+    if ($attention) { $ui.Status.Text="Complete. $attention setup items need attention; see Maintenance." }
+    $ui.SetupHealthSummary.Text=if ($attention) { "$attention items need attention. Select a row to read its details." } else { 'Checks complete. File presence does not establish game or hardware compatibility.' }
+}
+$ui.RepairAssets.Add_Click({ Invoke-UiAction { Start-SetupJob 'RepairAssets' } })
+$ui.ImportLanguage.Add_Click({ Invoke-UiAction {
+    $dialog=[Windows.Forms.OpenFileDialog]::new(); $dialog.Filter='Language catalogs and shared fonts|*.ini;*.gsf'; $dialog.Multiselect=$true
+    if ($dialog.ShowDialog() -eq 'OK') { Start-SetupJob 'ImportLanguage' @($dialog.FileNames) }
+    $dialog.Dispose()
+} })

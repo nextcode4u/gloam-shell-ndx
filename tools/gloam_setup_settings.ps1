@@ -132,40 +132,7 @@ function Get-GloamSetupPreset([string]$Name) {
 }
 
 function Test-GloamSetup([string]$Root) {
-    $root = Get-GloamRoot $Root
-    $required = @('BOOT.NDS','_nds/nds-bootstrap-release.nds','_nds/dsi-frontend/loaders/slot1launch.nds')
-    foreach ($name in $required) {
-        $path = Get-GloamPath $root $name
-        if ((Test-Path -LiteralPath $path -PathType Leaf) -and (Get-Item -LiteralPath $path).Length -ge 512) { Write-Host "OK: $name" }
-        else { Write-Host "MISSING / INVALID: $name" }
-    }
-    try {
-        Assert-GloamConfigurationReady $root
-        $state = Read-GloamState $root
-        Write-Host 'OK: launcher settings can be read.'
-        foreach ($key in $state.Issues) { Write-Host "Invalid setting uses its default: $key" }
-        if ($state.Values.simple_settings_lock -eq '1') { Write-Host 'Simple settings lock: On' }
-        $theme = $state.Values.theme_id
-        if ($theme -and -not (Test-Path -LiteralPath (Get-GloamPath $root ("_nds/dsi-frontend/themes/$theme/theme.ini")) -PathType Leaf)) { Write-Host "MISSING: selected theme $theme" }
-    } catch { Write-Host ('SETTINGS: ' + $_.Exception.Message) }
-    $folder = Get-GloamPath $root '_nds/dsi-frontend/plugins'
-    if (Test-Path -LiteralPath $folder -PathType Container) {
-        $files = @(Get-ChildItem -LiteralPath $folder -Filter '*.ini' -File)
-        if ($files.Count -gt 32) { Write-Host 'TOO MANY: only the first 32 profile files can be loaded.' }
-        foreach ($file in $files) {
-            try {
-                $data = Read-GloamIni $file.FullName
-                if (-not $data.Contains('plugin')) { continue }
-                $plugin = $data['plugin']
-                foreach ($key in @('application','dsipath','ntrpath')) {
-                    if (-not $plugin[$key]) { continue }
-                    $relative = ConvertTo-GloamRelative $root $plugin[$key]
-                    if (-not (Test-Path -LiteralPath (Get-GloamPath $root $relative) -PathType Leaf)) { Write-Host "Optional app not installed: $($file.BaseName) ($key)" }
-                }
-            } catch { Write-Host ("PROFILE $($file.Name): " + $_.Exception.Message) }
-        }
-    }
-    Write-Host 'Check BIOS / support for the installed apps separately. Presence checks do not establish game compatibility.'
+    foreach ($row in @(Get-GloamSetupHealth $Root)) { Write-Host ("$($row.Status): $($row.Item) - $($row.Details)") }
 }
 
 function Get-GloamThemeSettings([string]$Root, [string]$Id, [bool]$UseLayout) {
@@ -248,3 +215,5 @@ function Get-GloamLanguageCatalogs {
     if ($Current -notin @($items | ForEach-Object Id)) { $items += [pscustomobject]@{Id=$Current; Name=('Missing: ' + $Current)} }
     return $items
 }
+
+. (Join-Path $PSScriptRoot 'gloam-setup-health.ps1')

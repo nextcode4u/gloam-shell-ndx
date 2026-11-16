@@ -91,11 +91,12 @@ function Get-GloamRelease([string]$Directory) {
     return $release
 }
 
-function Get-GloamPackage([string]$Directory, [string]$Name) {
+function Get-GloamPackage([string]$Directory, [string]$Name, [switch]$Offline) {
     if ($Name -notin @('BOOT.NDS', 'sd.zip', 'addons.zip', 'licenses.zip')) { throw 'Unsupported release asset.' }
     $sums = Join-Path $Directory 'SHA256SUMS'
     $release = $null
     if (-not (Test-Path -LiteralPath $sums)) {
+        if ($Offline) { throw 'Offline setup requires cached SHA256SUMS.' }
         $release = Get-GloamRelease $Directory
         $asset = @($release.assets | Where-Object name -eq 'SHA256SUMS')
         if ($asset.Count -ne 1) { throw 'Missing release checksums.' }
@@ -111,6 +112,7 @@ function Get-GloamPackage([string]$Directory, [string]$Name) {
     if (-not $hashes.ContainsKey($Name)) { throw "No checksum for $Name" }
     $file = Join-Path $Directory $Name
     if (-not (Test-Path -LiteralPath $file)) {
+        if ($Offline) { throw "Offline setup requires cached $Name." }
         if ($null -eq $release) { $release = Get-GloamRelease $Directory }
         $asset = @($release.assets | Where-Object name -eq $Name)
         if ($asset.Count -ne 1 -or $asset[0].size -gt 128MB) { throw 'Missing or oversized setup asset.' }
