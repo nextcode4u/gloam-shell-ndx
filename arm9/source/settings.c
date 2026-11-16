@@ -16,6 +16,7 @@
 #include "game_options.h"
 #include "icons.h"
 #include "launch.h"
+#include "localization.h"
 #include "paths.h"
 #include "picker.h"
 #include "preferences.h"
@@ -106,7 +107,8 @@ enum {
     OPT_ROUTE_PICTO,
     OPT_ROUTE_DOWNLOAD,
     OPT_ROUTE_MENU,
-    OPT_ICON_LABELS
+    OPT_ICON_LABELS,
+    OPT_INTERFACE_LANGUAGE
 };
 
 static const char *option_keys[] = {
@@ -129,6 +131,7 @@ static const char *option_keys[] = {
     [OPT_MOTION] = "motion",
     [OPT_ICONS] = "icons",
     [OPT_ICON_LABELS] = "icon_labels",
+    [OPT_INTERFACE_LANGUAGE] = "interface_language",
     [OPT_VIEW] = "view",
     [OPT_COVERS] = "covers",
     [OPT_CLOCK] = "clock",
@@ -273,7 +276,11 @@ static const SettingsOption appearance[] = {
     {"Icon labels",
      "Show names and details beside bottom-screen icons. List view keeps its names. "
      "Top-screen item information stays visible.",
-     true, OPT_ICON_LABELS}};
+     true, OPT_ICON_LABELS},
+    {"Interface language",
+     "Choose an SD language catalog. Custom uses language.ini; English "
+     "bypasses it. Missing translations keep English. Recovery keeps English.",
+     true, OPT_INTERFACE_LANGUAGE}};
 static const SettingsOption browser[] = {
     {"Sort order",
      "Folders stay first. Sort files by name, extension or modification date. Selection follows "
@@ -517,9 +524,10 @@ static void refresh_routes(App *app)
 
 /* Simple pages reference the same options and handlers as the full catalog. */
 static const int simple_appearance[] = {
-    OPT_SETTINGS_MODE, OPT_THEME,       OPT_BRIGHTNESS,   OPT_ACCENT,         OPT_MOTION,
-    OPT_ICONS,         OPT_VIEW,        OPT_COVERS,       OPT_CLOCK,          OPT_SPLASH_MODE,
-    OPT_SPLASH_PATH,   OPT_SPLASH_ONCE, OPT_SPLASH_SOUND, OPT_SPLASH_PREVIEW, OPT_ICON_LABELS};
+    OPT_SETTINGS_MODE, OPT_THEME,          OPT_BRIGHTNESS,  OPT_ACCENT,
+    OPT_MOTION,        OPT_ICONS,          OPT_VIEW,        OPT_COVERS,
+    OPT_CLOCK,         OPT_SPLASH_MODE,    OPT_SPLASH_PATH, OPT_SPLASH_ONCE,
+    OPT_SPLASH_SOUND,  OPT_SPLASH_PREVIEW, OPT_ICON_LABELS, OPT_INTERFACE_LANGUAGE};
 static const int simple_browser[] = {OPT_SORT,      OPT_EXTENSIONS, OPT_HIDE_SAVES,
                                      OPT_HIDE_BIOS, OPT_SPEED,      OPT_TITLE_SOURCE};
 static const int simple_audio[] = {OPT_MUSIC_MODE, OPT_MUSIC_PATH, OPT_MUSIC_VOLUME, OPT_EFFECTS,
@@ -603,6 +611,7 @@ void settings_open(App *app)
     app->settings.open = true;
     app->settings.section = 0;
     app->settings.text_started_frame = app->frame_count;
+    localization_scan(app);
 }
 void settings_close(App *app)
 {
@@ -747,6 +756,9 @@ void settings_adjust(App *app, int direction)
         return;
     case OPT_ICONS:
         app_adjust_control(app, QUICK_ICON_SIZE, direction);
+        return;
+    case OPT_INTERFACE_LANGUAGE:
+        localization_adjust(app, direction);
         return;
     case OPT_ICON_LABELS:
         app->show_icon_labels = !app->show_icon_labels;
@@ -1294,6 +1306,13 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
         value = app->browser_style == BROWSER_LIST ? "Hidden"
                 : app->icon_size == ICON_LARGE     ? "Large"
                                                    : "Small";
+        break;
+    case OPT_INTERFACE_LANGUAGE:
+        value = !strcmp(app->interface_language, "auto") ? "Custom / English"
+                : !strcmp(app->interface_language, "en") ? "English"
+                : !strcmp(app->interface_language, "ja") ? "Japanese"
+                : !strcmp(app->interface_language, "es") ? "Spanish"
+                                                         : app->interface_language;
         break;
     case OPT_ICON_LABELS:
         value = app->show_icon_labels ? "On" : "Off";

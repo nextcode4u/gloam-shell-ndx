@@ -67,11 +67,10 @@ static bool valid_text(const char *value, size_t capacity)
     }
     return true;
 }
-void ui_language_load(UiLanguage *language, const char *root, bool enabled)
+static void load_catalog(UiLanguage *language, const char *path, bool enabled)
 {
     memset(language, 0, sizeof *language);
-    char path[PATH_CAP];
-    if (!enabled || !path_preferences_file(path, root, "language.ini"))
+    if (!enabled || !path)
         return;
     FILE *file = fopen(path, "r");
     if (!file)
@@ -152,4 +151,36 @@ void ui_language_load(UiLanguage *language, const char *root, bool enabled)
         *language = *candidate;
     }
     free(candidate);
+}
+
+bool ui_locale_valid(const char *id)
+{
+    size_t length = strlen(id);
+    if (!length || length >= 32)
+        return false;
+    for (const char *p = id; *p; p++)
+        if (!((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') ||
+              *p == '-' || *p == '_'))
+            return false;
+    return true;
+}
+void ui_language_load(UiLanguage *language, const char *root, bool enabled)
+{
+    char path[PATH_CAP];
+    load_catalog(language, path_preferences_file(path, root, "language.ini") ? path : NULL,
+                 enabled);
+}
+void ui_language_load_selected(UiLanguage *language, const char *root, bool enabled, const char *id)
+{
+    if (!strcmp(id, "auto")) {
+        ui_language_load(language, root, enabled);
+        return;
+    }
+    char relative[64], path[PATH_CAP];
+    if (!enabled || !ui_locale_valid(id) || !strcmp(id, "en")) {
+        load_catalog(language, NULL, false);
+        return;
+    }
+    snprintf(relative, sizeof relative, "languages/%s.ini", id);
+    load_catalog(language, path_preferences_file(path, root, relative) ? path : NULL, true);
 }

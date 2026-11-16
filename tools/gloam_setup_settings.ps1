@@ -17,6 +17,7 @@ $GloamSettingRules = [ordered]@{
     show_icon_labels = @{ Default = '1'; Choices = @('0','1') }
     show_covers = @{ Default = '1'; Choices = @('0','1') }
     internal_titles = @{ Default = '0'; Choices = @('0','1') }
+    interface_language = @{ Default = 'auto'; Pattern = '^[A-Za-z0-9_-]{1,31}$' }
     title_language = @{ Default = '1'; Choices = @('0','1','2','3','4','5','6','7') }
     reduced_motion = @{ Default = '0'; Choices = @('0','1') }
     background_updates = @{ Default = '1'; Choices = @('0','1') }
@@ -228,4 +229,22 @@ function Restore-GloamStateBackup([string]$Root) {
     if ((Get-GloamHash $path) -cne $snapshot.Hash) { throw 'The console settings backup changed. Try again after closing Gloam.' }
     Write-GloamFile $Root '_nds/dsi-frontend/state.ini' $bytes $true | Out-Null
     Write-Host 'Restored the last console settings. The replaced file is kept in setup-backups.'
+}
+
+function Get-GloamLanguageCatalogs {
+    param([string]$Root, [string]$Current = 'auto')
+    $items = @([pscustomobject]@{Id='auto'; Name='Custom language.ini / English'},
+               [pscustomobject]@{Id='en'; Name='English'})
+    $folder = Get-GloamPath $Root '_nds/dsi-frontend/languages'
+    if (Test-Path -LiteralPath $folder -PathType Container) {
+        foreach ($file in Get-ChildItem -LiteralPath $folder -File -Filter '*.ini' | Sort-Object Name | Select-Object -First 256) {
+            $id = $file.BaseName
+            if ($id -notmatch '^[A-Za-z0-9_-]{1,31}$' -or $id -in @('auto','en') -or $file.Length -gt 32768) { continue }
+            $name = switch ($id) { 'ja' {'Japanese'} 'es' {'Spanish'} default {$id} }
+            $items += [pscustomobject]@{Id=$id; Name=$name}
+            if ($items.Count -ge 18) { break }
+        }
+    }
+    if ($Current -notin @($items | ForEach-Object Id)) { $items += [pscustomobject]@{Id=$Current; Name=('Missing: ' + $Current)} }
+    return $items
 }

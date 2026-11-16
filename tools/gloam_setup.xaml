@@ -531,6 +531,8 @@
               </WrapPanel>
               <TextBlock Text="Game-title language"/>
               <ComboBox x:Name="SettingLanguage"/>
+              <TextBlock Text="Interface language"/>
+              <ComboBox x:Name="SettingLocale" DisplayMemberPath="Name" SelectedValuePath="Id"/>
               <TextBlock Text="Startup" FontSize="18" FontWeight="SemiBold" Margin="0,12,0,10"/>
               <Grid>
                 <Grid.ColumnDefinitions>

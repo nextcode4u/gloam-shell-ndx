@@ -21,6 +21,7 @@
 #include "item_preferences.h"
 #include "launch.h"
 #include "layout.h"
+#include "localization.h"
 #include "paths.h"
 #include "picker.h"
 #include "preferences.h"
@@ -107,6 +108,7 @@ void app_init_progress(App *app, const char *root, bool storage, bool dsi, bool 
     app->updates.enabled = true;
     app->hide_save_folders = app->hide_bios_folders = true;
     app->title_language = 1;
+    strcpy(app->interface_language, "auto");
     app->wallpaper_strength = -1;
     app->show_covers = true;
     app->storage_ready = storage;
@@ -119,14 +121,10 @@ void app_init_progress(App *app, const char *root, bool storage, bool dsi, bool 
                     !configuration_recover(root, recovery_error)))
         app->storage_ready = false;
     script_fonts_configure(root, app->storage_ready && !recovery);
-    ui_language_load(&app->language, root, app->storage_ready && !recovery);
-    for (int i = 0; i < UI_STRING_COUNT; i++)
-        script_fonts_prepare_text(app->language.values[i]);
-    for (unsigned i = 0; i < app->language.extra_count; i++)
-        script_fonts_prepare_text(app->language.text + app->language.extra[i].offset);
     tabs_load(app);
     if (app->storage_ready)
         preferences_load(app);
+    localization_load(app);
     boot_profile_leave(BOOT_CONFIG);
     if (progress)
         progress(app, context);

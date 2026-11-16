@@ -163,6 +163,8 @@ static bool read_state_file(App *app, const char *filename)
             path_resolve_sd(app->custom_backgrounds[1], app->root, line + 18);
         else if (sscanf(line, "wallpaper_strength=%d", &value) == 1 && value >= -1 && value <= 35)
             app->wallpaper_strength = value;
+        else if (!strncmp(line, "interface_language=", 19) && ui_locale_valid(line + 19))
+            path_copy(app->interface_language, line + 19, sizeof app->interface_language);
         else if (sscanf(line, "internal_titles=%d", &value) == 1)
             app->internal_titles = value == 1;
         else if (sscanf(line, "title_language=%d", &value) == 1 && value >= 0 && value < 8)
@@ -336,6 +338,7 @@ bool app_save(App *app)
     }
     fprintf(file, "wallpaper_strength=%d\nauto_launch_delay=%d\n", app->wallpaper_strength,
             app->auto_launch_delay);
+    fprintf(file, "interface_language=%s\n", app->interface_language);
     fprintf(file, "internal_titles=%d\ntitle_language=%d\n", app->internal_titles,
             app->title_language);
     fprintf(file, "active_tab=%s\n", app->tabs[app->category].id);

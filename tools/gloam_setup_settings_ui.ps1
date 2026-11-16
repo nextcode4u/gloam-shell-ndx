@@ -36,6 +36,7 @@ function Set-GloamSettingsUiValues($Values) {
         if ($Values.Contains($item[1])) { $ui[$item[0]].Value = [double]$Values[$item[1]] }
     }
     if ($Values.Contains('music_path')) { $ui.SettingMusicPath.Text = $Values['music_path'] }
+    if ($Values.Contains('interface_language')) { $ui.SettingLocale.SelectedValue = $Values['interface_language'] }
     if ($Values.Contains('theme_id')) { $ui.SettingTheme.SelectedValue = $Values['theme_id'] }
     if ($Values.Contains('startup_tab')) { $ui.SettingStartup.SelectedValue = $Values['startup_tab'] }
     if ($Values.Contains('theme_accent_override')) {
@@ -62,6 +63,7 @@ function Load-GloamSettingsUi {
         }
         if ($snapshot.Values.theme_id -notin @($themes | ForEach-Object Id)) { $themes += [pscustomobject]@{ Id=$snapshot.Values.theme_id; Name=('Missing: ' + $snapshot.Values.theme_id) } }
         $ui.SettingTheme.ItemsSource = $themes
+        $ui.SettingLocale.ItemsSource = @(Get-GloamLanguageCatalogs $script:Root $snapshot.Values.interface_language)
         $tabs = @([pscustomobject]@{ Id=''; Label='Last tab' })
         foreach ($id in @('home','games','apps','media','system','files')) { $tabs += [pscustomobject]@{ Id=$id; Label=$id.Substring(0,1).ToUpperInvariant() + $id.Substring(1) } }
         foreach ($tab in $ui.Tabs.ItemsSource) { if ($tab.Id) { $tabs += [pscustomobject]@{ Id=$tab.Id; Label=$tab.Label } } }
@@ -87,6 +89,7 @@ function Get-GloamSettingsUiChanges {
         $values[$item.Key] = $item.Values[$index]
     }
     foreach ($control in $settingChecks.Keys) { $values[$settingChecks[$control]] = [string][int][bool]$ui[$control].IsChecked }
+    $values['interface_language'] = [string]$ui.SettingLocale.SelectedValue
     $values['theme_id'] = [string]$ui.SettingTheme.SelectedValue; $values['startup_tab'] = [string]$ui.SettingStartup.SelectedValue
     $values['music_volume'] = [string][int][Math]::Round($ui.SettingMusicVolume.Value)
     $values['effects_volume'] = [string][int][Math]::Round($ui.SettingEffectsVolume.Value)
@@ -100,7 +103,7 @@ function Get-GloamSettingsUiChanges {
 
 foreach ($item in $settingCombos) { $ui[$item.Control].Add_SelectionChanged({ Set-GloamSettingsDirty }) }
 foreach ($control in $settingChecks.Keys) { $ui[$control].Add_Checked({ Set-GloamSettingsDirty }); $ui[$control].Add_Unchecked({ Set-GloamSettingsDirty }) }
-foreach ($control in @('SettingTheme','SettingStartup','SettingAccent')) { $ui[$control].Add_SelectionChanged({ Set-GloamSettingsDirty }) }
+foreach ($control in @('SettingTheme','SettingStartup','SettingAccent','SettingLocale')) { $ui[$control].Add_SelectionChanged({ Set-GloamSettingsDirty }) }
 $ui.SettingMusicVolume.Add_ValueChanged({ Set-GloamSettingsDirty }); $ui.SettingEffectsVolume.Add_ValueChanged({ Set-GloamSettingsDirty })
 $ui.SettingMusicPath.Add_TextChanged({ Set-GloamSettingsDirty })
 $ui.SimpleLock.Add_Checked({ $ui.SettingMode.SelectedIndex = 0; $ui.SettingMode.IsEnabled = $false })

@@ -217,6 +217,8 @@ typedef struct {
     unsigned text_started_frame;
     int section, selected, scroll, preset_slot;
     char status[96];
+    char locales[UI_LOCALE_CAP][32];
+    unsigned locale_count;
 } SettingsState;
 typedef enum { PANEL_NONE, PANEL_QUICK, PANEL_ACTIONS, PANEL_INFO, PANEL_MESSAGE } Panel;
 typedef enum { SCROLL_SLOW, SCROLL_NORMAL, SCROLL_FAST, SCROLL_SPEED_COUNT } ScrollSpeed;
@@ -359,6 +361,7 @@ typedef struct {
     bool show_icon_labels;
     bool hide_save_folders, hide_bios_folders;
     char startup_tab[TAB_ID_CAP];
+    char interface_language[32];
     bool internal_titles;
     int title_language;
     SettingsState settings;

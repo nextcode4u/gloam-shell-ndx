@@ -156,3 +156,21 @@ Each 29-byte record contains a 32-bit Unicode scalar, byte advance, and twelve
 depth. Packs are bounded to 16,384 glyphs each. Checksums detect corruption,
 not authenticity. Japanese and extended source attribution remains unchanged.
 Regenerate with `tools/make_japanese_font.py` and `tools/pack_script_fonts.py`.
+
+## Selecting an external interface language
+
+START → Appearance → **Interface language** (also in desktop Setup settings)
+selects English, Custom / English, or an installed catalog. `auto` retains the
+legacy `language.ini` override; `en` always uses built-in English. Other IDs load
+`/_nds/dsi-frontend/languages/<id>.ini`. Japanese (`ja`) and Spanish (`es`)
+starters ship in SD packages. They are partial translations, with English for
+missing keys. The setting persists and updates the built-in tab labels live;
+custom tab labels and banner-title language remain independent. Recovery uses
+English without replacing the saved selection.
+
+Contributors can add another UTF-8 catalog using the existing version-1 keys;
+no compilation is required. IDs contain 1–31 ASCII letters, digits, underscores
+or hyphens. Settings discovers up to 16 external catalogs from a bounded scan of
+256 directory records. Catalogs are capped at 32 KiB and rejected in full if
+malformed. Extra scripts still require a matching shared font pack; adding a
+translation does not imply complete Unicode coverage or RTL shaping.

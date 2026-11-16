@@ -937,6 +937,20 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.assertIn('Demo BIOS', log)
         self.assertEqual(before, {p.relative_to(self.sd).as_posix(): p.read_bytes() for p in self.sd.rglob('*') if p.is_file()})
 
+    def test_external_language_choices_preserve_missing_selection(self):
+        folder = self.sd / '_nds/dsi-frontend/languages'
+        folder.mkdir(parents=True)
+        (folder / 'ja.ini').write_text('version=1\nhome=Home\n')
+        (folder / 'custom.ini').write_text('version=1\nhome=Custom\n')
+        self.run_ps(r"""
+$items = @(Get-GloamLanguageCatalogs $root 'missing')
+if (@($items | ForEach-Object Id) -join ',' -cne 'auto,en,custom,ja,missing') { throw 'Language discovery/preservation failed' }
+if (($items | Where-Object Id -eq 'ja').Name -cne 'Japanese') { throw 'Missing readable name' }
+$state = Read-GloamState $root
+Save-GloamSettings $root @{interface_language='custom'} $state.Hash
+if ((Read-GloamState $root).Values.interface_language -cne 'custom') { throw 'Language not saved' }
+""")
+
     def test_settings_edit_preserves_repeated_records_and_unknown_fields(self):
         state = self.sd / '_nds/dsi-frontend/state.ini'
         state.parent.mkdir(parents=True)
