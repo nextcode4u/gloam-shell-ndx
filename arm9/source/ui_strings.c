@@ -72,25 +72,49 @@ static void load_catalog(UiLanguage *language, const char *path, bool enabled)
     memset(language, 0, sizeof *language);
     if (!enabled || !path)
         return;
-    FILE *file = fopen(path, "r");
+    FILE *file = fopen(path, "rb");
     if (!file)
         return;
-    UiLanguage *candidate = calloc(1, sizeof *candidate);
-    if (!candidate) {
+    char *data = malloc(32769);
+    if (!data) {
         fclose(file);
         return;
     }
-    char line[512];
-    unsigned bytes = 0;
+    size_t bytes = fread(data, 1, 32769, file);
+    bool readable = bytes && bytes <= 32768 && !ferror(file);
+    if (fclose(file))
+        readable = false;
+    if (!readable || memchr(data, 0, bytes)) {
+        free(data);
+        return;
+    }
+    data[bytes] = 0;
+    for (const char *cursor = data; *cursor;) {
+        const char *before = cursor;
+        text_next(&cursor);
+        if ((unsigned char)*before >= 128 && cursor == before + 1) {
+            free(data);
+            return;
+        }
+    }
+    UiLanguage *candidate = calloc(1, sizeof *candidate);
+    if (!candidate) {
+        free(data);
+        return;
+    }
     bool seen[UI_STRING_COUNT] = {0};
     bool valid = true, version = false;
-    while (fgets(line, sizeof line, file)) {
-        bytes += strlen(line);
-        if (bytes > 32768 || (!strchr(line, '\n') && !feof(file))) {
+    char *start = bytes >= 3 && !memcmp(data, "\xef\xbb\xbf", 3) ? data + 3 : data;
+    char *context = NULL;
+    for (char *line = strtok_r(start, "\n", &context); line;
+         line = strtok_r(NULL, "\n", &context)) {
+        size_t length = strlen(line);
+        if (length >= 511) {
             valid = false;
             break;
         }
-        line[strcspn(line, "\r\n")] = 0;
+        if (length && line[length - 1] == '\r')
+            line[length - 1] = 0;
         if (!*line || *line == '#' || *line == ';')
             continue;
         if (!strcmp(line, "version=1")) {
@@ -142,8 +166,7 @@ static void load_catalog(UiLanguage *language, const char *path, bool enabled)
         seen[key] = true;
         strcpy(candidate->values[key], value);
     }
-    valid &= version && !ferror(file);
-    fclose(file);
+    valid &= version;
     if (valid) {
         qsort(candidate->extra, candidate->extra_count, sizeof candidate->extra[0],
               translation_compare);
@@ -151,6 +174,7 @@ static void load_catalog(UiLanguage *language, const char *path, bool enabled)
         *language = *candidate;
     }
     free(candidate);
+    free(data);
 }
 
 bool ui_locale_valid(const char *id)

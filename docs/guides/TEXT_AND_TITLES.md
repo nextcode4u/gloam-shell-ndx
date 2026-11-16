@@ -174,3 +174,6 @@ or hyphens. Settings discovers up to 16 external catalogs from a bounded scan of
 256 directory records. Catalogs are capped at 32 KiB and rejected in full if
 malformed. Extra scripts still require a matching shared font pack; adding a
 translation does not imply complete Unicode coverage or RTL shaping.
+
+UTF-8 catalogs accept an optional initial BOM and LF/CRLF lines. Embedded NULs,
+invalid UTF-8 and oversized input are rejected before catalog state is applied.

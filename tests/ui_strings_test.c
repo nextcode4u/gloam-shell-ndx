@@ -160,6 +160,19 @@ int main(int argc, char **argv)
     catalog(argv[1], too_long);
     ui_language_load(&app.language, argv[1], true);
     assert(!app.language.loaded);
+    catalog(argv[1], "\xef\xbb\xbfversion=1\r\ngames=Jeux\r\n");
+    ui_language_load(&app.language, argv[1], true);
+    assert(app.language.loaded && !strcmp(ui_text(&app.language, UI_GAMES), "Jeux"));
+    char binary_path[PATH_CAP];
+    assert(path_preferences_file(binary_path, argv[1], "language.ini"));
+    const char binary_catalog[] = "version=1\ngames=Jeux\0hidden";
+    FILE *binary = fopen(binary_path, "wb");
+    assert(binary &&
+           fwrite(binary_catalog, 1, sizeof binary_catalog - 1, binary) ==
+               sizeof binary_catalog - 1 &&
+           !fclose(binary));
+    ui_language_load(&app.language, argv[1], true);
+    assert(!app.language.loaded);
     catalog(argv[1], "version=1\ngames=Jeux\n");
     app_init_mode(&app, argv[1], true, true, true);
     assert(!app.language.loaded && !strcmp(tabs_label(&app, CATEGORY_GAMES), "Games"));
