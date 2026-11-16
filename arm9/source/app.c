@@ -5,6 +5,7 @@
 #include "association_editor.h"
 #include "associations.h"
 #include "audio.h"
+#include "boot_profile.h"
 #include "browser.h"
 #include "cheats.h"
 #include "collections.h"
@@ -112,6 +113,7 @@ void app_init_progress(App *app, const char *root, bool storage, bool dsi, bool 
     app->storage_card_present = storage;
     app->system_title_requested = -1;
     app->dsi_mode = dsi;
+    boot_profile_enter(BOOT_CONFIG);
     char recovery_error[160] = "";
     if (storage && (!configuration_reset_recover(root, recovery_error) ||
                     !configuration_recover(root, recovery_error)))
@@ -125,15 +127,20 @@ void app_init_progress(App *app, const char *root, bool storage, bool dsi, bool 
     tabs_load(app);
     if (app->storage_ready)
         preferences_load(app);
+    boot_profile_leave(BOOT_CONFIG);
     if (progress)
         progress(app, context);
+    boot_profile_enter(BOOT_ASSOCIATIONS);
     if (app->storage_ready)
         associations_load(app);
+    boot_profile_leave(BOOT_ASSOCIATIONS);
     if (progress)
         progress(app, context);
+    boot_profile_enter(BOOT_DASHBOARD);
     dashboard_load(app);
     app->recovery_mode = recovery;
     collections_load(app);
+    boot_profile_leave(BOOT_DASHBOARD);
     if (progress)
         progress(app, context);
     if (recovery) {
@@ -156,7 +163,9 @@ void app_init_progress(App *app, const char *root, bool storage, bool dsi, bool 
     loading_progress = progress;
     loading_app = app;
     loading_context = context;
+    boot_profile_enter(BOOT_THEME);
     themes_init(app);
+    boot_profile_leave(BOOT_THEME);
     loading_progress = NULL;
     loading_app = NULL;
     loading_context = NULL;
@@ -173,7 +182,9 @@ void app_init_progress(App *app, const char *root, bool storage, bool dsi, bool 
         app->category = startup;
     app->detail_tab = app->tab_details[app->category];
     tabs_ensure_visible(app);
+    boot_profile_enter(BOOT_FOLDER);
     app_scan(app);
+    boot_profile_leave(BOOT_FOLDER);
     if (!recovery && app->category == saved_category)
         browser_restore_selection(app, selected_path);
     if (*recovery_error)

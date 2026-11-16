@@ -1,6 +1,7 @@
 /* Export only frontend runtime state. No BIOS, NAND, keys or file contents. */
 #include "diagnostics.h"
 #include "artwork.h"
+#include "boot_profile.h"
 #include "image_job.h"
 #include "paths.h"
 #include "script_fonts.h"
@@ -79,6 +80,7 @@ bool diagnostics_export(const App *app)
     FILE *file = fopen(temporary, "w");
     if (!file)
         return false;
+    const BootProfile *boot = boot_profile_get();
     unsigned icons = 0;
     for (int i = 0; i < ICON_CACHE_CAP; i++)
         icons += app->icons[i].ready;
@@ -105,6 +107,12 @@ bool diagnostics_export(const App *app)
             app->audio.effects_volume, app->system_catalog.attempted, app->system_catalog.ready,
             app->system_catalog.mount_error, app->launch.route, app->launch.arguments.count,
             (unsigned long)sizeof *app);
+    fprintf(file, "boot_complete=%d\nboot_total_ms=%lu\n", boot->complete,
+            (unsigned long)boot->total_ms);
+    for (int i = 0; i < BOOT_PHASE_COUNT; i++)
+        if (boot->measured & (1u << i))
+            fprintf(file, "boot_%s_ms=%lu\n", boot_profile_name(i),
+                    (unsigned long)boot->milliseconds[i]);
     fprintf(file, "script_font_glyphs=%u\nscript_font_bytes=%lu\nscript_font_attempts=%u\n",
             script_fonts_count(), (unsigned long)script_fonts_bytes(), script_fonts_attempted());
     fprintf(file, "artwork_decodes=%u\nartwork_disk_hits=%u\n", artwork_cache_decodes(),

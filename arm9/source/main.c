@@ -3,6 +3,7 @@
 #include "artwork.h"
 #include "association_editor.h"
 #include "audio.h"
+#include "boot_profile.h"
 #include "bootstrap.h"
 #include "browser.h"
 #include "cheats.h"
@@ -386,8 +387,11 @@ static void finish_splash(BootPresentation *boot)
     while (splash_playing(&boot->splash, splash_clock - boot->started,
                           !boot->preview && app.scan_directory, boot->preview || app.splash_once,
                           boot->skipped)) {
-        if (!boot->preview && app.scan_directory)
+        if (!boot->preview && app.scan_directory) {
+            boot_profile_enter(BOOT_FOLDER);
             browser_scan_step(&app);
+            boot_profile_leave(BOOT_FOLDER);
+        }
         /* While loading releases the browser as soon as its first scan is ready. */
         if (!boot->preview && !app.scan_directory && !app.splash_once)
             break;
@@ -404,11 +408,20 @@ static void finish_splash(BootPresentation *boot)
     splash_close(&boot->splash);
 }
 
+static uint32_t boot_clock_ms(void)
+{
+    return timerTicks2msec(cpuGetTiming());
+}
 int main(int argc, char **argv)
 {
     (void)argc;
     (void)argv;
     defaultExceptionHandler();
+    /* ARM9 timers 0/1 are reserved only until the first browser frame. Wi-Fi
+     * starts later; no project subsystem uses these timers during startup. */
+    cpuStartTiming(0);
+    boot_profile_begin(boot_clock_ms);
+    boot_profile_enter(BOOT_HARDWARE);
     /* Cooperative UI/network workers both wait for this IRQ. BIOS-only waits
      * did not require an explicit enabled VBlank source. */
     irqSet(IRQ_VBLANK, splash_vblank);
@@ -428,7 +441,10 @@ int main(int argc, char **argv)
     if (driver)
         driver->ioInterface.features = 0;
     __system_argv->argvMagic = 0;
+    boot_profile_leave(BOOT_HARDWARE);
+    boot_profile_enter(BOOT_SD);
     bool storage = fatInitDefault();
+    boot_profile_leave(BOOT_SD);
     char root[PATH_CAP] = "sd:/";
     if (storage) {
         char cwd[PATH_CAP];
@@ -448,7 +464,9 @@ int main(int argc, char **argv)
     BootPresentation boot = {.mainbg = mainbg, .subbg = subbg, .channel = -1};
     app_init_progress(&app, root, storage, isDSiMode(), (keysHeld() & KEY_SELECT) != 0,
                       present_splash, &boot);
+    boot_profile_enter(BOOT_SPLASH);
     finish_splash(&boot);
+    boot_profile_leave(BOOT_SPLASH);
     if (boot.recovery && !app.recovery_mode) {
         browser_scan_cancel(&app);
         installed_catalog_cancel(&app.installed_catalog);
@@ -460,6 +478,7 @@ int main(int argc, char **argv)
     artwork_cache_enable_async(true);
     int applied_scroll_speed = -1;
     bool library_jump_used = false, details_pending = false;
+    bool boot_finished = false;
     while (1) {
         /* Keep settings adjustment predictable even when browser scrolling is Fast. */
         int speed =
@@ -897,8 +916,17 @@ int main(int argc, char **argv)
         update_console_status();
         update_checker_tick();
         slot1_tick(&app, &slot1_probe, &slot1_operations);
+        if (!boot_finished)
+            boot_profile_enter(BOOT_AUDIO);
         update_launcher_audio();
+        if (!boot_finished)
+            boot_profile_leave(BOOT_AUDIO);
+        bool first_scan = !boot_finished && app.scan_directory;
+        if (first_scan)
+            boot_profile_enter(BOOT_FOLDER);
         app_tick(&app);
+        if (first_scan)
+            boot_profile_leave(BOOT_FOLDER);
         time_t now = time(NULL);
         struct tm *tm = localtime(&now);
         char clock[12] = "--:--";
@@ -910,6 +938,15 @@ int main(int argc, char **argv)
         swiWaitForVBlank();
         dmaCopy(top, bgGetGfxPtr(mainbg), sizeof top);
         dmaCopy(bottom, bgGetGfxPtr(subbg), sizeof bottom);
+        if (!boot_finished && !app.scan_directory) {
+            /* The 32-bit bus-clock counter wraps after about 128 seconds. */
+            if (splash_clock < 120 * 60)
+                boot_profile_finish();
+            else
+                boot_profile_begin(NULL);
+            cpuEndTiming();
+            boot_finished = true;
+        }
         cothread_yield();
     }
     return 0;

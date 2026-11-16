@@ -1,5 +1,6 @@
 /* Optional machine-wide script faces, independent of the active theme. */
 #include "script_fonts.h"
+#include "boot_profile.h"
 #include "paths.h"
 #include "text.h"
 #include <stdio.h>
@@ -48,7 +49,7 @@ void script_fonts_configure(const char *root, bool enabled)
     if (enabled && !path_join(directory, root, "_nds/dsi-frontend/fonts"))
         directory[0] = 0;
 }
-static void load_pack(ScriptFont *pack)
+static void read_pack(ScriptFont *pack)
 {
     pack->attempted = true;
     char path[PATH_CAP];
@@ -96,8 +97,11 @@ void script_fonts_prepare_text(const char *text)
     while (text && *text) {
         unsigned cp = text_next(&text);
         for (unsigned i = 0; i < sizeof packs / sizeof *packs; i++)
-            if (!packs[i].attempted && cp >= packs[i].first && cp <= packs[i].last)
-                load_pack(&packs[i]);
+            if (!packs[i].attempted && cp >= packs[i].first && cp <= packs[i].last) {
+                boot_profile_enter(BOOT_FONTS);
+                read_pack(&packs[i]);
+                boot_profile_leave(BOOT_FONTS);
+            }
     }
 }
 bool script_fonts_glyph(unsigned character, int row, unsigned *advance, uint32_t *coverage)
