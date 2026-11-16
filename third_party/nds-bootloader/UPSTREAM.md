@@ -2,6 +2,19 @@
 
 Loader: coderkei/nds-bootloader at 52fb19fc961a23643d7fe0601ff3d475aa21e121, from the AKMenu-Next submodule. Original linker script and LICENSE retained; the source has the marked compatibility backports below.
 
+The reset patches below were authored by [RocketRobz](https://github.com/RocketRobz)
+and retained in the Deletecat fork by [lifehackerhansol](https://github.com/lifehackerhansol).
+[Epicpkmn11](https://github.com/Epicpkmn11) discovered the exception-handler issue.
+The following Gloam commits adapt those patches; they do not originate the fixes.
+
+| Gloam adaptation | Original commit in Deletecat/nds-bootloader |
+| --- | --- |
+| [`df8562c`](https://github.com/nextcode4u/gloam-shell-ndx/commit/df8562c): exception pointer | [`00adcb7`](https://github.com/Deletecat/nds-bootloader/commit/00adcb7f0ff4943049b440859e26a8e51e2f1a58) |
+| [`82a7943`](https://github.com/nextcode4u/gloam-shell-ndx/commit/82a7943): sound capture | [`ba79fa3`](https://github.com/Deletecat/nds-bootloader/commit/ba79fa3592e56354ed68f9e6333d0720121eab73) |
+| [`55a233a`](https://github.com/nextcode4u/gloam-shell-ndx/commit/55a233a): ARM7/ARM9 IPC | [`3a251ec`](https://github.com/Deletecat/nds-bootloader/commit/3a251ec562f376ec8c44e539a3c90b7e88b75de1), [`ba79fa3`](https://github.com/Deletecat/nds-bootloader/commit/ba79fa3592e56354ed68f9e6333d0720121eab73) |
+| [`3bba447`](https://github.com/nextcode4u/gloam-shell-ndx/commit/3bba447): NDMA | [`d5171ee`](https://github.com/Deletecat/nds-bootloader/commit/d5171eeba7fb36370015ba8098656a1876ec25cc) |
+| [`0ba7e61`](https://github.com/nextcode4u/gloam-shell-ndx/commit/0ba7e61): geometry interrupts | [`63d3130`](https://github.com/Deletecat/nds-bootloader/commit/63d313003c3ac607601894f345a63e441b91acd7) |
+
 `source/boot.c` clears the previous ARM9 exception-handler pointer at
 `0x02FFFD9C` before loading the next application. This backports
 [RocketRobz's change, with discovery credited to Epicpkmn11](https://github.com/Deletecat/nds-bootloader/commit/00adcb7f0ff4943049b440859e26a8e51e2f1a58)
@@ -32,6 +45,12 @@ The ARM9 reset writes zero to `GFX_STATUS`, backporting
 to disable inherited geometry FIFO interrupt settings. This is not a complete
 geometry FIFO flush. Gloam retains coderkei's 16-bit video-register clearing
 loop that skips `VCOUNT`, together with the existing linker and return-stub layout.
+
+The pinned coderkei base already contains two additional fixes:
+- [coderkei's large-ARM9 argv fallback](https://github.com/coderkei/nds-bootloader/commit/52fb19fc961a23643d7fe0601ff3d475aa21e121).
+- [Deletecat's VCOUNT-skip adaptation](https://github.com/coderkei/nds-bootloader/commit/1fd73c4d635ce4f949e95a4da255e5538d98fcb9),
+  citing [RocketRobz's TWiLight Menu++ change](https://github.com/DS-Homebrew/TWiLightMenu/commit/38bb948144540ea2d48e6c79f3bd11ce2e0f9e78),
+  which credits [Antonio Niño Díaz's BlocksDS fix](https://github.com/blocksds/libnds/commit/2beb4bb6048c44a31b5eb7d4386096fa003303ec).
 
 Return stub: devkitPro/nds-hb-menu at 3c1f64c12da157fdd14a2d594db139f50e283261, bootstub/bootstub.s. Its source notice and COPYING are retained.
 

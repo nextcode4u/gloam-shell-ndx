@@ -144,7 +144,11 @@ Firmux, an earlier deprecated project by me.
 
 Game loading relies on **nds-bootstrap** by ahezard, RocketRobz and its
 contributors, **Simple DS Slot-1 Launcher** by Lorenzooone and its credited
-predecessors, and the **nds-bootloader/HBMenu** loader lineage. Gloam also uses
+predecessors, and the **nds-bootloader/HBMenu** loader lineage. The native loader
+includes **RocketRobz's reset fixes**, retained in Deletecat's fork, with
+**Epicpkmn11** credited for the exception-handler discovery. Exact authorship
+and backport commits are recorded in the [loader provenance](third_party/nds-bootloader/UPSTREAM.md).
+Gloam also uses
 TWiLight Menu++'s ROM save-size table. These contributions retain their names,
 copyright notices and licenses. See [credits](CREDITS.md) and the complete
 [third-party inventory](THIRD_PARTY.md).

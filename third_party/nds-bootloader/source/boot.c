@@ -195,7 +195,7 @@ void resetMemory_ARM7 (void)
 
 	REG_SOUNDCNT = 0;
 	// Local backport: stop inherited sound capture before clearing its buffers.
-	// Credit: RocketRobz; see UPSTREAM.md.
+	// Credit: RocketRobz, Deletecat/nds-bootloader ba79fa3; see UPSTREAM.md.
 	REG_SNDCAP0CNT = 0;
 	REG_SNDCAP1CNT = 0;
 	REG_SNDCAP0DAD = 0;
@@ -213,7 +213,7 @@ void resetMemory_ARM7 (void)
 	}
 
 	// Local backport: stop every NDMA channel before changing transfer registers.
-	// Credit: RocketRobz; disable-first ordering is local. See UPSTREAM.md.
+	// Credit: RocketRobz, Deletecat/nds-bootloader d5171ee; local disable-first order.
 	for (i=0; i<NDMA_MAX_CHANNELS; i++) {
 		REG_NDMA_CR(i) = 0;
 	}
@@ -227,7 +227,7 @@ void resetMemory_ARM7 (void)
 	}
 
 	// Local backport: discard the previous application's FIFO and sync state.
-	// Credit: RocketRobz; see UPSTREAM.md.
+	// Credit: RocketRobz, Deletecat/nds-bootloader 3a251ec; see UPSTREAM.md.
 	REG_IPC_SYNC = 0;
 	REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_SEND_CLEAR;
 	REG_IPC_FIFO_CR = 0;
@@ -235,7 +235,7 @@ void resetMemory_ARM7 (void)
 	arm7clearRAM();
 
 	// Local backport: the old ARM9 exception handler belongs to the unloaded app.
-	// Credit: RocketRobz / Epicpkmn11; see UPSTREAM.md.
+	// Credit: RocketRobz; discovery by Epicpkmn11. Upstream 00adcb7; see UPSTREAM.md.
 	*(vu32*)0x02FFFD9C = 0;
 	REG_IE = 0;
 	REG_IF = ~0;

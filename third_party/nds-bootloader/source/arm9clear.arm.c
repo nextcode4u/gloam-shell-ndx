@@ -36,7 +36,7 @@ void __attribute__ ((long_call)) __attribute__((naked)) __attribute__((noreturn)
 	}
 
 	// Local backport: stop every NDMA channel before changing transfer registers.
-	// Credit: RocketRobz; disable-first ordering is local. See UPSTREAM.md.
+	// Credit: RocketRobz, Deletecat/nds-bootloader d5171ee; local disable-first order.
 	for (i=0; i<NDMA_MAX_CHANNELS; i++) {
 		REG_NDMA_CR(i) = 0;
 	}
@@ -50,7 +50,7 @@ void __attribute__ ((long_call)) __attribute__((naked)) __attribute__((noreturn)
 	}
 
 	// Local backport: discard the previous application's FIFO and sync state.
-	// Credit: RocketRobz; see UPSTREAM.md.
+	// Credit: RocketRobz, Deletecat/nds-bootloader ba79fa3; see UPSTREAM.md.
 	REG_IPC_SYNC = 0;
 	REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_SEND_CLEAR;
 	REG_IPC_FIFO_CR = 0;
@@ -73,7 +73,7 @@ void __attribute__ ((long_call)) __attribute__((naked)) __attribute__((noreturn)
 	
 	REG_DISPSTAT = 0;
 	// Local backport: disable inherited geometry FIFO interrupt settings.
-	// Credit: RocketRobz; see UPSTREAM.md.
+	// Credit: RocketRobz, Deletecat/nds-bootloader 63d3130; see UPSTREAM.md.
 	GFX_STATUS = 0;
 
 	VRAM_A_CR = 0;

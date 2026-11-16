@@ -32,6 +32,14 @@ Actual source reuse is identified separately below and in THIRD_PARTY.md.
 - [nds-bootloader](https://github.com/coderkei/nds-bootloader) and
   [nds-hb-menu](https://github.com/devkitPro/nds-hb-menu): native homebrew
   handoff and return bootstub; inherited notices remain in third_party/.
+- [RocketRobz](https://github.com/RocketRobz): exception-handler, sound-capture,
+  IPC, NDMA and geometry-interrupt reset fixes adapted from
+  [Deletecat/nds-bootloader](https://github.com/Deletecat/nds-bootloader),
+  where lifehackerhansol retained them. [Epicpkmn11](https://github.com/Epicpkmn11)
+  identified the stale exception-handler issue. Deletecat, RocketRobz and
+  Antonio Niño Díaz supplied the inherited VCOUNT-reset correction; coderkei
+  supplied the large-ARM9 argv fallback. The [loader provenance](third_party/nds-bootloader/UPSTREAM.md)
+  maps each Gloam backport to its original commit.
 - TWiLight Menu++ / Arisotura: ROM save-memory table.
 - Lode Vandevenne / LodePNG and Sean Barrett / stb contributors: image decoding.
 - Kevin MacLeod (incompetech.com): most theme background tracks, CC-BY-4.0;
