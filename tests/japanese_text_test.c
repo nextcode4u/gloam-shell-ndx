@@ -1,6 +1,7 @@
 /* Japanese fallback metrics, UTF-16 titles and framebuffer-safe mixed text. */
 #include "../arm9/source/ui/drawing.h"
 #include "font_pack.h"
+#include "script_fonts.h"
 #include "text.h"
 #include <assert.h>
 #include <stdio.h>
@@ -11,8 +12,11 @@ static struct {
     uint16_t pixels[256 * 192];
     unsigned after;
 } screen;
-int main(void)
+int main(int argc, char **argv)
 {
+    assert(argc == 2);
+    script_fonts_configure(argv[1], true);
+    script_fonts_prepare_text("本体設定");
     font_builtin(&body);
     heading = body;
     heading.height = 16;

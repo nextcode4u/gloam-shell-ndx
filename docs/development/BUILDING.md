@@ -193,3 +193,9 @@ Cycles exercise repeated theme changes and selection movement. On glibc hosts,
 heap samples report retained allocations after warm-up, at the end and the
 largest sampled value; these exclude transient peaks between samples and are
 not DS memory measurements.
+
+External-script-font builds require the matching `sdroot/_nds/dsi-frontend/fonts/`
+files on existing cards, including BOOT.NDS-only upgrades from embedded-font
+versions. SD packages include both packs. Theme fonts are unchanged. Generate
+and verify packs using `tools/make_japanese_font.py` and `tools/pack_script_fonts.py`;
+font licenses/source notices remain in the combined source and license archives.

@@ -120,7 +120,7 @@ not the separate language passed to games or used for their title banners.
 ## Japanese titles and interface
 
 Japanese names work automatically in both English and translated interfaces.
-No theme conversion, SD font installation or console-language change is needed.
+No theme conversion or console-language change is needed. Install the shared script font packs with BOOT.NDS.
 A shared read-only M+ bitmap table supplies 6,817 kana, JIS kanji, punctuation
 and halfwidth katakana glyphs at the existing 12-pixel body height. Fullwidth
 glyphs advance 12 pixels, halfwidth kana advance six, and headings align this
@@ -137,3 +137,22 @@ which banner field to read; it does not select the interface language.
 [Font attribution and source details](../../third_party/mplus-bitmap/UPSTREAM.md).
 Regenerate the shared table with `python3 tools/make_japanese_font.py`; `--check`
 verifies the pinned input hashes and generated data without network access.
+
+## External script fonts
+
+Shared fallbacks live in `/_nds/dsi-frontend/fonts/japanese.gsf` and
+`extended.gsf` (Latin Extended-A, Greek and Cyrillic). Install these alongside
+BOOT.NDS when upgrading an older SD setup. Theme body/heading fonts remain
+independent. The controller loads a script once when visible names or an
+interface catalog need it; rendering performs no filesystem reads. Missing or
+invalid packs use question marks and do not repeatedly reopen the failed file.
+Recovery deliberately bypasses external scripts and retains built-in ASCII and
+Latin-1. Returning to normal startup reloads scripts as needed.
+
+`GSFONT01` uses a 20-byte little-endian header: eight-byte magic, glyph count,
+FNV-1a payload checksum, height (12), coverage depth (1 or 2), and two zero bytes.
+Each 29-byte record contains a 32-bit Unicode scalar, byte advance, and twelve
+16-bit rows. Scalars must be unique and sorted; rows must fit the advance and
+depth. Packs are bounded to 16,384 glyphs each. Checksums detect corruption,
+not authenticity. Japanese and extended source attribution remains unchanged.
+Regenerate with `tools/make_japanese_font.py` and `tools/pack_script_fonts.py`.

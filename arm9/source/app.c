@@ -23,6 +23,7 @@
 #include "paths.h"
 #include "picker.h"
 #include "preferences.h"
+#include "script_fonts.h"
 #include "settings.h"
 #include "splash.h"
 #include "startup.h"
@@ -115,7 +116,12 @@ void app_init_progress(App *app, const char *root, bool storage, bool dsi, bool 
     if (storage && (!configuration_reset_recover(root, recovery_error) ||
                     !configuration_recover(root, recovery_error)))
         app->storage_ready = false;
+    script_fonts_configure(root, app->storage_ready && !recovery);
     ui_language_load(&app->language, root, app->storage_ready && !recovery);
+    for (int i = 0; i < UI_STRING_COUNT; i++)
+        script_fonts_prepare_text(app->language.values[i]);
+    for (unsigned i = 0; i < app->language.extra_count; i++)
+        script_fonts_prepare_text(app->language.text + app->language.extra[i].offset);
     tabs_load(app);
     if (app->storage_ready)
         preferences_load(app);
@@ -793,8 +799,30 @@ void app_panel_activate(App *app)
         app_panel_close(app);
 }
 
+/* Only visible labels are inspected; font I/O never belongs to the renderer. */
+static void prepare_script_fonts(const App *app)
+{
+    if (!app->storage_ready || app->storage_lost || app->recovery_mode)
+        return;
+    script_fonts_prepare_text(app->title);
+    script_fonts_prepare_text(app->message);
+    script_fonts_prepare_text(app->info_title);
+    script_fonts_prepare_text(app->themes.active.name);
+    for (int i = 0; i < app->tab_count; i++)
+        script_fonts_prepare_text(tabs_label(app, i));
+    int first = app->locations[app->category].scroll;
+    int count = layout_visible_rows(app);
+    for (int i = first; i < app->entry_count && i < first + count; i++) {
+        script_fonts_prepare_text(app->entries[i].name);
+        script_fonts_prepare_text(app->entries[i].internal_title);
+    }
+    if (app->picker.open)
+        for (int i = app->picker.scroll; i < app->picker.count && i < app->picker.scroll + 7; i++)
+            script_fonts_prepare_text(app->picker.entries[i].name);
+}
 void app_tick(App *app)
 {
+    prepare_script_fonts(app);
     app->frame_count++;
     artwork_cache_update();
     themes_tick(app);
@@ -809,6 +837,7 @@ void app_tick(App *app)
         return;
     if (app->picker.open) {
         picker_tick(app);
+        prepare_script_fonts(app);
         return;
     }
     if (app->scan_directory) {
@@ -818,6 +847,7 @@ void app_tick(App *app)
     if (!app->settings.open) {
         icons_tick(app);
         title_metadata_tick(app);
+        prepare_script_fonts(app);
     }
     if (app->browser_style == BROWSER_INDEX && app->library_index_dirty)
         browser_index_rebuild(app);

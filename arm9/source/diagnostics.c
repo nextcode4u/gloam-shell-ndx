@@ -3,6 +3,7 @@
 #include "artwork.h"
 #include "image_job.h"
 #include "paths.h"
+#include "script_fonts.h"
 #include <stdio.h>
 #ifndef HOST_PREVIEW
 #include <blocksds_version.h>
@@ -104,6 +105,8 @@ bool diagnostics_export(const App *app)
             app->audio.effects_volume, app->system_catalog.attempted, app->system_catalog.ready,
             app->system_catalog.mount_error, app->launch.route, app->launch.arguments.count,
             (unsigned long)sizeof *app);
+    fprintf(file, "script_font_glyphs=%u\nscript_font_bytes=%lu\nscript_font_attempts=%u\n",
+            script_fonts_count(), (unsigned long)script_fonts_bytes(), script_fonts_attempted());
     fprintf(file, "artwork_decodes=%u\nartwork_disk_hits=%u\n", artwork_cache_decodes(),
             artwork_cache_disk_hits());
     fprintf(file, "artwork_decoder_yields=%u\n", image_job_yields());

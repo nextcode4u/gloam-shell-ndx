@@ -1,5 +1,6 @@
 #include "../arm9/source/ui/drawing.h"
 #include "font_pack.h"
+#include "script_fonts.h"
 #include "text.h"
 #include <assert.h>
 #include <stdio.h>
@@ -27,8 +28,11 @@ static void check_scroll(unsigned frames, int offset)
                    (x >= 20 && x < 41 ? expected[y * 256 + x] : 0x8421));
     assert(screen.before == 0xDEADBEEF && screen.after == 0xDEADBEEF);
 }
-int main(void)
+int main(int argc, char **argv)
 {
+    assert(argc == 2);
+    script_fonts_configure(argv[1], true);
+    script_fonts_prepare_text("ĀΩЯ");
     assert(text_length("Caf\xC3\xA9") == 4);
     assert(text_prefix_bytes("\xC3\xA9Z", 1) == 2);
     const char *emoji = "\xF0\x9F\x8E\xAE";

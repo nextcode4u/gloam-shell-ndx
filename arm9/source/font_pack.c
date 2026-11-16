@@ -1,9 +1,8 @@
 /* Bounded bitmap metrics; the recovery face is always available without I/O. */
 #include "font_pack.h"
+#include "script_fonts.h"
 #include "text.h"
 #include "ui/font.h"
-#include "ui/font_extended.h"
-#include "ui/font_japanese.h"
 #include "ui/font_latin.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,40 +36,13 @@ unsigned font_height(const FontPack *font)
     return font ? font->height : FONT_HEIGHT;
 }
 
-static unsigned extended_index(unsigned character)
-{
-    unsigned index = 528;
-    if (character >= 0x100 && character < 0x180)
-        index = character - 0x100;
-    else if (character >= 0x370 && character < 0x500)
-        index = 128 + character - 0x370;
-    return index < 528 && ui_font_extended_supported[index] ? index : 528;
-}
-
-static int japanese_index(unsigned character)
-{
-    if (character < 0x2000 || character > 0xFFFF)
-        return -1;
-    unsigned low = 0, high = JAPANESE_GLYPH_COUNT;
-    while (low < high) {
-        unsigned middle = low + (high - low) / 2;
-        unsigned value = japanese_codepoints[middle];
-        if (value == character)
-            return (int)middle;
-        if (value < character)
-            low = middle + 1;
-        else
-            high = middle;
-    }
-    return -1;
-}
-
 unsigned font_advance(const FontPack *font, unsigned character)
 {
-    int japanese = japanese_index(character);
-    if (japanese >= 0)
-        return japanese_advances[japanese];
-    if (!font || extended_index(character) < 528)
+    unsigned advance;
+    uint32_t coverage;
+    if (script_fonts_glyph(character, -1, &advance, &coverage))
+        return advance;
+    if (!font)
         return FONT_WIDTH;
     unsigned glyph;
     if (character >= 160 && character <= 255) {
@@ -89,21 +61,11 @@ uint32_t font_glyph_row(const FontPack *font, unsigned character, int row)
 {
     if (row < 0 || row >= (int)font_height(font))
         return 0;
-    int japanese = japanese_index(character);
-    if (japanese >= 0) {
-        int native_row = row - ((int)font_height(font) - FONT_HEIGHT);
-        if (native_row < 0)
-            return 0;
-        unsigned bits = japanese_rows[japanese][native_row];
-        static const uint8_t coverage[16] = {0,   3,   12,  15,  48,  51,  60,  63,
-                                             192, 195, 204, 207, 240, 243, 252, 255};
-        return coverage[bits & 15] | ((uint32_t)coverage[(bits >> 4) & 15] << 8) |
-               ((uint32_t)coverage[(bits >> 8) & 15] << 16);
-    }
-    unsigned extended = extended_index(character);
+    unsigned advance;
+    uint32_t coverage;
     int fallback_row = row - ((int)font_height(font) - FONT_HEIGHT);
-    if (extended < 528)
-        return fallback_row >= 0 ? ui_font_extended[extended][fallback_row] : 0;
+    if (script_fonts_glyph(character, fallback_row, &advance, &coverage))
+        return coverage;
     if (character >= 160 && character <= 255) {
         unsigned glyph = FONT_ASCII_GLYPHS + character - 160;
         return font && font->glyph_count == FONT_GLYPHS ? font->rows[glyph][row]
