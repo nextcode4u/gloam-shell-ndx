@@ -42,7 +42,12 @@ def main():
             (card / '_nds/dsi-frontend/state.ini').write_text(
                 f'version=1\ntheme_id={theme}\ncategory=1\nbrowser_style=3\nicon_size=1\n')
             output = subprocess.check_output([str(preview), str(card), str(card/'unused'), '1', 'profile', str(args.cycles)], text=True)
-            results['themes'][theme] = json.loads(output)
+            result = json.loads(output)
+            if args.cycles and (result.get('theme_changes', -1) < args.cycles // 2 or
+                                result['locale_changes'] != args.cycles or
+                                result['preview_cancellations'] != (args.cycles + 3) // 4):
+                raise RuntimeError('Soak did not exercise its requested transitions')
+            results['themes'][theme] = result
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(results, indent=2)+'\n')
     print(json.dumps(results, indent=2))

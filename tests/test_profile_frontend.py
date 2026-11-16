@@ -30,5 +30,9 @@ class FrontendProfileTests(unittest.TestCase):
                            check=True,capture_output=True)
             for sample in json.loads(output.read_text())['themes'].values():
                 self.assertEqual(sample['cycles'],2)
+                self.assertEqual(sample['theme_changes'],2)
+                self.assertEqual(sample['preview_cancellations'],1)
+                self.assertEqual(sample['locale_changes'],2)
+                self.assertFalse(sample['heap_comparable'])
                 self.assertGreaterEqual(sample['sampled_heap_peak_bytes'],sample['heap_end_bytes'])
                 self.assertLessEqual(sample['visible_batch_items'],512)

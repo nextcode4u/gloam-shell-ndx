@@ -199,3 +199,10 @@ files on existing cards, including BOOT.NDS-only upgrades from embedded-font
 versions. SD packages include both packs. Theme fonts are unchanged. Generate
 and verify packs using `tools/make_japanese_font.py` and `tools/pack_script_fonts.py`;
 font licenses/source notices remain in the combined source and license archives.
+
+For a transition soak, use `tools/profile_frontend.py --items 10000 --mixed
+--cycles 960`. The profiler verifies real preview/apply/cancel and language
+transitions, reloads audio and alternates icon labels. Compare retained heap
+samples only when `heap_comparable` is true: snapshots then share theme, language,
+label and selection phases. Allocator/cache variance remains possible. These are
+host CPU/filesystem observations, not DSi timings or total peak RAM/VRAM.

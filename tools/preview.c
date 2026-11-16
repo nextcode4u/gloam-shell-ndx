@@ -2,10 +2,12 @@
 #include "artwork.h"
 #include "audio.h"
 #include "browser.h"
+#include "localization.h"
 #include "paths.h"
 #include "picker.h"
 #include "preferences.h"
 #include "renderer.h"
+#include "script_fonts.h"
 #include "settings.h"
 #include "theme_motion.h"
 #include "themes.h"
@@ -50,6 +52,16 @@ static size_t heap_bytes(void)
 #endif
 }
 
+static unsigned common_period(unsigned left, unsigned right)
+{
+    unsigned a = left, b = right;
+    while (b) {
+        unsigned remainder = a % b;
+        a = b;
+        b = remainder;
+    }
+    return left / a * right;
+}
 int main(int argc, char **argv)
 {
     if (argc < 3) {
@@ -93,10 +105,54 @@ int main(int argc, char **argv)
         if (cycles > 1000)
             return 2;
         size_t heap_warm = 0, heap_end = 0, heap_peak = 0;
+        unsigned theme_changes = 0, cancellations = 0, locale_changes = 0;
+        /* Compare equal theme, language, label and selection phases, rather than
+         * interpreting different retained artwork as a memory leak. */
+        themes_open(&app);
+        unsigned theme_count = app.themes.count;
+        themes_cancel(&app);
+        unsigned period = common_period(app.entry_count ? app.entry_count : 1, 32) / 32;
+        period = common_period(period, theme_count ? theme_count : 1);
+        period = common_period(period, 3);
+        period = common_period(period, 2);
         for (unsigned cycle = 0; cycle < cycles; cycle++) {
             themes_open(&app);
             themes_move(&app, (int)(cycle % (unsigned)app.themes.count) - app.themes.selected);
+            char previous[THEME_ID_CAP], selected[THEME_ID_CAP];
+            path_copy(previous, app.theme_id, sizeof previous);
+            path_copy(selected, app.themes.ids[app.themes.selected], sizeof selected);
+            themes_preview(&app);
+            if (!app.themes.ready) {
+                fprintf(stderr, "Profile preview failed: %s\n", app.themes.status);
+                return 3;
+            }
+            if (cycle % 4 == 0) {
+                themes_cancel(&app);
+                if (strcmp(app.theme_id, previous))
+                    return 3;
+                cancellations++;
+                themes_open(&app);
+                for (int i = 0; i < app.themes.count; i++)
+                    if (!strcmp(app.themes.ids[i], selected)) {
+                        themes_move(&app, i - app.themes.selected);
+                        break;
+                    }
+                themes_preview(&app);
+                if (!app.themes.ready)
+                    return 3;
+            }
             themes_apply(&app);
+            if (strcmp(app.theme_id, selected))
+                return 3;
+            theme_changes += strcmp(previous, app.theme_id) != 0;
+            static const char *locales[] = {"en", "ja", "es"};
+            path_copy(app.interface_language, locales[cycle % 3], sizeof app.interface_language);
+            localization_load(&app);
+            app_scan(&app);
+            locale_changes++;
+            app.show_icon_labels = (cycle % 2) != 0;
+            app.audio.mode = MUSIC_THEME;
+            audio_reload(&app);
             for (unsigned step = 0; step < 32; step++) {
                 if (app.entry_count)
                     app_move(&app, (int)(((cycle * 32 + step) * 17) % (unsigned)app.entry_count) -
@@ -107,7 +163,7 @@ int main(int argc, char **argv)
             }
 #ifdef __GLIBC__
             heap_end = heap_bytes();
-            if (cycle == 11)
+            if (cycle + 1 == period)
                 heap_warm = heap_end;
             if (heap_end > heap_peak)
                 heap_peak = heap_end;
@@ -127,11 +183,15 @@ int main(int argc, char **argv)
                ".4f,"
                "\"app_state_bytes\":%zu,\"framebuffer_bytes\":%zu,\"visible_batch_items\":%d,"
                "\"audio_load_ms\":%.3f,\"deferred_setup_ms\":%.3f,\"theme_heap_bytes\":%zu,"
-               "\"cycles\":%u,\"heap_warm_bytes\":%zu,"
+               "\"heap_comparison_period\":%u,\"heap_comparable\":%s,\"cycles\":%u,\"theme_"
+               "changes\":%u,\"preview_cancellations\":%u,\"locale_changes\":"
+               "%u,\"script_font_bytes\":%zu,\"heap_warm_bytes\":%zu,"
                "\"heap_end_bytes\":%zu,\"sampled_heap_peak_bytes\":%zu}\n",
                ready - started, render_started - ready, (milliseconds() - render_started) / 300,
                slowest, sizeof app, sizeof top + sizeof bottom, app.entry_count,
-               audio_ready - ready, deferred_ready - audio_ready, theme_heap, cycles, heap_warm,
+               audio_ready - ready, deferred_ready - audio_ready, theme_heap, period,
+               cycles >= 2 * period && cycles % period == 0 ? "true" : "false", cycles,
+               theme_changes, cancellations, locale_changes, script_fonts_bytes(), heap_warm,
                heap_end, heap_peak);
         return 0;
     }
