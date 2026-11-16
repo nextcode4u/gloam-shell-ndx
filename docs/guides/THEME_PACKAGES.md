@@ -22,7 +22,8 @@ TWiLight theme files directly. Required navigation keeps its shared geometry.
 
 Packages live at `_nds/dsi-frontend/themes/<id>/theme.ini`. IDs use ASCII letters,
 numbers, hyphens and underscores and are at most 63 bytes. The chooser includes
-Built-in and the alphabetically first 23 valid package directory names. It reads
+Built-in and the alphabetically first 64 valid package directory names.
+This capacity is available in source builds after 1.1.0; 1.1.0 lists 23 installed packages. It reads
 one selected package at a time; startup does not scan all installed themes.
 
 ```ini

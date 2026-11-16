@@ -385,6 +385,31 @@ int main(int argc, char **argv)
         assert(!app.themes.ready);
         themes_cancel(&app);
     }
+    /* More than a screenful or the installed limit must remain selectable,
+     * sorted and bounded; retain the first 64 directory IDs deterministically. */
+    for (int i = 69; i >= 0; i--) {
+        char relative[128], directory[PATH_CAP];
+        snprintf(relative, sizeof relative, "_nds/dsi-frontend/themes/cap-%02d", i);
+        assert(path_join(directory, root, relative) && !mkdir(directory, 0777));
+        strncat(relative, "/theme.ini", sizeof relative - strlen(relative) - 1);
+        write_text(root, relative, "[theme]\nversion=1\n");
+    }
+    themes_open(&app);
+    assert(app.themes.count == 65 && !*app.themes.ids[0]);
+    assert(!strcmp(app.themes.ids[1], "cap-00"));
+    assert(!strcmp(app.themes.ids[64], "cap-63"));
+    themes_move(&app, 64);
+    assert(app.themes.selected == 64 && app.themes.scroll > 0);
+    themes_preview(&app);
+    assert(app.themes.ready && !strcmp(app.themes.candidate.id, "cap-63"));
+    themes_apply(&app);
+    assert(app_save(&app));
+    app_init(&restored, root, true, true);
+    assert(!strcmp(restored.theme_id, "cap-63"));
+    themes_open(&app);
+    themes_move(&app, 1);
+    assert(app.themes.selected == 0);
+    themes_cancel(&app);
     puts("PASS: theme preview/apply/cancel, validated fonts/contrast, persistence and recovery "
          "isolation");
 }

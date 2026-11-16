@@ -230,7 +230,7 @@ typedef enum {
     QUICK_SETTINGS,
     QUICK_CONTROL_COUNT
 } QuickControl;
-#define THEME_CAP 24
+#define THEME_CAP 65 /* Built-in plus 64 installed packages. */
 #define THEME_ID_CAP 64
 typedef struct {
     uint16_t bg, surface, line, text, muted, accent, ink;
