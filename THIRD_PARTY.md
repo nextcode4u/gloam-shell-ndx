@@ -15,7 +15,7 @@ Licenses apply per component, not simply according to Gloam's root LICENSE.
 | BlocksDS / libnds / SD driver | [BlocksDS SDK](https://codeberg.org/blocksds/sdk), [libnds e478cc66](https://github.com/blocksds/libnds/tree/e478cc660a8c7254fbffc54bda3ce0b93ab14c15) | Zlib-style notices plus the linked FatFs terms; local driver changes marked. SDK build is 1.25.0. |
 | CRT / C and compiler runtimes | Sources/pins in third_party/blocksds/UPSTREAM.md | CRT Zlib/MPL-2.0; picolibc per-file BSD/permissive collection; GCC runtime GPLv3 with Runtime Library Exception. Full notices retained. |
 | Optional helper SDK libraries | [Maxmod](https://codeberg.org/blocksds/maxmod), [DSWifi](https://codeberg.org/blocksds/dswifi) | ISC; MIT with lwIP BSD and Mbed TLS Apache-2.0 OR GPL-2.0-or-later components. Full installed-SDK notices retained; verify actual helper link inputs at release. |
-| PNG decoder | [LodePNG](https://github.com/lvandeve/lodepng), 20230410 | Zlib; locally modified cooperative decoding. Source and standalone LICENSE retained. |
+| PNG decoder | [LodePNG 20261102](https://github.com/lvandeve/lodepng/tree/7b2893e35891c0c85bee5595caafaf3c2044b409) | Zlib; locally modified cooperative decoding. Source and standalone LICENSE retained. |
 | JPEG decoder | [nothings/stb, 4e9b368b](https://github.com/nothings/stb/tree/4e9b368bfc071e97206ea5c6adba68dd0cbf8897) | MIT OR Unlicense; locally modified cooperative decoding. Both notices retained in header and LICENSE. |
 | ROM save table | [TWiLightMenu, 22979a2b](https://github.com/DS-Homebrew/TWiLightMenu/tree/22979a2b800f1d8a598d1a1778ee6d7ea079d5fe) | GPL-3.0-or-later; table/source and COPYING retained. |
 | Cheat-format reference | [AKMenu Next, c884c092](https://github.com/coderkei/akmenu-next/tree/c884c092e1bf1b172f9a2464f74c13ce53124400) | GPL-3.0-or-later reference; retained attribution below. No third-party cheat database is bundled. |
@@ -38,7 +38,7 @@ and upstream source references. The modified SD driver retains its separate noti
 
 ## LodePNG
 
-`third_party/lodepng/lodepng.c` and `.h` are based on LodePNG 20230410 by Lode Vandevenne, retained via the BlocksDS PNG example. Their complete license is retained in both source files. Encoder and ancillary-chunk support are disabled at compile time.
+`third_party/lodepng/lodepng.c` and `.h` are based on LodePNG 20261102 by Lode Vandevenne; the exact source revision is recorded in its UPSTREAM.md. Their complete license is retained in both source files. Encoder and ancillary-chunk support are disabled at compile time.
 
 ## DejaVu Sans Mono
 
