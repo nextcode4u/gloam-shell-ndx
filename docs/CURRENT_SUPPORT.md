@@ -1,12 +1,13 @@
 # Current support
 
-Gloam Shell NDX 1.0 includes the browser, settings and launch adapters described
-below. Physical DSi validation covers one reported setup; broader checks continue. A listed route is not
+This source tree includes the browser, settings and launch adapters described
+below. Check the [latest release notes](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest)
+for the features available in the published binary. Physical DSi validation covers one reported setup; broader checks continue. A listed route is not
 a guarantee for every title, boot method or application build.
 
 | Area | Support and limits |
 | --- | --- |
-| Browser | Classic, Extended, List, Grid and a centered horizontal cover Shelf and Library Index; small/large icons, folder tabs, touch, looping labels, native banners, custom icons and covers. |
+| Browser | Classic, Extended, List, Grid and a centered horizontal cover Shelf and Library Index; small/medium/large icons, folder tabs, touch, looping labels, native banners, custom icons and covers. |
 | Themes | Versioned palette/font packs, wallpapers, distinct icon packs with native-banner priority, modular nine-slice UI components, audio cues/music, bounded layout defaults and personal presets. Fixed-cell ASCII/Latin-1 faces with shared Latin Extended-A, Greek and Cyrillic fallback; Partial UTF-8 interface catalogs cover navigation, settings labels/help, common values, sections, quick controls, item actions and game-option help with English fallback and a Spanish catalog; Shared Japanese kana/JIS-kanji fallback works with all themes, with an optional Japanese starter catalog; other CJK/RTL and full UI localization remain future work. |
 | Homebrew | Native DSi-SD handoff and argv; return requires a compatible application. Direct ROM associations, saves and supported return routes were reported working for the tested homebrew/emulators on the hardware setup below. Flashcart/DLDI and DS-mode behavior are not general compatibility claims. |
 | Retail DS | nds-bootstrap adapter, options, saves and cheats. The unmodified official backend has reached retail gameplay, its menu, Quit, warm relaunch and cold save readback in a development emulator composition. Retail launch, gameplay, save, cold save reload and Quit/return were also reported working on the hardware setup below; broader title and console compatibility remain unverified. The packaged official binary contains no private experimental patches. |

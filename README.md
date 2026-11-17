@@ -27,7 +27,7 @@ Each theme includes previews, installation instructions and asset credits.
 
 ## Features
 
-- Two-screen browser with Classic, Extended, List, Grid, Cover Shelf and Library Index views, small/large
+- Two-screen browser with Classic, Extended, List, Grid, Cover Shelf and Library Index views, small/medium/large
   icons, looping text and configurable folder tabs.
 - Themes with palettes, proportional body/heading fonts, translucent components,
   independent screen opacity, layout presets, backgrounds, music and UI sounds; personal
@@ -44,7 +44,7 @@ Each theme includes previews, installation instructions and asset credits.
 - Favorites and recent items, configuration export/import, recovery mode,
   hidden/save/BIOS folder filters and adjustable scrolling.
 
-**1.0 release:** [Download Gloam Shell NDX](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest).
+**Latest release:** [Download Gloam Shell NDX](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest).
 Core launch, save, settings and sleep routes have passed reported tests on a
 Japanese DSi LL with Unlaunch and an English-patched menu. Compatibility depends
 on the title, backend and boot environment; see [current support](docs/CURRENT_SUPPORT.md)
