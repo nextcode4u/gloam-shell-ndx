@@ -17,6 +17,7 @@
 #include "grid.h"
 #include "icons.h"
 #include "image_job.h"
+#include "inspection.h"
 #include "installed_titles.h"
 #include "item_preferences.h"
 #include "launch.h"
@@ -213,6 +214,7 @@ void app_init(App *app, const char *root, bool storage, bool dsi)
 
 void app_category(App *app, int c)
 {
+    inspection_close(app);
     app->collection_open = -1;
     app->tab_text_started_frame = app->frame_count;
     app->rail_focus = false;
@@ -324,6 +326,7 @@ void app_page(App *app, int direction)
 
 void app_panel(App *app, Panel p)
 {
+    inspection_close(app);
     /* Editors/pickers retain their underlying menu. Info and message overlays
      * replace it, so remember the item-menu row until that overlay is dismissed. */
     if (p == PANEL_INFO || p == PANEL_MESSAGE) {
@@ -370,10 +373,14 @@ void app_panel(App *app, Panel p)
     app->panel_scroll = 0;
     app->panel_age = 0;
     app->selection_idle_frames = 0;
+    const Entry *inspected = app_selected(app);
+    if (p == PANEL_INFO && inspected && inspected->kind == ITEM_FILE)
+        inspection_prepare(app, inspected->path);
 }
 
 void app_panel_close(App *app)
 {
+    inspection_close(app);
     bool return_to_actions = app->panel != PANEL_NONE && app->panel_parent == PANEL_ACTIONS;
     int selected = app->panel_parent_selection, scroll = app->panel_parent_scroll;
     app->panel = app->panel_parent = PANEL_NONE;
@@ -695,6 +702,11 @@ bool app_adjust_control(App *app, QuickControl control, int direction)
 
 void app_panel_adjust(App *app, int direction)
 {
+    if (app->panel == PANEL_INFO && app->inspection && direction) {
+        app->panel_selection ^= 1;
+        app->panel_age = 0;
+        return;
+    }
     if (app->panel == PANEL_QUICK)
         app_adjust_control(app, app->panel_selection, direction);
 }

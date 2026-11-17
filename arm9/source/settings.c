@@ -1,5 +1,4 @@
 /* Full settings controller. Every editable option changes real frontend behavior. */
-#include "settings.h"
 #include "app.h"
 #include "appearance.h"
 #include "artwork.h"
@@ -15,11 +14,13 @@
 #include "diagnostics.h"
 #include "game_options.h"
 #include "icons.h"
+#include "inspection.h"
 #include "launch.h"
 #include "localization.h"
 #include "paths.h"
 #include "picker.h"
 #include "preferences.h"
+#include "settings.h"
 #include "splash.h"
 #include "tabs.h"
 #include "themes.h"
@@ -604,6 +605,7 @@ const SettingsOption *settings_option(const App *app, int section, int index)
 }
 void settings_open(App *app)
 {
+    inspection_close(app);
     if (app->rail_focus)
         app_rail_toggle(app);
     app->panel = PANEL_NONE;

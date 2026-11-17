@@ -173,6 +173,10 @@ typedef struct {
     GameOptions options;
     uint32_t save_bytes, private_bytes;
 } LaunchPlan;
+typedef struct {
+    char reason[160], rule[PATH_CAP], application[PATH_CAP], backend[80];
+    char save[PATH_CAP], private_save[PATH_CAP], status[160];
+} LaunchExplanation;
 typedef enum {
     PICKER_COVER,
     PICKER_APPLICATION,
@@ -357,6 +361,7 @@ typedef struct {
     char favorites[FAVORITE_CAP][PATH_CAP];
     int favorite_count;
     Panel panel, panel_parent;
+    LaunchExplanation *inspection; /* Allocated only while inspecting a file. */
     int panel_parent_selection, panel_parent_scroll;
     bool action_enabled[ACTION_COUNT];
     int panel_selection, panel_scroll, accent_index, detail_tab;

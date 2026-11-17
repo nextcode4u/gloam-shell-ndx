@@ -14,6 +14,7 @@ int association_choices(const App *app, const char *path,
                         const Association *choices[ASSOCIATION_CAP]);
 bool association_registered(const App *app, const char *path);
 const Association *association_find(const App *app, const char *path);
+bool association_matches_folder(const App *app, const Association *profile, const char *path);
 /* Resolves display metadata only. It does not launch applications. */
 bool association_icon_source(const App *app, const Entry *entry, char output[PATH_CAP]);
 bool association_icon_application(const App *app, const char *path, char output[PATH_CAP]);

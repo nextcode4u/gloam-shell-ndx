@@ -719,7 +719,11 @@ int main(int argc, char **argv)
                     app.panel_selection = index;
                     app_panel_activate(&app);
                 }
-            } else if (app.panel != PANEL_NONE)
+            } else if (app.panel == PANEL_INFO && app.inspection && t.px < 176 &&
+                       ((app.panel_selection && t.py >= 170) ||
+                        (!app.panel_selection && t.py >= layout_panel_top(&app) + 118)))
+                app_panel_adjust(&app, 1);
+            else if (app.panel != PANEL_NONE)
                 app_back(&app);
             else if (t.py < 20 && t.px > 180)
                 settings_open(&app);

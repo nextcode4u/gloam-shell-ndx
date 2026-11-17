@@ -3,6 +3,7 @@
 #include "arguments.h"
 #include "associations.h"
 #include "browser.h"
+#include "inspection.h"
 #include "item_preferences.h"
 #include "launch.h"
 #include "paths.h"
@@ -120,6 +121,26 @@ int main(int argc, char **argv)
     assert(path_join(cover, root, "art/Reader.png"));
     assert(!strcmp(association_cover(&app, book), cover));
     assert(!resolve(root, "misc/Other.zip"));
+    /* Inspection uses the real resolver/preflight and never stages a launch. */
+    char explain[PATH_CAP];
+    text(root, "media/books/Explain.md", "Original inspection fixture");
+    assert(path_join(explain, root, "media/books/Explain.md"));
+    bool dirty = app.preferences_dirty;
+    inspection_prepare(&app, explain);
+    assert(app.inspection && strstr(app.inspection->reason, "Preferred folder"));
+    assert(strstr(app.inspection->rule, "media/books"));
+    assert(strstr(app.inspection->application, "Reader.nds"));
+    assert(strstr(app.inspection->backend, "Direct") && strstr(app.inspection->backend, "argv"));
+    assert(strstr(app.inspection->save, "Managed by the application"));
+    assert(strstr(app.inspection->status, "Preflight passed"));
+    assert(app.preferences_dirty == dirty && !app.launch_requested);
+    assert(path_join(explain, root, "misc/Notes.md"));
+    inspection_prepare(&app, explain);
+    assert(strstr(app.inspection->reason, "Several handlers") &&
+           strstr(app.inspection->backend, "Choose a handler"));
+    assert(!*app.inspection->application && strstr(app.inspection->save, "Not resolved"));
+    inspection_close(&app);
+    assert(!app.inspection);
     char long_name[160];
     memset(long_name, 'L', sizeof long_name - 1);
     long_name[sizeof long_name - 1] = 0;

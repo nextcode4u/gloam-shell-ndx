@@ -1,6 +1,6 @@
 /* Bounded INI launch profiles shared by icons and homebrew routing. */
-#include "associations.h"
 #include "arguments.h"
+#include "associations.h"
 #include "icons.h"
 #include "item_preferences.h"
 #include "paths.h"
@@ -192,6 +192,10 @@ static bool same_handler(const Association *left, const Association *right)
     return !strcasecmp(left->application, right->application) &&
            left->use_argv == right->use_argv && left->bootstrap == right->bootstrap &&
            left->hbargv == right->hbargv;
+}
+bool association_matches_folder(const App *app, const Association *profile, const char *path)
+{
+    return folder_match(app, profile, path) != 0;
 }
 
 bool association_registered(const App *app, const char *path)

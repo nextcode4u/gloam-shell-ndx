@@ -1,4 +1,3 @@
-#include "renderer.h"
 #include "app.h"
 #include "artwork.h"
 #include "association_editor.h"
@@ -9,8 +8,10 @@
 #include "game_options.h"
 #include "grid.h"
 #include "icons.h"
+#include "inspection.h"
 #include "layout.h"
 #include "picker.h"
+#include "renderer.h"
 #include "settings.h"
 #include "storage_state.h"
 #include "tabs.h"
@@ -691,8 +692,10 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
                           colors.text, 36, 5);
         draw_text(pixels, 14, y + 99, entry ? entry_type(entry) : "", colors.accent, 36);
         draw_text(pixels, 14, footer,
-                  ui_translate(&app->language, "dialog.close_hint", "A / B  close"), colors.muted,
-                  30);
+                  app->inspection
+                      ? "Left/right: why  B: back"
+                      : ui_translate(&app->language, "dialog.close_hint", "A / B  close"),
+                  colors.muted, 30);
         return;
     }
     const char *quick[] = {
@@ -948,6 +951,7 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
         storage_render(app, top, bottom);
         return;
     }
+
     if (app->cheats) {
         cheats_render(app, top, bottom);
         return;
@@ -974,6 +978,10 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
     }
     if (app->settings.open) {
         settings_render(app, top, bottom);
+        return;
+    }
+    if (app->panel == PANEL_INFO && app->panel_selection && app->inspection) {
+        inspection_render(app, top, bottom);
         return;
     }
     Palette colors = themes_palette(app);
