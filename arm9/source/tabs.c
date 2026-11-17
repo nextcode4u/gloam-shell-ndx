@@ -35,6 +35,38 @@ int tabs_find(const App *app, const char *id)
     return -1;
 }
 
+void tabs_display_init(App *app)
+{
+    for (int index = 0; index < app->tab_count; index++)
+        if (!app->tab_display[index].saved) {
+            app->tab_display[index].view = app->browser_style;
+            app->tab_display[index].icons = app->icon_size;
+            app->tab_display[index].labels = app->show_icon_labels;
+            app->tab_display[index].saved = true;
+        }
+}
+
+void tabs_display_remember(App *app)
+{
+    if (app->recovery_mode)
+        return;
+    int index = app->category;
+    app->tab_display[index].view = app->browser_style;
+    app->tab_display[index].icons = app->icon_size;
+    app->tab_display[index].labels = app->show_icon_labels;
+    app->tab_display[index].saved = true;
+}
+
+void tabs_display_restore(App *app)
+{
+    int index = app->category;
+    if (app->recovery_mode || !app->tab_display[index].saved)
+        return;
+    app->browser_style = app->tab_display[index].view;
+    app->icon_size = app->tab_display[index].icons;
+    app->show_icon_labels = app->tab_display[index].labels;
+}
+
 const char *tabs_label(const App *app, int index)
 {
     return index >= 0 && index < app->tab_count ? app->tabs[index].label : "";

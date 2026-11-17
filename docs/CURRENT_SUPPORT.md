@@ -7,7 +7,7 @@ a guarantee for every title, boot method or application build.
 
 | Area | Support and limits |
 | --- | --- |
-| Browser | Classic, Extended, List, Grid and a centered horizontal cover Shelf and Library Index; small/medium/large icons, folder tabs, touch, looping labels, native banners, custom icons and covers. |
+| Browser | Classic, Extended, List, Grid and a centered horizontal cover Shelf and Library Index; per-tab view/icon size/labels, small/medium/large icons, folder tabs, touch, looping labels, native banners, custom icons and covers. |
 | Themes | Versioned palette/font packs, wallpapers, distinct icon packs with native-banner priority, translucent nine-slice components, audio cues/music, bounded layout defaults and personal presets. Theme faces share external Latin Extended-A, Greek, Cyrillic and Japanese fallback glyphs. |
 | Localization | External UTF-8 catalogs for Japanese, Spanish, French, German, Italian, Brazilian Portuguese and Dutch. Catalogs cover navigation, settings, common values and dialogs to varying degrees; missing help and runtime messages retain English. Language selection is independent of themes, title banners and game language. Other CJK scripts, RTL shaping and complete UI translation remain future work. |
 | Homebrew | Native DSi-SD handoff and argv; return requires a compatible application. Direct ROM associations, saves and supported return routes were reported working for the tested homebrew/emulators on the hardware setup below. Flashcart/DLDI and DS-mode behavior are not general compatibility claims. |

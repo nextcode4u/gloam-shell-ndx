@@ -105,6 +105,15 @@ function Save-GloamSettings([string]$Root, $Changes, [string]$ExpectedHash) {
     }
     $output = [Collections.Generic.List[string]]::new(); $output.Add('version=1'); $written = @{}
     foreach ($line in $state.Lines | Select-Object -Skip 1) {
+        # Desktop display changes apply to every tab, preserving fields not edited.
+        if ($line -cmatch '^tab_display=([A-Za-z0-9_-]{1,31}),([0-5]),([0-2]),([01])$') {
+            $id = $Matches[1]; $view = $Matches[2]; $icons = $Matches[3]; $labels = $Matches[4]
+            if ($updates.Contains('browser_style')) { $view = $updates['browser_style'] }
+            if ($updates.Contains('icon_size')) { $icons = $updates['icon_size'] }
+            if ($updates.Contains('show_icon_labels')) { $labels = $updates['show_icon_labels'] }
+            $output.Add("tab_display=$id,$view,$icons,$labels")
+            continue
+        }
         if ($line -cmatch '^([^=]+)=') {
             $key = $Matches[1]
             if ($updates.Contains($key)) {

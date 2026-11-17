@@ -54,6 +54,18 @@ There are 48 total slots: six built-ins and up to 42 custom tabs. Configurations
 
 ## Navigation and overflow
 
+View, icon size and bottom-screen icon labels are remembered separately for every
+tab, including Home, System and custom tabs. Open START settings while on the tab
+you want to change, or use Quick controls for its view/icon size. All folders
+within that tab share its display choices. Sorting and file filters remain global.
+
+Existing state files without per-tab records retain their previous global display
+choices across all tabs. Display records use stable tab IDs, so reordering custom
+tabs does not move their preferences. Recovery uses safe display settings without
+overwriting these choices. Applying a theme's suggested view/icon size or an
+appearance preset changes the current tab; other tabs keep their display choices.
+Desktop setup display changes apply the edited fields across all tabs.
+
 L/R moves between all loaded tabs. Holding a shoulder button repeats at the configured browser navigation rate. The six-row top rail scrolls as needed to keep the active tab visible. Up/down markers indicate more tabs beyond the current window; the header shows the current position and total. Wrap works in both directions between the first and last tab.
 
 Long rail labels are clipped with an ellipsis inside the rail. The bottom header has more room for the active tab's label. Rendering never draws additional rows beyond the six-row viewport.

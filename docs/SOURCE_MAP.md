@@ -36,6 +36,11 @@ fallback. Temporary bundle data is released after populating the existing banks.
 Saved locations, directory entry handoff and scan startup enforce those roots;
 Back stops at each assigned root. Files retains SD-wide browsing.
 
+`tabs.c` also retains per-tab view, icon size and icon-label visibility. The
+controller snapshots outgoing display state before changing tabs and restores
+the incoming tab before scanning. `preferences.c` stores bounded `tab_display`
+records by stable ID; legacy files seed all tabs from their global display values.
+
 Theme navigation selects entries without decoding assets. X explicitly requests
 preview through the shared cooperative decoder worker, using half a frame's
 budget rather than the smaller background-artwork slice. Navigation and Cancel
@@ -107,6 +112,8 @@ The desktop settings backend is `tools/gloam_setup_settings.ps1`; its WPF
 bindings are in `tools/gloam_setup_settings_ui.ps1`. It edits selected flat
 state records while retaining repeated favourites/navigation and unknown keys,
 checks the loaded revision before saving, and leaves the lock off by default.
+Desktop view/icon/label edits update that field in every per-tab display record;
+unrelated per-tab fields remain unchanged.
 `tools/gloam_setup_configuration.ps1` uses the same DSCFG001 codec, whitelist
 and pending/rollback archives as the native importer. Its CRC32 helper is
 authored C# compiled in memory, with no additional installed dependency.

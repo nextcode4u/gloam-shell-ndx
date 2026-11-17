@@ -124,6 +124,7 @@ void app_init_progress(App *app, const char *root, bool storage, bool dsi, bool 
     tabs_load(app);
     if (app->storage_ready)
         preferences_load(app);
+    tabs_display_init(app);
     localization_load(app);
     boot_profile_leave(BOOT_CONFIG);
     if (progress)
@@ -179,6 +180,7 @@ void app_init_progress(App *app, const char *root, bool storage, bool dsi, bool 
     if (startup >= 0)
         app->category = startup;
     app->detail_tab = app->tab_details[app->category];
+    tabs_display_restore(app);
     tabs_ensure_visible(app);
     boot_profile_enter(BOOT_FOLDER);
     app_scan(app);
@@ -216,8 +218,10 @@ void app_category(App *app, int c)
     app->rail_focus = false;
     app->settings.open = false;
     app->tab_details[app->category] = app->detail_tab;
+    tabs_display_remember(app);
     app->category = (c % app->tab_count + app->tab_count) % app->tab_count;
     app->detail_tab = app->tab_details[app->category];
+    tabs_display_restore(app);
     tabs_ensure_visible(app);
     app->panel = PANEL_NONE;
     app_scan(app);
@@ -465,7 +469,9 @@ void app_open(App *app)
         char path[PATH_CAP];
         path_copy(path, entry->path, sizeof path);
         if (app->category == CATEGORY_HOME) {
+            tabs_display_remember(app);
             app->category = CATEGORY_FILES;
+            tabs_display_restore(app);
             app->collection_open = -1;
         }
         if (!path_is_within_root(path, tabs_browse_root(app, app->category))) {

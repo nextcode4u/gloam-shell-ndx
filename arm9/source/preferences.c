@@ -184,6 +184,21 @@ static bool read_state_file(App *app, const char *filename)
         else if (sscanf(line, "detail=%d", &value) == 1 && value >= 0 && value < 2) {
             app->detail_tab = value;
             memset(app->tab_details, value, sizeof app->tab_details);
+        } else if (!strncmp(line, "tab_display=", 12)) {
+            char id[TAB_ID_CAP];
+            unsigned view, icons, labels;
+            int end = 0;
+            if (sscanf(line + 12, "%31[^,],%u,%u,%u%n", id, &view, &icons, &labels, &end) == 4 &&
+                end && !line[12 + end] && view < BROWSER_STYLE_COUNT && icons < ICON_SIZE_COUNT &&
+                labels <= 1) {
+                int index = tabs_find(app, id);
+                if (index >= 0) {
+                    app->tab_display[index].view = view;
+                    app->tab_display[index].icons = icons;
+                    app->tab_display[index].labels = labels;
+                    app->tab_display[index].saved = true;
+                }
+            }
         } else if (!strncmp(line, "tab_detail=", 11)) {
             char id[TAB_ID_CAP];
             if (sscanf(line + 11, "%31[^,],%d", id, &value) == 2 && value >= 0 && value < 2) {
@@ -349,6 +364,13 @@ bool app_save(App *app)
     for (int index = 0; index < app->tab_count; index++)
         fprintf(file, "tab_detail=%s,%d\n", app->tabs[index].id,
                 index == app->category ? app->detail_tab : app->tab_details[index]);
+    for (int index = 0; index < app->tab_count; index++) {
+        bool active = index == app->category && !app->recovery_mode;
+        fprintf(file, "tab_display=%s,%u,%u,%u\n", app->tabs[index].id,
+                (unsigned)(active ? app->browser_style : app->tab_display[index].view),
+                (unsigned)(active ? app->icon_size : app->tab_display[index].icons),
+                (unsigned)(active ? app->show_icon_labels : app->tab_display[index].labels));
+    }
     for (int category = 1; category < CATEGORY_COUNT; category++) {
         const Location *location = &app->locations[category];
         fprintf(file, "location=%d,%d,%d,%s\n", category, location->selected, location->scroll,

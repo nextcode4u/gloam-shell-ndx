@@ -89,6 +89,9 @@ Quick setup presets stage changes for review:
 - **Large icons:** Classic view, large icons and slower scrolling.
 
 Press **Save settings** to apply; **Reload from SD** discards pending edits.
+View, icon size and icon-label edits here apply across all tabs. Fields you do
+not edit retain their per-tab values. On the console, these display settings
+change only the current tab.
 Favourites, folder positions and unknown state records are retained. If the
 state file changes outside the tool after loading, saving stops so you can
 reload first. Background checks retain pending edits. Close Gloam/emulation

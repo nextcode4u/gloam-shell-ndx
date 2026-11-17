@@ -48,6 +48,70 @@ static void check_rail(void)
             assert(top.pixels[y * 256 + x] == top.pixels[0]);
 }
 
+static void check_display_preferences(const char *root)
+{
+    const char *config = "_nds/dsi-frontend/tabs.ini";
+    write_file(root, config,
+               "[tabs]\nversion=1\n[tab.books]\npath=roms/A\n"
+               "[tab.music]\npath=roms/B\n");
+    /* An existing installation starts every tab with its previous global choices. */
+    write_file(root, "_nds/dsi-frontend/state.ini",
+               "version=1\nbrowser_style=3\nicon_size=2\nshow_icon_labels=0\n");
+    app_init(&app, root, true, true);
+    for (int i = 0; i < app.tab_count; i++) {
+        app_category(&app, i);
+        assert(app.browser_style == BROWSER_GRID && app.icon_size == ICON_MEDIUM &&
+               !app.show_icon_labels);
+    }
+    app_category(&app, CATEGORY_GAMES);
+    app.browser_style = BROWSER_SHELF;
+    app.icon_size = ICON_LARGE;
+    app.show_icon_labels = true;
+    app_category(&app, CATEGORY_APPS);
+    assert(app.browser_style == BROWSER_GRID && app.icon_size == ICON_MEDIUM);
+    app.browser_style = BROWSER_LIST;
+    app_category(&app, tabs_find(&app, "books"));
+    app.browser_style = BROWSER_EXTENDED;
+    app.icon_size = ICON_SMALL;
+    assert(app_save(&app));
+    /* ID-based records survive custom-tab reordering and startup-tab overrides. */
+    write_file(root, config,
+               "[tabs]\nversion=1\n[tab.music]\npath=roms/B\n"
+               "[tab.books]\npath=roms/A\n");
+    app_init(&restored, root, true, true);
+    assert(restored.category == tabs_find(&restored, "books"));
+    assert(restored.browser_style == BROWSER_EXTENDED && restored.icon_size == ICON_SMALL);
+    app_category(&restored, CATEGORY_GAMES);
+    assert(restored.browser_style == BROWSER_SHELF && restored.icon_size == ICON_LARGE &&
+           restored.show_icon_labels);
+    app_category(&restored, CATEGORY_APPS);
+    assert(restored.browser_style == BROWSER_LIST && restored.icon_size == ICON_MEDIUM &&
+           !restored.show_icon_labels);
+    strcpy(restored.startup_tab, "games");
+    assert(app_save(&restored));
+    app_init(&app, root, true, true);
+    assert(app.category == CATEGORY_GAMES && app.browser_style == BROWSER_SHELF);
+    /* Recovery uses safe display values without overwriting any saved tab. */
+    app_init_mode(&app, root, true, true, true);
+    assert(app.browser_style == BROWSER_CLASSIC && app.icon_size == ICON_SMALL);
+    app_category(&app, CATEGORY_APPS);
+    assert(app.browser_style == BROWSER_CLASSIC && app_save(&app));
+    app_init(&restored, root, true, true);
+    assert(restored.browser_style == BROWSER_SHELF);
+    app_category(&restored, CATEGORY_APPS);
+    assert(restored.browser_style == BROWSER_LIST);
+    write_file(root, "_nds/dsi-frontend/state.ini",
+               "version=1\nactive_tab=games\nbrowser_style=1\nicon_size=2\n"
+               "tab_display=games,99,0,1\ntab_display=apps,1,99,1\n"
+               "tab_display=books,1,0,2\ntab_display=music,0,0,1junk\n"
+               "tab_display=missing,0,0,1\n");
+    app_init(&app, root, true, true);
+    for (int i = 0; i < app.tab_count; i++) {
+        app_category(&app, i);
+        assert(app.browser_style == BROWSER_EXTENDED && app.icon_size == ICON_MEDIUM);
+    }
+}
+
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -242,7 +306,9 @@ int main(int argc, char **argv)
     assert(strstr(path, "/roms/A/Sub"));
     assert(!path_resolve_sd(path, root, "roms/A/../B"));
     assert(!path_resolve_sd(path, root, "roms\\A"));
-    puts("PASS: configured tabs, L/R rail scrolling/wrap, ID persistence, folder roots and invalid "
+    check_display_preferences(root);
+    puts("PASS: configured tabs, independent display/recovery/migration, L/R rail scrolling/wrap, "
+         "ID persistence, folder roots and invalid "
          "config recovery");
     return 0;
 }

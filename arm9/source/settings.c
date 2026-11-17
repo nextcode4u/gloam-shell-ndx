@@ -199,12 +199,12 @@ static const SettingsOption appearance[] = {
     {"Reduced motion", "Use immediate selection changes and simpler panel movement.", true,
      OPT_MOTION},
     {"Icon size",
-     "Small or native-size banners. Icons are hidden in List view; the previous size is "
-     "remembered. Applies to Home, System and folder tabs.",
+     "Small, medium or large icons for this tab. List hides icons and remembers their size. "
+     "Other tabs keep their own choices.",
      true, OPT_ICONS},
     {"Browser view",
      "Index: left/right jumps folders and letters. Shelf: centered covers. Classic: rows. "
-     "Extended: details. List: no icons. Grid: tiles. Applies to all tabs.",
+     "Extended: details. List: no icons. Grid: tiles. Saved separately for this tab.",
      true, OPT_VIEW},
     {"Cover preview",
      "Show selected-item artwork on top. Off uses item information and avoids cover decoding.",
@@ -274,7 +274,7 @@ static const SettingsOption appearance[] = {
      "previewing.",
      false, OPT_SPLASH_PREVIEW},
     {"Icon labels",
-     "Show names and details beside bottom-screen icons. List view keeps its names. "
+     "Show names and details beside this tab's bottom-screen icons. List keeps its names. "
      "Top-screen item information stays visible.",
      true, OPT_ICON_LABELS},
     {"Interface language",

@@ -337,6 +337,10 @@ typedef struct {
     int rail_selected, rail_saved_scroll;
     unsigned tab_text_started_frame;
     unsigned char tab_details[TAB_CAP];
+    struct {
+        unsigned char view, icons, labels;
+        bool saved;
+    } tab_display[TAB_CAP];
     unsigned tab_config_skipped;
     int category;
     Entry entries[ENTRY_CAP];

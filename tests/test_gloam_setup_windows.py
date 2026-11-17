@@ -1090,6 +1090,7 @@ if ((Read-GloamState $root).Values.interface_language -cne 'custom') { throw 'La
         state.write_text('version=1\nsettings_mode=advanced\nfavorite=sd:/roms/one.nds\n'
                          'favorite=sd:/apps/two.nds\nlocation=1,2,3,sd:/roms\n'
                          'tab_location=books,1,0,sd:/media/books\nfuture_option=keep\n'
+                         'tab_display=games,3,2,1\ntab_display=books,2,0,1\n'
                          'simple_settings_lock=0\nmusic_volume=70\n')
         self.run_ps("$state = Read-GloamState $root; Save-GloamSettings $root @{simple_settings_lock='1';music_volume='35';show_icon_labels='0'} $state.Hash")
         data = state.read_text()
@@ -1101,10 +1102,14 @@ if ((Read-GloamState $root).Values.interface_language -cne 'custom') { throw 'La
         self.assertIn('future_option=keep', data)
         self.assertIn('music_volume=35', data)
         self.assertIn('show_icon_labels=0', data)
+        self.assertIn('tab_display=games,3,2,0', data)
+        self.assertIn('tab_display=books,2,0,0', data)
         self.assertEqual(len(list((self.sd / '_nds/dsi-frontend/setup-backups').rglob('state.ini'))), 1)
-        self.run_ps("$state = Read-GloamState $root; Save-GloamSettings $root @{simple_settings_lock='0';settings_mode='advanced'} $state.Hash")
+        self.run_ps("$state = Read-GloamState $root; Save-GloamSettings $root @{simple_settings_lock='0';settings_mode='advanced';browser_style='2';icon_size='1'} $state.Hash")
         self.assertIn('settings_mode=advanced', state.read_text(encoding='utf-8'))
         self.assertIn('simple_settings_lock=0', state.read_text(encoding='utf-8'))
+        self.assertIn('tab_display=games,2,1,0', state.read_text(encoding='utf-8'))
+        self.assertIn('tab_display=books,2,1,0', state.read_text(encoding='utf-8'))
 
     def test_settings_defaults_validation_and_conflict_detection(self):
         self.run_ps("$s=Read-GloamState $root; if ($s.Values.settings_mode -ne 'simple' -or $s.Values.simple_settings_lock -ne '0') {throw 'Wrong defaults'}; Save-GloamSettings $root (Get-GloamSetupPreset 'Quiet') $s.Hash")

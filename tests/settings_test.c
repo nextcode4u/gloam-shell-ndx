@@ -242,12 +242,16 @@ int main(int argc, char **argv)
     app_init(&restored, root, true, true);
     assert(restored.category == CATEGORY_HOME && restored.clock_12_hour && !restored.show_covers);
     assert(restored.show_hidden && restored.show_system && !restored.show_extensions &&
-           !restored.show_icon_labels);
+           restored.show_icon_labels);
     assert(restored.filter_recognized && restored.sort_mode == SORT_MODIFIED);
+    app_category(&restored, CATEGORY_GAMES);
+    assert(!restored.show_icon_labels);
     app_init_mode(&restored, root, true, true, true);
     assert(restored.show_icon_labels);
     assert(app_save(&restored));
     app_init(&restored, root, true, true);
+    assert(restored.category == CATEGORY_HOME && restored.show_icon_labels);
+    app_category(&restored, CATEGORY_GAMES);
     assert(!restored.show_icon_labels);
     app.category = CATEGORY_GAMES;
     app_scan(&app);
