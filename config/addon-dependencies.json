@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "reviewed": "2026-11-15",
+  "reviewed": "2026-11-16",
   "default_policy": "bundle approved entries with confirmed coverage; --noncommercial adds permitted no-profit packages; unconfirmed entries are direct-download only",
   "application_directory": "_nds/dsi-frontend/plugins/apps",
   "applications": [
@@ -3265,99 +3265,99 @@
       "id": "snemulds",
       "repository": "https://github.com/cotodevel/SnemulDS",
       "version": "TGDS1.65 (shim-compatible snapshot)",
-      "commit": "d47b02a2a33da2f386b699cbcc9e6f03773c6cfd",
-      "release": "https://github.com/cotodevel/SnemulDS/tree/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd",
+      "commit": "fde1a43132a8bf4bd497357f73f56503983cc357",
+      "release": "https://github.com/cotodevel/SnemulDS/tree/fde1a43132a8bf4bd497357f73f56503983cc357",
       "release_assets": [],
       "argv": "TGDS-only",
-      "argv_evidence": "https://github.com/cotodevel/SnemulDS/blob/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/arm9/source/main.c",
+      "argv_evidence": "https://github.com/cotodevel/SnemulDS/blob/fde1a43132a8bf4bd497357f73f56503983cc357/arm9/source/main.c",
       "redistribution": "approved",
       "license": "GPL-2.0-or-later",
-      "distribution_notes": "Pinned older TGDS1.65 commit matches both hashes documented by shim v0.15; do not track the moving branch.",
+      "distribution_notes": "Pinned TGDS1.65 stable snapshot matches both stable hashes documented by shim v0.16; do not track the moving branch. Automatic DSP/S-DD1 switching stays off unless the user installs those optional builds.",
       "bios": "No separately installed SNES BIOS. This pack selects the normal/CX4 build, not DSP or S-DD1 variants.",
       "package": {
         "source": {
           "asset": "snemulds-source.tar.gz",
-          "url": "https://codeload.github.com/cotodevel/SnemulDS/tar.gz/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd",
-          "sha256": "544ac513a37b57511b299adbe9b746752989d481bb9b481482005b492e516ea5"
+          "url": "https://codeload.github.com/cotodevel/SnemulDS/tar.gz/fde1a43132a8bf4bd497357f73f56503983cc357",
+          "sha256": "8e59e1566caece5a217dc99aae4e83acdca13642713a0f8c0494084e3a77b481"
         },
         "files": [
           {
             "download": {
               "asset": "snemulds-source.tar.gz",
-              "url": "https://codeload.github.com/cotodevel/SnemulDS/tar.gz/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd",
-              "sha256": "544ac513a37b57511b299adbe9b746752989d481bb9b481482005b492e516ea5"
+              "url": "https://codeload.github.com/cotodevel/SnemulDS/tar.gz/fde1a43132a8bf4bd497357f73f56503983cc357",
+              "sha256": "8e59e1566caece5a217dc99aae4e83acdca13642713a0f8c0494084e3a77b481"
             },
-            "member": "snemulds-d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/release/arm7dldi-ntr/SNEmulDS.nds",
+            "member": "snemulds-fde1a43132a8bf4bd497357f73f56503983cc357/release/arm7dldi-ntr/SNEmulDS.nds",
             "format": "tar.gz",
             "destination": "_nds/dsi-frontend/plugins/apps/SNEmulDS.nds",
-            "sha256": "09bc43aad372da4984155d77c24a30a8c0a8a668288aa834eeb0695f1359094b"
+            "sha256": "77f82df3437eff94d35951c673523f2acd964d1a0400555bae58a55b4362a472"
           },
           {
             "download": {
               "asset": "snemulds-source.tar.gz",
-              "url": "https://codeload.github.com/cotodevel/SnemulDS/tar.gz/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd",
-              "sha256": "544ac513a37b57511b299adbe9b746752989d481bb9b481482005b492e516ea5"
+              "url": "https://codeload.github.com/cotodevel/SnemulDS/tar.gz/fde1a43132a8bf4bd497357f73f56503983cc357",
+              "sha256": "8e59e1566caece5a217dc99aae4e83acdca13642713a0f8c0494084e3a77b481"
             },
-            "member": "snemulds-d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/release/arm7dldi-twl/SNEmulDS.srl",
+            "member": "snemulds-fde1a43132a8bf4bd497357f73f56503983cc357/release/arm7dldi-twl/SNEmulDS.srl",
             "format": "tar.gz",
             "destination": "_nds/dsi-frontend/plugins/apps/SNEmulDS.srl",
-            "sha256": "f2817e29db1958af6af2957d0ac7ccfce01b5a57f78e522527d1d508c121b7a2"
+            "sha256": "83e3e4cd3e76a88ca089248eb375580d75cdff567aa490397aaf8dd07fc6812c"
           }
         ],
         "notices": [
           {
-            "member": "snemulds-d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/LICENSE",
+            "member": "snemulds-fde1a43132a8bf4bd497357f73f56503983cc357/LICENSE",
             "destination": "LICENSE"
           },
           {
-            "member": "snemulds-d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/README.md",
+            "member": "snemulds-fde1a43132a8bf4bd497357f73f56503983cc357/README.md",
             "destination": "README.md"
           }
         ]
       },
-      "bios_evidence": "https://github.com/cotodevel/SnemulDS/blob/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/README.md",
-      "license_evidence": "https://github.com/cotodevel/SnemulDS/tree/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd",
+      "bios_evidence": "https://github.com/cotodevel/SnemulDS/blob/fde1a43132a8bf4bd497357f73f56503983cc357/README.md",
+      "license_evidence": "https://github.com/cotodevel/SnemulDS/tree/fde1a43132a8bf4bd497357f73f56503983cc357",
       "content_guidance": "roms/SNES/: .sfc, .smc",
       "bios_mode": "none"
     },
     {
       "id": "snemulds-shim",
       "repository": "https://github.com/Sanrax/snemulds-shim",
-      "version": "v0.15",
-      "commit": "2a7b3ed08a72d28529662cfc9ede8d3e83c2095b",
-      "release": "https://github.com/Sanrax/snemulds-shim/releases/tag/v0.15",
+      "version": "v0.16",
+      "commit": "a8bd84b31f36802d2f37d3deca54a838c8e1730a",
+      "release": "https://github.com/Sanrax/snemulds-shim/releases/tag/v0.16",
       "release_assets": [
         {
           "name": "snemulds-shim.ini",
-          "url": "https://github.com/Sanrax/snemulds-shim/releases/download/v0.15/snemulds-shim.ini"
+          "url": "https://github.com/Sanrax/snemulds-shim/releases/download/v0.16/snemulds-shim.ini"
         },
         {
           "name": "snemulds-shim.nds",
-          "url": "https://github.com/Sanrax/snemulds-shim/releases/download/v0.15/snemulds-shim.nds"
+          "url": "https://github.com/Sanrax/snemulds-shim/releases/download/v0.16/snemulds-shim.nds"
         }
       ],
       "argv": "shim",
-      "argv_evidence": "https://github.com/Sanrax/snemulds-shim/blob/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/source/arguments.c",
+      "argv_evidence": "https://github.com/Sanrax/snemulds-shim/blob/a8bd84b31f36802d2f37d3deca54a838c8e1730a/source/arguments.c",
       "redistribution": "approved",
       "license": "GPL-3.0-or-later + vendored notices",
-      "distribution_notes": "Retain third_party/NOTICE.md and all vendored license texts.",
+      "distribution_notes": "Retain third_party/NOTICE.md and all vendored license texts. The stable-only v0.15 sample INI is retained intentionally; its missing auto_version key defaults to off in v0.16. Existing user INIs remain untouched.",
       "bios": "No console BIOS needed for the selected SNEmulDS builds. Keep shim INI and NTR/TWL executables together.",
       "package": {
         "source": {
           "asset": "snemulds-shim-source.tar.gz",
-          "url": "https://codeload.github.com/Sanrax/snemulds-shim/tar.gz/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b",
-          "sha256": "1d904940de23ed1d2f77067a7a89a22ecf94584f11a9d025a5f7adab691c1edc"
+          "url": "https://codeload.github.com/Sanrax/snemulds-shim/tar.gz/a8bd84b31f36802d2f37d3deca54a838c8e1730a",
+          "sha256": "d00ec75887654f8984300f56b96e9c266477ff635aaaeb4d0e70e057c4480c30"
         },
         "files": [
           {
             "download": {
               "asset": "snemulds-shim-snemulds-shim.nds",
-              "url": "https://github.com/Sanrax/snemulds-shim/releases/download/v0.15/snemulds-shim.nds",
-              "sha256": "3cc7ee1637175266ee6b6c443efadc9267956b8374164f23d458c86488c9ad55"
+              "url": "https://github.com/Sanrax/snemulds-shim/releases/download/v0.16/snemulds-shim.nds",
+              "sha256": "6a0b2e3003f43c016a417ec3eb183b4714a5db846aaae30f0b4fa05d5de97f63"
             },
             "format": "raw",
             "destination": "_nds/dsi-frontend/plugins/apps/snemulds-shim.nds",
-            "sha256": "3cc7ee1637175266ee6b6c443efadc9267956b8374164f23d458c86488c9ad55"
+            "sha256": "6a0b2e3003f43c016a417ec3eb183b4714a5db846aaae30f0b4fa05d5de97f63"
           },
           {
             "download": {
@@ -3367,62 +3367,63 @@
             },
             "format": "raw",
             "destination": "_nds/dsi-frontend/plugins/apps/snemulds-shim.ini",
-            "sha256": "0be9e8e8ef76478b804be4a95e6921f1f4f59a670597bfb8e7686c1b11d7204f"
+            "sha256": "0be9e8e8ef76478b804be4a95e6921f1f4f59a670597bfb8e7686c1b11d7204f",
+            "release": "https://github.com/Sanrax/snemulds-shim/releases/tag/v0.15"
           }
         ],
         "notices": [
           {
-            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/LICENSE",
+            "member": "snemulds-shim-a8bd84b31f36802d2f37d3deca54a838c8e1730a/LICENSE",
             "destination": "LICENSE"
           },
           {
-            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/README.md",
+            "member": "snemulds-shim-a8bd84b31f36802d2f37d3deca54a838c8e1730a/README.md",
             "destination": "README.md"
           },
           {
-            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/NOTICE.md",
+            "member": "snemulds-shim-a8bd84b31f36802d2f37d3deca54a838c8e1730a/third_party/NOTICE.md",
             "destination": "third_party/NOTICE.md"
           },
           {
-            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/blocksds-licenses/libs/libnds/licenses/LICENSE",
+            "member": "snemulds-shim-a8bd84b31f36802d2f37d3deca54a838c8e1730a/third_party/blocksds-licenses/libs/libnds/licenses/LICENSE",
             "destination": "third_party/blocksds-licenses/libs/libnds/licenses/LICENSE"
           },
           {
-            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/blocksds-licenses/libs/libnds/licenses/LICENSE.FatFs",
+            "member": "snemulds-shim-a8bd84b31f36802d2f37d3deca54a838c8e1730a/third_party/blocksds-licenses/libs/libnds/licenses/LICENSE.FatFs",
             "destination": "third_party/blocksds-licenses/libs/libnds/licenses/LICENSE.FatFs"
           },
           {
-            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/blocksds-licenses/libs/maxmod/COPYING",
+            "member": "snemulds-shim-a8bd84b31f36802d2f37d3deca54a838c8e1730a/third_party/blocksds-licenses/libs/maxmod/COPYING",
             "destination": "third_party/blocksds-licenses/libs/maxmod/COPYING"
           },
           {
-            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/blocksds-licenses/sys/arm7/main_core/COPYING",
+            "member": "snemulds-shim-a8bd84b31f36802d2f37d3deca54a838c8e1730a/third_party/blocksds-licenses/sys/arm7/main_core/COPYING",
             "destination": "third_party/blocksds-licenses/sys/arm7/main_core/COPYING"
           },
           {
-            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/blocksds-licenses/sys/crts/COPYING.mpl2",
+            "member": "snemulds-shim-a8bd84b31f36802d2f37d3deca54a838c8e1730a/third_party/blocksds-licenses/sys/crts/COPYING.mpl2",
             "destination": "third_party/blocksds-licenses/sys/crts/COPYING.mpl2"
           },
           {
-            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/blocksds-licenses/sys/crts/COPYING.zlib",
+            "member": "snemulds-shim-a8bd84b31f36802d2f37d3deca54a838c8e1730a/third_party/blocksds-licenses/sys/crts/COPYING.zlib",
             "destination": "third_party/blocksds-licenses/sys/crts/COPYING.zlib"
           },
           {
-            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/libnds-legacy-LICENSE",
+            "member": "snemulds-shim-a8bd84b31f36802d2f37d3deca54a838c8e1730a/third_party/libnds-legacy-LICENSE",
             "destination": "third_party/libnds-legacy-LICENSE"
           },
           {
-            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/pico-reference/LICENSE.pico",
+            "member": "snemulds-shim-a8bd84b31f36802d2f37d3deca54a838c8e1730a/third_party/pico-reference/LICENSE.pico",
             "destination": "third_party/pico-reference/LICENSE.pico"
           },
           {
-            "member": "snemulds-shim-2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/third_party/pico-reference/LICENSE.txt",
+            "member": "snemulds-shim-a8bd84b31f36802d2f37d3deca54a838c8e1730a/third_party/pico-reference/LICENSE.txt",
             "destination": "third_party/pico-reference/LICENSE.txt"
           }
         ]
       },
-      "bios_evidence": "https://github.com/Sanrax/snemulds-shim/blob/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/README.md",
-      "license_evidence": "https://github.com/Sanrax/snemulds-shim/tree/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b",
+      "bios_evidence": "https://github.com/Sanrax/snemulds-shim/blob/a8bd84b31f36802d2f37d3deca54a838c8e1730a/README.md",
+      "license_evidence": "https://github.com/Sanrax/snemulds-shim/tree/a8bd84b31f36802d2f37d3deca54a838c8e1730a",
       "content_guidance": "roms/SNES/: .sfc, .smc",
       "bios_mode": "none"
     },

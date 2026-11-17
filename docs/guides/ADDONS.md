@@ -267,8 +267,8 @@ The installer downloads the player directly; it is not embedded in `addons.zip`.
 | [rocketvideoplayer v2.3.1](https://github.com/RocketRobz/RocketVideoPlayer/releases/tag/v2.3.1) | [direct](https://github.com/RocketRobz/RocketVideoPlayer/blob/50803b9027ca43ab278c1486442fcfc70c90b309/nds/arm9/source/main.cpp) | Direct upstream download; MIT code; Nintendo assets separately credited |
 | [s8ds v1.1.8](https://github.com/FluBBaOfWard/S8DS/releases/tag/v1.1.8) | [direct](https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/source/Main.c) | Direct upstream download; Project-wide redistribution grant not found |
 | [scummvm v2026.4.1git-ds-discovery.2](https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.1git-ds-discovery.2) | [collection discovery](https://github.com/nextcode4u/scummvm/blob/a886202ee506289cdafa3f5117d6b3c41fc6e50c/dists/ds/DISCOVERY.md) | Direct upstream download; GPL-3.0-or-later + constituent notices |
-| [snemulds TGDS1.65 (shim-compatible snapshot)](https://github.com/cotodevel/SnemulDS/tree/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd) | [TGDS-only](https://github.com/cotodevel/SnemulDS/blob/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/arm9/source/main.c) | Bundled when pinned; GPL-2.0-or-later |
-| [snemulds-shim v0.15](https://github.com/Sanrax/snemulds-shim/releases/tag/v0.15) | [shim](https://github.com/Sanrax/snemulds-shim/blob/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/source/arguments.c) | Bundled when pinned; GPL-3.0-or-later + vendored notices |
+| [snemulds TGDS1.65 (shim-compatible snapshot)](https://github.com/cotodevel/SnemulDS/tree/fde1a43132a8bf4bd497357f73f56503983cc357) | [TGDS-only](https://github.com/cotodevel/SnemulDS/blob/fde1a43132a8bf4bd497357f73f56503983cc357/arm9/source/main.c) | Bundled when pinned; GPL-2.0-or-later |
+| [snemulds-shim v0.16](https://github.com/Sanrax/snemulds-shim/releases/tag/v0.16) | [shim](https://github.com/Sanrax/snemulds-shim/blob/a8bd84b31f36802d2f37d3deca54a838c8e1730a/source/arguments.c) | Bundled when pinned; GPL-3.0-or-later + vendored notices |
 | [speccyse 2.2](https://github.com/wavemotion-dave/SpeccySE/releases/tag/2.2) | [direct](https://github.com/wavemotion-dave/SpeccySE/blob/85c85862470b69b75f6e49476a9c4ce992064bb3/arm9/source/SpeccySE.c) | Noncommercial opt-in; Custom noncommercial redistribution + core notices |
 | [stellads 8.4a](https://github.com/wavemotion-dave/StellaDS/releases/tag/8.4a) | [direct](https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/arm9/source/main.cpp) | Bundled when pinned; GPL-2.0-or-later + BSD notices |
 | [sugards 1.6](https://github.com/wavemotion-dave/SugarDS/releases/tag/1.6) | [direct](https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/arm9/source/SugarDS.c) | Direct upstream download; GPL-2.0-or-later code; separately copyrighted firmware |
@@ -311,8 +311,8 @@ custom profiles remain preserved by both installers.
 - **[rocketvideoplayer](https://github.com/RocketRobz/RocketVideoPlayer/tree/50803b9027ca43ab278c1486442fcfc70c90b309):** README credits Nintendo DSi fonts/graphical assets and borrowed FastVideoDS code. MIT on project code does not establish all asset/component redistribution rights. The installer downloads only the NDS executable directly from its upstream release.
 - **[s8ds](https://github.com/FluBBaOfWard/S8DS/tree/90f2c13368f0b2ceac7887802e77d516d6337436):** Not bundled: redistribution permission or complete component coverage remains unconfirmed. Use the shared downloader to obtain the pinned files directly from their recorded upstream/host URLs.
 - **[scummvm](https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.1git-ds-discovery.2):** Experimental discovery build with command-line parsing enabled. Select it explicitly with `--only scummvm` / `-Only scummvm`; default downloads and bundled overlays exclude it. GPL permission is confirmed; its separate source and license companions accompany the upstream release. The DSO cleanup fix passes Lure save, cold restore and Quit/return checks in a development emulator setup. Broader engine, flashcard and physical hardware coverage remain unverified.
-- **[snemulds](https://github.com/cotodevel/SnemulDS/tree/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd):** Pinned older TGDS1.65 commit matches both hashes documented by shim v0.15; do not track the moving branch.
-- **[snemulds-shim](https://github.com/Sanrax/snemulds-shim/tree/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b):** Retain third_party/NOTICE.md and all vendored license texts.
+- **[snemulds](https://github.com/cotodevel/SnemulDS/tree/fde1a43132a8bf4bd497357f73f56503983cc357):** Pinned TGDS1.65 stable snapshot matches the two stable hashes documented by shim v0.16; do not track the moving branch.
+- **[snemulds-shim](https://github.com/Sanrax/snemulds-shim/tree/a8bd84b31f36802d2f37d3deca54a838c8e1730a):** Retain third_party/NOTICE.md and all vendored license texts.
 - **[speccyse](https://github.com/wavemotion-dave/SpeccySE/tree/85c85862470b69b75f6e49476a9c4ce992064bb3):** No-profit redistribution permitted with full author/core notices. Preserve the Z80, sound and lzav terms.
 - **[stellads](https://github.com/wavemotion-dave/StellaDS/tree/1ff41dc60c4debacd4493bae5bb045cdbbef7800):** Retain LICENSE and Copyright.txt, including the Aaron Giles notice.
 - **[sugards](https://github.com/wavemotion-dave/SugarDS/tree/ca4b95960d55e24d1d5bf815f5fffcacad8e4704):** Built-in Amstrad ROMs rely on the quoted conditional permission; ParaDOS is separately copyrighted. Record the firmware grants before redistributing the prebuilt package. The installer downloads only the NDS executable directly from its upstream release.
@@ -324,7 +324,10 @@ custom profiles remain preserved by both installers.
 Keep `snemulds-shim.nds`, `snemulds-shim.ini`, `SNEmulDS.nds` and `SNEmulDS.srl`
 together. The pinned TGDS1.65 payload matches the reviewed shim, including its
 NTR/TWL route; moving branch builds are not interchangeable. The legacy optional
-payload and DSP/S-DD1 variants are not silently substituted.
+payload and DSP/S-DD1 variants are not silently substituted. The pack retains
+the stable-only v0.15 sample INI: omitting `auto_version` keeps automatic switching
+off in v0.16. Existing user INIs are preserved. Install compatible alternate builds
+and enable that option only if you want automatic DSP/S-DD1 selection.
 
 ## BIOS and firmware
 
@@ -354,8 +357,8 @@ payload and DSP/S-DD1 variants are not silently substituted.
 - **[rocketvideoplayer](https://github.com/RocketRobz/RocketVideoPlayer/blob/50803b9027ca43ab278c1486442fcfc70c90b309/README.md):** No BIOS required; use matching .rvid conversion.
 - **[s8ds](https://github.com/FluBBaOfWard/S8DS/blob/90f2c13368f0b2ceac7887802e77d516d6337436/README.md):** Configured SMS/GG/SG-1000 cartridge routes normally bypass BIOS. Other emulated machines can require their own BIOS selected inside S8DS.
 - **[scummvm](https://docs.scummvm.org/en/latest/other_platforms/nintendo_ds.html):** No general console BIOS. Supply the required data files for each supported game; do not bundle commercial game data.
-- **[snemulds](https://github.com/cotodevel/SnemulDS/blob/d47b02a2a33da2f386b699cbcc9e6f03773c6cfd/README.md):** No separately installed SNES BIOS. This pack selects the normal/CX4 build, not DSP or S-DD1 variants.
-- **[snemulds-shim](https://github.com/Sanrax/snemulds-shim/blob/2a7b3ed08a72d28529662cfc9ede8d3e83c2095b/README.md):** No console BIOS needed for the selected SNEmulDS builds. Keep shim INI and NTR/TWL executables together.
+- **[snemulds](https://github.com/cotodevel/SnemulDS/blob/fde1a43132a8bf4bd497357f73f56503983cc357/README.md):** No separately installed SNES BIOS. This pack selects the normal/CX4 build, not DSP or S-DD1 variants.
+- **[snemulds-shim](https://github.com/Sanrax/snemulds-shim/blob/a8bd84b31f36802d2f37d3deca54a838c8e1730a/README.md):** No console BIOS needed for the selected SNEmulDS builds. Keep shim INI and NTR/TWL executables together.
 - **[speccyse](https://github.com/wavemotion-dave/SpeccySE/blob/85c85862470b69b75f6e49476a9c4ce992064bb3/readme.md):** Requires 48.ROM and 128.ROM beside emulator or in /roms/bios. OpenSE BASIC is a candidate for 48K only, not a verified full replacement for this required pair.
 - **[stellads](https://github.com/wavemotion-dave/StellaDS/blob/1ff41dc60c4debacd4493bae5bb045cdbbef7800/README.md):** No separate Atari 2600 BIOS required.
 - **[sugards](https://github.com/wavemotion-dave/SugarDS/blob/ca4b95960d55e24d1d5bf815f5fffcacad8e4704/readme.md):** Amstrad CPC firmware and ParaDOS are embedded in the stock binary, with separate terms; no extra download is needed, but embedding is not a free-BIOS license.

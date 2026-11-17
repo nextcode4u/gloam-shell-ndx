@@ -15,7 +15,7 @@ INI and NTR/TWL executables together.
 Add-on package: available; terms: GPL-3.0-or-later + vendored notices.
 
 Upstream: https://github.com/Sanrax/snemulds-shim
-Release: https://github.com/Sanrax/snemulds-shim/releases/tag/v0.15
+Release: https://github.com/Sanrax/snemulds-shim/releases/tag/v0.16
 
 Use snemulds-shim.nds rather than launching SNEmulDS directly with normal
 argv. Keep the shim INI, SNEmulDS.nds and SNEmulDS.srl together. Console-SD
