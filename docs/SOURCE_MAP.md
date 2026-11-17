@@ -96,6 +96,13 @@ console `applications` list contains only the separate downloads. Packaging give
 files hyphenated names under `addon-installer/`. Native Windows fixture tests
 cover installation, preservation, path validation, GUI navigation and workers.
 
+Theme-directory browsing lives in `tools/gloam_setup_themes.ps1` (immutable
+GitHub catalog/tree identity, bounded preview/runtime downloads, PC cache and
+transactional installation) and `tools/gloam_setup_themes_ui.ps1` (WPF selection,
+preview windows and worker completion). Preview/catalog jobs never write to SD
+or reload pending editor controls. The worker installs complete validated packs;
+release/bootstrap inventories include both modules.
+
 The desktop settings backend is `tools/gloam_setup_settings.ps1`; its WPF
 bindings are in `tools/gloam_setup_settings_ui.ps1`. It edits selected flat
 state records while retaining repeated favourites/navigation and unknown keys,

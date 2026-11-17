@@ -169,3 +169,7 @@ checks in a development emulator setup. Broader engine, flashcard and
 physical-console behavior remain unverified.
 Matching source and licenses are available alongside the standalone release:
 https://github.com/nextcode4u/scummvm/releases/tag/v2026.4.1git-ds-discovery.2
+
+Themes: refresh the community directory, read terms and preview preview.png on
+your PC, then explicitly install the selected pack. Existing themes are kept
+unless replacement with backup is enabled. Cached previews work offline.

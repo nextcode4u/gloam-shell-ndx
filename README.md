@@ -59,7 +59,9 @@ irm https://raw.githubusercontent.com/nextcode4u/gloam-shell-ndx/main/setup.ps1 
 ```
 
 Choose the SD folder, install/update Gloam and add-ons, and configure ROM folders,
-file handlers, tabs and themes. Edit launcher settings, prepare a Simple-mode
+file handlers, tabs and themes. Browse the community theme directory, preview
+its screenshots before installation, and keep customized packs or replace them
+with a backup. Edit launcher settings, prepare a Simple-mode
 lock, apply setup presets, and back up/restore configuration from the same GUI.
 You can also extract `addons.zip` and double-click
 `addon-installer/Start Gloam Setup.cmd`. The tool also previews ROM-folder organization while preserving recognized saves

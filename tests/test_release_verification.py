@@ -49,6 +49,22 @@ class ReleaseVerificationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Graphical setup tool is incomplete'):
             verify(self.root, addons=True)
 
+    def test_theme_directory_modules_must_accompany_the_gui(self):
+        files = {'addon-installer/' + name: b'Authored fixture'
+                 for name in ('Start Add-on Installer.cmd', 'download-addons.py',
+                              'download-addons.ps1', 'downloads.json', 'gloam-setup.xaml',
+                              'gloam-setup-core.ps1', 'gloam-setup-worker.ps1', 'Start Gloam Setup.cmd')}
+        files['addon-installer/gloam-setup.ps1'] = b'. gloam-setup-themes.ps1'
+        self.archive('addons.zip', files)
+        self.sums()
+        with self.assertRaisesRegex(ValueError, 'theme directory modules'):
+            verify(self.root, addons=True)
+        for name in ('gloam-setup-themes.ps1', 'gloam-setup-themes-ui.ps1'):
+            files['addon-installer/' + name] = b'Authored fixture'
+        self.archive('addons.zip', files)
+        self.sums()
+        verify(self.root, addons=True)
+
     def test_complete_set_and_optional_addons(self):
         verify(self.root)
         self.archive('addons.zip', {'addon-installer/Start Add-on Installer.cmd': b'Fixture launcher',

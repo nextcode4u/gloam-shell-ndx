@@ -177,6 +177,32 @@ with a separate ROM-aware implementation for the setup tool.
 
 ## Themes
 
+Choose **Refresh theme directory** to browse the
+[community collection](https://github.com/nextcode4u/gloam-shell-theme-directory).
+The list shows which theme IDs are already installed. Select an entry to read
+its author, description, license terms and frontend requirements. **Preview
+selected theme** downloads only the contributor's `preview.png` into the PC
+cache; it does not copy the theme onto the SD. Previously cached previews open
+immediately when selected. **Larger preview** opens the full image in a separate
+window; its Close button or Escape returns to the directory. A missing preview
+never prevents installation.
+
+**Download and install selected theme** fetches the complete runtime pack plus
+credits and license notices. Downloads are pinned to the catalog's GitHub commit
+and checked against that revision's Git blob hashes. All files are downloaded
+and verified before SD staging begins; a complete validated folder is promoted
+into place. Preview images stay on the PC. Installation does not change the
+active theme or apply layout defaults automatically.
+
+Existing folders are preserved by default. Change **Install folder ID** to keep
+both versions, or explicitly select **Replace existing theme** and confirm it;
+the previous folder is retained under `setup-backups/themes/`. Noncommercial
+packs require accepting their displayed terms. Offline mode uses cached catalog,
+preview and runtime files, and reports any missing download. Refreshing and
+previewing run in the background without blocking page navigation; Stop/Cancel
+leaves existing themes intact. The cache is under
+`%LOCALAPPDATA%\Gloam\Setup\theme-directory`.
+
 Open the themes folder or import a folder containing `theme.ini`. Import keeps
 existing themes; rename the source folder to install a separate version. Choose
 the active theme on the console, or select an installed theme and press **Apply

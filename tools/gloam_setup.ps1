@@ -5,13 +5,15 @@ param(
     [string]$Manifest,
     [string]$JobDirectory = (Join-Path $env:LOCALAPPDATA 'Gloam/Setup/jobs'),
     [string]$ReleaseDirectory = (Join-Path $env:LOCALAPPDATA 'Gloam/Setup/releases/current'),
+    [string]$ThemeDirectoryCache = (Join-Path $env:LOCALAPPDATA 'Gloam/Setup/theme-directory'),
     [switch]$Offline,
     [switch]$SmokeTest,
     [switch]$SmokeDirtySettings,
     [ValidateSet('Setup','Addons','Library','Organizer','Artwork','Settings','Themes','Maintenance')][string]$ScreenshotPage = 'Setup',
-    [ValidateSet('','CheckSupport','CheckSetup','SaveSettings','PreviewOrganization','InstallAddons','ArtworkScan')][string]$SmokeAction,
+    [ValidateSet('','CheckSupport','CheckSetup','SaveSettings','PreviewOrganization','InstallAddons','ArtworkScan','PreviewCatalogTheme','RefreshThemeCatalog','InstallCatalogTheme')][string]$SmokeAction,
     [string]$ScreenshotPath,
-    [string]$SmokeOrganizerFolder
+    [string]$SmokeOrganizerFolder,
+    [string]$SmokeThemeId
 )
 $ErrorActionPreference = 'Stop'
 if (-not $Manifest) { $Manifest = Join-Path $PSScriptRoot 'downloads.json' }
@@ -105,6 +107,7 @@ function Load-Sd {
     Load-GloamArtworkUi
     Update-AddonStatus
     $ui.Workspace.IsEnabled = $true
+    Update-GloamCatalogThemeStatus
     $ui.Status.Text = 'Ready: ' + $script:Root; Write-Activity ('Selected SD folder: ' + $script:Root)
 }
 function Open-SdFolder([string]$Relative) {
@@ -135,12 +138,13 @@ function Start-SetupJob([string]$Action, [string[]]$Sources = @(), [hashtable]$O
     $process = Start-Process (Join-Path $PSHOME 'powershell.exe') -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $folder 'output.log') -RedirectStandardError (Join-Path $folder 'error.log')
     $null = $process.Handle # Keep a process handle so ExitCode remains available after exit.
     $script:Job = @{ Process = $process; Folder = $folder; Action = $Action }; $script:LastLog = ''
-    $ui.Workspace.IsEnabled = $false; $ui.TargetBar.IsEnabled = $false; $ui.Progress.Visibility = 'Visible'; $ui.Progress.IsIndeterminate = $true
-    $ui.CancelArtwork.Visibility = if ($Action -in @('ArtworkScan','ArtworkFetch')) { 'Visible' } else { 'Collapsed' }; $ui.CancelArtwork.IsEnabled=$true
+    $ui.Workspace.IsEnabled = $Action -in @('ThemeCatalog','ThemePreview'); $ui.TargetBar.IsEnabled = $false; $ui.Progress.Visibility = 'Visible'; $ui.Progress.IsIndeterminate = $true
+    $ui.CancelArtwork.Visibility = if ($Action -in @('ArtworkScan','ArtworkFetch','ThemeCatalog','ThemePreview','ThemeInstall')) { 'Visible' } else { 'Collapsed' }; $ui.CancelArtwork.IsEnabled=$true
+    $ui.CancelArtwork.Content = if ($Action -like 'Theme*') { 'Cancel theme operation' } else { 'Cancel artwork operation' }
     $ui.Status.Text = 'Working: ' + $Action; Write-Activity ('Started: ' + $Action)
 }
 $ui.CancelArtwork.Add_Click({ Invoke-UiAction {
-    if ($null -eq $script:Job -or $script:Job.Action -notin @('ArtworkScan','ArtworkFetch')) { return }
+    if ($null -eq $script:Job -or $script:Job.Action -notin @('ArtworkScan','ArtworkFetch','ThemeCatalog','ThemePreview','ThemeInstall')) { return }
     [IO.File]::WriteAllText((Join-Path $script:Job.Folder 'cancel'), '')
     $ui.CancelArtwork.IsEnabled=$false
     $ui.Status.Text='Cancelling after the current file/request; completed previews will be kept.'
@@ -162,8 +166,8 @@ $timer.Add_Tick({
             $finishedJob = $script:Job
             $code = $script:Job.Process.ExitCode; $script:Job.Process.Dispose(); $script:Job = $null
             $ui.Workspace.IsEnabled = $true; $ui.TargetBar.IsEnabled = $true; $ui.Progress.Visibility = 'Collapsed'; $ui.CancelArtwork.Visibility='Collapsed'
-            if ($code -eq 0) { Load-Sd; Complete-GloamOrganizerJob $finishedJob; Complete-GloamArtworkJob $finishedJob; $ui.Status.Text = 'Complete. You can safely remove the SD card after Windows finishes writing.'; Complete-GloamHealthJob $finishedJob }
-            elseif ($code -eq 3) { Complete-GloamArtworkJob $finishedJob; Complete-GloamHealthJob $finishedJob; $ui.Status.Text='Cancelled. Completed previews kept; SD artwork unchanged.' }
+            if ($code -eq 0) { if ($finishedJob.Action -notin @('ThemeCatalog','ThemePreview')) { Load-Sd }; Complete-GloamOrganizerJob $finishedJob; Complete-GloamArtworkJob $finishedJob; $ui.Status.Text = 'Complete. You can safely remove the SD card after Windows finishes writing.'; Complete-GloamHealthJob $finishedJob; Complete-GloamThemeJob $finishedJob }
+            elseif ($code -eq 3) { Complete-GloamArtworkJob $finishedJob; Complete-GloamHealthJob $finishedJob; $ui.Status.Text=if ($finishedJob.Action -like 'Theme*') { 'Theme operation cancelled. Existing themes were kept.' } else { 'Cancelled. Completed previews kept; SD artwork unchanged.' } }
             elseif ($code -eq 2) { Load-Sd; Complete-GloamArtworkJob $finishedJob; Complete-GloamHealthJob $finishedJob; $ui.Status.Text = 'Completed with failures. See the activity log for installed, preserved and failed apps.' }
             else { Reset-GloamOrganizerPreview; Load-GloamOrganizerJournals; $ui.Status.Text = 'Operation failed. See the activity log; existing backups were kept.' }
             if ($SmokeTest -and $SmokeAction) {
@@ -293,6 +297,8 @@ $ui.ImportTheme.Add_Click({ Invoke-UiAction {
 . (Join-Path $PSScriptRoot 'gloam-setup-settings-ui.ps1')
 . (Join-Path $PSScriptRoot 'gloam-setup-organizer-ui.ps1')
 . (Join-Path $PSScriptRoot 'gloam-setup-artwork-ui.ps1')
+. (Join-Path $PSScriptRoot 'gloam-setup-themes.ps1')
+. (Join-Path $PSScriptRoot 'gloam-setup-themes-ui.ps1')
 if (-not (Test-Path -LiteralPath $Manifest)) { throw 'Keep Gloam Setup beside downloads.json and the shared installer scripts.' }
 $catalog = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json
 $apps = if ($catalog.PSObject.Properties.Name -contains 'updates') { $catalog.updates } else { $catalog.applications }
@@ -326,6 +332,9 @@ if ($SmokeTest) {
     $script:SmokeTimer.Interval = [TimeSpan]::FromMilliseconds(250)
     $script:SmokeTimer.Add_Tick({
         $script:SmokeTimer.Stop()
+        if ($ScreenshotPage -eq 'Themes' -and $ui.ThemeCatalogList.Items.Count -gt 0) {
+            $ui.ThemeCatalogList.SelectedItem = if ($SmokeThemeId) { @($ui.ThemeCatalogList.ItemsSource | Where-Object Id -CEQ $SmokeThemeId)[0] } else { $ui.ThemeCatalogList.ItemsSource[0] }
+        }
         $window.UpdateLayout()
         if ($ScreenshotPage -eq 'Addons' -and $ui.AddonList.Columns[0].ActualWidth -lt 40) {
             throw 'The app-list columns did not receive their readable layout widths.'

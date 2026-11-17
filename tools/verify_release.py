@@ -105,6 +105,9 @@ def verify(directory, addons=False):
                 uses_identification = b'gloam-setup-identification.ps1' in archive.read('addon-installer/gloam-setup.ps1')
                 if uses_identification and not identification <= set(archive.namelist()):
                     raise ValueError('DAT identification modules are incomplete')
+                themes = {'addon-installer/gloam-setup-themes.ps1', 'addon-installer/gloam-setup-themes-ui.ps1'}
+                if b'gloam-setup-themes.ps1' in archive.read('addon-installer/gloam-setup.ps1') and not themes <= set(archive.namelist()):
+                    raise ValueError('Graphical theme directory modules are incomplete')
                 organizer = {'addon-installer/gloam-setup-organizer.ps1',
                              'addon-installer/gloam-setup-organizer-ui.ps1'}
                 if organizer & set(archive.namelist()) and not organizer <= set(archive.namelist()):

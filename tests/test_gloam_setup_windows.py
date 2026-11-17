@@ -49,6 +49,8 @@ class GloamSetupTests(unittest.TestCase):
         for original, output in [('gloam_setup_identification.ps1','gloam-setup-identification.ps1'),
                                  ('gloam_dat.cs','gloam-dat.cs'),('gloam_setup_artwork.ps1','gloam-setup-artwork.ps1'),
                                  ('gloam_setup_artwork_ui.ps1','gloam-setup-artwork-ui.ps1'),('gloam_setup_core.ps1', 'gloam-setup-core.ps1'),
+                                 ('gloam_setup_themes.ps1','gloam-setup-themes.ps1'),
+                                 ('gloam_setup_themes_ui.ps1','gloam-setup-themes-ui.ps1'),
                                  ('gloam_setup_organizer.ps1', 'gloam-setup-organizer.ps1'),
                                  ('gloam_setup_organizer_ui.ps1', 'gloam-setup-organizer-ui.ps1'),
                                  ('gloam_setup_settings.ps1', 'gloam-setup-settings.ps1'),
@@ -865,7 +867,7 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.assertEqual((self.sd / '_nds/dsi-frontend/plugins/picodrivetwl.ini').read_bytes(), b'# Authored valid fixture')
 
     def test_bootstrap_extracts_only_verified_setup_files(self):
-        names = ['gloam-setup.ps1','gloam-setup.xaml','gloam-setup-core.ps1','gloam-setup-worker.ps1','download-addons.ps1','downloads.json']
+        names = ['gloam-setup.ps1','gloam-setup.xaml','gloam-setup-core.ps1','gloam-setup-worker.ps1','gloam-setup-themes.ps1','gloam-setup-themes-ui.ps1','download-addons.ps1','downloads.json']
         members = {'addon-installer/' + name: b'Authored inert setup fixture' for name in names}
         members['roms/not-extracted.txt'] = b'Runtime file'
         package = self.archive('addons.zip', members)

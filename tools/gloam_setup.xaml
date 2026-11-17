@@ -614,7 +614,41 @@
         <ScrollViewer x:Name="PageThemes" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
           <StackPanel Margin="4,0,12,0">
             <TextBlock Text="Themes" Style="{StaticResource Heading}"/>
-            <TextBlock Text="Open the themes folder or import a downloaded theme folder. Choose the active theme in Gloam's on-console settings." Style="{StaticResource Muted}"/>
+            <TextBlock Text="Browse the community theme directory, preview a theme on this PC, then install it onto the selected SD. Local folder import is also available below." Style="{StaticResource Muted}"/>
+            <WrapPanel Margin="0,12,0,0">
+              <Button x:Name="RefreshThemeCatalog" Content="Refresh theme directory" ToolTip="Get the catalog from GitHub at one fixed revision. No theme is installed."/>
+              <Button x:Name="PreviewCatalogTheme" Content="Preview selected theme" ToolTip="Download only this theme's preview.png into the PC cache."/>
+              <Button x:Name="EnlargeThemePreview" Content="Larger preview" IsEnabled="False" ToolTip="Open the full preview in a separate window. Close it or press Escape to return."/>
+              <Button x:Name="OpenThemeDirectory" Content="Open directory website"/>
+            </WrapPanel>
+            <TextBlock x:Name="ThemeCatalogSummary" Text="Refresh the directory to browse available themes. Cached entries and previews remain available offline." Style="{StaticResource Muted}" Margin="0,0,0,12"/>
+            <Grid>
+              <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="320"/></Grid.ColumnDefinitions>
+              <StackPanel Margin="0,0,16,0">
+                <DataGrid x:Name="ThemeCatalogList" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single" Height="200" RowHeaderWidth="0" GridLinesVisibility="None" Foreground="#10151D" RowBackground="#E7E9F0" AlternatingRowBackground="#D4DAE4" Margin="0,0,0,10">
+                  <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#28313F"/><Setter Property="Foreground" Value="#F1EFF8"/><Setter Property="Padding" Value="6"/></Style>
+                  </DataGrid.ColumnHeaderStyle>
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Theme" Binding="{Binding Name}" Width="*"/>
+                    <DataGridTextColumn Header="On this SD" Binding="{Binding Installation}" Width="120"/>
+                  </DataGrid.Columns>
+                </DataGrid>
+                <TextBlock x:Name="ThemeCatalogDetails" Text="Select a theme to see its author, requirements and license terms." TextWrapping="Wrap" Margin="0,0,0,12"/>
+                <TextBlock Text="Install folder ID"/>
+                <TextBox x:Name="CatalogThemeId" ToolTip="Use a different ID to keep an existing or customized theme alongside this version."/>
+                <CheckBox x:Name="ReplaceCatalogTheme" Content="Replace existing theme (keep a backup)"/>
+                <CheckBox x:Name="AllowNcThemes" Content="Accept noncommercial theme terms when required"/>
+                <Button x:Name="InstallCatalogTheme" Content="Download and install selected theme" HorizontalAlignment="Left" Background="#6B548E"/>
+              </StackPanel>
+              <StackPanel Grid.Column="1">
+                <Border BorderBrush="#445165" BorderThickness="1" Background="#1B2430" Padding="8">
+                  <Image x:Name="CatalogThemePreview" Height="190" Stretch="Uniform" ToolTip="Contributor-provided preview; final appearance can depend on your Gloam version and settings."/>
+                </Border>
+                <TextBlock x:Name="ThemePreviewStatus" Text="Preview image only; no theme files are downloaded until installation." Style="{StaticResource Muted}" Margin="0,8,0,12"/>
+              </StackPanel>
+            </Grid>
+            <TextBlock Text="Installed themes and local imports" FontWeight="SemiBold" FontSize="18" Margin="0,22,0,12"/>
             <ListBox x:Name="ThemeList" Height="185" Background="#1B2430" Foreground="#E7E9F0" BorderThickness="0" Padding="10" Margin="0,0,0,16"/>
             <WrapPanel>
               <Button x:Name="OpenThemes" Content="Open themes folder"/>

@@ -12,6 +12,7 @@ try {
     . (Join-Path $PSScriptRoot 'gloam-setup-organizer.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-artwork.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-identification.ps1')
+    . (Join-Path $PSScriptRoot 'gloam-setup-themes.ps1')
     $job = Get-Content -LiteralPath $Request -Raw -Encoding UTF8 | ConvertFrom-Json
     $script:GloamCancelFile = Join-Path ([IO.Path]::GetDirectoryName($Request)) 'cancel'
     $root = Get-GloamRoot $job.Target
@@ -25,6 +26,19 @@ try {
         Write-Host "Release: $($release.tag_name)"
     }
     switch ($job.Action) {
+        'ThemeCatalog' {
+            $catalog = if ($job.Offline) { Read-GloamThemeCatalog $job.Options.Cache } else { Update-GloamThemeCatalog $job.Options.Cache }
+            Write-Host ("Theme directory: " + @($catalog.Themes).Count + ' themes at ' + $catalog.Revision)
+        }
+        'ThemePreview' {
+            $path = Get-GloamCatalogThemePreview $job.Options.Cache $job.Options.Id ([bool]$job.Offline)
+            $result = @{ Id=$job.Options.Id; Path=$path }
+            [IO.File]::WriteAllText((Join-Path ([IO.Path]::GetDirectoryName($Request)) 'theme-preview.json'), ($result | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
+            Write-Host 'Preview cached on this PC. No SD files changed.'
+        }
+        'ThemeInstall' {
+            Install-GloamCatalogTheme $root $job.Options.Cache $job.Options.Id $job.Options.InstallId ([bool]$job.Options.Replace) ([bool]$job.Options.AllowNoncommercial) ([bool]$job.Offline)
+        }
         'ArtworkDatImport' {
             foreach ($file in $job.Sources) { $count=Import-GloamDat $job.Options.DatDirectory $job.Options.System $file; Write-Host ("Imported $count records from " + [IO.Path]::GetFileName($file)) }
         }
