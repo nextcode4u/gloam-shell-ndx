@@ -4,10 +4,12 @@
 #include "image_decode.h"
 #include "layout.h"
 #include "paths.h"
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <sys/stat.h>
 
 bool icon_is_ds_title(const char *path)
 {
@@ -38,28 +40,56 @@ bool icon_load_png_coverage(const char *path, uint16_t pixels[32 * 32], uint8_t 
     return valid;
 }
 
-bool icon_load_banner(const char *path, uint16_t pixels[32 * 32])
+/* Size metadata avoids a full FAT cluster-chain walk just to reach EOF. */
+static bool read_banner(FILE *file, unsigned char banner[0x240], uint32_t *offset,
+                        uint64_t *available)
 {
+    struct stat metadata;
+    unsigned char header[0x6c];
+    if (fstat(fileno(file), &metadata) || !S_ISREG(metadata.st_mode) || metadata.st_size < 0x160 ||
+        fread(header, 1, sizeof header, file) != sizeof header)
+        return false;
+    *offset = header[0x68] | (uint32_t)header[0x69] << 8 | (uint32_t)header[0x6a] << 16 |
+              (uint32_t)header[0x6b] << 24;
+    uint64_t size = (uint64_t)metadata.st_size;
+    if (*offset < 0x160 || *offset > size || *offset > LONG_MAX || size - *offset < 0x840)
+        return false;
+    *available = size - *offset;
+    return !fseek(file, (long)*offset, SEEK_SET) && fread(banner, 1, 0x240, file) == 0x240;
+}
+static bool load_title_data(const char *path, uint16_t pixels[32 * 32], BrowserIcon *animation)
+{
+    if (animation)
+        animation->animation_count = 0;
     FILE *file = fopen(path, "rb");
     if (!file)
         return false;
-    unsigned char header[0x6c], banner[0x240];
-    bool valid = fread(header, 1, sizeof header, file) == sizeof header;
-    uint32_t offset = valid ? header[0x68] | ((uint32_t)header[0x69] << 8) |
-                                  ((uint32_t)header[0x6a] << 16) | ((uint32_t)header[0x6b] << 24)
-                            : 0;
-    if (fseek(file, 0, SEEK_END) != 0) {
-        fclose(file);
-        return false;
+    unsigned char banner[0x240];
+    uint32_t offset;
+    uint64_t available;
+    bool valid = read_banner(file, banner, &offset, &available) &&
+                 icon_decode_banner(banner, sizeof banner, pixels);
+    if (valid && animation && banner[0] == 3 && banner[1] == 1 && available >= 0x23c0 &&
+        (uint64_t)offset + 0x1240 <= LONG_MAX) {
+        unsigned char data[0x1180];
+        if (!fseek(file, (long)offset + 0x1240, SEEK_SET) &&
+            fread(data, 1, sizeof data, file) == sizeof data)
+            icon_decode_animation(banner, data, sizeof data, animation);
     }
-    long size = ftell(file);
-    valid = valid && size >= 0 && offset >= 0x160 && offset <= (uint32_t)size &&
-            (uint32_t)size - offset >= 0x840 && fseek(file, (long)offset, SEEK_SET) == 0 &&
-            fread(banner, 1, sizeof banner, file) == sizeof banner;
     fclose(file);
-    if (!valid)
-        return false;
-    return icon_decode_banner(banner, sizeof banner, pixels);
+    return valid;
+}
+bool icon_load_banner(const char *path, uint16_t pixels[32 * 32])
+{
+    return load_title_data(path, pixels, NULL);
+}
+bool icon_load_title(const char *path, BrowserIcon *icon)
+{
+    return load_title_data(path, icon->pixels, icon);
+}
+bool icon_load_animation(const char *path, BrowserIcon *icon)
+{
+    return icon_load_title(path, icon) && icon->animation_count != 0;
 }
 
 bool icon_decode_banner(const void *data, size_t bytes, uint16_t pixels[32 * 32])
@@ -128,10 +158,7 @@ static bool load_path(App *app, int index, const char *path, bool png, int syste
     icon->system_fallback = false;
     if (strncmp(path, "system:", 7)) {
         app->icon_reads++;
-        icon->ready =
-            png ? icon_load_png(path, icon->pixels) : icon_load_banner(path, icon->pixels);
-        if (icon->ready && !png)
-            icon_load_animation(path, icon);
+        icon->ready = png ? icon_load_png(path, icon->pixels) : icon_load_title(path, icon);
     }
     if (!icon->ready && system_target >= 0) {
         icon->ready = icon_system_fallback(system_target, icon->pixels);

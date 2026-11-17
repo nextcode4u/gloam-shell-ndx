@@ -191,7 +191,8 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
 ASAN_OPTIONS=detect_leaks=1 build/host/cheats-test "$fixture/cheats"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" tests/animated_icon_test.c -o build/host/animated-icon-test
+    "${model_objects[@]}" tests/animated_icon_test.c -Wl,--wrap=fopen,--wrap=fread,--wrap=fseek \
+    -o build/host/animated-icon-test
 "$test_python" tools/make_banner_test_fixture.py "$fixture/animated.nds"
 ASAN_OPTIONS=detect_leaks=1 build/host/animated-icon-test "$fixture/animated.nds"
 
@@ -211,7 +212,8 @@ ASAN_OPTIONS=detect_leaks=1 build/host/japanese-text-test "$PWD/sdroot"
 "$test_python" tools/pack_script_fonts.py --check
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" tests/title_metadata_test.c -o build/host/title-metadata-test
+    "${model_objects[@]}" tests/title_metadata_test.c -Wl,--wrap=fseek \
+    -o build/host/title-metadata-test
 mkdir "$fixture/title-metadata"
 ASAN_OPTIONS=detect_leaks=1 build/host/title-metadata-test "$fixture/title-metadata"
 

@@ -4,8 +4,10 @@
 #include "icons.h"
 #include "layout.h"
 #include "text.h"
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 
 bool title_metadata_read(const char *path, int language, char title[128])
 {
@@ -14,9 +16,11 @@ bool title_metadata_read(const char *path, int language, char title[128])
     if (!file)
         return false;
     unsigned char header[0x6C], version[2], text[256];
-    bool valid =
-        fread(header, 1, sizeof header, file) == sizeof header && !fseek(file, 0, SEEK_END);
-    long bytes = valid ? ftell(file) : -1;
+    struct stat metadata;
+    bool valid = !fstat(fileno(file), &metadata) && S_ISREG(metadata.st_mode) &&
+                 metadata.st_size >= 0 && metadata.st_size <= LONG_MAX &&
+                 fread(header, 1, sizeof header, file) == sizeof header;
+    long bytes = valid ? (long)metadata.st_size : -1;
     uint32_t offset = valid ? header[0x68] | (uint32_t)header[0x69] << 8 |
                                   (uint32_t)header[0x6A] << 16 | (uint32_t)header[0x6B] << 24
                             : 0;

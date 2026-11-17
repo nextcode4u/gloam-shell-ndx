@@ -9,6 +9,15 @@
 #include <sys/stat.h>
 static App app, restored;
 static unsigned char data[0xC40];
+static bool measure;
+static unsigned end_seeks;
+int __real_fseek(FILE *, long, int);
+int __wrap_fseek(FILE *file, long offset, int origin)
+{
+    if (measure && origin == SEEK_END)
+        end_seeks++;
+    return __real_fseek(file, offset, origin);
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -25,7 +34,10 @@ int main(int argc, char **argv)
     memcpy(data + 0x200 + 0x440, french, sizeof french);
     FILE *f = fopen(path, "wb");
     assert(f && fwrite(data, 1, sizeof data, f) == sizeof data && !fclose(f));
+    measure = true;
     assert(title_metadata_read(path, 1, title) && !strcmp(title, "Caf\xC3\xA9"));
+    measure = false;
+    assert(!end_seeks);
     assert(title_metadata_read(path, 2, title) && !strcmp(title, "Jeu"));
     assert(title_metadata_read(path, 3, title) && !strcmp(title, "Caf\xC3\xA9"));
     assert(title_metadata_read(path, 7, title) && !strcmp(title, "Caf\xC3\xA9"));

@@ -34,11 +34,14 @@ static bool app_identity(const char *path, const NativeTitle *title, uint32_t *s
 {
     FILE *file = fopen(path, "rb");
     unsigned char header[0x240];
-    bool valid = file && fread(header, 1, sizeof header, file) == sizeof header &&
+    struct stat metadata;
+    bool valid = file && !fstat(fileno(file), &metadata) && S_ISREG(metadata.st_mode) &&
+                 metadata.st_size >= (off_t)sizeof header &&
+                 (uint64_t)metadata.st_size <= UINT32_MAX &&
+                 fread(header, 1, sizeof header, file) == sizeof header &&
                  (header[0x12] == 2 || header[0x12] == 3) && le32(header + 0x230) == title->low &&
-                 le32(header + 0x234) == title->high && !fseek(file, 0, SEEK_END);
-    long bytes = valid ? ftell(file) : -1;
-    valid = valid && bytes >= (long)sizeof header && (uint64_t)bytes <= UINT32_MAX;
+                 le32(header + 0x234) == title->high;
+    uint64_t bytes = valid ? (uint64_t)metadata.st_size : 0;
     for (unsigned cpu = 0; valid && cpu < 2; cpu++) {
         unsigned at = 0x20 + cpu * 16;
         uint32_t start = le32(header + at), length = le32(header + at + 12);

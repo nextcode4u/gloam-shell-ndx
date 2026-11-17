@@ -1,6 +1,5 @@
 /* Native DSi banner sequence playback; no file access after the initial load. */
 #include "icons.h"
-#include <stdio.h>
 #include <string.h>
 
 static uint16_t le16(const unsigned char *p)
@@ -31,27 +30,6 @@ static void decode_frame(BrowserIcon *icon)
             unsigned color = (tiles[byte] >> ((source_x & 1) * 4)) & 15;
             icon->pixels[y * 32 + x] = color ? 0x8000 | palette[color] : 0;
         }
-}
-bool icon_load_animation(const char *path, BrowserIcon *icon)
-{
-    icon->animation_count = 0;
-    FILE *file = fopen(path, "rb");
-    if (!file)
-        return false;
-    unsigned char header[0x6C], banner_header[10], animation[0x1180];
-    bool valid =
-        fread(header, 1, sizeof header, file) == sizeof header && !fseek(file, 0, SEEK_END);
-    long bytes = valid ? ftell(file) : -1;
-    uint32_t offset = valid ? header[0x68] | (uint32_t)header[0x69] << 8 |
-                                  (uint32_t)header[0x6A] << 16 | (uint32_t)header[0x6B] << 24
-                            : 0;
-    valid = valid && bytes >= 0 && offset >= 0x160 && offset <= (uint32_t)bytes &&
-            (uint32_t)bytes - offset >= 0x23C0 && !fseek(file, (long)offset, SEEK_SET) &&
-            fread(banner_header, 1, sizeof banner_header, file) == sizeof banner_header &&
-            le16(banner_header) == 0x103 && !fseek(file, (long)offset + 0x1240, SEEK_SET) &&
-            fread(animation, 1, sizeof animation, file) == sizeof animation;
-    fclose(file);
-    return valid && icon_decode_animation(banner_header, animation, sizeof animation, icon);
 }
 
 bool icon_decode_animation(const void *header, const void *data, size_t bytes, BrowserIcon *icon)

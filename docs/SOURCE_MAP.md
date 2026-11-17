@@ -28,6 +28,12 @@ Except where a path is stated, filenames in the table are under `arm9/source/`
 or `arm9/include/`. Rendering consumes state: it does not access the filesystem,
 change settings or perform hardware calls. The frame loop owns those operations.
 
+Banner icons read size metadata from the open file, without seeking to EOF.
+`icons.c` loads static and animated banner data in one bounded pass; corrupt or
+truncated animation retains the static icon. Title names and installed-title
+identity checks also avoid EOF seeks, keeping FAT cluster-chain traversal out of
+size validation while visible icons begin playing.
+
 `theme_assets.c` accepts legacy sprite bundles and prepared screen/material
 records. `theme_prepared_surfaces.py` reproduces native integer blending at
 authoring time; mismatched personal overrides and invalid bundles retain PNG

@@ -11,6 +11,8 @@ bool icon_decode_banner(const void *data, size_t bytes, uint16_t pixels[32 * 32]
 bool icon_decode_animation(const void *header, const void *animation, size_t bytes,
                            BrowserIcon *icon);
 bool icon_load_banner(const char *path, uint16_t pixels[32 * 32]);
+/* One open and bounded reads for the static icon and optional DSi animation. */
+bool icon_load_title(const char *path, BrowserIcon *icon);
 void icons_reset(App *app);
 bool icon_load_animation(const char *path, BrowserIcon *icon);
 void icon_animate(BrowserIcon *icon, bool reduced_motion);
