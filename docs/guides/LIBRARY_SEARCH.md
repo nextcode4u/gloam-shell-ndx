@@ -40,6 +40,7 @@ Media and custom tabs initially search their assigned library; Home, Files and
 System initially search all configured libraries.
 
 - Type with touch, or move around the keyboard with the D-pad and press A.
+- The bottom keyboard row shows Space, Backspace and Search as symbols.
 - Select **Search**, or press X while editing. An empty query lists indexed files.
 - Words match the indexed path in any order. ASCII, Latin-1, basic Greek and
   Cyrillic uppercase/lowercase pairs are folded; other Unicode text matches

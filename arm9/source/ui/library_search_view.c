@@ -5,8 +5,24 @@
 #include <string.h>
 
 static const char keyboard[] = "qwertyuiopasdfghjkl-zxcvbnm_./0123456789";
+enum KeySymbol { KEY_LETTER, KEY_SPACE, KEY_BACKSPACE, KEY_SEARCH };
+static void key_symbol(uint16_t *screen, int x, int y, enum KeySymbol symbol, uint16_t color)
+{
+    static const uint16_t glyphs[3][16] = {
+        /* Space bar, backspace with an X, and a magnifying glass. */
+        {0, 0, 0, 0, 0, 0, 0, 0x4002, 0x4002, 0x7ffe, 0x7ffe, 0, 0, 0, 0, 0},
+        {0, 0, 0x1ffe, 0x3002, 0x6002, 0xc222, 0x8142, 0x8082, 0x8142, 0xc222, 0x6002, 0x3002,
+         0x1ffe, 0, 0, 0},
+        {0, 0x0f80, 0x3060, 0x4020, 0x8010, 0x8010, 0x8010, 0x4020, 0x3060, 0x0fc0, 0x0060, 0x0030,
+         0x0018, 0x000c, 0, 0},
+    };
+    for (int row = 0; row < 16; row++)
+        for (int column = 0; column < 16; column++)
+            if (glyphs[symbol - KEY_SPACE][row] & (0x8000u >> column))
+                draw_rectangle(screen, x + column, y + row, 1, 1, color);
+}
 static void button(const App *app, uint16_t *screen, int x, int y, int width, const char *label,
-                   bool selected)
+                   enum KeySymbol symbol, bool selected)
 {
     const ThemePackage *theme = &app->themes.active;
     ThemePalette p = themes_palette(app);
@@ -14,9 +30,12 @@ static void button(const App *app, uint16_t *screen, int x, int y, int width, co
         draw_theme_selection(theme, screen, x, y, width, 20);
     else if (!draw_theme_component(theme, screen, THEME_ROW, x, y, width, 20))
         draw_rectangle(screen, x, y, width, 20, p.surface);
-    draw_text_scrolling(screen, x + 4, y + 4, label,
-                        selected ? themes_selection_text(theme) : p.text, width - 8,
-                        app->search->idle, selected && !app->reduced_motion);
+    uint16_t ink = selected ? themes_selection_text(theme) : p.text;
+    if (symbol != KEY_LETTER)
+        key_symbol(screen, x + (width - 16) / 2, y + 2, symbol, ink);
+    else
+        draw_text_scrolling(screen, x + 4, y + 4, label, ink, width - 8, app->search->idle,
+                            selected && !app->reduced_motion);
 }
 void library_search_render(const App *app, uint16_t *top, uint16_t *bottom)
 {
@@ -58,11 +77,12 @@ void library_search_render(const App *app, uint16_t *top, uint16_t *bottom)
     if (s->editing) {
         for (unsigned i = 0; i < 40; i++) {
             char letter[2] = {keyboard[i], 0};
-            button(app, bottom, 8 + (i % 10) * 24, 53 + (i / 10) * 22, 23, letter, s->cursor == i);
+            button(app, bottom, 8 + (i % 10) * 24, 53 + (i / 10) * 22, 23, letter, KEY_LETTER,
+                   s->cursor == i);
         }
-        button(app, bottom, 8, 145, 78, "Space", s->cursor == 40);
-        button(app, bottom, 88, 145, 78, "Erase", s->cursor == 41);
-        button(app, bottom, 168, 145, 80, "Search", s->cursor == 42);
+        button(app, bottom, 8, 145, 78, NULL, KEY_SPACE, s->cursor == 40);
+        button(app, bottom, 88, 145, 78, NULL, KEY_BACKSPACE, s->cursor == 41);
+        button(app, bottom, 168, 145, 80, NULL, KEY_SEARCH, s->cursor == 42);
     } else {
         for (unsigned row = 0; row < 6 && row + s->scroll < s->count; row++) {
             unsigned index = row + s->scroll;

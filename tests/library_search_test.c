@@ -5,6 +5,7 @@
 #include "picker.h"
 #include "renderer.h"
 #include "storage_state.h"
+#include "themes.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -163,10 +164,32 @@ int main(int argc, char **argv)
     assert(!app.search && app_selected(&app) && !strcmp(app_selected(&app)->path, later));
     assert(app.locations[app.category].batch == 1 && !app.launch_requested);
     assert(library_search_open(&app));
+    /* Special keys stay recognizable independently of the active font, and
+     * use the same focus ink and guarded framebuffer as ordinary keys. */
+    for (unsigned key = 40; key <= 42; key++) {
+        app.search->cursor = key;
+        draw();
+        unsigned ink_pixels = 0;
+        int x = 8 + (key - 40) * 80 + 31;
+        for (int y = 147; y < 163; y++)
+            for (int xx = x; xx < x + 16; xx++)
+                ink_pixels +=
+                    bottom.pixels[y * 256 + xx] == themes_selection_text(&app.themes.active);
+        assert(ink_pixels >= 20);
+    }
+    app.search->cursor = 0;
     library_search_touch(&app, 9, 55); /* First key: q. */
     assert(!strcmp(app.search->query, "q"));
-    library_search_touch(&app, 90, 150); /* Erase. */
+    library_search_touch(&app, 10, 150); /* Space. */
+    assert(!strcmp(app.search->query, "q "));
+    library_search_touch(&app, 90, 150); /* Backspace. */
+    assert(!strcmp(app.search->query, "q"));
+    library_search_touch(&app, 90, 150);
     assert(!*app.search->query);
+    library_search_touch(&app, 170, 150); /* Search. */
+    assert(!app.search->editing);
+    finish();
+    library_search_edit(&app);
     for (int i = 0; i < 100; i++)
         library_search_move(&app, -1, -1);
     assert(app.search->cursor < 43);
