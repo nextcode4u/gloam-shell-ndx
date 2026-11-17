@@ -113,9 +113,9 @@ int main(int argc, char **argv)
     app.panel_selection = 2;
     app_panel_activate(&app);
     assert(app.panel == PANEL_INFO);
-    assert(app.inspection);
+    assert(!app.inspection); /* Opening a path must not scan launch binaries. */
     app_panel_adjust(&app, 1);
-    assert(app.panel_selection == 1);
+    assert(app.panel_selection == 1 && app.inspection);
     render_app(&app, top.pixels, bottom.pixels, "10:00");
     assert(top.before == 0xCAFEABCD && top.after == 0xCAFEABCD);
     assert(bottom.before == 0xCAFEABCD && bottom.after == 0xCAFEABCD);

@@ -40,6 +40,8 @@ Choose **SELECT → Inspect item / path**, then press left/right to open **Why t
 handler?** for an SD file. The two-screen explanation shows the matching rule,
 application, configured backend/argv route and read-only preflight status.
 Left/right returns to the path view; B returns to the item menu.
+The path view does not run preflight. The explanation is prepared on its first
+request and cached until the inspector closes.
 
 Inspection follows the same per-file, personal-extension, preferred-folder and
 shared-extension resolution as launch. If multiple handlers remain, it explains

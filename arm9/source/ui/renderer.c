@@ -693,7 +693,7 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
                           colors.text, 36, 5);
         draw_text(pixels, 14, y + 99, entry ? entry_type(entry) : "", colors.accent, 36);
         draw_text(pixels, 14, footer,
-                  app->inspection
+                  inspection_available(app)
                       ? "Left/right: why  B: back"
                       : ui_translate(&app->language, "dialog.close_hint", "A / B  close"),
                   colors.muted, 30);

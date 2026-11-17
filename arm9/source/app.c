@@ -376,9 +376,6 @@ void app_panel(App *app, Panel p)
     app->panel_scroll = 0;
     app->panel_age = 0;
     app->selection_idle_frames = 0;
-    const Entry *inspected = app_selected(app);
-    if (p == PANEL_INFO && inspected && inspected->kind == ITEM_FILE)
-        inspection_prepare(app, inspected->path);
 }
 
 void app_panel_close(App *app)
@@ -724,8 +721,13 @@ bool app_adjust_control(App *app, QuickControl control, int direction)
 
 void app_panel_adjust(App *app, int direction)
 {
-    if (app->panel == PANEL_INFO && app->inspection && direction) {
-        app->panel_selection ^= 1;
+    if (app->panel == PANEL_INFO && direction && inspection_available(app)) {
+        if (!app->inspection)
+            inspection_prepare(app, app_selected(app)->path);
+        if (app->inspection)
+            app->panel_selection ^= 1;
+        else
+            app_show_message(app, "Launch inspection needs SD access and free memory.");
         app->panel_age = 0;
         return;
     }

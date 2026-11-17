@@ -1,6 +1,7 @@
 /* Read-only resolver/preflight; never commits a launch or creates saves. */
 #include "inspection.h"
 #include "associations.h"
+#include "browser.h"
 #include "icons.h"
 #include "item_preferences.h"
 #include "launch.h"
@@ -15,6 +16,12 @@ void inspection_close(App *app)
 {
     free(app->inspection);
     app->inspection = NULL;
+}
+bool inspection_available(const App *app)
+{
+    const Entry *entry = app_selected(app);
+    return app->storage_ready && !app->storage_lost && entry && entry->kind == ITEM_FILE &&
+           path_is_within_root(entry->path, app->root);
 }
 
 void inspection_prepare(App *app, const char *path)

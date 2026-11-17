@@ -13,6 +13,7 @@
 #include "grid.h"
 #include "icons.h"
 #include "image_job.h"
+#include "inspection.h"
 #include "installed_titles.h"
 #include "launch.h"
 #include "layout.h"
@@ -752,7 +753,7 @@ int main(int argc, char **argv)
                     app.panel_selection = index;
                     app_panel_activate(&app);
                 }
-            } else if (app.panel == PANEL_INFO && app.inspection && t.px < 176 &&
+            } else if (app.panel == PANEL_INFO && inspection_available(&app) && t.px < 176 &&
                        ((app.panel_selection && t.py >= 170) ||
                         (!app.panel_selection && t.py >= layout_panel_top(&app) + 118)))
                 app_panel_adjust(&app, 1);
