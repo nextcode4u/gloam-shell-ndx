@@ -235,6 +235,10 @@
           <StackPanel Margin="4,0,12,0">
             <TextBlock Text="Folders and file handlers" Style="{StaticResource Heading}"/>
             <TextBlock Text="Create folders, assign an emulator or player, and add a tab without editing INI files. Restart Gloam after saving." Style="{StaticResource Muted}"/>
+            <TextBlock Text="Console search index" FontSize="18" FontWeight="SemiBold"/>
+            <TextBlock x:Name="SearchIndexStatus" Text="Choose an SD folder first." Style="{StaticResource Muted}"/>
+            <Button x:Name="BuildSearchIndex" Content="Build / refresh search index" HorizontalAlignment="Left" ToolTip="Scan the selected SD libraries on this PC. Reads names and metadata, not ROM contents. Cancellable; the previous index is kept until the build succeeds."/>
+            <TextBlock Text="Includes Games, Apps, Media and custom folder tabs. Refresh after copying or organizing files. Gloam reads this optional cache only when you open Search library; it does not index during startup." Style="{StaticResource Muted}"/>
             <Expander Header="Games, Apps and Media folders" Foreground="#E7E9F0" Margin="0,0,0,18">
               <StackPanel Margin="0,12,0,0">
                 <TextBlock Text="Games"/>

@@ -402,3 +402,12 @@ replacements receive backups. Select the imported catalog under Interface
 language. Importing a catalog cannot add shaping or scripts the runtime does
 not support. Missing custom catalogs require their original source or English
 fallback; release repair only supplies the bundled starters.
+
+## Console search index
+
+On **Library**, choose **Build / refresh search index** for the already selected
+card. This cancellable worker indexes configured library/tab folders using file
+names and metadata, without hashing ROMs. The previous index remains installed
+until preparation succeeds. The date/count status updates after completion;
+refresh after copying or organizing content. Gloam builds with **Search library**
+support consume this optional cache; older frontends ignore it.

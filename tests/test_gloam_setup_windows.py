@@ -58,6 +58,8 @@ class GloamSetupTests(unittest.TestCase):
                                  ('gloam_setup_settings_ui.ps1', 'gloam-setup-settings-ui.ps1'),
                                  ('gloam_setup_configuration.ps1', 'gloam-setup-configuration.ps1'),
                                  ('gloam_setup_worker.ps1', 'gloam-setup-worker.ps1'),
+                                 ('gloam_setup_search.ps1', 'gloam-setup-search.ps1'),
+                                 ('gloam_library_index.cs', 'gloam-library-index.cs'),
                                  ('gloam_setup.ps1', 'gloam-setup.ps1'),
                                  ('gloam_setup.xaml', 'gloam-setup.xaml'),
                                  ('download_addons.ps1', 'download-addons.ps1')]:
@@ -69,6 +71,7 @@ class GloamSetupTests(unittest.TestCase):
         self.preamble = '. ' + literal(win(self.installer / 'gloam-setup-core.ps1')) + '; $root = ' + literal(win(self.sd)) + '; '
         self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-settings.ps1')) + '; . ' + literal(win(self.installer / 'gloam-setup-configuration.ps1')) + '; '
 
+        self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-search.ps1')) + '; '
         self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-organizer.ps1')) + '; '
         self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-artwork.ps1')) + '; '
         self.preamble += '. ' + literal(win(self.installer / 'gloam-setup-identification.ps1')) + '; '
@@ -81,6 +84,118 @@ class GloamSetupTests(unittest.TestCase):
         output = result.stdout.decode('utf-8', errors='replace') + result.stderr.decode('utf-8', errors='replace')
         self.assertEqual(result.returncode == 0, success, output)
         return output
+
+    def read_search_index(self):
+        from library_search_fixture import fnv, blocked_package
+        data = (self.sd / '_nds/dsi-frontend/cache/library.gli').read_bytes()
+        magic, count, payload, built, flags, check = struct.unpack('<8sIIQII', data[:32])
+        self.assertIn(magic, (b'GLIDX001', b'GLIDX002'))
+        self.assertEqual(check, fnv(data[:28]))
+        self.assertEqual(flags, (count+63)//64 if magic == b'GLIDX002' else 0)
+        self.assertEqual(payload+32+flags*276, len(data))
+        self.assertGreater(built, 0)
+        rows = []
+        at = 32 + flags*276
+        for _ in range(count):
+            size, attr, digest = struct.unpack('<HHI', data[at:at+8])
+            path = data[at+8:at+8+size]
+            self.assertEqual(digest, fnv(struct.pack('<H', attr) + path))
+            self.assertLessEqual(attr, 3)
+            rows.append((path.decode('utf-8'), attr))
+            at += 8 + size
+        self.assertEqual(at, len(data))
+        if magic == b'GLIDX002':
+            self.assertEqual(data[32:], blocked_package(rows)[32:])
+        return rows
+
+    def test_search_index_builds_configured_roots_and_rotates_only_derived_cache(self):
+        state = self.sd / '_nds/dsi-frontend'
+        state.mkdir(parents=True)
+        (state / 'tabs.ini').write_text('[tabs]\nversion=1\n[roots]\ngames=/roms\n'
+                                      '[tab.overlap]\npath=roms/Nintendo DS\n'
+                                      '[tab.extra]\npath=sd:/custom\n')
+        files = ['roms/Nintendo DS/Original.nds', 'roms/Nintendo DS/Original.nds.png',
+                 'roms/Nintendo DS/saves/Original.sav', 'roms/bios/authored.bin',
+                 'roms/cover.png', 'roms/README.txt', 'media/books/Überblick.txt',
+                 'apps/Player.nds', 'custom/日本語.txt']
+        for name in files:
+            path = self.sd / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b'Original non-runnable fixture, no ROM or firmware.')
+        (state / 'state.ini').write_text('version=1\nfuture_option=keep\n')
+        before = {name: (self.sd / name).read_bytes() for name in files}
+        work = self.root / 'index work'
+        command = 'Build-GloamSearchIndex $root ' + literal(win(work))
+        output = self.run_ps(command)
+        self.assertIn('4 indexed files', output)
+        self.assertEqual({p for p, _ in self.read_search_index()},
+                         {'roms/Nintendo DS/Original.nds', 'media/books/Überblick.txt',
+                          'apps/Player.nds', 'custom/日本語.txt'})
+        self.assertEqual({name: (self.sd / name).read_bytes() for name in files}, before)
+        self.assertEqual((state / 'state.ini').read_text(), 'version=1\nfuture_option=keep\n')
+        index = state / 'cache/library.gli'
+        previous = index.read_bytes()
+        (self.sd / 'custom/Additional.txt').write_text('Another authored fixture')
+        self.run_ps(command)
+        self.assertEqual(len(self.read_search_index()), 5)
+        self.assertEqual((state / 'cache/library.gli.bak').read_bytes(), previous)
+        self.assertFalse(list(work.glob('*.gli')))
+        self.assertFalse((state / 'setup-backups').exists())
+
+    def test_search_index_cancel_and_invalid_header_keep_normal_setup_usable(self):
+        (self.sd / 'roms').mkdir()
+        (self.sd / 'roms/Fixture.txt').write_text('Authored text')
+        work = self.root / 'index work'
+        command = 'Build-GloamSearchIndex $root ' + literal(win(work))
+        self.run_ps(command)
+        index = self.sd / '_nds/dsi-frontend/cache/library.gli'
+        before = index.read_bytes()
+        cancel = self.root / 'cancel'
+        cancel.touch()
+        self.run_ps('$script:GloamCancelFile=' + literal(win(cancel)) + '; ' + command, success=False)
+        self.assertEqual(index.read_bytes(), before)
+        self.assertFalse(list(work.glob('*.gli')))
+        index.write_bytes(b'Invalid optional cache')
+        output = self.run_ps('Get-GloamSearchIndexStatus $root')
+        self.assertIn('browsing still works', output)
+        # Even a correctly checksummed, unreasonable date remains an optional-cache warning.
+        from library_search_fixture import fnv
+        header = struct.pack('<8sIIQI', b'GLIDX001', 0, 0, 0xffffffffffffffff, 0)
+        index.write_bytes(header + struct.pack('<I', fnv(header)))
+        output = self.run_ps('Get-GloamSearchIndexStatus $root')
+        self.assertIn('browsing still works', output)
+
+    def test_gui_search_index_worker_preserves_pending_settings(self):
+        (self.sd / 'roms').mkdir()
+        (self.sd / 'roms/Fixture.txt').write_text('Authored search fixture')
+        gui = literal(win(self.installer / 'gloam-setup.ps1'))
+        output = self.run_ps('& ' + gui + ' -Target $root -Offline -SmokeTest '
+                             '-SmokeAction BuildSearchIndex -ScreenshotPage Library -SmokeDirtySettings '
+                             '-JobDirectory ' + literal(win(self.root / 'jobs')))
+        self.assertIn('GUI worker exit: 0', output)
+        self.assertEqual(self.read_search_index(), [('roms/Fixture.txt', 0)])
+        self.assertFalse((self.sd / '_nds/dsi-frontend/state.ini').exists())
+
+    def test_search_index_worker_reports_cancel_without_replacing_cache(self):
+        from library_search_fixture import package
+        (self.sd / 'roms').mkdir()
+        (self.sd / 'roms/Fixture.txt').write_text('Authored text')
+        index = self.sd / '_nds/dsi-frontend/cache/library.gli'
+        index.parent.mkdir(parents=True)
+        previous = package([])
+        index.write_bytes(previous)
+        jobdir = self.root / 'cancel job'
+        jobdir.mkdir()
+        (jobdir / 'cancel').touch()
+        request = jobdir / 'request.json'
+        request.write_text(json.dumps({'Action':'BuildSearchIndex','Target':win(self.sd),
+                                      'Offline':True,'ReleaseDirectory':win(self.root)}))
+        command = [PS, '-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-File',
+                   win(self.installer / 'gloam-setup-worker.ps1'), '-Request', win(request)]
+        result = subprocess.run(command, capture_output=True, timeout=60)
+        self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+        self.assertEqual(index.read_bytes(), previous)
+        self.assertFalse(list(jobdir.glob('*.gli')))
 
     def test_install_preserves_file_created_during_staging(self):
         self.run_ps(r"""
@@ -867,7 +982,7 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.assertEqual((self.sd / '_nds/dsi-frontend/plugins/picodrivetwl.ini').read_bytes(), b'# Authored valid fixture')
 
     def test_bootstrap_extracts_only_verified_setup_files(self):
-        names = ['gloam-setup.ps1','gloam-setup.xaml','gloam-setup-core.ps1','gloam-setup-worker.ps1','gloam-setup-themes.ps1','gloam-setup-themes-ui.ps1','download-addons.ps1','downloads.json']
+        names = ['gloam-setup-search.ps1','gloam-library-index.cs','gloam-setup.ps1','gloam-setup.xaml','gloam-setup-core.ps1','gloam-setup-worker.ps1','gloam-setup-themes.ps1','gloam-setup-themes-ui.ps1','download-addons.ps1','downloads.json']
         members = {'addon-installer/' + name: b'Authored inert setup fixture' for name in names}
         members['roms/not-extracted.txt'] = b'Runtime file'
         package = self.archive('addons.zip', members)

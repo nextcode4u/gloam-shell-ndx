@@ -3877,6 +3877,8 @@
     "gloam-setup-artwork-ui.ps1": "tools/gloam_setup_artwork_ui.ps1",
     "gloam-setup-identification.ps1": "tools/gloam_setup_identification.ps1",
     "gloam-dat.cs": "tools/gloam_dat.cs",
-    "gloam-setup-health.ps1": "tools/gloam_setup_health.ps1"
+    "gloam-setup-health.ps1": "tools/gloam_setup_health.ps1",
+    "gloam-setup-search.ps1": "tools/gloam_setup_search.ps1",
+    "gloam-library-index.cs": "tools/gloam_library_index.cs"
   }
 }

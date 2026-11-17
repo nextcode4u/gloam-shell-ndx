@@ -251,3 +251,8 @@ writes health JSON into its PC job folder; the settings UI displays it without
 reloading unsaved settings. Repair validates incoming assets before writes and
 uses the common backup writer for replacements. New installer modules belong in
 the add-on installer map, source inventory and bootstrap allow-list together.
+
+Desktop search-index preparation lives in `tools/gloam_setup_search.ps1` and
+`tools/gloam_library_index.cs`. The setup worker runs a cancellable metadata
+scan; only a completed derived cache is installed. The GUI reads a small status
+header without scanning the library.

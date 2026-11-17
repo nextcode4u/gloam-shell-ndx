@@ -10,7 +10,7 @@ param(
     [switch]$SmokeTest,
     [switch]$SmokeDirtySettings,
     [ValidateSet('Setup','Addons','Library','Organizer','Artwork','Settings','Themes','Maintenance')][string]$ScreenshotPage = 'Setup',
-    [ValidateSet('','CheckSupport','CheckSetup','SaveSettings','PreviewOrganization','InstallAddons','ArtworkScan','PreviewCatalogTheme','RefreshThemeCatalog','InstallCatalogTheme')][string]$SmokeAction,
+    [ValidateSet('','CheckSupport','CheckSetup','SaveSettings','PreviewOrganization','InstallAddons','ArtworkScan','PreviewCatalogTheme','RefreshThemeCatalog','InstallCatalogTheme','BuildSearchIndex')][string]$SmokeAction,
     [string]$ScreenshotPath,
     [string]$SmokeOrganizerFolder,
     [string]$SmokeThemeId
@@ -20,6 +20,7 @@ if (-not $Manifest) { $Manifest = Join-Path $PSScriptRoot 'downloads.json' }
 if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Start with Windows PowerShell -STA, or use Start Gloam Setup.cmd.' }
 . (Join-Path $PSScriptRoot 'gloam-setup-core.ps1')
 . (Join-Path $PSScriptRoot 'gloam-setup-settings.ps1')
+. (Join-Path $PSScriptRoot 'gloam-setup-search.ps1')
 . (Join-Path $PSScriptRoot 'gloam-setup-organizer.ps1')
 . (Join-Path $PSScriptRoot 'gloam-setup-configuration.ps1')
 . (Join-Path $PSScriptRoot 'gloam-setup-artwork.ps1')
@@ -105,6 +106,7 @@ function Load-Sd {
     Load-GloamOrganizerJournals
     Load-GloamOrganizerFolders
     Load-GloamArtworkUi
+    $ui.SearchIndexStatus.Text = Get-GloamSearchIndexStatus $script:Root
     Update-AddonStatus
     $ui.Workspace.IsEnabled = $true
     Update-GloamCatalogThemeStatus
@@ -139,15 +141,15 @@ function Start-SetupJob([string]$Action, [string[]]$Sources = @(), [hashtable]$O
     $null = $process.Handle # Keep a process handle so ExitCode remains available after exit.
     $script:Job = @{ Process = $process; Folder = $folder; Action = $Action }; $script:LastLog = ''
     $ui.Workspace.IsEnabled = $Action -in @('ThemeCatalog','ThemePreview'); $ui.TargetBar.IsEnabled = $false; $ui.Progress.Visibility = 'Visible'; $ui.Progress.IsIndeterminate = $true
-    $ui.CancelArtwork.Visibility = if ($Action -in @('ArtworkScan','ArtworkFetch','ThemeCatalog','ThemePreview','ThemeInstall')) { 'Visible' } else { 'Collapsed' }; $ui.CancelArtwork.IsEnabled=$true
-    $ui.CancelArtwork.Content = if ($Action -like 'Theme*') { 'Cancel theme operation' } else { 'Cancel artwork operation' }
+    $ui.CancelArtwork.Visibility = if ($Action -in @('ArtworkScan','ArtworkFetch','ThemeCatalog','ThemePreview','ThemeInstall','BuildSearchIndex')) { 'Visible' } else { 'Collapsed' }; $ui.CancelArtwork.IsEnabled=$true
+    $ui.CancelArtwork.Content = if ($Action -eq 'BuildSearchIndex') { 'Cancel search index' } elseif ($Action -like 'Theme*') { 'Cancel theme operation' } else { 'Cancel artwork operation' }
     $ui.Status.Text = 'Working: ' + $Action; Write-Activity ('Started: ' + $Action)
 }
 $ui.CancelArtwork.Add_Click({ Invoke-UiAction {
-    if ($null -eq $script:Job -or $script:Job.Action -notin @('ArtworkScan','ArtworkFetch','ThemeCatalog','ThemePreview','ThemeInstall')) { return }
+    if ($null -eq $script:Job -or $script:Job.Action -notin @('ArtworkScan','ArtworkFetch','ThemeCatalog','ThemePreview','ThemeInstall','BuildSearchIndex')) { return }
     [IO.File]::WriteAllText((Join-Path $script:Job.Folder 'cancel'), '')
     $ui.CancelArtwork.IsEnabled=$false
-    $ui.Status.Text='Cancelling after the current file/request; completed previews will be kept.'
+    $ui.Status.Text='Cancelling after the current file/request; existing SD files will be kept.'
 } })
 $timer = [Windows.Threading.DispatcherTimer]::new(); $timer.Interval = [TimeSpan]::FromMilliseconds(250)
 $timer.Add_Tick({
@@ -167,7 +169,7 @@ $timer.Add_Tick({
             $code = $script:Job.Process.ExitCode; $script:Job.Process.Dispose(); $script:Job = $null
             $ui.Workspace.IsEnabled = $true; $ui.TargetBar.IsEnabled = $true; $ui.Progress.Visibility = 'Collapsed'; $ui.CancelArtwork.Visibility='Collapsed'
             if ($code -eq 0) { if ($finishedJob.Action -notin @('ThemeCatalog','ThemePreview')) { Load-Sd }; Complete-GloamOrganizerJob $finishedJob; Complete-GloamArtworkJob $finishedJob; $ui.Status.Text = 'Complete. You can safely remove the SD card after Windows finishes writing.'; Complete-GloamHealthJob $finishedJob; Complete-GloamThemeJob $finishedJob }
-            elseif ($code -eq 3) { Complete-GloamArtworkJob $finishedJob; Complete-GloamHealthJob $finishedJob; $ui.Status.Text=if ($finishedJob.Action -like 'Theme*') { 'Theme operation cancelled. Existing themes were kept.' } else { 'Cancelled. Completed previews kept; SD artwork unchanged.' } }
+            elseif ($code -eq 3) { Complete-GloamArtworkJob $finishedJob; Complete-GloamHealthJob $finishedJob; $ui.Status.Text=if ($finishedJob.Action -eq 'BuildSearchIndex') { 'Search index cancelled. Previous index kept.' } elseif ($finishedJob.Action -like 'Theme*') { 'Theme operation cancelled. Existing themes were kept.' } else { 'Cancelled. Completed previews kept; SD artwork unchanged.' } }
             elseif ($code -eq 2) { Load-Sd; Complete-GloamArtworkJob $finishedJob; Complete-GloamHealthJob $finishedJob; $ui.Status.Text = 'Completed with failures. See the activity log for installed, preserved and failed apps.' }
             else { Reset-GloamOrganizerPreview; Load-GloamOrganizerJournals; $ui.Status.Text = 'Operation failed. See the activity log; existing backups were kept.' }
             if ($SmokeTest -and $SmokeAction) {
@@ -192,7 +194,7 @@ $ui.BrowseTarget.Add_Click({ Invoke-UiAction {
     if ($dialog.ShowDialog() -eq 'OK') { $ui.TargetPath.Text = $dialog.SelectedPath; Load-Sd }; $dialog.Dispose()
 } })
 $ui.LoadTarget.Add_Click({ Invoke-UiAction { Load-Sd } })
-foreach ($name in @('Install','UpdateRuntime','UpdateFrontend','InstallAddons','CheckAddons','UpdateAddons','CheckSupport')) {
+foreach ($name in @('Install','UpdateRuntime','UpdateFrontend','InstallAddons','CheckAddons','UpdateAddons','CheckSupport','BuildSearchIndex')) {
     $ui[$name].Tag = $name
     $ui[$name].Add_Click({ param($sender,$eventArgs) Invoke-UiAction { param($action) Start-SetupJob $action } @([string]$sender.Tag) })
 }

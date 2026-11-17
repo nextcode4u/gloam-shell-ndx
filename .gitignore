@@ -93,3 +93,6 @@ prompts.txt
 *-prompt*.md
 *_prompt*.txt
 *_prompt*.md
+
+# Per-card derived library search data
+/sdroot/_nds/dsi-frontend/cache/

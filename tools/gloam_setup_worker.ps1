@@ -8,6 +8,7 @@ $ProgressPreference = 'SilentlyContinue'
 try {
     . (Join-Path $PSScriptRoot 'gloam-setup-core.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-settings.ps1')
+    . (Join-Path $PSScriptRoot 'gloam-setup-search.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-configuration.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-organizer.ps1')
     . (Join-Path $PSScriptRoot 'gloam-setup-artwork.ps1')
@@ -26,6 +27,7 @@ try {
         Write-Host "Release: $($release.tag_name)"
     }
     switch ($job.Action) {
+        'BuildSearchIndex' { Build-GloamSearchIndex $root ([IO.Path]::GetDirectoryName($Request)) }
         'ThemeCatalog' {
             $catalog = if ($job.Offline) { Read-GloamThemeCatalog $job.Options.Cache } else { Update-GloamThemeCatalog $job.Options.Cache }
             Write-Host ("Theme directory: " + @($catalog.Themes).Count + ' themes at ' + $catalog.Revision)
