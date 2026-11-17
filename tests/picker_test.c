@@ -4,6 +4,7 @@
 #include "browser.h"
 #include "item_preferences.h"
 #include "launch.h"
+#include "layout.h"
 #include "paths.h"
 #include "picker.h"
 #include "renderer.h"
@@ -58,6 +59,29 @@ static void binary(const char *root)
     FILE *file = fopen(path, "wb");
     assert(file && fwrite(bytes, 1, sizeof bytes, file) == sizeof bytes && !fclose(file));
 }
+static void check_menu_cursor(void)
+{
+    ThemePalette original = app.themes.active.palette;
+    /* Glacier intentionally shares its separator and surface colors. A disabled
+     * action must still show focus without changing whether it can be invoked. */
+    app.themes.active.palette.line = app.themes.active.palette.surface;
+    for (int panel = 0; panel < 2; panel++) {
+        app_panel(&app, panel ? PANEL_QUICK : PANEL_ACTIONS);
+        int count = panel ? QUICK_CONTROL_COUNT : ACTION_COUNT;
+        for (int step = 0; step < count * 2; step++) {
+            int selected = app.panel_selection;
+            bool enabled = panel || app.action_enabled[selected];
+            render_app(&app, top.pixels, bottom.pixels, "10:00");
+            int row = layout_panel_top(&app) + 29 + (selected - app.panel_scroll) * 15;
+            assert(bottom.pixels[row * 256 + 10] == app.themes.active.palette.accent);
+            assert(app.panel_selection == selected);
+            assert(panel || app.action_enabled[selected] == enabled);
+            app_panel_move(&app, step < count ? 1 : -1);
+        }
+        app_back(&app);
+    }
+    app.themes.active.palette = original;
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -85,6 +109,7 @@ int main(int argc, char **argv)
     Entry content = *app_selected(&app);
     ItemPreferences item;
     assert(!item_preferences_load(root, content.path, &item));
+    check_menu_cursor();
     app_panel(&app, PANEL_ACTIONS);
     app.panel_selection = 3;
     app_panel_activate(&app);

@@ -742,7 +742,7 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
             break;
         int row = y + 29 + visible * 15;
         if (i == app->panel_selection)
-            draw_rectangle(pixels, 10, row - 2, 236, 14, colors.line);
+            draw_theme_selection(&app->themes.active, pixels, 10, row - 2, 236, 14);
         bool enabled = app->panel == PANEL_QUICK || app->action_enabled[i];
         bool selected = i == app->panel_selection;
         bool has_value = app->panel == PANEL_QUICK && i <= QUICK_BROWSER_STYLE;
