@@ -1,6 +1,6 @@
 /* Bounded INI launch profiles shared by icons and homebrew routing. */
-#include "arguments.h"
 #include "associations.h"
+#include "arguments.h"
 #include "icons.h"
 #include "item_preferences.h"
 #include "paths.h"

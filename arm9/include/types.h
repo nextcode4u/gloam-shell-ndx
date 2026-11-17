@@ -20,7 +20,7 @@
 #define USER_ASSOCIATION_CAP 32
 #define EXTENSION_CAP 16
 #define EDITOR_EXTENSION_CAP 96
-#define ACTION_COUNT 16
+#define ACTION_COUNT 17
 #define LAUNCH_ARG_CAP 16
 #define LAUNCH_DATA_CAP 4096
 
@@ -238,6 +238,7 @@ typedef enum {
     QUICK_SYSTEM_MENU,
     QUICK_SAVE,
     QUICK_SETTINGS,
+    QUICK_SEARCH,
     QUICK_CONTROL_COUNT
 } QuickControl;
 #define THEME_CAP 65 /* Built-in plus 64 installed packages. */
@@ -352,6 +353,7 @@ typedef struct {
     int scan_count;
     unsigned scan_visited, scan_eligible;
     char scan_restore_path[PATH_CAP];
+    bool scan_seek_all;
     int entry_count;
     bool truncated;
     bool directory_error;
@@ -362,6 +364,7 @@ typedef struct {
     int favorite_count;
     Panel panel, panel_parent;
     LaunchExplanation *inspection; /* Allocated only while inspecting a file. */
+    struct LibrarySearch *search;  /* On-demand PC index, never opened at startup. */
     int panel_parent_selection, panel_parent_scroll;
     bool action_enabled[ACTION_COUNT];
     int panel_selection, panel_scroll, accent_index, detail_tab;

@@ -306,6 +306,8 @@ int main(int argc, char **argv)
     app_panel_move(&app, 1);
     assert(app.panel_selection == QUICK_SETTINGS && app.panel_scroll == 3);
     app_panel_move(&app, 1);
+    assert(app.panel_selection == QUICK_SEARCH && app.panel_scroll == 4);
+    app_panel_move(&app, 1);
     assert(app.panel_selection == QUICK_ACCENT && app.panel_scroll == 0);
     app.icon_size = ICON_LARGE;
     app.browser_style = BROWSER_LIST;

@@ -119,6 +119,7 @@ void browser_scan_cancel(App *app)
     app->scan_directory = NULL;
     app->scan_count = 0;
     app->scan_restore_path[0] = 0;
+    app->scan_seek_all = false;
 }
 void browser_scan_begin(App *app)
 {
@@ -147,12 +148,30 @@ static void finish_scan(App *app)
     int (*comparators[])(const void *, const void *) = {compare_names, compare_names_desc,
                                                         compare_types, compare_modified};
     entry_sort(app->entries, app->entry_count, comparators[app->sort_mode]);
+    bool found = false;
     if (*app->scan_restore_path)
         for (int i = 0; i < app->entry_count; i++)
             if (!strcmp(app->entries[i].path, app->scan_restore_path)) {
                 app->locations[app->category].selected = i;
+                found = true;
                 break;
             }
+    if (app->scan_seek_all && !found && app->truncated &&
+        app->locations[app->category].batch < 4095) {
+        char target[PATH_CAP];
+        path_copy(target, app->scan_restore_path, PATH_CAP);
+        app->locations[app->category].batch++;
+        browser_scan_begin(app);
+        app->scan_seek_all = true;
+        path_copy(app->scan_restore_path, target, PATH_CAP);
+        return;
+    }
+    if (app->scan_seek_all && !found) {
+        path_copy(app->message, "Indexed file is not visible. Check filters or refresh the index.",
+                  sizeof app->message);
+        app_panel(app, PANEL_MESSAGE);
+    }
+    app->scan_seek_all = false;
     app->scan_restore_path[0] = 0;
     icons_reset(app);
     browser_reflow(app);
@@ -412,4 +431,38 @@ void browser_refresh(App *app)
         path_copy(selected_path, entry->path, sizeof selected_path);
     app_scan(app);
     browser_restore_selection(app, selected_path);
+}
+
+bool browser_reveal_file(App *app, const char *path)
+{
+    if (!app->storage_ready || app->storage_lost || !path_is_within_root(path, app->root))
+        return false;
+    char target[PATH_CAP], directory[PATH_CAP];
+    path_copy(target, path, PATH_CAP);
+    path_copy(directory, path, PATH_CAP);
+    char *slash = strrchr(directory, '/');
+    if (!slash)
+        return false;
+    slash[1] = 0;
+    int tab = CATEGORY_FILES;
+    size_t best = 0;
+    for (int i = CATEGORY_GAMES; i < app->tab_count; i++)
+        if (i != CATEGORY_SYSTEM && i != CATEGORY_FILES &&
+            path_is_within_root(target, app->tabs[i].home) && strlen(app->tabs[i].home) > best) {
+            best = strlen(app->tabs[i].home);
+            tab = i;
+        }
+    app_category(app, tab);
+    Location *location = &app->locations[tab];
+    path_copy(location->path, directory, PATH_CAP);
+    location->selected = location->scroll = location->batch = 0;
+    browser_scan_begin(app);
+    path_copy(app->scan_restore_path, target, PATH_CAP);
+    app->scan_seek_all = true;
+#ifdef HOST_PREVIEW
+    while (app->scan_directory)
+        browser_scan_step(app);
+#endif
+    app_mark_preferences_dirty(app);
+    return true;
 }

@@ -8,6 +8,7 @@ protocol definitions live in `common/include`.
 | --- | --- |
 | Frame loop and hardware | `arm9/source/main.c`, `arm7/source/main.c`, `common/include/hardware_protocol.h`. |
 | App state and actions | `types.h`, `app.c`, `startup.c`, `storage_state.c`. |
+| Library search | `library_search.c`, `ui/library_search_view.c`; optional PC index, bounded queries and keyboard/results UI. `browser.c` locates explicit results across folder batches. |
 | Browser and navigation | `browser.c`, `directory_scan.c`, `entry_sort.c`, `tabs.c`, `grid.c`, `layout.h`, `paths.c`. |
 | Settings and persistence | `settings.c`, `preferences.c`, `configuration.c`, `configuration_reset.c`, `appearance.c`. |
 | Home and associations | `dashboard.c`, `collections.c`, `associations.c`, `association_editor.c`, `item_preferences.c`, `picker.c`. `inspection.c` and `ui/inspection_view.c` prepare/display read-only resolver and launch-preflight explanations. `associations.c` resolves suffix/folder specificity and deduplicates registered handlers; `picker.c` owns the explicit handler chooser and `launch.c` revalidates its selected profile. |
@@ -253,6 +254,8 @@ uses the common backup writer for replacements. New installer modules belong in
 the add-on installer map, source inventory and bootstrap allow-list together.
 
 Desktop search-index preparation lives in `tools/gloam_setup_search.ps1` and
-`tools/gloam_library_index.cs`. The setup worker runs a cancellable metadata
-scan; only a completed derived cache is installed. The GUI reads a small status
-header without scanning the library.
+`tools/gloam_library_index.cs`. The setup worker runs the cancellable metadata
+scan; only a completed cache is installed. The GUI reads a small status header.
+Native search allocates one page on demand, closes its stream on cancellation or
+SD loss, and never opens the index during initialization. The format and limits
+are in [Library search](guides/LIBRARY_SEARCH.md).

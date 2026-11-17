@@ -1,3 +1,4 @@
+#include "renderer.h"
 #include "app.h"
 #include "artwork.h"
 #include "association_editor.h"
@@ -10,8 +11,8 @@
 #include "icons.h"
 #include "inspection.h"
 #include "layout.h"
+#include "library_search.h"
 #include "picker.h"
-#include "renderer.h"
 #include "settings.h"
 #include "storage_state.h"
 #include "tabs.h"
@@ -708,7 +709,8 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
         ui_translate(&app->language, "dialog.system_apps", "System applications"),
         ui_translate(&app->language, "dialog.return_menu", "Return to DSi System Menu"),
         ui_translate(&app->language, "dialog.save_preferences", "Save preferences"),
-        ui_translate(&app->language, "dialog.all_settings", "All settings")};
+        ui_translate(&app->language, "dialog.all_settings", "All settings"),
+        ui_translate(&app->language, "dialog.search_library", "Search library")};
     const Entry *entry = app_selected(app);
     const char *actions[] = {
         entry && (entry->kind == ITEM_DIRECTORY || entry->kind == ITEM_CATEGORY ||
@@ -731,7 +733,8 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
         ui_translate(&app->language, "dialog.next_batch", "Next folder batch"),
         ui_translate(&app->language, "dialog.previous_batch", "Previous folder batch"),
         ui_translate(&app->language, "dialog.choose_icon", "Choose browser icon"),
-        ui_translate(&app->language, "dialog.clear_icon", "Clear browser icon")};
+        ui_translate(&app->language, "dialog.clear_icon", "Clear browser icon"),
+        ui_translate(&app->language, "dialog.search_library", "Search library")};
     int count = app->panel == PANEL_QUICK ? QUICK_CONTROL_COUNT : ACTION_COUNT;
     for (int visible = 0; visible < UI_PANEL_VISIBLE_ROWS; visible++) {
         int i = app->panel_scroll + visible;
@@ -805,6 +808,8 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
         app->panel == PANEL_QUICK && app->panel_selection <= QUICK_BROWSER_STYLE
             ? ui_translate(&app->language, "dialog.settings_adjust", "< > change  A next  B close")
             : ui_translate(&app->language, "dialog.select_close", "A select   B close");
+    if (app->panel == PANEL_ACTIONS)
+        hint = "A select  B back  X search";
     if (app->panel == PANEL_QUICK && app->panel_selection == QUICK_ICON_SIZE &&
         !layout_has_icons(app))
         hint = ui_translate(&app->language, "dialog.icons_hidden", "Icons hidden in List view");
@@ -951,7 +956,15 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
         storage_render(app, top, bottom);
         return;
     }
-
+    if (app->search) {
+        if (app->picker.open)
+            picker_render(app, top, bottom);
+        else {
+            library_search_render(app, top, bottom);
+            draw_overlay(app, bottom, themes_palette(app));
+        }
+        return;
+    }
     if (app->cheats) {
         cheats_render(app, top, bottom);
         return;

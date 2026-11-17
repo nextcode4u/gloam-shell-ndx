@@ -1,7 +1,7 @@
 /* Read-only resolver/preflight; never commits a launch or creates saves. */
+#include "inspection.h"
 #include "associations.h"
 #include "icons.h"
-#include "inspection.h"
 #include "item_preferences.h"
 #include "launch.h"
 #include "paths.h"

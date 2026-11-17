@@ -22,6 +22,7 @@
 #include "item_preferences.h"
 #include "launch.h"
 #include "layout.h"
+#include "library_search.h"
 #include "localization.h"
 #include "paths.h"
 #include "picker.h"
@@ -214,6 +215,7 @@ void app_init(App *app, const char *root, bool storage, bool dsi)
 
 void app_category(App *app, int c)
 {
+    library_search_close(app);
     inspection_close(app);
     app->collection_open = -1;
     app->tab_text_started_frame = app->frame_count;
@@ -360,6 +362,7 @@ void app_panel(App *app, Panel p)
         app->action_enabled[9] = app->action_enabled[8];
         app->action_enabled[14] = item;
         app->action_enabled[15] = item && *preferences.icon;
+        app->action_enabled[16] = app->storage_ready && !app->storage_lost;
         app->action_enabled[12] = app->truncated && !app->scan_directory;
         app->action_enabled[13] = app->category != CATEGORY_HOME &&
                                   app->locations[app->category].batch && !app->scan_directory;
@@ -521,9 +524,18 @@ void app_open(App *app)
         }
         return;
     }
-    if (entry->kind == ITEM_FILE && picker_open_handlers(app, entry->path))
+    app_launch_file(app, entry->path);
+}
+
+void app_launch_file(App *app, const char *path)
+{
+    if (!path_is_within_root(path, app->root)) {
+        app_show_message(app, "Launch target is outside the SD card.");
         return;
-    if (launch_prepare(app, entry->path, &app->launch, app->message))
+    }
+    if (picker_open_handlers(app, path))
+        return;
+    if (launch_prepare(app, path, &app->launch, app->message))
         app->launch_requested = true;
     else {
         diagnostics_record_launch(app, LAUNCH_REPORT_REJECTED, app->message);
@@ -533,6 +545,16 @@ void app_open(App *app)
 
 void app_back(App *app)
 {
+    if (app->search) {
+        app->launch_requested = false;
+        if (app->picker.open)
+            picker_back(app);
+        else if (app->panel != PANEL_NONE)
+            app_panel_close(app);
+        else
+            library_search_back(app);
+        return;
+    }
     if (app->rail_focus) {
         app_rail_toggle(app);
         return;
@@ -743,6 +765,9 @@ void app_panel_activate(App *app)
         case QUICK_SETTINGS:
             settings_open(app);
             break;
+        case QUICK_SEARCH:
+            app_search_open(app);
+            break;
         case QUICK_SAVE:
             if (app_save(app)) {
                 app_show_message(app, "Preferences saved.");
@@ -759,6 +784,9 @@ void app_panel_activate(App *app)
             return;
         }
         switch (app->panel_selection) {
+        case 16:
+            app_search_open(app);
+            break;
         case 0:
             app->panel = PANEL_NONE;
             app_open(app);
@@ -862,6 +890,13 @@ void app_tick(App *app)
     themes_tick(app);
     startup_tick(app);
     themes_motion_tick(app);
+    if (app->search) {
+        if (app->picker.open)
+            picker_tick(app);
+        else
+            library_search_step(app);
+        return;
+    }
     if (!app->storage_lost && app->installed_catalog.scanning &&
         installed_catalog_step(&app->installed_catalog) && app->category == CATEGORY_SYSTEM &&
         app->installed_open)
@@ -919,4 +954,10 @@ void app_tick(App *app)
         app_save(app);
         app->preferences_idle_frames = 0;
     }
+}
+
+void app_search_open(App *app)
+{
+    if (!library_search_open(app))
+        app_show_message(app, "Search needs SD access and free memory.");
 }

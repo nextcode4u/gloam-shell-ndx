@@ -18,6 +18,8 @@ void app_rail_commit(App *app);
 void app_toggle_details(App *app);
 void app_page(App *app, int direction);
 void app_open(App *app);
+void app_search_open(App *app);
+void app_launch_file(App *app, const char *path);
 void app_back(App *app);
 void app_request_system_menu(App *app);
 void app_panel(App *app, Panel panel);

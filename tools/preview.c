@@ -2,6 +2,8 @@
 #include "artwork.h"
 #include "audio.h"
 #include "browser.h"
+#include "inspection.h"
+#include "library_search.h"
 #include "localization.h"
 #include "paths.h"
 #include "picker.h"
@@ -77,6 +79,24 @@ int main(int argc, char **argv)
         app_category(&app, atoi(argv[3]));
     if (argc > 4 && !strcmp(argv[4], "settings")) {
         settings_open(&app);
+    } else if (argc > 4 && (!strcmp(argv[4], "search") || !strcmp(argv[4], "search-edit"))) {
+        if (!library_search_open(&app))
+            return 2;
+        if (!strcmp(argv[4], "search")) {
+            if (argc > 5)
+                path_copy(app.search->query, argv[5], SEARCH_QUERY_CAP);
+            library_search_start(&app);
+            for (int frame = 0; app.search->pending && frame < 50000; frame++)
+                app_tick(&app);
+        }
+    } else if (argc > 4 && !strcmp(argv[4], "inspect")) {
+        for (int i = 0; i < app.entry_count; i++)
+            if (app.entries[i].kind == ITEM_FILE) {
+                app.locations[app.category].selected = i;
+                break;
+            }
+        app_panel(&app, PANEL_INFO);
+        app_panel_adjust(&app, 1);
     } else if (argc > 4 && !profile && !picker_preview)
         app_panel(&app, PANEL_QUICK);
     for (int frame = 0; frame < 20; frame++)
@@ -211,5 +231,7 @@ int main(int argc, char **argv)
     render_write_ppm(path, top, 192);
     snprintf(path, sizeof path, "%s-bottom.ppm", argv[2]);
     render_write_ppm(path, bottom, 192);
+    library_search_close(&app);
+    inspection_close(&app);
     return 0;
 }

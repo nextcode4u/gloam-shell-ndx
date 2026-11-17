@@ -16,6 +16,7 @@
 #include "installed_titles.h"
 #include "launch.h"
 #include "layout.h"
+#include "library_search.h"
 #include "navigation.h"
 #include "paths.h"
 #include "picker.h"
@@ -533,7 +534,9 @@ int main(int argc, char **argv)
         if (down & KEY_B)
             audio_event(&app, AUDIO_BACK);
         if (down & KEY_START) {
-            if (app.cheats)
+            if (app.search)
+                app_back(&app);
+            else if (app.cheats)
                 cheats_close(&app);
             else if (app.game_editor.open)
                 game_editor_close(&app);
@@ -554,6 +557,31 @@ int main(int argc, char **argv)
             app.system_title_requested = -1;
             app.system_menu_requested = app.slot1_requested = false;
             app_back(&app);
+        } else if (app.search && !app.picker.open && app.panel == PANEL_NONE) {
+            if (repeat & KEY_UP)
+                library_search_move(&app, 0, -1);
+            if (repeat & KEY_DOWN)
+                library_search_move(&app, 0, 1);
+            if (repeat & KEY_LEFT)
+                library_search_move(&app, -1, 0);
+            if (repeat & KEY_RIGHT)
+                library_search_move(&app, 1, 0);
+            if (down & KEY_A)
+                library_search_activate(&app);
+            if (down & KEY_X)
+                library_search_edit(&app);
+            if (down & KEY_Y) {
+                if (app.search->editing)
+                    library_search_erase(&app);
+                else
+                    library_search_locate(&app);
+            }
+            if (down & KEY_L)
+                library_search_page(&app, -1);
+            if (down & KEY_R)
+                library_search_page(&app, 1);
+            if (down & KEY_SELECT)
+                library_search_scope(&app);
         } else if (app.rail_focus) {
             if (repeat & (KEY_UP | KEY_L))
                 app_rail_move(&app, -1);
@@ -658,6 +686,9 @@ int main(int argc, char **argv)
                 app_panel_adjust(&app, -1);
             if (repeat & KEY_RIGHT)
                 app_panel_adjust(&app, 1);
+            if ((down & KEY_X) && app.panel == PANEL_ACTIONS) {
+                app_search_open(&app);
+            }
             if (down & KEY_A)
                 app_panel_activate(&app);
         } else {
@@ -695,7 +726,9 @@ int main(int argc, char **argv)
             touchPosition t;
             touchRead(&t);
             audio_event(&app, AUDIO_CURSOR);
-            if (app.cheats)
+            if (app.search && !app.picker.open && app.panel == PANEL_NONE)
+                library_search_touch(&app, t.px, t.py);
+            else if (app.cheats)
                 cheats_touch(&app, t.px, t.py);
             else if (app.game_editor.open)
                 game_editor_touch(&app, t.px, t.py);

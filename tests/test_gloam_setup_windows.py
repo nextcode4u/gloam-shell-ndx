@@ -142,6 +142,19 @@ class GloamSetupTests(unittest.TestCase):
         self.assertFalse(list(work.glob('*.gli')))
         self.assertFalse((state / 'setup-backups').exists())
 
+    def test_search_index_large_payload_preserves_offsets_and_filters(self):
+        folder = self.sd / 'roms/Test collection'
+        folder.mkdir(parents=True)
+        for index in range(2200):
+            (folder / f'Entry{index:04}.nds').write_bytes(b'Authored non-runnable fixture')
+        self.run_ps('Build-GloamSearchIndex $root ' + literal(win(self.root / 'index work')))
+        rows = self.read_search_index()  # Independent encoder checks the entire table/payload.
+        self.assertEqual(len(rows), 2200)
+        data = (self.sd / '_nds/dsi-frontend/cache/library.gli').read_bytes()
+        self.assertGreater(struct.unpack_from('<I', data, 12)[0], 65536)
+        self.assertEqual(rows[0][0], 'roms/Test collection/Entry0000.nds')
+        self.assertEqual(rows[-1][0], 'roms/Test collection/Entry2199.nds')
+
     def test_search_index_cancel_and_invalid_header_keep_normal_setup_usable(self):
         (self.sd / 'roms').mkdir()
         (self.sd / 'roms/Fixture.txt').write_text('Authored text')

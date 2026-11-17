@@ -16,6 +16,7 @@ Start with [setup and controls](GETTING_STARTED.md) and [current support](CURREN
   [text and titles](guides/TEXT_AND_TITLES.md), [appearance presets](guides/APPEARANCE_PRESETS.md).
 - [Custom tabs](guides/TABS.md), [dashboard](guides/DASHBOARD.md),
   [item preferences](guides/ITEM_PREFERENCES.md), [association editor](guides/ASSOCIATION_EDITOR.md).
+- [PC-built library search](guides/LIBRARY_SEARCH.md).
 - [Configuration backups and resets](guides/CONFIGURATION_BACKUPS.md).
 
 ## Development

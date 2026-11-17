@@ -1,3 +1,4 @@
+#include "storage_state.h"
 #include "app.h"
 #include "artwork.h"
 #include "artwork_disk_cache.h"
@@ -6,9 +7,9 @@
 #include "icons.h"
 #include "inspection.h"
 #include "installed_titles.h"
+#include "library_search.h"
 #include "picker.h"
 #include "startup.h"
-#include "storage_state.h"
 #include "themes.h"
 
 void storage_observe(App *app, bool present)
@@ -18,6 +19,7 @@ void storage_observe(App *app, bool present)
         return;
     browser_scan_cancel(app);
     inspection_close(app);
+    library_search_close(app);
     installed_catalog_cancel(&app->installed_catalog);
     app->installed_discovery_requested = false;
     startup_cancel(app);

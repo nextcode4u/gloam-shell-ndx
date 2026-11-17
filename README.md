@@ -34,6 +34,7 @@ Each theme includes previews, installation instructions and asset credits.
   appearance presets and on-console controls.
 - Covers and custom icons for games, folders and associated files, with lazy
   artwork loading and a disposable thumbnail cache.
+- Optional [PC-indexed library search](docs/guides/LIBRARY_SEARCH.md), with cancellable queries and no startup indexing.
 - Folder-aware argv associations, a handler chooser for shared extensions,
   per-item player choices, read-only handler explanations and return-to-loader support for compatible homebrew.
 - nds-bootstrap integration with game options, save slots and cheat selection.

@@ -1,4 +1,5 @@
 /* Full settings controller. Every editable option changes real frontend behavior. */
+#include "settings.h"
 #include "app.h"
 #include "appearance.h"
 #include "artwork.h"
@@ -20,7 +21,6 @@
 #include "paths.h"
 #include "picker.h"
 #include "preferences.h"
-#include "settings.h"
 #include "splash.h"
 #include "tabs.h"
 #include "themes.h"
