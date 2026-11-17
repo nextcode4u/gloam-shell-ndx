@@ -67,8 +67,14 @@ int main(int argc, char **argv)
             }
         }
     }
-    const char *catalogs[] = {"config/languages/template.ini", "config/languages/spanish.ini",
-                              "config/languages/japanese.ini"};
+    const char *catalogs[] = {"config/languages/template.ini",
+                              "config/languages/spanish.ini",
+                              "config/languages/japanese.ini",
+                              "config/languages/french.ini",
+                              "config/languages/german.ini",
+                              "config/languages/italian.ini",
+                              "config/languages/portuguese-brazilian.ini",
+                              "config/languages/dutch.ini"};
     for (unsigned i = 0; i < sizeof catalogs / sizeof *catalogs; i++) {
         FILE *file = fopen(catalogs[i], "rb");
         char data[32769];

@@ -151,7 +151,10 @@ function Import-GloamLanguagePack([string]$Root, [string[]]$Sources) {
 function Repair-GloamSharedAssets([string]$Root, [string]$ArchivePath) {
     $root=Get-GloamRoot $Root; $archive=[IO.Compression.ZipFile]::OpenRead($ArchivePath)
     try {
-        $wanted=@('_nds/dsi-frontend/fonts/japanese.gsf','_nds/dsi-frontend/fonts/extended.gsf','_nds/dsi-frontend/languages/ja.ini','_nds/dsi-frontend/languages/es.ini')
+        $wanted=@('_nds/dsi-frontend/fonts/japanese.gsf','_nds/dsi-frontend/fonts/extended.gsf','_nds/dsi-frontend/languages/ja.ini','_nds/dsi-frontend/languages/es.ini',
+                  '_nds/dsi-frontend/languages/fr.ini','_nds/dsi-frontend/languages/de.ini',
+                  '_nds/dsi-frontend/languages/it.ini','_nds/dsi-frontend/languages/pt-BR.ini',
+                  '_nds/dsi-frontend/languages/nl.ini')
         $seen=@{}; $plan=@(); $total=0L
         foreach ($entry in $archive.Entries) {
             $name=$entry.FullName; $total+=$entry.Length

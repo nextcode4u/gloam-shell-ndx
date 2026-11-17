@@ -33,12 +33,41 @@ class LocalizationAuditTests(unittest.TestCase):
         widths = audit.script_advances()
         self.assertEqual(widths[ord('本')], 12)
         self.assertIn(ord('Ω'), widths)
-        for id in ('ja', 'es'):
+        for id in ('ja', 'es', 'fr', 'de', 'it', 'pt-BR', 'nl'):
             report = audit.audit(ROOT / 'sdroot/_nds/dsi-frontend/languages' / (id + '.ini'), keys, widths,
                                  ROOT / 'sdroot/_nds/dsi-frontend/themes')
             self.assertFalse(report['unsupported_glyphs'])
             self.assertGreater(report['coverage_percent'], 50)
-            self.assertTrue(report['missing_keys'])  # Starters deliberately retain English fallbacks.
+            self.assertTrue(report['missing_keys'])  # Starters retain English help fallbacks.
+            if id not in ('es', 'ja'):
+                self.assertTrue(all(key.endswith('.help') for key in report['missing_keys']))
+            self.assertFalse(report['unknown_keys'])
+            self.assertFalse(report['potential_overflow'])
+
+    def test_distributed_catalogs_match_sources_and_packaging(self):
+        import json
+
+        inventory = json.loads((ROOT / 'config/package-inputs.json').read_text())
+        sources = {'ja': 'japanese', 'es': 'spanish', 'fr': 'french',
+                   'de': 'german', 'it': 'italian', 'pt-BR': 'portuguese-brazilian',
+                   'nl': 'dutch'}
+        for locale, source in sources.items():
+            relative = 'sdroot/_nds/dsi-frontend/languages/' + locale + '.ini'
+            self.assertEqual((ROOT / relative).read_bytes(),
+                             (ROOT / 'config/languages' / (source + '.ini')).read_bytes())
+            self.assertIn(relative, inventory['sd_files'])
+            self.assertIn(relative, inventory['source_files'])
+            values = audit.catalog(ROOT / relative)
+            self.assertIn('setting.interface_language.label', values)
+            self.assertIn('dialog.theme_controls', values)
+            if locale not in ('es', 'ja'):
+                self.assertGreaterEqual(len(values), 325)
+                self.assertIn('setting.splash_mode.help', values)
+                self.assertIn('setting.background_updates.help', values)
+
+    def test_template_covers_the_registered_keys_within_native_limits(self):
+        self.assertEqual(set(audit.catalog(ROOT / 'config/languages/template.ini')),
+                         audit.known_keys())
 
     def test_font_corruption_does_not_produce_false_coverage(self):
         with tempfile.TemporaryDirectory() as folder:

@@ -39,12 +39,15 @@ Each theme includes previews, installation instructions and asset credits.
 - nds-bootstrap integration with game options, save slots and cheat selection.
 - System application shortcuts, installed DSiWare discovery, cartridge icons
   and Slot-1 launching through Simple DS Slot-1 Launcher.
-- Japanese title glyphs across all themes, plus optional Japanese and Spanish
-  [interface catalogs](docs/guides/TEXT_AND_TITLES.md).
+- Japanese title glyphs across all themes and external, partial
+  [interface catalogs](docs/guides/TEXT_AND_TITLES.md) for Japanese, Spanish, French,
+  German, Italian, Brazilian Portuguese and Dutch, with English fallback.
 - Favorites and recent items, configuration export/import, recovery mode,
   hidden/save/BIOS folder filters and adjustable scrolling.
 
 **Latest release:** [Download Gloam Shell NDX](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest).
+This README describes current source; check the release notes for features in a
+published binary.
 Core launch, save, settings and sleep routes have passed reported tests on a
 Japanese DSi LL with Unlaunch and an English-patched menu. Compatibility depends
 on the title, backend and boot environment; see [current support](docs/CURRENT_SUPPORT.md)

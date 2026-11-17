@@ -1013,6 +1013,36 @@ if (Compare-Object $before $after) { throw 'Read-only health changed SD content'
         self.assertEqual(len(list((folder / 'setup-backups').rglob('extended.gsf'))), 1)
         self.run_ps("$rows=@(Get-GloamSetupHealth $root); if (@($rows | Where-Object { $_.Area -eq 'Shared fonts' -and $_.Status -ne 'Ready' }).Count) { throw 'Fonts not repaired' }")
 
+    def test_new_shipped_catalogs_repair_and_have_readable_choices(self):
+        locales = {'de': 'German', 'es': 'Spanish', 'fr': 'French', 'it': 'Italian',
+                   'ja': 'Japanese', 'nl': 'Dutch', 'pt-BR': 'Portuguese (Brazil)'}
+        files = {'_nds/dsi-frontend/fonts/japanese.gsf': shared_font('japanese'),
+                 '_nds/dsi-frontend/fonts/extended.gsf': shared_font('extended'),
+                 'BOOT.NDS': b'Do not install this'}
+        for locale in locales:
+            relative = '_nds/dsi-frontend/languages/' + locale + '.ini'
+            files[relative] = (ROOT / 'sdroot' / relative).read_bytes()
+        archive = self.archive('languages.zip', files)
+        folder = self.sd / '_nds/dsi-frontend/languages'
+        folder.mkdir(parents=True)
+        customized = 'version=1\nhome=My French override\n'
+        (folder / 'fr.ini').write_text(customized)
+        (self.sd / 'BOOT.NDS').write_bytes(b'Original boot')
+        self.run_ps('Repair-GloamSharedAssets $root ' + literal(win(archive)))
+        self.assertEqual((self.sd / 'BOOT.NDS').read_bytes(), b'Original boot')
+        self.assertEqual((folder / 'fr.ini').read_text(), customized)
+        for locale in locales.keys() - {'fr'}:
+            self.assertEqual((folder / (locale + '.ini')).read_bytes(),
+                             files['_nds/dsi-frontend/languages/' + locale + '.ini'])
+        expected = literal(json.dumps(locales))
+        self.run_ps("$expected = ConvertFrom-Json " + expected + r"""
+$choices = @(Get-GloamLanguageCatalogs $root)
+foreach ($entry in $expected.PSObject.Properties) {
+    $found = @($choices | Where-Object Id -ceq $entry.Name)
+    if ($found.Count -ne 1 -or $found[0].Name -cne $entry.Value) { throw ('Wrong locale choice: ' + $entry.Name) }
+}
+""")
+
     def test_setup_health_incomplete_repair_archive_cannot_write(self):
         archive=self.archive('missing.zip', {'_nds/dsi-frontend/fonts/japanese.gsf': shared_font('japanese')})
         self.run_ps('Repair-GloamSharedAssets $root ' + literal(win(archive)), success=False)

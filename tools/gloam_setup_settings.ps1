@@ -207,7 +207,16 @@ function Get-GloamLanguageCatalogs {
         foreach ($file in Get-ChildItem -LiteralPath $folder -File -Filter '*.ini' | Sort-Object Name | Select-Object -First 256) {
             $id = $file.BaseName
             if ($id -notmatch '^[A-Za-z0-9_-]{1,31}$' -or $id -in @('auto','en') -or $file.Length -gt 32768) { continue }
-            $name = switch ($id) { 'ja' {'Japanese'} 'es' {'Spanish'} default {$id} }
+            $name = switch ($id) {
+                'ja' { 'Japanese' }
+                'es' { 'Spanish' }
+                'fr' { 'French' }
+                'de' { 'German' }
+                'it' { 'Italian' }
+                'pt-BR' { 'Portuguese (Brazil)' }
+                'nl' { 'Dutch' }
+                default { $id }
+            }
             $items += [pscustomobject]@{Id=$id; Name=$name}
             if ($items.Count -ge 18) { break }
         }

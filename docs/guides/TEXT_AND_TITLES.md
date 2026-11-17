@@ -162,9 +162,30 @@ Regenerate with `tools/make_japanese_font.py` and `tools/pack_script_fonts.py`.
 START → Appearance → **Interface language** (also in desktop Setup settings)
 selects English, Custom / English, or an installed catalog. `auto` retains the
 legacy `language.ini` override; `en` always uses built-in English. Other IDs load
-`/_nds/dsi-frontend/languages/<id>.ini`. Japanese (`ja`) and Spanish (`es`)
-starters ship in SD packages. They are partial translations, with English for
-missing keys. The setting persists and updates the built-in tab labels live;
+`/_nds/dsi-frontend/languages/<id>.ini`. SD packages built from this source ship:
+
+| ID | Interface catalog | Editable source |
+| --- | --- | --- |
+| `ja` | Japanese | [japanese.ini](../../config/languages/japanese.ini) |
+| `es` | Spanish | [spanish.ini](../../config/languages/spanish.ini) |
+| `fr` | French | [french.ini](../../config/languages/french.ini) |
+| `de` | German | [german.ini](../../config/languages/german.ini) |
+| `it` | Italian | [italian.ini](../../config/languages/italian.ini) |
+| `pt-BR` | Brazilian Portuguese | [portuguese-brazilian.ini](../../config/languages/portuguese-brazilian.ini) |
+| `nl` | Dutch | [dutch.ini](../../config/languages/dutch.ini) |
+
+Use a frontend build with the **Interface language** setting. If it is absent,
+update the frontend and shared SD assets together.
+
+These are partial catalogs, with English for missing entries. The five newer
+catalogs include every registered label/control and selected help; longer help
+and runtime messages may remain English. Native-speaker review is welcome.
+No new fonts are needed for these five languages, and none of their catalog
+text is compiled into BOOT.NDS. Unselected catalogs are not read at startup.
+Older published SD packages may not include them; copy an editable source to
+`/_nds/dsi-frontend/languages/<id>.ini` using the ID above to install it.
+
+The setting persists and updates the built-in tab labels live;
 custom tab labels and banner-title language remain independent. Recovery uses
 English without replacing the saved selection.
 
@@ -188,3 +209,8 @@ use normal mode. The JSON report defaults to ignored `build/localization-audit.j
 
 UTF-8 catalogs accept an optional initial BOM and LF/CRLF lines. Embedded NULs,
 invalid UTF-8 and oversized input are rejected before catalog state is applied.
+
+Keep editable sources and shipped copies identical, then run the localization
+audit tests using the project virtualenv. Validate new text on the console:
+a passing parser/font check does not establish translation quality or LCD
+readability.
