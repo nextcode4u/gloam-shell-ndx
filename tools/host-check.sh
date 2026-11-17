@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+test_python=${FRONTEND_TEST_PYTHON:-python3}
 mkdir -p build/host
 
 common_flags=(
@@ -34,8 +35,8 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
 
 fixture=$(mktemp -d /tmp/gloam-shell-ndx-test.XXXXXX)
 trap 'rm -rf "$fixture"' EXIT
-python3 tests/theme_asset_fixture.py "$fixture/theme-assets"
-"${FRONTEND_TEST_PYTHON:-python3}" tests/theme_surface_fixture.py "$fixture/prepared-surfaces"
+"$test_python" tests/theme_asset_fixture.py "$fixture/theme-assets"
+"$test_python" tests/theme_surface_fixture.py "$fixture/prepared-surfaces"
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/theme_surfaces_test.c \
     -Wl,--wrap=image_decode_background,--wrap=image_decode_surface,--wrap=image_decode_material \
@@ -62,7 +63,7 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/slot1_test.c -o build/host/slot1-test
 ASAN_OPTIONS=detect_leaks=1 build/host/slot1-test
 
-python3 - "$fixture/presets" <<'PY'
+"$test_python" - "$fixture/presets" <<'PY'
 import json
 import shutil
 import sys
@@ -127,12 +128,12 @@ ASAN_OPTIONS=detect_leaks=1 build/host/themes-test "$fixture/themes"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/theme_coverage_test.c -o build/host/theme-coverage-test
-python3 tests/theme_coverage_fixture.py "$fixture/theme-coverage"
+"$test_python" tests/theme_coverage_fixture.py "$fixture/theme-coverage"
 ASAN_OPTIONS=detect_leaks=1 build/host/theme-coverage-test "$fixture/theme-coverage"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/proportional_text_test.c -o build/host/proportional-text-test
-python3 tests/proportional_font_fixture.py "$fixture/proportional-font"
+"$test_python" tests/proportional_font_fixture.py "$fixture/proportional-font"
 ASAN_OPTIONS=detect_leaks=1 build/host/proportional-text-test "$fixture/proportional-font"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
@@ -150,7 +151,7 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/audio_grid_test.c -o build/host/audio-grid-test
 mkdir -p "$fixture/audio-grid/roms" "$fixture/audio-grid/media/music"
 for number in {1..17}; do touch "$fixture/audio-grid/roms/Entry $number.txt"; done
-python3 - "$fixture/audio-grid/media/music/loop.wav" <<'PYFIXTURE'
+"$test_python" - "$fixture/audio-grid/media/music/loop.wav" <<'PYFIXTURE'
 import sys
 from pathlib import Path
 sys.path.insert(0, "tools")
@@ -161,7 +162,7 @@ ASAN_OPTIONS=detect_leaks=1 build/host/audio-grid-test "$fixture/audio-grid" "$f
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" tests/album_art_test.c -o build/host/album-art-test
-python3 tools/make_artwork_test_fixtures.py "$fixture/album-art"
+"$test_python" tools/make_artwork_test_fixtures.py "$fixture/album-art"
 ASAN_OPTIONS=detect_leaks=1 build/host/album-art-test "$fixture/album-art"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
@@ -181,12 +182,12 @@ ASAN_OPTIONS=detect_leaks=1 build/host/storage-state-test "$fixture/storage-stat
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/cheats_test.c -o build/host/cheats-test
-python3 tools/make_cheat_test_fixture.py "$fixture/cheats"
+"$test_python" tools/make_cheat_test_fixture.py "$fixture/cheats"
 ASAN_OPTIONS=detect_leaks=1 build/host/cheats-test "$fixture/cheats"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" tests/animated_icon_test.c -o build/host/animated-icon-test
-python3 tools/make_banner_test_fixture.py "$fixture/animated.nds"
+"$test_python" tools/make_banner_test_fixture.py "$fixture/animated.nds"
 ASAN_OPTIONS=detect_leaks=1 build/host/animated-icon-test "$fixture/animated.nds"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
@@ -201,8 +202,8 @@ ASAN_OPTIONS=detect_leaks=1 build/host/text-test "$PWD/sdroot"
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/japanese_text_test.c -o build/host/japanese-text-test
 ASAN_OPTIONS=detect_leaks=1 build/host/japanese-text-test "$PWD/sdroot"
-python3 tools/make_japanese_font.py --check
-python3 tools/pack_script_fonts.py --check
+"$test_python" tools/make_japanese_font.py --check
+"$test_python" tools/pack_script_fonts.py --check
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" tests/title_metadata_test.c -o build/host/title-metadata-test
@@ -213,7 +214,7 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/background_test.c -o build/host/background-test
 mkdir -p "$fixture/background/media"
 cp tests/fixtures/cover.jpg "$fixture/background/media/cover.jpg"
-python3 - "$fixture/background/surface.png" <<'PY'
+"$test_python" - "$fixture/background/surface.png" <<'PY'
 import struct, sys, zlib
 from pathlib import Path
 
@@ -236,14 +237,14 @@ ASAN_OPTIONS=detect_leaks=1 build/host/browser-jobs-test "$fixture/browser-jobs"
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" tests/configuration_test.c -o build/host/configuration-test
 mkdir "$fixture/configuration"
-PYTHONPATH=tools python3 - "$fixture/configuration/python.dsconfig" <<'PYCODE'
+PYTHONPATH=tools "$test_python" - "$fixture/configuration/python.dsconfig" <<'PYCODE'
 import sys
 from pathlib import Path
 from native_configuration import encode_records
 Path(sys.argv[1]).write_bytes(encode_records({"state.ini": b"version=1\ntheme=1\n"}))
 PYCODE
 ASAN_OPTIONS=detect_leaks=1 build/host/configuration-test "$fixture/configuration"
-PYTHONPATH=tools python3 - "$fixture/configuration/_nds/dsi-frontend/configuration/export.dsconfig" <<'PYCODE'
+PYTHONPATH=tools "$test_python" - "$fixture/configuration/_nds/dsi-frontend/configuration/export.dsconfig" <<'PYCODE'
 import sys
 from pathlib import Path
 from native_configuration import decode_records
@@ -255,7 +256,7 @@ PYCODE
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/custom_icons_test.c -o build/host/custom-icons-test
 mkdir "$fixture/custom-icons"
-python3 - "$fixture/custom-icons/Icon.png" <<'PYCODE'
+"$test_python" - "$fixture/custom-icons/Icon.png" <<'PYCODE'
 import struct, sys, zlib
 from pathlib import Path
 def chunk(kind, data):
@@ -354,7 +355,7 @@ ASAN_OPTIONS=detect_leaks=1 build/host/parser-mutation-test "$fixture/parser-mut
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" tests/splash_test.c -o build/host/splash-test
-python3 tests/splash_fixture.py "$fixture/splash"
+"$test_python" tests/splash_fixture.py "$fixture/splash"
 ASAN_OPTIONS=detect_leaks=1 build/host/splash-test "$fixture/splash"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
