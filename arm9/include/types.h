@@ -199,7 +199,8 @@ typedef struct {
     char extension[EXTENSION_CAP];
     Artwork preview;
 } PickerState;
-typedef enum { ICON_SMALL, ICON_LARGE, ICON_SIZE_COUNT } IconSize;
+/* Serialized values stay stable: Small=0, Large=1, Medium=2. */
+typedef enum { ICON_SMALL, ICON_LARGE, ICON_MEDIUM, ICON_SIZE_COUNT } IconSize;
 /* Keep 0/1 stable: saved Modern preferences now select Extended. */
 typedef enum {
     BROWSER_CLASSIC,

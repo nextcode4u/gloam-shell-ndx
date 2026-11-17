@@ -218,7 +218,9 @@ int main(int argc, char **argv)
                 app.icon_size = size;
                 app.browser_style = style;
                 browser_reflow(&app);
-                assert(layout_icon_size(&app) == (size == ICON_LARGE ? 32 : 16));
+                assert(layout_icon_size(&app) == (size == ICON_LARGE    ? 32
+                                                  : size == ICON_MEDIUM ? 24
+                                                                        : 16));
                 assert(layout_is_grid(&app) == (style == BROWSER_GRID || style == BROWSER_SHELF));
                 assert(layout_row_height(&app) >= layout_icon_size(&app) || style == BROWSER_LIST);
                 app_move(&app, app.entry_count - 1);
@@ -227,7 +229,9 @@ int main(int argc, char **argv)
                 int cell = location->selected - location->scroll;
                 assert(cell >= 0 && cell < layout_visible_rows(&app));
                 if (style == BROWSER_SHELF) {
-                    assert(layout_shelf_icon_size(&app) == (size == ICON_LARGE ? 48 : 32));
+                    assert(layout_shelf_icon_size(&app) == (size == ICON_LARGE    ? 48
+                                                            : size == ICON_MEDIUM ? 40
+                                                                                  : 32));
                     int shelf_top = layout_shelf_top(&app);
                     assert(shelf_top ==
                            56); /* Stable shelf position across folder and system tabs. */
@@ -280,6 +284,7 @@ int main(int argc, char **argv)
     assert(app.icon_reads == reads + 1);
     app_panel(&app, PANEL_QUICK);
     app.panel_selection = QUICK_ICON_SIZE;
+    app.icon_size = ICON_LARGE;
     app.preferences_dirty = false;
     app_panel_adjust(&app, 1);
     assert(app.icon_size == ICON_LARGE && !app.preferences_dirty);

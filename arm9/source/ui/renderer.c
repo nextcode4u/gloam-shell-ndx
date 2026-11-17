@@ -770,6 +770,8 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
                             ? ui_translate(&app->language, "value.hidden", "Hidden")
                         : app->icon_size == ICON_LARGE
                             ? ui_translate(&app->language, "value.large", "Large")
+                        : app->icon_size == ICON_MEDIUM
+                            ? ui_translate(&app->language, "value.medium", "Medium")
                             : ui_translate(&app->language, "value.small", "Small");
                 break;
             case QUICK_BROWSER_STYLE: {

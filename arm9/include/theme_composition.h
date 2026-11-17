@@ -10,6 +10,9 @@ enum {
     TOP_SPOTLIGHT,
     TOP_GALLERY,
     TOP_JOURNAL,
+    TOP_PANORAMA,
+    TOP_DOSSIER,
+    TOP_PORTRAIT,
     TOP_LAYOUT_COUNT
 };
 typedef struct {
@@ -40,6 +43,16 @@ static inline ThemeComposition theme_composition(const ThemePackage *theme)
     } else if (theme->top_layout == TOP_GALLERY) {
         result.artwork = (ThemeBox){14, top + 24, 92, height};
         result.information = (ThemeBox){120, top + 24, 124, height};
+    } else if (theme->top_layout == TOP_PANORAMA) {
+        result.artwork = (ThemeBox){48, top + 4, 160, bottom - top - 30};
+        result.title = (ThemeBox){12, bottom - 18, 232, 16};
+    } else if (theme->top_layout == TOP_DOSSIER) {
+        result.artwork = (ThemeBox){154, top + 24, 88, height};
+        result.information = (ThemeBox){12, top + 24, 128, height};
+    } else if (theme->top_layout == TOP_PORTRAIT) {
+        result.artwork = (ThemeBox){14, top + 4, 96, bottom - top - 8};
+        result.title = (ThemeBox){124, top + 2, 120, 16};
+        result.information = (ThemeBox){124, top + 26, 120, bottom - top - 26};
     } else {
         height = bottom - top - 8;
         if (height > 84)

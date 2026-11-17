@@ -1171,6 +1171,10 @@ if ((Read-GloamState $root).Values.interface_language -cne 'custom') { throw 'La
         manifest.write_text(original)
         command = '$r=Test-GloamTheme ' + literal(win(source))
         self.run_ps(command + '; if (-not $r.Valid -or $r.Warnings.Count -ne 1) { throw ($r | ConvertTo-Json) }')
+        for layout in ('panorama', 'dossier', 'portrait'):
+            manifest.write_text(original.replace('top_layout=journal', 'top_layout=' + layout + '\nicon_size=medium'))
+            self.run_ps(command + '; if (-not $r.Valid) { throw ($r | ConvertTo-Json) }')
+        manifest.write_text(original)
         (source / 'paper.png').write_bytes(b'broken PNG')
         self.run_ps(command + '; if (-not $r.Valid -or $r.Warnings.Count -ne 1) { throw "surface fallback missing" }')
         for old, new in [('version=2', 'version=1'), ('alpha=coverage', 'alpha=unknown'),
@@ -1228,6 +1232,9 @@ if ((Read-GloamState $root).Values.interface_language -cne 'custom') { throw 'La
         state = self.sd / '_nds/dsi-frontend/state.ini'
         self.assertIn('browser_style=3', state.read_text(encoding='utf-8'))
         self.assertIn('icon_size=1', state.read_text(encoding='utf-8'))
+        theme.write_text('[theme]\nversion=2\n[layout]\nview=grid\nicon_size=medium\n')
+        self.run_ps("$s=Read-GloamState $root; Save-GloamSettings $root (Get-GloamThemeSettings $root test $true) $s.Hash")
+        self.assertIn('icon_size=2', state.read_text(encoding='utf-8'))
         theme.write_text('[theme]\nversion=1\n[layout]\nview=shelf\n')
         self.run_ps("$s=Read-GloamState $root; Save-GloamSettings $root (Get-GloamThemeSettings $root test $true) $s.Hash")
         self.assertIn('browser_style=4', state.read_text(encoding='utf-8'))

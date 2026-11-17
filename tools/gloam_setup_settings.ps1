@@ -5,7 +5,7 @@ $GloamSettingRules = [ordered]@{
     settings_mode = @{ Default = 'simple'; Choices = @('simple','advanced') }
     simple_settings_lock = @{ Default = '0'; Choices = @('0','1') }
     browser_style = @{ Default = '0'; Choices = @('0','1','2','3','4','5') }
-    icon_size = @{ Default = '0'; Choices = @('0','1') }
+    icon_size = @{ Default = '0'; Choices = @('0','1','2') }
     sort_mode = @{ Default = '0'; Choices = @('0','1','2','3') }
     scroll_speed = @{ Default = '1'; Choices = @('0','1','2') }
     show_hidden = @{ Default = '0'; Choices = @('0','1') }
@@ -142,9 +142,9 @@ function Get-GloamThemeSettings([string]$Root, [string]$Id, [bool]$UseLayout) {
         $file = Get-GloamPath $Root ("_nds/dsi-frontend/themes/$Id/theme.ini")
         if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw 'Theme package is missing.' }
         $data = Read-GloamIni $file
-        if (-not $data.Contains('theme') -or $data['theme']['version'] -ne '1') { throw 'Unsupported theme package version.' }
+        if (-not $data.Contains('theme') -or $data['theme']['version'] -notin @('1','2')) { throw 'Unsupported theme package version.' }
         if ($UseLayout -and $data.Contains('layout')) {
-            $views = @('classic','extended','list','grid','shelf','index'); $icons = @('small','large')
+            $views = @('classic','extended','list','grid','shelf','index'); $icons = @('small','large','medium')
             if ($data['layout']['view']) {
                 $index = [Array]::IndexOf($views, $data['layout']['view'])
                 if ($index -lt 0) { throw 'Unsupported theme browser layout.' }

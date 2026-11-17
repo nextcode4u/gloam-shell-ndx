@@ -220,11 +220,14 @@ static bool load(App *app, const char *id, ThemePackage *package)
                     package->default_icon_size = ICON_SMALL;
                 else if (!strcmp(value, "large"))
                     package->default_icon_size = ICON_LARGE;
+                else if (!strcmp(value, "medium"))
+                    package->default_icon_size = ICON_MEDIUM;
                 else
                     valid = false;
             } else if (!strcmp(key, "top_layout")) {
-                const char *layouts[] = {"sidebar",   "sidebar_left", "poster", "scene",
-                                         "spotlight", "gallery",      "journal"};
+                const char *layouts[] = {"sidebar",   "sidebar_left", "poster",  "scene",
+                                         "spotlight", "gallery",      "journal", "panorama",
+                                         "dossier",   "portrait"};
                 bool matched = false;
                 for (unsigned i = 0; i < TOP_LAYOUT_COUNT; i++)
                     if (!strcmp(value, layouts[i])) {

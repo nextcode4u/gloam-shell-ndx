@@ -305,12 +305,13 @@ int main(int argc, char **argv)
         assert(!app.themes.ready);
         themes_cancel(&app);
     }
-    const char *compositions[] = {"spotlight", "gallery", "journal"};
-    for (unsigned i = 0; i < 3; i++) {
+    const char *compositions[] = {"spotlight", "gallery", "journal",
+                                  "panorama",  "dossier", "portrait"};
+    for (unsigned i = 0; i < sizeof compositions / sizeof *compositions; i++) {
         char content[160];
         snprintf(content, sizeof content,
                  "[theme]\nversion=2\n[layout]\n"
-                 "tabs_position=top\ntop_layout=%s\n",
+                 "tabs_position=top\nicon_size=medium\ntop_layout=%s\n",
                  compositions[i]);
         write_text(root, "_nds/dsi-frontend/themes/zzzbad/theme.ini", content);
         themes_open(&app);
@@ -319,6 +320,7 @@ int main(int argc, char **argv)
         themes_preview(&app);
         assert(app.themes.ready && app.themes.candidate.top_layout == 4 + i);
         assert(app.themes.candidate.tabs_position == 1);
+        assert(app.themes.candidate.default_icon_size == ICON_MEDIUM);
         themes_cancel(&app);
     }
     const char *bad_positions[] = {"tabs_position=top\ntop_layout=scene",

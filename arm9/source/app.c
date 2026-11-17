@@ -663,7 +663,14 @@ bool app_adjust_control(App *app, QuickControl control, int direction)
     case QUICK_ICON_SIZE:
         if (app->browser_style == BROWSER_LIST)
             return false;
-        app->icon_size = (app->icon_size + 1) % ICON_SIZE_COUNT;
+        if (direction < 0)
+            app->icon_size = app->icon_size == ICON_SMALL   ? ICON_LARGE
+                             : app->icon_size == ICON_LARGE ? ICON_MEDIUM
+                                                            : ICON_SMALL;
+        else
+            app->icon_size = app->icon_size == ICON_SMALL    ? ICON_MEDIUM
+                             : app->icon_size == ICON_MEDIUM ? ICON_LARGE
+                                                             : ICON_SMALL;
         browser_reflow(app);
         break;
     case QUICK_BROWSER_STYLE:

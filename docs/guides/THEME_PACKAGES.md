@@ -298,10 +298,16 @@ bottom_content_opacity=75
 ```
 
 All keys are optional. `view` accepts classic/extended/list/grid/shelf/index and `icon_size`
-accepts small/large. These supply defaults when Apply is pressed; ordinary
+accepts small/medium/large (16/24/32-pixel browser icons and 32/40/48-pixel Shelf
+icons). These supply defaults when Apply is pressed; ordinary
 Appearance choices can override them afterward and remain saved across restart.
 Preview/cancel does not change browser preferences. Named presets retain their
 explicit icon/view choices independently of these apply-time defaults.
+
+Medium icons require a frontend built after 1.1.0. Existing small/large settings
+keep their stored values; medium uses `icon_size=2` in state.ini. Theme files use
+`icon_size=medium`. List stays text-only. The browser shares icon, row and touch
+geometry across the other views.
 
 Version-2 `top_content_opacity` and `bottom_content_opacity` accept 0–100 percent
 and override `content_opacity` for their respective screen. Omitted overrides
@@ -317,11 +323,17 @@ their slide animation.
 
 `row_padding` adds 0–12 pixels to the shared row/cell height; both drawing and
 touch/navigation use the resolved size. Large Grid accepts 2–4 columns and
-allocates its label width from the actual cell width. Small Grid keeps two
+allocates its label width from the actual cell width. Medium Grid uses three columns. Small Grid keeps two
 columns to protect label readability. Invalid layout values reject the package
 without changing the active theme. Settings, required navigation and font-cell bounds retain their native geometry. Arbitrary widget positions and
 unbounded custom layout scripts are not supported. Optional component artwork
 changes the appearance of these regions while retaining their input geometry.
+
+In authoring tools, **Interface framing** is the `chrome` INI setting. `full`
+draws header/footer component skins and divider lines; `minimal` leaves those
+areas open while retaining text and controls. `tab_highlight=skin` uses
+`components/tab-selected.png` (or the configured component directory), a 32×32
+nine-slice image. Without it, the accent-color fallback remains available.
 
 ### Screen composition
 
@@ -330,8 +342,8 @@ Older builds reject unknown manifest keys; update the binary along with these
 example theme packs. Packages without the new keys keep their previous behavior.
 
 `top_layout` accepts `sidebar` (the original right rail), `sidebar_left`,
-`poster`, or `scene`; version 2 also accepts [Spotlight, Gallery and
-Journal](#version-2-composition-presets). The left rail moves the artwork and information together without
+`poster`, or `scene`; version 2 also accepts [Spotlight, Gallery, Journal, Panorama, Dossier and
+Portrait](#version-2-composition-presets). The left rail moves the artwork and information together without
 mirroring text or wallpaper. Poster uses a larger artwork area and a horizontal
 strip showing the focused tab and its neighbours. L/R still cycles all tabs;
 X enters tab selection, where Up/Down and A retain their usual behavior. Long
@@ -815,7 +827,8 @@ is needed. Users can disable it or select their own override. See
 
 ## Version 2 composition presets
 
-Version 2 adds three bounded top-screen compositions. Each accepts
+Version 2 supports six bounded top-screen compositions. Panorama, Dossier and
+Portrait require a frontend built after 1.1.0. Each accepts
 `tabs_position=top` or `tabs_position=bottom`, with the existing `tab_style`,
 `tab_visible`, `tab_gap` and highlight controls. Omit the position to use the
 preset's default. These fields do not move the bottom browser or its touch areas.
@@ -825,6 +838,9 @@ preset's default. These fields do not move the bottom browser or its touch areas
 | `spotlight` | Wide heading above a centered artwork card; illustration surrounds it. | Bottom |
 | `gallery` | Heading above artwork at left and item facts at right. | Top |
 | `journal` | Small portrait artwork beside a heading and a column of item facts. | Bottom |
+| `panorama` | Wide centered artwork with the selected title underneath. | Bottom |
+| `dossier` | Heading across the top, facts at left and artwork at right. | Bottom |
+| `portrait` | Tall left artwork beside a right-hand title and facts column. | Bottom |
 
 Artwork keeps its aspect ratio. Native banners use the themed card, including
 while cover metadata resolves. The renderer reserves heading, frame and navigation
@@ -832,7 +848,7 @@ bounds for both 12–16-pixel heading faces and every tab style. Showing item de
 turning covers off or using Library index switches to the existing inspector/index
 with its side navigation. L/R and X navigation keep their usual behavior.
 
-`tabs_position` applies only to these three presets; it rejects incompatible
+`tabs_position` applies only to these six presets; it rejects incompatible
 combinations rather than silently ignoring them. Existing `sidebar`,
 `sidebar_left`, `poster` and `scene` retain their original compositions.
 

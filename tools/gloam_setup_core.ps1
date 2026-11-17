@@ -563,7 +563,7 @@ function Test-GloamTheme([string]$Source) {
     if ($data.Contains('theme') -and $data['theme'].Contains('header') -and [Text.Encoding]::UTF8.GetByteCount($data['theme']['header']) -gt 63) { $errors.Add('Header must fit in 63 UTF-8 bytes.') }
     if ($data.Contains('colors')) { foreach ($key in $data['colors'].Keys) { if ($data['colors'][$key] -notmatch '^#[0-9A-Fa-f]{6}$') { $errors.Add("Invalid colour: $key") } } }
     if ($data.Contains('layout')) {
-        foreach ($pair in @(@('view',@('classic','extended','list','grid','shelf','index')),@('icon_size',@('small','large')),@('top_layout',@('sidebar','sidebar_left','poster','scene','spotlight','gallery','journal')),@('tabs_position',@('top','bottom')),@('chrome',@('full','minimal')),@('tab_style',@('labels','icons','numbered','pager')),@('tab_highlight',@('skin','underline','outline')))) {
+        foreach ($pair in @(@('view',@('classic','extended','list','grid','shelf','index')),@('icon_size',@('small','large','medium')),@('top_layout',@('sidebar','sidebar_left','poster','scene','spotlight','gallery','journal','panorama','dossier','portrait')),@('tabs_position',@('top','bottom')),@('chrome',@('full','minimal')),@('tab_style',@('labels','icons','numbered','pager')),@('tab_highlight',@('skin','underline','outline')))) {
             if ($data['layout'].Contains($pair[0]) -and $data['layout'][$pair[0]] -notin $pair[1]) { $errors.Add("Invalid layout: $($pair[0])") }
         }
         foreach ($key in @('tab_gap','tab_visible')) { if ($data['layout'].Contains($key)) {
@@ -594,8 +594,8 @@ function Test-GloamTheme([string]$Source) {
     }
     if ($data.Contains('layout')) {
         $composition=$data['layout']['top_layout']
-        if ($composition -in @('spotlight','gallery','journal')) { $needsV2=$true }
-        if ($data['layout'].Contains('tabs_position') -and $composition -notin @('spotlight','gallery','journal')) { $errors.Add('Tab position requires Spotlight, Gallery or Journal.') }
+        if ($composition -in @('spotlight','gallery','journal','panorama','dossier','portrait')) { $needsV2=$true }
+        if ($data['layout'].Contains('tabs_position') -and $composition -notin @('spotlight','gallery','journal','panorama','dossier','portrait')) { $errors.Add('Tab position requires a composed layout: Spotlight, Gallery, Journal, Panorama, Dossier or Portrait.') }
     }
     if ($needsV2 -and (-not $data.Contains('theme') -or $data['theme']['version'] -ne '2')) { $errors.Add('These theme fields require version 2.') }
     if ($data.Contains('components') -and $data['components'].Contains('controls') -and $data['components']['controls'] -notin @('on','off')) { $errors.Add('Component controls must be on or off.') }

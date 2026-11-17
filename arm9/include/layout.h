@@ -20,7 +20,7 @@ static inline int layout_list_top(int category)
 #define UI_SHELF_CARD_HEIGHT 84
 static inline int layout_shelf_icon_size(const App *app)
 {
-    return app->icon_size == ICON_LARGE ? 48 : 32;
+    return app->icon_size == ICON_LARGE ? 48 : app->icon_size == ICON_MEDIUM ? 40 : 32;
 }
 
 static inline int layout_shelf_top(const App *app)
@@ -42,6 +42,7 @@ static inline int layout_grid_columns(const App *app)
     unsigned columns = app->themes.active.large_grid_columns;
     return app->icon_size == ICON_LARGE && columns >= 2 && columns <= 4 ? (int)columns
            : app->icon_size == ICON_LARGE                               ? 4
+           : app->icon_size == ICON_MEDIUM                              ? 3
                                                                         : 2;
 }
 static inline int layout_grid_cell_width(const App *app)
@@ -55,7 +56,7 @@ static inline bool layout_has_icons(const App *app)
 }
 static inline int layout_icon_size(const App *app)
 {
-    return app->icon_size == ICON_LARGE ? 32 : 16;
+    return app->icon_size == ICON_LARGE ? 32 : app->icon_size == ICON_MEDIUM ? 24 : 16;
 }
 static inline int layout_row_height(const App *app)
 {
@@ -65,11 +66,11 @@ static inline int layout_row_height(const App *app)
     if (app->browser_style == BROWSER_LIST)
         base = 16;
     else if (layout_is_grid(app))
-        base = app->icon_size == ICON_LARGE ? 52 : 20;
+        base = app->icon_size == ICON_LARGE ? 52 : app->icon_size == ICON_MEDIUM ? 44 : 20;
     else if (app->browser_style == BROWSER_EXTENDED)
-        base = app->icon_size == ICON_LARGE ? 40 : 28;
+        base = app->icon_size == ICON_LARGE ? 40 : app->icon_size == ICON_MEDIUM ? 34 : 28;
     else
-        base = app->icon_size == ICON_LARGE ? 36 : 18;
+        base = app->icon_size == ICON_LARGE ? 36 : app->icon_size == ICON_MEDIUM ? 28 : 18;
     /* Framed rows need space around both text lines and the icon bezel. Keep
      * this in shared geometry so touch, scrolling and drawing agree. */
     if (!layout_is_grid(app) && (themes_component(&app->themes.active, THEME_ROW) ||

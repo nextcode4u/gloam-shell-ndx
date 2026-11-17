@@ -304,7 +304,7 @@ int main(int argc, char **argv)
                 strcpy(app.entries[0].name, "本体設定 Japanese long title for clipping checks.nds");
             }
             for (int view = 0; view < BROWSER_STYLE_COUNT; view++)
-                for (int size = 0; size < 2; size++) {
+                for (int size = 0; size < ICON_SIZE_COUNT; size++) {
                     app.browser_style = view;
                     app.icon_size = size;
                     browser_reflow(&app);

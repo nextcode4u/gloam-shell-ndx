@@ -1305,6 +1305,7 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
     case OPT_ICONS:
         value = app->browser_style == BROWSER_LIST ? "Hidden"
                 : app->icon_size == ICON_LARGE     ? "Large"
+                : app->icon_size == ICON_MEDIUM    ? "Medium"
                                                    : "Small";
         break;
     case OPT_INTERFACE_LANGUAGE:
