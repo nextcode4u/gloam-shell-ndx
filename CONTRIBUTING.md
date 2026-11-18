@@ -52,3 +52,8 @@ a draft does not remove the current preview.
 Image-generation prompts, prompt logs and draft design concepts are local working
 artifacts. Keep them under ignored `build/` or outside the source tree; exclude
 them from commits and release/source packages. Commit production assets only.
+
+## Development note
+
+Developed with assistance from AI language models. Some code was generated or
+refined using AI, then reviewed, modified and integrated by the author where appropriate.

@@ -1,124 +1,107 @@
 # Gloam Shell NDX
 
-A customizable **Nintendo DSi SD-card launcher built with BlocksDS**. Browse
-games, homebrew and media, and open DSi system apps using both screens.
+A customizable launcher for your **Nintendo DSi SD card**. Browse games,
+homebrew and media, and open system apps from one place.
 
 “Gloam” means twilight—a nod to the DSi's **TWL** codename.
 
-**[Download the latest release](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest)**
-· [Documentation](https://nextcode4u.github.io/gloam-shell-ndx/)
-· [Setup and controls](docs/GETTING_STARTED.md)
-· [Themes](https://github.com/nextcode4u/gloam-shell-theme-directory)
+**[Download Gloam](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest)**
+· [Setup guide](docs/GETTING_STARTED.md)
+· [Browse themes](https://github.com/nextcode4u/gloam-shell-theme-directory)
 
 <p align="center">
   <img src="docs/images/theme-variants.png" width="768" alt="Phosphor, Eclipse and Prism themes showing Gloam's two-screen browser">
 </p>
 
-Screenshots use Gloam's renderer with example content.
-[See more included themes](docs/images/theme-personalities.png).
+Theme previews with example content. [See more themes](docs/images/theme-personalities.png).
+
+## What you can do
+
+- Browse your collection using lists, grids or a cover shelf.
+- Make it yours with themes, backgrounds, music, sounds and startup animations.
+- Open games with cheats, save slots and individual game settings.
+- Launch homebrew, emulators, books, music and videos using compatible apps.
+- Keep favorites, recent items and your own folder tabs close at hand.
+- Access installed DSiWare, DSi system apps and game cartridges.
+
+See [compatibility and known issues](docs/CURRENT_SUPPORT.md) for what works
+with your setup.
 
 ## Install
 
-You need a DSi homebrew boot method with SD access. Some system-title routes
-require Unlaunch; Gloam does not install it.
+Your DSi must already be able to run homebrew from its SD card. Some features
+also need Unlaunch. Gloam does not install Unlaunch or modify your console's setup.
+Back up your SD card before installing.
 
-**Windows:** run this in PowerShell to open SD Setup:
+### Windows setup tool
+
+Open PowerShell and paste:
 
 ```powershell
 irm https://raw.githubusercontent.com/nextcode4u/gloam-shell-ndx/main/setup.ps1 | iex
 ```
 
-Choose your SD card or staging folder. The tool installs Gloam and optional
-emulators, manages themes and covers, and configures folders and settings.
-See the [Windows setup guide](docs/guides/WINDOWS_SETUP.md).
+Choose your SD card, then install Gloam. The tool can also install emulators,
+download themes and covers, and help organize your folders.
+[Windows setup instructions](docs/guides/WINDOWS_SETUP.md).
 
-**Manual:** download `sd.zip` from the latest release and merge its contents onto
-a backed-up SD card. Launch `/BOOT.NDS` through your homebrew boot method.
-Preserve your settings, saves and existing application files.
+### Install manually
 
-The SD package includes official nds-bootstrap, Slot-1 Launcher, themes and an
-optional DSi Menu forwarder. Games and proprietary BIOS files are not included.
-Use SD Setup or the optional `addons.zip` for emulators and players;
-[check their BIOS requirements](docs/guides/ADDONS.md#free-replacements-and-remaining-firmware).
+1. Download `sd.zip` from the [latest release](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest).
+2. Extract its contents to the root of your SD card, keeping your existing games,
+   saves and settings.
+3. Start `BOOT.NDS` using your console's homebrew boot method.
 
-**Updating:** replace `/BOOT.NDS` for a launcher-only update. Read the release
-notes first: some versions also require updated SD assets. Upgrading from 1.1.0
-or earlier to 1.2.0 needs the shared font/language assets; follow the
-[upgrade instructions](docs/GETTING_STARTED.md#install-or-upgrade).
+Games are not included. For emulators and media players, use the setup tool or
+follow the [add-on guide](docs/guides/ADDONS.md). Some emulators need BIOS files;
+the guide explains which ones.
 
-## What it does
+## Add your files
 
-- Browse with lists, grids, Cover Shelf or Library Index, plus custom folder tabs.
-- Customize layouts, fonts, icons, backgrounds, sounds, music and startup splashes.
-- Launch games through nds-bootstrap, with per-game options, save slots and cheats.
-- Open homebrew and media in associated apps; choose an app when extensions overlap.
-- Access installed DSiWare, system apps and Slot-1 cartridges.
-- Manage favorites, recent items, covers and optional PC-indexed library search.
-- Read Japanese title names and use partial interface translations with English fallback.
-
-Press **START** for settings, **SELECT** for item actions and **L/R** to switch tabs.
-See [controls](docs/GETTING_STARTED.md#controls) and
-[tested compatibility and known limits](docs/CURRENT_SUPPORT.md).
-
-This README describes current source. Published binaries may have fewer features;
-check their release notes. Development builds after 1.2.0 also offer
-[additional top-screen views and title metadata](docs/guides/TOP_SCREEN.md).
-
-## Folders
-
-| Content | Default location |
+| Content | Folder on your SD card |
 | --- | --- |
 | Games | `/roms/` |
 | Homebrew games | `/roms/Homebrew Games/` |
-| Applications and utilities | `/apps/` |
-| Books, music and videos | `/media/` |
-| Gloam settings and assets | `/_nds/dsi-frontend/` |
+| Apps and utilities | `/apps/` |
+| Books, music and videos | `/media/books/`, `/media/music/`, `/media/videos/` |
 
-The `dsi-frontend` folder predates the Gloam name. We keep it for compatibility
-with existing settings, assets and loader paths. See the [SD layout](docs/guides/SD_LAYOUT.md).
+[Emulator setup](docs/guides/EMULATORS.md) explains supported file types and folders.
 
-## Build and contribute
+## Basic controls
 
-Install [BlocksDS 1.25.0 or later](https://blocksds.skylyrac.net/docs/setup/)
-and Python 3.11+, then run:
-
-```sh
-make -j4                        # Build the launcher and forwarder
-python3 tools/build_release.py  # Package BOOT.NDS, sd.zip, source and licenses
-python3 tools/build_addons.py   # Build the optional add-on pack
-```
-
-Packages go in `dist/`. Packaging needs Git and internet access on its first run.
-See [building and checks](docs/development/BUILDING.md),
-[the source map](docs/SOURCE_MAP.md) and [contribution rules](CONTRIBUTING.md).
-
-## Guides
-
-| I want to… | Read |
+| Button | Action |
 | --- | --- |
-| Set up emulators and file associations | [Emulator guide](docs/guides/EMULATORS.md) |
-| Configure games, saves or cheats | [Game loading](docs/guides/GAME_LOADING.md) · [Cheats](docs/guides/CHEATS.md) |
-| Create or customize a theme | [Theme packages](docs/guides/THEME_PACKAGES.md) · [Fonts](docs/guides/THEME_FONTS.md) |
-| Change tabs or the Home screen | [Tabs](docs/guides/TABS.md) · [Dashboard](docs/guides/DASHBOARD.md) |
-| Set up another language | [Languages and fonts](docs/guides/TEXT_AND_TITLES.md) |
-| Find another topic | [All documentation](docs/README.md) |
+| D-pad | Move between items |
+| A / B | Open / go back |
+| L / R | Switch tabs |
+| START | Open settings |
+| SELECT | Open item options |
+| Y | Show item details |
 
-## Credits and license
+Tap an item to select it, then tap again to open it.
+[Full controls](docs/GETTING_STARTED.md#controls).
 
-Thanks to **AKMenu Next, TWiLight Menu++, Pico Launcher and HBMenu** for their
-work on DS launchers. Gloam's two-screen organization also draws on Firmux,
-an earlier deprecated project by me.
+## Update Gloam
 
-Game loading uses **nds-bootstrap**, **Simple DS Slot-1 Launcher** and the
-**nds-bootloader/HBMenu** loader lineage, including RocketRobz's reset fixes
-retained in Deletecat's fork. Full authorship, reused code and asset notices
-are recorded in [Credits](CREDITS.md), [Third-party dependencies](THIRD_PARTY.md)
-and [loader provenance](third_party/nds-bootloader/UPSTREAM.md).
+Use the setup tool, or download `BOOT.NDS` from the latest release and replace
+the one on your SD card. Your games, saves and settings stay in place.
 
-Original Gloam source is **GPL-3.0-or-later**; see [LICENSE](LICENSE).
-Dependencies and assets keep their own licenses.
+Read the release notes before updating: some versions also need updated themes
+or other files. Follow the [upgrade guide](docs/GETTING_STARTED.md#install-or-upgrade)
+when more than `BOOT.NDS` is needed.
 
-## Developer note
+## Help and customization
 
-Developed with assistance from AI language models. Some code was generated or
-refined using AI, then reviewed, modified and integrated by the author where appropriate.
+- [Themes and appearance](docs/guides/THEME_PACKAGES.md)
+- [Games, saves and cheats](docs/guides/GAME_LOADING.md)
+- [Backups and recovery](docs/guides/CONFIGURATION_BACKUPS.md)
+- [All guides](docs/README.md)
+- [Report a problem](https://github.com/nextcode4u/gloam-shell-ndx/issues)
+
+## Credits
+
+Thanks to the DS homebrew community, including the developers of AKMenu Next,
+TWiLight Menu++, Pico Launcher and HBMenu. Gloam's two-screen organization also
+draws on Firmux, an earlier deprecated project by me.
+
+[Full credits](CREDITS.md) · [License](LICENSE) · [Contributing and building](CONTRIBUTING.md)
