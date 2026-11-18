@@ -58,6 +58,12 @@ stable tags are not. Review the draft's
 notes, source commit, compatibility limits and complete artifact set before
 publishing. Existing release tags are not replaced automatically.
 
+Enable the **noncommercial** input when the release should also include reviewed
+apps with explicit no-profit distribution grants. It defaults off and passes the
+existing `--noncommercial` flag to both preflight and packaging. Keep the generated
+noncommercial notices with that package; download-only/unconfirmed apps stay in
+the shared downloader regardless of this input.
+
 When add-ons are requested, upstream checks must report unchanged reviewed pins.
 A changed recipe or newer release stops preparation: review and commit the
 catalog update first. This avoids creating release artifacts from uncommitted

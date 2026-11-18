@@ -10,9 +10,16 @@ on:
         description: Build reviewed add-ons and check upstream pins
         type: boolean
         default: false
+      include_noncommercial:
+        description: Include reviewed noncommercial-only add-ons with their notices
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       include_addons:
+        type: boolean
+        default: false
+      include_noncommercial:
         type: boolean
         default: false
 
@@ -75,7 +82,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          python3 tools/prepare_addons_release.py --check-only
+          python3 tools/prepare_addons_release.py --check-only ${{ inputs.include_noncommercial && '--noncommercial' || '' }}
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -91,7 +98,7 @@ jobs:
       - name: Package reviewed add-ons and companions
         if: inputs.include_addons
         run: |
-          python3 tools/build_addons.py --pinned --skip-build
+          python3 tools/build_addons.py --pinned --skip-build ${{ inputs.include_noncommercial && '--noncommercial' || '' }}
           python3 tools/verify_release.py --addons
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

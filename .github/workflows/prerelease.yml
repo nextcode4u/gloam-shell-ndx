@@ -13,6 +13,10 @@ on:
         description: Include reviewed add-ons and matching source/notices
         type: boolean
         default: true
+      noncommercial:
+        description: Include reviewed noncommercial-only add-ons (no sale/profit)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -23,6 +27,7 @@ jobs:
     uses: ./.github/workflows/ci.yml
     with:
       include_addons: ${{ inputs.addons }}
+      include_noncommercial: ${{ inputs.noncommercial }}
 
   prepare:
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
