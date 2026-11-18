@@ -3,12 +3,12 @@ hide:
   - navigation
 ---
 
-# Install Gloam
+# Set up your SD card
 
 You need a DSi that can already run homebrew from its SD card.
 Back up your card first. Gloam does not install Unlaunch.
 
-## On Windows
+## SD Setup for Windows
 
 1. Open **PowerShell** and paste this command:
 
@@ -30,7 +30,7 @@ Games are not included. For emulators, open **Add-ons** in the Windows tool.
 
 ## Updating
 
-Use the setup tool to update Gloam. You can also replace **BOOT.NDS** yourself;
-check the release notes in case other files need updating too.
+Open the same setup tool and choose **Update Gloam + backends**. It keeps your
+settings and saves. For a manual update, check the latest release notes.
 
 [Next: add your files and start playing →](USING.md)

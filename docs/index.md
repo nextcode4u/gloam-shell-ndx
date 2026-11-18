@@ -17,7 +17,7 @@ A launcher for games, apps and media on your **Nintendo DSi SD card**.
 
 <div class="gloam-actions" markdown="1">
 
-[Get Gloam](INSTALL.md){ .md-button .md-button--primary }
+[Set up my SD card](#sd-setup-for-windows){ .md-button .md-button--primary }
 [Explore themes](THEMES.md){ .md-button }
 
 </div>
@@ -28,6 +28,27 @@ A launcher for games, apps and media on your **Nintendo DSi SD card**.
 
 </div>
 </div>
+</section>
+
+<section class="gloam-setup" markdown="1">
+
+## SD Setup for Windows
+
+Install Gloam, add emulators and pick themes—all in one tool.
+
+Back up your card first. Your DSi must already be able to run homebrew.
+
+1. Open **Windows PowerShell**.
+2. Copy this command, paste it into PowerShell and press **Enter**:
+
+    ```powershell
+    irm https://raw.githubusercontent.com/nextcode4u/gloam-shell-ndx/main/setup.ps1 | iex
+    ```
+
+3. Choose your SD card, click **Use folder**, then **Install / repair setup**.
+
+[Need a hand?](INSTALL.md) · [Install without the tool](INSTALL.md#without-the-setup-tool)
+
 </section>
 
 <section class="gloam-showcase" markdown="1">

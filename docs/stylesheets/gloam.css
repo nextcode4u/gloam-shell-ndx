@@ -40,7 +40,7 @@
 .gloam-hero > p { margin: 0; width: 100%; }
 .gloam-hero-art {
   display: block; width: min(100%, 58rem);
-  max-height: calc(100svh - 17rem); min-height: 12rem;
+  max-height: min(42svh, 22rem); min-height: 10rem;
   object-fit: contain; margin: 0 auto;
   animation: gloam-arrive .55s ease-out both;
 }
@@ -60,6 +60,13 @@
 .gloam-badges p { display: flex; justify-content: center; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 0; }
 .gloam-badges a { display: inline-flex; min-height: 1.5rem; align-items: center; }
 .gloam-badges img { display: block; height: 20px; width: auto; }
+.gloam-setup { max-width: 48rem; margin: auto; padding: 1.5rem 1.2rem 0; scroll-margin-top: 6rem; }
+.gloam-setup h2 { margin: 0 0 .6rem; scroll-margin-top: 6rem; }
+.gloam-setup > p { margin: .6rem 0; }
+.gloam-setup ol { margin-top: .8rem; }
+.gloam-setup pre { text-align: left; }
+.gloam-setup .highlight { max-width: 100%; }
+.gloam-setup + .gloam-showcase { margin-top: 1.5rem; border-top: 1px solid var(--md-default-fg-color--lightest); }
 .gloam-showcase { max-width: 50rem; margin: 0 auto; padding: 2rem 1.2rem 1rem; text-align: center; }
 .gloam-showcase h2 { margin: 0 0 1.2rem; }
 .gloam-showcase > p { font-size: .85rem; }
@@ -72,7 +79,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 @media (max-width: 40rem) {
-  .gloam-hero-art { min-height: 0; max-height: none; width: 100%; }
+  .gloam-hero-art { min-height: 0; max-height: 14rem; width: 100%; }
   .gloam-hero { padding: 0 .75rem 1.2rem; }
   .gloam-hero-controls > p { font-size: .85rem; }
   .gloam-showcase { padding-top: 1.5rem; }
