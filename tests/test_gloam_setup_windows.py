@@ -1520,3 +1520,34 @@ if ((Read-GloamState $root).Values.interface_language -cne 'custom') { throw 'La
         self.run_ps("$state=Read-GloamState $root; Save-GloamSettings $root @{top_content='5'} $state.Hash; "
                     "if((Read-GloamState $root).Values.top_content -cne '5'){throw 'Top content lost'}; "
                     "if(Test-GloamSetting 'top_content' '999'){throw 'Out of bounds content accepted'}")
+
+    def test_organizer_never_treats_metadata_as_a_rom_with_custom_ini_filter(self):
+        self.organizer_file('roms/Nintendo DS/Moon.nds', b'Authored content')
+        self.organizer_file('roms/Nintendo DS/Moon.nds.gloam.ini', b'version=1\ntitle=Moon\n')
+        self.run_ps("New-GloamOrganizerPlan $root 'roms/Nintendo DS' Alphabetize 'nds,ini'", success=False)
+        self.run_ps("$plan=New-GloamOrganizerPlan $root 'roms/Nintendo DS' Alphabetize 'nds'; "
+                    "if($plan.Skipped.Count -or $plan.Moves.Count -ne 2){throw 'Metadata became a second ROM group'}; "
+                    "if(@($plan.Moves | Where-Object Destination -eq 'roms/Nintendo DS/M/Moon.nds.gloam.ini').Count -ne 1){throw 'Metadata companion was lost'}")
+
+    def test_title_metadata_dialog_saves_from_its_script_scope(self):
+        self.organizer_file('roms/Example.nds', b'Authored content')
+        # Keep the functions in a child script scope, matching the standalone GUI.
+        self.preamble = '& { ' + self.preamble
+        ui_source = literal(win(self.installer / 'gloam-setup-artwork-ui.ps1'))
+        markup = literal(win(self.installer / 'gloam-setup.xaml'))
+        self.run_ps('Add-Type -AssemblyName PresentationFramework; Add-Type -AssemblyName System.Windows.Forms; '
+                    '$window=[Windows.Markup.XamlReader]::Parse([IO.File]::ReadAllText(' + markup + ')); '
+                    '$tokens=$null;$parseErrors=$null;$ast=[Management.Automation.Language.Parser]::ParseFile(' + ui_source + ',[ref]$tokens,[ref]$parseErrors); '
+                    '$definition=$ast.Find({param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq "Open-GloamTitleEditor"},$true); '
+                    '. ([ScriptBlock]::Create($definition.Extent.Text)); function Write-Activity($Message) {} '
+                    '$result=[pscustomobject]@{Clicked=$false;Error=""}; '
+                    'function Ui-Nodes($node) { $node; foreach($child in [Windows.LogicalTreeHelper]::GetChildren($node)) {if($child -is [Windows.DependencyObject]){Ui-Nodes $child}} }; '
+                    '$timer=[Windows.Threading.DispatcherTimer]::new();$timer.Interval=[TimeSpan]::FromMilliseconds(300); '
+                    '$timer.Add_Tick({ $dialog=@($window.OwnedWindows | Where-Object Title -eq "Title details");if(-not $dialog.Count){return}; '
+                    '$timer.Stop(); $nodes=@(Ui-Nodes $dialog[0]);$boxes=@($nodes | Where-Object {$_ -is [Windows.Controls.TextBox]}); '
+                    '$boxes[0].Text="Edited in the dialog"; $save=@($nodes | Where-Object {$_ -is [Windows.Controls.Button] -and $_.Content -eq "Save details"})[0]; '
+                    '$save.RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent));$result.Clicked=$true; '
+                    'if($dialog[0].IsVisible){$result.Error=(@($nodes | Where-Object {$_ -is [Windows.Controls.TextBlock]} | ForEach-Object Text) -join " / ");$dialog[0].Close()} }); '
+                    'try {$window.Show();$timer.Start();Open-GloamTitleEditor $root "roms/Example.nds"} finally {$timer.Stop();$window.Close()}; '
+                    'if(-not $result.Clicked -or $result.Error){throw ("Dialog save failed: " + $result.Error)}; '
+                    'if((Read-GloamTitleMetadata $root "roms/Example.nds").Values.title -cne "Edited in the dialog"){throw "Dialog did not save its fields"} }')

@@ -178,7 +178,7 @@ function Open-GloamTitleEditor([string]$Root, [string]$Content) {
     $fields = [ordered]@{}
     foreach ($key in $GloamTitleFields.Keys) {
         $label = [Windows.Controls.TextBlock]::new()
-        $label.Text = $key.Substring(0,1).ToUpperInvariant() + $key.Substring(1) + ' (up to ' + $GloamTitleFields[$key] + ' UTF-8 bytes)'
+        $label.Text = if ($key -eq 'year') { 'Year (four digits, or leave empty)' } else { $key.Substring(0,1).ToUpperInvariant() + $key.Substring(1) + ' (up to ' + $GloamTitleFields[$key] + ' UTF-8 bytes)' }
         $panel.Children.Add($label) | Out-Null
         $inputBox = [Windows.Controls.TextBox]::new(); $inputBox.Text = $record.Values[$key]
         $inputBox.Margin = '0,3,0,8'; $fields[$key] = $inputBox; $panel.Children.Add($inputBox) | Out-Null
@@ -190,14 +190,22 @@ function Open-GloamTitleEditor([string]$Root, [string]$Content) {
     $cancel = [Windows.Controls.Button]::new(); $cancel.Content = 'Cancel'; $cancel.IsCancel = $true
     $import = [Windows.Controls.Button]::new(); $import.Content = 'Import JSON...'
     foreach ($button in @($save,$import,$cancel)) { $buttons.Children.Add($button) | Out-Null }
+    # Keep editor state on the buttons. A closure module hides script-local setup
+    # functions; dynamic dialog variables can also be shadowed by a caller's timer.
+    $editor = [pscustomobject]@{ Window=$dialog; Fields=$fields; Record=$record; Root=$Root; Content=$Content; Error=$errorText }
+    $save.Tag = $editor; $import.Tag = $editor
     $save.Add_Click({
+        param($sender, $eventArgs)
+        $editor = $sender.Tag
         try {
-            $values = [ordered]@{}; foreach ($key in $fields.Keys) { $values[$key] = $fields[$key].Text }
-            $null = Save-GloamTitleMetadata $Root $Content $values $record.Hash
-            $dialog.DialogResult = $true
-        } catch { $errorText.Text = $_.Exception.Message }
-    }.GetNewClosure())
+            $values = [ordered]@{}; foreach ($key in $editor.Fields.Keys) { $values[$key] = $editor.Fields[$key].Text }
+            $null = Save-GloamTitleMetadata $editor.Root $editor.Content $values $editor.Record.Hash
+            $editor.Window.DialogResult = $true
+        } catch { $editor.Error.Text = $_.Exception.Message }
+    })
     $import.Add_Click({
+        param($sender, $eventArgs)
+        $editor = $sender.Tag
         $picker = [Windows.Forms.OpenFileDialog]::new(); $picker.Filter = 'Title details JSON|*.json'
         try {
             if ($picker.ShowDialog() -ne 'OK') { return }
@@ -205,11 +213,11 @@ function Open-GloamTitleEditor([string]$Root, [string]$Content) {
             $data = [IO.File]::ReadAllText($picker.FileName, [Text.UTF8Encoding]::new($false,$true)) | ConvertFrom-Json
             if (-not $data -or $data -is [array] -or $data -is [string]) { throw 'Expected one JSON object with title-detail fields.' }
             foreach ($property in $data.PSObject.Properties) { Test-GloamTitleField $property.Name ([string]$property.Value) }
-            foreach ($property in $data.PSObject.Properties) { $fields[$property.Name].Text = [string]$property.Value }
-            $errorText.Text = 'Imported for review. Save details applies the changes.'
-        } catch { $errorText.Text = $_.Exception.Message }
+            foreach ($property in $data.PSObject.Properties) { $editor.Fields[$property.Name].Text = [string]$property.Value }
+            $editor.Error.Text = 'Imported for review. Save details applies the changes.'
+        } catch { $editor.Error.Text = $_.Exception.Message }
         finally { $picker.Dispose() }
-    }.GetNewClosure())
+    })
     if ($dialog.ShowDialog()) { Write-Activity ('Saved title details: ' + $Content) }
 }
 $ui.ArtworkMetadata.Add_Click({ Invoke-UiAction {
