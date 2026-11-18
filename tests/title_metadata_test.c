@@ -1,4 +1,5 @@
 #include "app.h"
+#include "artwork.h"
 #include "browser.h"
 #include "paths.h"
 #include "preferences.h"
@@ -44,6 +45,10 @@ int main(int argc, char **argv)
     app_init(&app, argv[1], true, true);
     app_category(&app, CATEGORY_GAMES);
     assert(app.entry_count == 1);
+    measure = true;
+    artwork_load(&app);
+    measure = false;
+    assert(!end_seeks && app.artwork.ready);
     app.internal_titles = true;
     app.title_language = 2;
     app.browser_style = BROWSER_LIST;

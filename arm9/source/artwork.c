@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <sys/stat.h>
 
 static uint16_t pack_rgb555(unsigned r, unsigned g, unsigned b)
 {
@@ -54,9 +55,11 @@ static bool load_nds_banner(App *app, const Entry *entry, Artwork *artwork, bool
         app->code[4] = 0;
     }
     uint32_t offset = read_le32(header + 0x68);
-    fseek(f, 0, SEEK_END);
-    long size = ftell(f);
-    if (offset < 0x160 || offset > (uint32_t)size || size - (long)offset < (long)sizeof data) {
+    struct stat metadata_info;
+    bool sized = !fstat(fileno(f), &metadata_info) && S_ISREG(metadata_info.st_mode) &&
+                 metadata_info.st_size >= 0 && (uint64_t)metadata_info.st_size <= UINT32_MAX;
+    uint32_t size = sized ? (uint32_t)metadata_info.st_size : 0;
+    if (!sized || offset < 0x160 || offset > size || size - offset < sizeof data) {
         fclose(f);
         return false;
     }
