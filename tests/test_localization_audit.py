@@ -92,3 +92,13 @@ class LocalizationAuditTests(unittest.TestCase):
             manifest.write_text('[theme]\nversion=1\n[fonts]\nui=../../outside.dsfont\n')
             with self.assertRaisesRegex(ValueError, 'escapes'):
                 audit.audit(catalog, audit.known_keys(), audit.script_advances(), root / 'themes')
+
+    def test_translation_record_cap_has_room_for_new_controls(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'bounded.ini'
+            records = ['dialog.fixture_' + str(i) + '=Text' for i in range(416)]
+            path.write_text('version=1\n' + '\n'.join(records) + '\n')
+            self.assertEqual(len(audit.catalog(path)), 416)
+            path.write_text(path.read_text() + 'dialog.one_more=Text\n')
+            with self.assertRaises(ValueError):
+                audit.catalog(path)

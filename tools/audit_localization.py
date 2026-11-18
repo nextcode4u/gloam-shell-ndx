@@ -46,7 +46,7 @@ def catalog(path):
             extra += 1
             used += size + 1
         values[key] = value
-    if values.pop('version', None) != '1' or extra > 384 or used > 24576:
+    if values.pop('version', None) != '1' or extra > 416 or used > 24576:
         raise ValueError('Catalog version or native storage limit exceeded')
     return values
 
@@ -73,7 +73,7 @@ def script_advances(directory=None):
         if len(data) < 20:
             raise ValueError('Truncated font: ' + str(path))
         magic, count, checksum, height, depth = struct.unpack_from('<8sIIBB', data)
-        if magic != b'GSFONT01' or not 0 < count <= 16384 or height != 12 or depth not in (1, 2) or data[18:20] != b'\0\0' or len(data) != 20 + count * 29:
+        if magic != b'GSFONT01' or not 0 < count <= 16416 or height != 12 or depth not in (1, 2) or data[18:20] != b'\0\0' or len(data) != 20 + count * 29:
             raise ValueError('Invalid font bounds: ' + str(path))
         actual = 2166136261
         for byte in data[20:]:

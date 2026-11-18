@@ -107,7 +107,7 @@ rendering. The shared Japanese fallback works with every theme; other unsupporte
 
 Settings labels and help use stable `setting.<option>.label` and
 `setting.<option>.help` keys. Section names, settings-dialog hints and common
-values use `section.*`, `dialog.*` and `value.*`. Up to 384 additional entries
+values use `section.*`, `dialog.*` and `value.*`. Up to 416 additional entries
 are allowed. Missing entries retain English; language files cannot change any
 setting values or launch behavior. Keep help within six display lines and test
 long labels with scrolling enabled and Reduced motion.
@@ -155,7 +155,7 @@ Latin-1. Returning to normal startup reloads scripts as needed.
 FNV-1a payload checksum, height (12), coverage depth (1 or 2), and two zero bytes.
 Each 29-byte record contains a 32-bit Unicode scalar, byte advance, and twelve
 16-bit rows. Scalars must be unique and sorted; rows must fit the advance and
-depth. Packs are bounded to 16,384 glyphs each. Checksums detect corruption,
+depth. Packs are bounded to 16,416 glyphs each. Checksums detect corruption,
 not authenticity. Japanese and extended source attribution remains unchanged.
 Regenerate with `tools/make_japanese_font.py` and `tools/pack_script_fonts.py`.
 

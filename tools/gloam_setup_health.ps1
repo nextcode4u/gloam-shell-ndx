@@ -2,9 +2,9 @@
 # Read-only health/diagnostic inspection and explicitly requested asset repair.
 function Test-GloamScriptFontBytes([byte[]]$Data, [string]$Id) {
     if ($Id -notin @('japanese','extended')) { throw 'Unsupported shared script font name.' }
-    if ($Data.Length -lt 20 -or $Data.Length -gt (20+16384*29) -or [Text.Encoding]::ASCII.GetString($Data,0,8) -cne 'GSFONT01') { throw 'Invalid script font header or size.' }
+    if ($Data.Length -lt 20 -or $Data.Length -gt (20+16416*29) -or [Text.Encoding]::ASCII.GetString($Data,0,8) -cne 'GSFONT01') { throw 'Invalid script font header or size.' }
     $count=[BitConverter]::ToUInt32($Data,8); $depth=[int]$Data[17]
-    if (-not $count -or $count -gt 16384 -or $Data.Length -ne (20+$count*29) -or $Data[16] -ne 12 -or $depth -notin @(1,2) -or $Data[18] -or $Data[19]) { throw 'Invalid script font dimensions/count.' }
+    if (-not $count -or $count -gt 16416 -or $Data.Length -ne (20+$count*29) -or $Data[16] -ne 12 -or $depth -notin @(1,2) -or $Data[18] -or $Data[19]) { throw 'Invalid script font dimensions/count.' }
     [long]$hash=2166136261
     for ($i=20; $i -lt $Data.Length; $i++) { $hash=(($hash -bxor [long]$Data[$i])*16777619) -band 4294967295L }
     if ($hash -ne [BitConverter]::ToUInt32($Data,12)) { throw 'Script font checksum mismatch.' }
@@ -42,7 +42,7 @@ function Test-GloamLanguageBytes([byte[]]$Data) {
         if ($basic[0..5] -ccontains $key -and $size -ge 64) { throw 'Tab translation exceeds 63 bytes.' }
         if (-not $isBasic) { $extra++; $used+=$size+1 }
     }
-    if (-not $version -or $extra -gt 384 -or $used -gt 24576) { throw 'Invalid catalog version or storage limits.' }
+    if (-not $version -or $extra -gt 416 -or $used -gt 24576) { throw 'Invalid catalog version or storage limits.' }
     return $seen.Count-1
 }
 function Get-GloamStartupRows([string]$Root) {
@@ -82,7 +82,7 @@ function Get-GloamSetupHealth([string]$Root) {
         try {
             $file=Get-GloamPath $root ('_nds/dsi-frontend/fonts/'+$id+'.gsf')
             if ([IO.File]::Exists($file)) {
-                if (([IO.FileInfo]::new($file)).Length -gt (20+16384*29)) { throw 'Oversized script font.' }
+                if (([IO.FileInfo]::new($file)).Length -gt (20+16416*29)) { throw 'Oversized script font.' }
                 $count=Test-GloamScriptFontBytes ([IO.File]::ReadAllBytes($file)) $id
                 $status='Ready'; $detail="$count validated glyphs; checksum does not establish authenticity."
             }
@@ -133,7 +133,7 @@ function Import-GloamLanguagePack([string]$Root, [string[]]$Sources) {
     $root=Get-GloamRoot $Root; $plan=@(); $seen=@{}
     foreach ($source in $Sources) {
         $info=[IO.FileInfo]::new($source); $id=$info.BaseName
-        if (-not $info.Exists -or $info.Length -gt (20+16384*29) -or $id -cnotmatch '^[A-Za-z0-9_-]{1,31}$') { throw 'Invalid language/font input.' }
+        if (-not $info.Exists -or $info.Length -gt (20+16416*29) -or $id -cnotmatch '^[A-Za-z0-9_-]{1,31}$') { throw 'Invalid language/font input.' }
         $data=[IO.File]::ReadAllBytes($info.FullName)
         if ($info.Extension -ieq '.ini') {
             if ($id -in @('en','auto')) { throw 'en and auto are reserved language IDs.' }
@@ -162,7 +162,7 @@ function Repair-GloamSharedAssets([string]$Root, [string]$ArchivePath) {
             $seen[$name.ToLowerInvariant()]=$true
             if ($seen.Count -gt 30000 -or $entry.Length -gt 64MB -or $total -gt 256MB) { throw 'Oversized repair archive.' }
             if ($name -cnotin $wanted) { continue }
-            if ($entry.Length -gt (20+16384*29)) { throw 'Oversized shared asset.' }
+            if ($entry.Length -gt (20+16416*29)) { throw 'Oversized shared asset.' }
             $data=[byte[]]::new([int]$entry.Length); $stream=$entry.Open()
             try { $offset=0; while ($offset -lt $data.Length) { $n=$stream.Read($data,$offset,$data.Length-$offset); if (-not $n) { throw 'Truncated shared asset.' }; $offset+=$n }; if ($stream.ReadByte() -ne -1) { throw 'Shared asset exceeds its declared length.' } }
             finally { $stream.Dispose() }
@@ -175,7 +175,7 @@ function Repair-GloamSharedAssets([string]$Root, [string]$ArchivePath) {
         foreach ($required in $wanted[0..1]) { if ($required -cnotin @($plan | ForEach-Object Relative)) { throw 'This SD package predates shared fonts or is incomplete. Choose the matching newer release.' } }
         foreach ($item in $plan) {
             $file=Get-GloamPath $root $item.Relative; $valid=$false
-            if ([IO.File]::Exists($file) -and ([IO.FileInfo]::new($file)).Length -le (20+16384*29)) {
+            if ([IO.File]::Exists($file) -and ([IO.FileInfo]::new($file)).Length -le (20+16416*29)) {
                 try {
                     $existing=[IO.File]::ReadAllBytes($file)
                     if ($item.Relative.EndsWith('.gsf')) { Test-GloamScriptFontBytes $existing $item.Id | Out-Null } else { Test-GloamLanguageBytes $existing | Out-Null }

@@ -18,7 +18,7 @@ typedef enum {
     UI_STRING_COUNT
 } UiString;
 #define UI_LOCALE_CAP 18
-#define UI_EXTRA_CAP 384
+#define UI_EXTRA_CAP 416
 #define UI_TEXT_CAP 24576
 typedef struct {
     char key[48];

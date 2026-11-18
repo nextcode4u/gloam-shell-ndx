@@ -94,7 +94,7 @@ PCF, arbitrary CJK/RTL shaping and full UI localization are not supported by thi
 External interface catalogs cover settings labels, help and common values, with
 coverage varying by language; see [language selection](TEXT_AND_TITLES.md#selecting-an-external-interface-language). Overlay headings and controls cover themes, associations, game options, cheats,
 Home sections and SD removal. Untranslated help and runtime diagnostics retain English.
-Catalogs support up to 384 additional keys within the 32 KiB file limit; values
+Catalogs support up to 416 additional keys within the 32 KiB file limit; values
 share a 24 KiB text pool rather than allocating a full help buffer per key.
 Personal theme names, paths and custom tab labels are never translated as values.
 
