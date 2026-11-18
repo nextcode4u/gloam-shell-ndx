@@ -238,6 +238,17 @@ static int tab_window_start(const App *app, int focus, int visible)
     return start < 0 ? 0 : start;
 }
 
+static int draw_tab_number(uint16_t *pixels, int x, int y, int index, uint16_t color, int available)
+{
+    char number[16];
+    snprintf(number, sizeof number, "%02d", index + 1);
+    int width = (int)draw_text_width(number);
+    if (width > available)
+        width = available;
+    draw_text_scrolling(pixels, x, y, number, color, width, 0, false);
+    return width;
+}
+
 static void draw_context_tabs_at(const App *app, uint16_t *pixels, Palette colors, int y)
 {
     const ThemePackage *theme = &app->themes.active;
@@ -270,10 +281,8 @@ static void draw_context_tabs_at(const App *app, uint16_t *pixels, Palette color
         } else {
             int inset = 4;
             if (theme->tab_style == 2) {
-                char number[16];
-                snprintf(number, sizeof number, "%02d", index + 1);
-                draw_text(pixels, x + 3, y + 3, number, color, 2);
-                inset = 20;
+                int number_width = draw_tab_number(pixels, x + 3, y + 3, index, color, width - 6);
+                inset = 3 + number_width + 4;
             }
             draw_text_scrolling(pixels, x + inset, y + 3, tabs_label(app, index), color,
                                 width - inset - 4, elapsed, active && !app->reduced_motion);
@@ -323,10 +332,8 @@ static void draw_side_tabs(const App *app, uint16_t *pixels, Palette colors, int
                         : colors.muted;
             int inset = 188;
             if (theme->tab_style == 2) {
-                char number[16];
-                snprintf(number, sizeof number, "%02d", index + 1);
-                draw_text(pixels, rail + 185, y, number, color, 2);
-                inset = 205;
+                int number_width = draw_tab_number(pixels, rail + 185, y, index, color, 59);
+                inset = 185 + number_width + 4;
             }
             draw_text_scrolling(pixels, rail + inset, y, tabs_label(app, index), color, 244 - inset,
                                 elapsed, focused && !app->reduced_motion);

@@ -197,6 +197,54 @@ static void preview_icon_bounds(void)
     }
 }
 
+static void proportional_tab_numbers(void)
+{
+    app_category(&app, CATEGORY_GAMES);
+    ThemePackage saved = app.themes.active;
+    ThemePackage *theme = &app.themes.active;
+    theme->tab_style = 2;
+    theme->tab_visible = 3;
+    theme->tab_gap = 4;
+    theme->tabs_position = 2;
+    theme->font.proportional = true;
+    theme->font.width = 9;
+    theme->font.advance['0' - 32] = theme->font.advance['2' - 32] = 9;
+    theme->font.advance['1' - 32] = 4;
+    font_use(&theme->font);
+    app.show_covers = true;
+    app.rail_focus = false;
+    app.detail_tab = 0;
+    app.browser_style = BROWSER_CLASSIC;
+    app.artwork.ready = false;
+    /* A narrow 1 fits the old two-cell budget, while 02 needs 18 pixels.
+     * The marker at the right edge of 2 must survive in every tab placement. */
+    const unsigned layouts[] = {TOP_JOURNAL, TOP_SIDEBAR, TOP_SIDEBAR_LEFT};
+    for (unsigned i = 0; i < sizeof layouts / sizeof *layouts; i++) {
+        theme->top_layout = layouts[i];
+        for (int row = 0; row < FONT_HEIGHT; row++)
+            theme->font.rows['2' - 32][row] = 0;
+        draw();
+        memcpy(stationary_rows, top.pixels, sizeof stationary_rows);
+        for (int row = 0; row < FONT_HEIGHT; row++)
+            theme->font.rows['2' - 32][row] = 3u << 16;
+        draw();
+        int x, y;
+        if (layouts[i] == TOP_JOURNAL) {
+            x = 7 + (242 - 2 * 4) / 3 + 4 + 3 + 9 + 8;
+            y = theme_composition(theme).tabs_y + 3 + 7;
+        } else {
+            x = (layouts[i] == TOP_SIDEBAR_LEFT ? -178 : 0) + 185 + 9 + 8;
+            y = 38 + 20 + 7;
+        }
+        if (top.pixels[y * 256 + x] == stationary_rows[y * 256 + x])
+            fprintf(stderr, "Missing wide tab digit: %s layout=%u at %d,%d\n", theme->id,
+                    layouts[i], x, y);
+        assert(top.pixels[y * 256 + x] != stationary_rows[y * 256 + x]);
+    }
+    app.themes.active = saved;
+    font_use(&app.themes.active.font);
+}
+
 static bool overlaps(ThemeBox a, ThemeBox b)
 {
     return a.width && b.width && a.x < b.x + b.width && b.x < a.x + a.width &&
@@ -480,6 +528,7 @@ int main(int argc, char **argv)
         banner_preview_surface();
         preview_icon_bounds();
         composition_bounds();
+        proportional_tab_numbers();
     }
     puts("PASS: shipped themes preview/cancel/apply/restart, Latin-1 font, PNG/JPEG wallpapers, "
          "audio and all browser sizes/views/settings framebuffer bounds");
