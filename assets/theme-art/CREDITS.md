@@ -1,12 +1,13 @@
 # Theme artwork masters
 
-These ten illustration masters were created for Gloam Shell NDX with
+These ten pairs of illustration masters were created for Gloam Shell NDX with
 agent-assisted image generation. The project offers its rights in this artwork
 under CC0-1.0: https://creativecommons.org/publicdomain/zero/1.0/
 
-The 512×384 PNGs are production authoring assets. `tools/make_theme_scenes.py`
-prepares the native 256×192 indexed backgrounds and their quieter lower-screen
-compositions. Prism's broad color shapes are original vector-style artwork
+The PNGs are production authoring assets. Each `*-bottom.png` is a separate
+companion composition, with the same setting, palette and materials as its top
+illustration. `tools/make_theme_scenes.py` prepares both at native 256×192 indexed
+resolution. Reading surfaces remain separate to protect text contrast. Prism's broad color shapes are original vector-style artwork
 implemented in that tool under the same CC0 dedication.
 
 No image, character, logo or skin from another launcher's theme is included.

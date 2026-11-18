@@ -57,19 +57,12 @@ def prism(screen):
 def scene(name, screen):
     if name == "prism":
         return prism(screen)
-    with Image.open(ART / (name + ".png")) as master:
+    # Screen-specific masters share a setting, not the same hero composition.
+    filename = name + ("-bottom" if screen else "") + ".png"
+    with Image.open(ART / filename) as master:
         image = ImageOps.fit(
             master.convert("RGB"), (256, 192), method=Image.Resampling.LANCZOS
         )
-    if screen:
-        # A continuation of the material/landscape, without repeating the hero.
-        image = image.crop((0, 105, 256, 192)).resize(
-            (256, 192), Image.Resampling.LANCZOS
-        )
-        config = configparser.ConfigParser()
-        config.read(THEMES / name / "theme.ini")
-        matte = Image.new("RGB", image.size, config["colors"]["background"])
-        image = Image.blend(image, matte, 0.18)
     return image
 
 

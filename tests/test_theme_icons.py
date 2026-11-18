@@ -13,6 +13,20 @@ from tools.pack_theme_assets import pack
 
 
 class ThemeIconTests(unittest.TestCase):
+    def test_backgrounds_use_distinct_screen_compositions(self):
+        for folder in sorted(THEMES.iterdir()):
+            config = configparser.ConfigParser()
+            config.read(folder / "theme.ini")
+            if not config.has_section("theme"):
+                continue
+            with self.subTest(theme=folder.name):
+                pixels = []
+                for screen in ("top", "bottom"):
+                    with Image.open(folder / config["backgrounds"][screen]) as image:
+                        self.assertEqual(image.size, (256, 192))
+                        pixels.append(image.convert("RGB").tobytes())
+                self.assertNotEqual(*pixels)
+
     def test_category_colors_and_prepared_runtime_assets(self):
         for manifest in THEMES.glob("*/theme.ini"):
             config = configparser.ConfigParser()
