@@ -49,11 +49,11 @@ bool appearance_save(App *app, int slot)
         return false;
     fprintf(file,
             "version=1\nname=%s\ntheme=%s\nvalues=%d,%d,%d,%d,%d,%d,%d,%d\n"
-            "top=%s\nbottom=%s\nicon_labels=%d\n",
+            "top=%s\nbottom=%s\nicon_labels=%d\ntop_content=%d\n",
             appearance_preset_name(slot), app->theme_id, app->accent_index,
             app->theme_accent_override, app->reduced_motion, app->icon_size, app->browser_style,
             app->show_covers, app->clock_12_hour, app->wallpaper_strength, top, bottom,
-            app->show_icon_labels);
+            app->show_icon_labels, app->top_content);
     bool written = !ferror(file);
     if (fclose(file))
         written = false;
@@ -73,10 +73,10 @@ static bool read_preset(App *app, const char *path)
     char line[PATH_CAP + 32], theme[THEME_ID_CAP] = "", backgrounds[2][PATH_CAP] = {{0}};
     int values[8] = {0};
     unsigned seen = 0, lines = 0;
-    int icon_labels = 1;
+    int icon_labels = 1, top_content = app->top_content;
     bool valid = true;
     while (fgets(line, sizeof line, file)) {
-        if (++lines > 8 || (!strchr(line, '\n') && !feof(file))) {
+        if (++lines > 9 || (!strchr(line, '\n') && !feof(file))) {
             valid = false;
             break;
         }
@@ -112,6 +112,10 @@ static bool read_preset(App *app, const char *path)
             field = 64;
             valid &= !strcmp(line + 12, "0") || !strcmp(line + 12, "1");
             icon_labels = line[12] == '1';
+        } else if (!strncmp(line, "top_content=", 12)) {
+            field = 128;
+            valid &= line[12] >= '0' && line[12] < '0' + TOP_CONTENT_COUNT && !line[13];
+            top_content = line[12] - '0';
         } else
             valid = false;
         if (seen & field)
@@ -132,6 +136,7 @@ static bool read_preset(App *app, const char *path)
     app->browser_style = values[4];
     app->show_covers = values[5];
     app->show_icon_labels = icon_labels;
+    app->top_content = top_content;
     app->clock_12_hour = values[6];
     app->wallpaper_strength = values[7];
     themes_init(app);
@@ -161,6 +166,7 @@ void appearance_reset(App *app)
     app->icon_size = ICON_SMALL;
     app->browser_style = BROWSER_CLASSIC;
     app->show_covers = true;
+    app->top_content = TOP_CONTENT_THEME;
     app->show_icon_labels = true;
     app->clock_12_hour = false;
     themes_init(app);

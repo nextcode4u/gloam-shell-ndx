@@ -134,7 +134,7 @@ function New-GloamOrganizerPlan([string]$Root, [string]$Folder, [string]$Mode, [
         }
     }
     $groups = [Collections.Generic.List[object]]::new(); $owners = @{}; $targets = @{}
-    $companions = @('sav','pub','prv','srm','dsv','eep','fla','yss','state','cht','ips','bps','ups','cc','pal','png','jpg','jpeg','icon.png')
+    $companions = @('sav','pub','prv','srm','dsv','eep','fla','yss','state','cht','ips','bps','ups','cc','pal','png','jpg','jpeg','icon.png','gloam.ini')
     foreach ($n in 0..9) { foreach ($ext in @('sav','pub','prv','ys','st','ss','state')) { $companions += $ext + $n } }
     foreach ($parent in $parents) {
         $files = @(Get-ChildItem -LiteralPath (Get-GloamPath $Root $parent) -File -Force | Sort-Object Name)

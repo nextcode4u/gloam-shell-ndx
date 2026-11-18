@@ -499,6 +499,8 @@
                   <ComboBox x:Name="SettingView"/>
                 </StackPanel>
               </Grid>
+              <TextBlock Text="Top screen"/>
+              <ComboBox x:Name="SettingTopContent" ToolTip="Theme preserves its composition. Other choices add contextual facts, nearby artwork, current-folder summaries or Home activity. Smart chooses for the current selection."/>
               <TextBlock Text="Icon size"/>
               <ComboBox x:Name="SettingIcons"/>
               <WrapPanel>

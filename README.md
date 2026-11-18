@@ -29,6 +29,7 @@ Each theme includes previews, installation instructions and asset credits.
 
 - Two-screen browser with Classic, Extended, List, Grid, Cover Shelf and Library Index views, small/medium/large
   icons, looping text and configurable folder tabs.
+- Optional [top-screen context, neighbor previews and folder/Home summaries](docs/guides/TOP_SCREEN.md), with editable title metadata.
 - Themes with palettes, proportional body/heading fonts, translucent components,
   independent screen opacity, layout presets, backgrounds, music and UI sounds; personal
   appearance presets and on-console controls.

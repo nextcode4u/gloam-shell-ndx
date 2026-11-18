@@ -11,6 +11,7 @@
 #include "settings.h"
 #include "theme_composition.h"
 #include "themes.h"
+#include "top_content.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -423,6 +424,11 @@ int main(int argc, char **argv)
                     for (int labels = 0; labels < 2; labels++) {
                         app.show_icon_labels = labels;
                         draw();
+                        for (unsigned content = 1; content < TOP_CONTENT_COUNT; content++) {
+                            app.top_content = content;
+                            draw();
+                        }
+                        app.top_content = TOP_CONTENT_THEME;
                     }
                     app.show_icon_labels = true;
                     if (!layout_is_grid(&app)) {

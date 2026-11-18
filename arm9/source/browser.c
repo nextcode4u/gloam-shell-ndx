@@ -193,6 +193,10 @@ void browser_scan_step(App *app)
             continue;
         if (!app->show_hidden && record.name[0] == '.')
             continue;
+        size_t name_bytes = strlen(record.name);
+        if (!record.directory && name_bytes >= 10 &&
+            !strcasecmp(record.name + name_bytes - 10, ".gloam.ini"))
+            continue;
         if (!strcasecmp(record.name, "cover.png") || !strcasecmp(record.name, "cover.jpg") ||
             !strcasecmp(record.name, "cover.jpeg"))
             continue;

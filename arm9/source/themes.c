@@ -10,6 +10,7 @@
 #include "theme_composition.h"
 #include "theme_motion.h"
 #include "update_checker.h"
+#include "top_content.h"
 #include <ctype.h>
 #include <dirent.h>
 #include <stdio.h>
@@ -224,6 +225,14 @@ static bool load(App *app, const char *id, ThemePackage *package)
                     package->default_icon_size = ICON_MEDIUM;
                 else
                     valid = false;
+            } else if (!strcmp(key, "top_content")) {
+                bool matched = false;
+                for (unsigned i = 0; i < TOP_CONTENT_COUNT; i++)
+                    if (!strcmp(value, top_content_id(i))) {
+                        package->top_content = i;
+                        matched = true;
+                    }
+                valid &= matched;
             } else if (!strcmp(key, "top_layout")) {
                 const char *layouts[] = {"sidebar",   "sidebar_left", "poster",  "scene",
                                          "spotlight", "gallery",      "journal", "panorama",

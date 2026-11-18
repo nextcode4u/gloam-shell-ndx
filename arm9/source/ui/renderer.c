@@ -19,6 +19,7 @@
 #include "theme_composition.h"
 #include "theme_motion.h"
 #include "themes.h"
+#include "top_content.h"
 #include "ui_strings.h"
 
 #include "drawing.h"
@@ -517,6 +518,7 @@ static void draw_composition(const App *app, uint16_t *pixels, Palette colors, c
 static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, const char *clock)
 {
     const ThemePackage *theme = &app->themes.active;
+    bool supplemental = top_content_mode(app) != TOP_CONTENT_THEME;
     int offset = theme->top_layout == 1 ? 78 : 0;
     int rail = theme->top_layout == 1 ? -178 : 0;
     bool scene =
@@ -538,7 +540,7 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     draw_text(pixels, 205, 7, tab_position, themes_header_color(theme, colors.muted), 6);
     if (!theme->minimal_chrome)
         draw_rectangle(pixels, 10, 23, 236, 1, colors.line);
-    if (!poster && !scene && !composed && !theme->minimal_chrome)
+    if (!supplemental && !poster && !scene && !composed && !theme->minimal_chrome)
         draw_rectangle(pixels, offset ? 78 : 174, 33, 1, 133, colors.line);
     const Entry *entry = app_selected(app);
     const char *name =
@@ -549,11 +551,14 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     if (entry && entry->kind == ITEM_SYSTEM && entry->target == 6 && app->slot1.icon.ready &&
         *app->slot1.title)
         name = app->slot1.title;
-    if (!scene && !composed)
+    if (!supplemental && !scene && !composed)
         draw_heading_scrolling(theme, pixels, offset + 12, 31, name, colors.text,
                                poster ? 232 : 154, app->selection_idle_frames,
                                !app->reduced_motion);
-    if (composed) {
+    if (supplemental) {
+        top_content_render(app, pixels, draw_preview_icon);
+        draw_context_tabs(app, pixels, colors);
+    } else if (composed) {
         draw_composition(app, pixels, colors, name);
     } else if (scene) {
         draw_scene(app, pixels, colors, name);
@@ -657,7 +662,7 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     } else {
         draw_item_information(app, pixels, colors, offset);
     }
-    if (!poster && !scene && !composed)
+    if (!supplemental && !poster && !scene && !composed)
         draw_side_tabs(app, pixels, colors, rail);
     if (!theme->minimal_chrome)
         draw_rectangle(pixels, 10, 176, 236, 1, colors.line);

@@ -268,3 +268,10 @@ scan; only a completed cache is installed. The GUI reads a small status header.
 Native search allocates one page on demand, closes its stream on cancellation or
 SD loss, and never opens the index during initialization. The format and limits
 are in [Library search](guides/LIBRARY_SEARCH.md).
+
+`top_content.c` prepares optional context, folder summaries and Home activity
+after selection settles. `ui/top_content_view.c` consumes the snapshot and the
+existing three-image Shelf cache; the renderer supplies its native/icon drawing
+callback and shared tab dock. Theme content defaults and user overrides preserve
+legacy compositions when omitted. Metadata sidecars are bounded UTF-8 records,
+independent of launch settings; desktop authoring lives alongside artwork helpers.

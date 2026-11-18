@@ -17,6 +17,7 @@ Start with [setup and controls](GETTING_STARTED.md) and [current support](CURREN
 - [Custom tabs](guides/TABS.md), [dashboard](guides/DASHBOARD.md),
   [item preferences](guides/ITEM_PREFERENCES.md), [association editor](guides/ASSOCIATION_EDITOR.md).
 - [Startup splashes](guides/STARTUP_SPLASHES.md): theme/custom selection, prepared animation format and the separate authoring tools.
+- [Top-screen content and optional title details](guides/TOP_SCREEN.md).
 - [PC-built library search](guides/LIBRARY_SEARCH.md).
 - [Configuration backups and resets](guides/CONFIGURATION_BACKUPS.md).
 

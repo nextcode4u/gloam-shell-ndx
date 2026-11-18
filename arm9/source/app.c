@@ -18,6 +18,7 @@
 #include "icons.h"
 #include "image_job.h"
 #include "inspection.h"
+#include "top_content.h"
 #include "installed_titles.h"
 #include "item_preferences.h"
 #include "launch.h"
@@ -69,6 +70,7 @@ static void reset_selection_preview(App *app)
     app->title[0] = app->code[0] = 0;
     app->info_title[0] = app->info_code[0] = 0;
     app->info_loaded = app->info_header_valid = false;
+    memset(&app->top, 0, sizeof app->top);
 }
 
 void app_reset_preview(App *app)
@@ -918,6 +920,8 @@ void app_tick(App *app)
     if (!app->settings.open) {
         icons_tick(app);
         title_metadata_tick(app);
+        if (app->panel == PANEL_NONE)
+            top_content_tick(app);
         prepare_script_fonts(app);
     }
     if (app->browser_style == BROWSER_INDEX && app->library_index_dirty)
@@ -944,7 +948,8 @@ void app_tick(App *app)
         if (abs(d) < 32)
             app->selection_y_fixed = target;
     }
-    if (app->browser_style != BROWSER_INDEX && !app->settings.open && app->show_covers &&
+    if ((app->browser_style != BROWSER_INDEX || top_content_mode(app) != TOP_CONTENT_THEME) &&
+        !app->settings.open && app->show_covers &&
         !app->artwork.ready && !app->artwork_resolved && app->selection_idle_frames >= 7)
         artwork_load(app);
     if (!app->settings.open && app->panel == PANEL_NONE)

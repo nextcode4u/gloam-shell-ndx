@@ -5,6 +5,7 @@ $GloamSettingRules = [ordered]@{
     settings_mode = @{ Default = 'simple'; Choices = @('simple','advanced') }
     simple_settings_lock = @{ Default = '0'; Choices = @('0','1') }
     browser_style = @{ Default = '0'; Choices = @('0','1','2','3','4','5') }
+    top_content = @{ Default = '0'; Choices = @('0','1','2','3','4','5','6') }
     icon_size = @{ Default = '0'; Choices = @('0','1','2') }
     sort_mode = @{ Default = '0'; Choices = @('0','1','2','3') }
     scroll_speed = @{ Default = '1'; Choices = @('0','1','2') }

@@ -127,6 +127,7 @@ public static class GloamLibraryIndex
                     string name = Path.GetFileName(file), extension = Path.GetExtension(name);
                     if ((attr & FileAttributes.ReparsePoint) != 0 || SaveTypes.Contains(extension) ||
                         ((name.Equals("README.txt", StringComparison.OrdinalIgnoreCase) || name.Equals("README.md", StringComparison.OrdinalIgnoreCase) || name.Equals("README", StringComparison.OrdinalIgnoreCase))) ||
+                        name.EndsWith(".gloam.ini", StringComparison.OrdinalIgnoreCase) ||
                         name.Equals("cover.png", StringComparison.OrdinalIgnoreCase) ||
                         name.Equals("cover.jpg", StringComparison.OrdinalIgnoreCase) ||
                         name.Equals("cover.jpeg", StringComparison.OrdinalIgnoreCase) ||

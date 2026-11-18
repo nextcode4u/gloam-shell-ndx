@@ -24,6 +24,7 @@
 #include "splash.h"
 #include "tabs.h"
 #include "themes.h"
+#include "top_content.h"
 #include "ui_strings.h"
 #include <stdio.h>
 #include <string.h>
@@ -58,6 +59,7 @@ enum {
     OPT_ICONS,
     OPT_VIEW,
     OPT_COVERS,
+    OPT_TOP_CONTENT,
     OPT_CLOCK,
     OPT_SORT,
     OPT_HIDDEN,
@@ -135,6 +137,7 @@ static const char *option_keys[] = {
     [OPT_INTERFACE_LANGUAGE] = "interface_language",
     [OPT_VIEW] = "view",
     [OPT_COVERS] = "covers",
+    [OPT_TOP_CONTENT] = "top_content",
     [OPT_CLOCK] = "clock",
     [OPT_SORT] = "sort",
     [OPT_HIDDEN] = "hidden",
@@ -281,7 +284,11 @@ static const SettingsOption appearance[] = {
     {"Interface language",
      "Choose an SD language catalog. Custom uses language.ini; English "
      "bypasses it. Missing translations keep English. Recovery keeps English.",
-     true, OPT_INTERFACE_LANGUAGE}};
+     true, OPT_INTERFACE_LANGUAGE},
+    {"Top screen",
+     "Theme preserves its layout. Context shows launch facts. Neighbors shows nearby art. "
+     "Folder summarizes this batch. Activity shows Home shortcuts. Smart chooses by context. Layout only ignores theme content presets.",
+     true, OPT_TOP_CONTENT}};
 static const SettingsOption browser[] = {
     {"Sort order",
      "Folders stay first. Sort files by name, extension or modification date. Selection follows "
@@ -524,11 +531,23 @@ static void refresh_routes(App *app)
 }
 
 /* Simple pages reference the same options and handlers as the full catalog. */
-static const int simple_appearance[] = {
-    OPT_SETTINGS_MODE, OPT_THEME,          OPT_BRIGHTNESS,  OPT_ACCENT,
-    OPT_MOTION,        OPT_ICONS,          OPT_VIEW,        OPT_COVERS,
-    OPT_CLOCK,         OPT_SPLASH_MODE,    OPT_SPLASH_PATH, OPT_SPLASH_ONCE,
-    OPT_SPLASH_SOUND,  OPT_SPLASH_PREVIEW, OPT_ICON_LABELS, OPT_INTERFACE_LANGUAGE};
+static const int simple_appearance[] = {OPT_SETTINGS_MODE,
+                                        OPT_THEME,
+                                        OPT_BRIGHTNESS,
+                                        OPT_ACCENT,
+                                        OPT_MOTION,
+                                        OPT_ICONS,
+                                        OPT_VIEW,
+                                        OPT_COVERS,
+                                        OPT_CLOCK,
+                                        OPT_TOP_CONTENT,
+                                        OPT_SPLASH_MODE,
+                                        OPT_SPLASH_PATH,
+                                        OPT_SPLASH_ONCE,
+                                        OPT_SPLASH_SOUND,
+                                        OPT_SPLASH_PREVIEW,
+                                        OPT_ICON_LABELS,
+                                        OPT_INTERFACE_LANGUAGE};
 static const int simple_browser[] = {OPT_SORT,      OPT_EXTENSIONS, OPT_HIDE_SAVES,
                                      OPT_HIDE_BIOS, OPT_SPEED,      OPT_TITLE_SOURCE};
 static const int simple_audio[] = {OPT_MUSIC_MODE, OPT_MUSIC_PATH, OPT_MUSIC_VOLUME, OPT_EFFECTS,
@@ -771,6 +790,11 @@ void settings_adjust(App *app, int direction)
     case OPT_SPEED:
         app_adjust_control(app, QUICK_SCROLL_SPEED, direction);
         return;
+    case OPT_TOP_CONTENT:
+        app->top_content =
+            (app->top_content + TOP_CONTENT_COUNT + (direction < 0 ? -1 : 1)) % TOP_CONTENT_COUNT;
+        app_reset_preview(app);
+        break;
     case OPT_COVERS:
         app->show_covers = !app->show_covers;
         app_reset_preview(app);
@@ -1325,6 +1349,9 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
         value = names[app->browser_style];
         break;
     }
+    case OPT_TOP_CONTENT:
+        value = top_content_name(app->top_content);
+        break;
     case OPT_COVERS:
         value = app->show_covers ? "On" : "Off";
         break;

@@ -941,3 +941,13 @@ package is too new. Omitted requirements preserve existing package behavior.
 This key requires Gloam 1.2.0 or later; older parsers report it as an invalid
 package. Desktop inspection validates/displays the requirement but does not infer
 an installed binary's version from its filename.
+
+## Optional top-screen content presets
+
+Development builds after 1.2.0 accept `[layout] top_content=theme`, `context`,
+`neighbors`, `folder`, `activity`, `smart` or `layout`. Omission preserves the original
+composition. This is independent of `top_layout`: a content preset uses its
+bounded full-width body and bottom navigation dock while retaining the pack's
+backgrounds, cards, fonts and status artwork. The user's Top screen setting can
+override the package choice. Older frontends reject this new key; do not add it
+to packs advertised as compatible with 1.2.0. See [content behavior and metadata](TOP_SCREEN.md).

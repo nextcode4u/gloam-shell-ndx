@@ -273,6 +273,7 @@ typedef struct {
     unsigned row_padding, large_grid_columns;
     /* Screen composition is independent of the user-selected browser view. */
     unsigned top_layout, tabs_position, content_opacity;
+    unsigned top_content; /* Optional content preset; zero preserves the original composition. */
     unsigned format_version, screen_opacity[2]; /* 101 inherits content_opacity. */
     unsigned tab_style, tab_highlight, tab_gap, tab_visible;
     unsigned scene_cover_x, scene_cover_y, scene_cover_width, scene_cover_height;
@@ -309,6 +310,25 @@ typedef struct {
     char path[PATH_CAP];
     uint32_t timestamp;
 } RecentRequest;
+typedef enum {
+    TOP_CONTENT_THEME,
+    TOP_CONTENT_CONTEXT,
+    TOP_CONTENT_NEIGHBORS,
+    TOP_CONTENT_FOLDER,
+    TOP_CONTENT_ACTIVITY,
+    TOP_CONTENT_SMART,
+    TOP_CONTENT_ORIGINAL,
+    TOP_CONTENT_COUNT
+} TopContentMode;
+/* Prepared after selection settles. No launch preflight or filesystem work in drawing. */
+typedef struct {
+    unsigned stage;
+    char handler[128], route[80], options[128], save[96];
+    char title[96], developer[64], genre[48], year[8], description[256];
+    bool metadata_present, metadata_invalid;
+    unsigned files, folders, types[15];
+    int samples[3];
+} TopContentState;
 typedef struct {
     DashboardConfig config;
     RecentRequest recent[RECENT_CAP];
@@ -368,6 +388,8 @@ typedef struct {
     int panel_parent_selection, panel_parent_scroll;
     bool action_enabled[ACTION_COUNT];
     int panel_selection, panel_scroll, accent_index, detail_tab;
+    TopContentMode top_content;
+    TopContentState top;
     bool reduced_motion, preferences_dirty;
     char preferences_error[160];
     ScrollSpeed scroll_speed;

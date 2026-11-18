@@ -8,6 +8,7 @@
 #include "item_preferences.h"
 #include "paths.h"
 #include "text.h"
+#include "top_content.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -195,12 +196,20 @@ const Artwork *artwork_shelf_for_entry(const App *app, int index)
 
 void artwork_shelf_tick(App *app)
 {
-    if (app->browser_style != BROWSER_SHELF || !app->show_covers ||
+    TopContentMode mode = top_content_mode(app);
+    bool supplemental =
+        mode == TOP_CONTENT_NEIGHBORS || mode == TOP_CONTENT_FOLDER || mode == TOP_CONTENT_ACTIVITY;
+    if ((app->browser_style != BROWSER_SHELF && !supplemental) || !app->show_covers ||
         app->selection_idle_frames < 7 || (!app->artwork.ready && !app->artwork_resolved))
         return;
-    int first = app->locations[app->category].selected - 1;
+    int indexes[3];
+    if (supplemental)
+        top_content_samples(app, indexes);
+    else
+        for (int i = 0; i < 3; i++)
+            indexes[i] = app->locations[app->category].selected + i - 1;
     for (int cell = 0; cell < 3; cell++) {
-        int index = first + cell;
+        int index = indexes[cell];
         if (index < 0 || index >= app->entry_count)
             continue;
         const char *path = app->entries[index].path;
@@ -208,9 +217,9 @@ void artwork_shelf_tick(App *app)
         if (slot < 0) {
             for (slot = 0; slot < 3; slot++) {
                 bool visible = false;
-                for (int i = first; i < first + 3; i++)
-                    if (i >= 0 && i < app->entry_count &&
-                        !strcmp(app->shelf_paths[slot], app->entries[i].path))
+                for (int i = 0; i < 3; i++)
+                    if (indexes[i] >= 0 && indexes[i] < app->entry_count &&
+                        !strcmp(app->shelf_paths[slot], app->entries[indexes[i]].path))
                         visible = true;
                 if (!visible)
                     break;

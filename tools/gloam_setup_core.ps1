@@ -546,7 +546,7 @@ function Test-GloamTheme([string]$Source) {
         fonts=@('ui','heading')
         audio=@('music','cursor','confirm','back')
         backgrounds=@('top','bottom','strength','top_surface','bottom_surface')
-        layout=@('view','icon_size','row_padding','large_grid_columns','top_layout','chrome',
+        layout=@('view','icon_size','row_padding','large_grid_columns','top_layout','top_content','chrome',
                  'content_opacity','top_content_opacity','bottom_content_opacity','tabs_position',
                  'scene_cover_x','scene_cover_y','scene_cover_width','scene_cover_height',
                  'tab_style','tab_highlight','tab_gap','tab_visible')
@@ -563,7 +563,7 @@ function Test-GloamTheme([string]$Source) {
     if ($data.Contains('theme') -and $data['theme'].Contains('header') -and [Text.Encoding]::UTF8.GetByteCount($data['theme']['header']) -gt 63) { $errors.Add('Header must fit in 63 UTF-8 bytes.') }
     if ($data.Contains('colors')) { foreach ($key in $data['colors'].Keys) { if ($data['colors'][$key] -notmatch '^#[0-9A-Fa-f]{6}$') { $errors.Add("Invalid colour: $key") } } }
     if ($data.Contains('layout')) {
-        foreach ($pair in @(@('view',@('classic','extended','list','grid','shelf','index')),@('icon_size',@('small','large','medium')),@('top_layout',@('sidebar','sidebar_left','poster','scene','spotlight','gallery','journal','panorama','dossier','portrait')),@('tabs_position',@('top','bottom')),@('chrome',@('full','minimal')),@('tab_style',@('labels','icons','numbered','pager')),@('tab_highlight',@('skin','underline','outline')))) {
+        foreach ($pair in @(@('view',@('classic','extended','list','grid','shelf','index')),@('top_content',@('theme','context','neighbors','folder','activity','smart','layout')),@('icon_size',@('small','large','medium')),@('top_layout',@('sidebar','sidebar_left','poster','scene','spotlight','gallery','journal','panorama','dossier','portrait')),@('tabs_position',@('top','bottom')),@('chrome',@('full','minimal')),@('tab_style',@('labels','icons','numbered','pager')),@('tab_highlight',@('skin','underline','outline')))) {
             if ($data['layout'].Contains($pair[0]) -and $data['layout'][$pair[0]] -notin $pair[1]) { $errors.Add("Invalid layout: $($pair[0])") }
         }
         foreach ($key in @('tab_gap','tab_visible')) { if ($data['layout'].Contains($key)) {

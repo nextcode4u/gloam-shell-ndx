@@ -4,6 +4,7 @@
 #include "icons.h"
 #include "layout.h"
 #include "text.h"
+#include "top_content.h"
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
@@ -56,7 +57,7 @@ void title_metadata_tick(App *app)
         return;
     /* Selected details are independent of cover decoding and list-name settings. */
     const Entry *selected = app_selected(app);
-    if (!app->info_loaded && (app->detail_tab || !app->show_covers) && selected &&
+    if (!app->info_loaded && (app->detail_tab || !app->show_covers || top_content_mode(app) == TOP_CONTENT_CONTEXT) && selected &&
         selected->kind == ITEM_FILE && icon_is_ds_title(selected->path)) {
         app->info_loaded = true;
         unsigned char header[0x160];
