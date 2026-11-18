@@ -61,6 +61,50 @@ int main(int argc, char **argv)
     assert(after_bytes == 7 && !memcmp(after, "foreign", 7));
     write_file(shared, payload, bytes);
     assert(cheats_backend_available(root, error));
+    /* Clearing selections publishes only the terminator, with matching ownership.
+     * Relaunching must not inherit codes from the preceding enabled launch. */
+    cheats_toggle(&state, 2);
+    cheats_toggle(&state, 3);
+    assert(cheats_save(&state, root) && cheats_backend_commit(root, game, error));
+    read_database(shared, after, &after_bytes);
+    assert(after_bytes == 4 && !memcmp(after, "\0\0\0\xCF", 4));
+    assert(cheats_backend_available(root, error));
+    cheats_toggle(&state, 2);
+    cheats_toggle(&state, 3);
+    assert(cheats_save(&state, root) && cheats_backend_commit(root, game, error));
+    char wide[PATH_CAP], next_payload[PATH_CAP];
+    assert(path_join(wide, root, "_nds/nds-bootstrap/wideCheatData.bin"));
+    write_file(wide, "foreign wide", 12);
+    assert(!cheats_backend_commit(root, game, error) && strstr(error, "widescreen"));
+    read_database(wide, after, &after_bytes);
+    assert(after_bytes == 12 && !memcmp(after, "foreign wide", 12));
+    read_database(shared, after, &after_bytes);
+    assert(after_bytes == bytes && !memcmp(after, payload, bytes));
+    assert(!remove(wide));
+    /* Interrupted staging files are never overwritten or mistaken for ownership. */
+    assert(path_join(next_payload, root, "_nds/nds-bootstrap/cheatData.frontend-next"));
+    write_file(next_payload, "interrupted", 11);
+    assert(!cheats_backend_commit(root, game, error));
+    read_database(next_payload, after, &after_bytes);
+    assert(after_bytes == 11 && !memcmp(after, "interrupted", 11));
+    read_database(shared, after, &after_bytes);
+    assert(after_bytes == bytes && !memcmp(after, payload, bytes));
+    assert(!remove(next_payload));
+    assert(cheats_backend_commit(root, game, error));
+    /* AR commands come in word pairs; include the terminator in the hook limit. */
+    static CheatState bounded;
+    bounded.record = malloc(CHEAT_PAYLOAD_CAP);
+    assert(bounded.record);
+    memset(bounded.record, 0x5a, CHEAT_PAYLOAD_CAP);
+    bounded.record_bytes = CHEAT_PAYLOAD_CAP;
+    bounded.count = 1;
+    bounded.entries[0].selected = true;
+    bounded.entries[0].words = (CHEAT_PAYLOAD_CAP - 8) / 4;
+    assert(cheats_payload(&bounded, payload, &bytes) && bytes == CHEAT_PAYLOAD_CAP - 4);
+    assert(!memcmp(payload + bytes - 4, "\0\0\0\xCF", 4));
+    bounded.entries[0].words += 2;
+    assert(!cheats_payload(&bounded, payload, &bytes));
+    cheats_free(&bounded);
     cheats_free(&state);
     cheats_free(&restored);
     /* Exact header CRC matching: another revision must not inherit choices. */

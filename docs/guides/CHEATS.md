@@ -45,6 +45,27 @@ remain code/title-specific and require a compatible backend launch; selection
 and payload generation alone do not establish that a cheat works in-game.
 Synthetic fixtures contain original parser data, not a distributable cheat database.
 
-The payload cap follows the current backend's ARM7 hook limit (0x4000), even
-where other backend preparation paths accept larger temporary buffers. The
-terminator is included in this bound.
+The frontend payload cap is 16 KiB (0x4000), including the terminator. This
+matches the backend's maximum retail ARM7 hook budget; DSiWare engine placement
+and combined anti-piracy patches can reduce the available budget. A selection
+fitting the frontend cap is not a guarantee that every backend route can apply it.
+
+## Runtime validation
+
+With unmodified official nds-bootstrap v2.17.0, development-emulator checks on
+Super Mario 64 DS (USA, game code `ASME`, R4 header CRC `AEA63749`) cover:
+
+- Infinite Lives: 99 lives in gameplay, with live RAM confirming the code value.
+- Infinite Coins: the running title's coin counter receives 100.
+- Refill Health (Select): the conditional target stays unchanged without Select
+  and receives its expected value after the button press in a separate cold run.
+- Cold-start selection persistence, followed by Disable all and a cold relaunch
+  returning to the normal four lives.
+- Empty-payload publication after disabling, exact ownership-snapshot agreement
+  and a byte-identical source database.
+
+Automated fixtures also check exclusive groups, revision mismatch, payload-size
+boundaries, foreign regular/widescreen payload preservation and interrupted
+staging. Physical DSi cheat effects, other title revisions, other code types and
+DSiWare cheat execution still need separate checks. These results establish the
+tested selection/launch path, not compatibility for an entire cheat database.
