@@ -215,11 +215,11 @@ static void save_summary(App *app, const Entry *entry, int slot)
             conflict |= !S_ISREG(info.st_mode);
         }
     }
-    snprintf(app->top.save, sizeof app->top.save, "Slot %d: %s", slot,
+    snprintf(app->top.save, sizeof app->top.save, "Save: %s",
              conflict    ? "path is not a file"
-             : found > 1 ? "multiple save paths"
-             : found     ? "save file present"
-                         : "no save file yet");
+             : found > 1 ? "multiple paths"
+             : found     ? "file present"
+                         : "not found");
 }
 
 static void prepare_options(App *app, const Entry *entry)
@@ -233,7 +233,7 @@ static void prepare_options(App *app, const Entry *entry)
     if (custom)
         for (int i = 0; i < GAME_OPTION_COUNT; i++)
             changed += overrides.values[i] != GAME_INHERIT;
-    snprintf(app->top.options, sizeof app->top.options, "Save slot: %d / %u overrides",
+    snprintf(app->top.options, sizeof app->top.options, "Slot %d / %u overrides",
              effective.values[GAME_SLOT], changed);
     save_summary(app, entry, effective.values[GAME_SLOT]);
 }

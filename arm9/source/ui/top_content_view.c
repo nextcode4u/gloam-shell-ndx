@@ -63,6 +63,23 @@ static void context(const App *app, uint16_t *pixels, TopContentIcon icon)
     int selected = app->locations[app->category].selected;
     card(app, pixels, selected, 10, 51, 64, 60, true, icon);
     const char *handler = *state->handler ? state->handler : entry_type(entry);
+    char native_route[96] = "";
+    if (app->info_header_valid) {
+        handler = app->info_unit == 0   ? "Nintendo DS"
+                  : app->info_unit == 2 ? "DSi enhanced"
+                  : app->info_unit == 3 ? "DSi only"
+                                        : "DS/DSi title";
+        snprintf(native_route, sizeof native_route, "%s / rev. %u", app->info_code,
+                 app->info_revision);
+    } else if (entry->kind == ITEM_SYSTEM) {
+        snprintf(native_route, sizeof native_route, "%s / Unlaunch",
+                 entry->target == 6 ? "Slot-1" : "NAND");
+    } else if (entry->kind == ITEM_INSTALLED_TITLE && entry->target >= 0 &&
+               (unsigned)entry->target < app->installed_catalog.count) {
+        const NativeTitle *title = &app->installed_catalog.titles[entry->target].title;
+        snprintf(native_route, sizeof native_route, "%08lX/%08lX", (unsigned long)title->high,
+                 (unsigned long)title->low);
+    }
     line(app, pixels, 82, 54, 160, handler, p.accent);
     if (app->detail_tab && app->info_header_valid) {
         char facts[80];
@@ -70,7 +87,7 @@ static void context(const App *app, uint16_t *pixels, TopContentIcon icon)
         line(app, pixels, 82, 70, 160, facts, p.text);
         line(app, pixels, 82, 86, 160, app->info_title, p.muted);
     } else {
-        line(app, pixels, 82, 70, 160, state->route, p.text);
+        line(app, pixels, 82, 70, 160, *native_route ? native_route : state->route, p.text);
         line(app, pixels, 82, 86, 160, state->options, p.muted);
     }
     line(app, pixels, 82, 102, 160, state->save, p.muted);
@@ -78,7 +95,7 @@ static void context(const App *app, uint16_t *pixels, TopContentIcon icon)
     snprintf(credits, sizeof credits, "%s%s%s%s%s", state->developer,
              *state->developer && *state->genre ? " / " : "", state->genre,
              (*state->developer || *state->genre) && *state->year ? " / " : "", state->year);
-    line(app, pixels, 12, 117, 232, credits, p.text);
+    line(app, pixels, 12, 117, 232, *credits ? credits : app->info_title, p.text);
     line(app, pixels, 12, 131, 232,
          state->metadata_invalid ? "Invalid optional metadata; launch is unaffected"
          : *state->description   ? state->description
@@ -155,6 +172,8 @@ void top_content_render(const App *app, uint16_t *pixels, TopContentIcon icon)
                                                        : "Library";
     if (mode == TOP_CONTENT_FOLDER)
         title = app->locations[app->category].path;
+    else if (entry && entry->kind == ITEM_SYSTEM && entry->target == 6 && *app->slot1.title)
+        title = app->slot1.title;
     draw_heading_scrolling(&app->themes.active, pixels, 12, 31, title, p.text, 232,
                            app->selection_idle_frames, !app->reduced_motion);
     if (mode == TOP_CONTENT_NEIGHBORS)

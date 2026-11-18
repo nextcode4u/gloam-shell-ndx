@@ -8,6 +8,7 @@
 #include "preferences.h"
 #include "renderer.h"
 #include "settings.h"
+#include "themes.h"
 #include "top_content.h"
 #include <assert.h>
 #include <stdio.h>
@@ -148,19 +149,19 @@ int main(int argc, char **argv)
     options.values[GAME_SLOT] = 3;
     assert(game_options_write(app.root, app.entries[0].path, &options));
     prepare();
-    assert(strstr(app.top.options, "slot: 3") && strstr(app.top.options, "1 overrides"));
-    assert(strstr(app.top.save, "no save file yet"));
+    assert(strstr(app.top.options, "Slot 3") && strstr(app.top.options, "1 overrides"));
+    assert(strstr(app.top.save, "not found"));
     char saves[PATH_CAP];
     assert(path_join(saves, app.root, "roms/saves") && !mkdir(saves, 0777));
     write_text("roms/saves/Fixture.sav3", "Original test save");
     prepare();
-    assert(strstr(app.top.save, "save file present"));
+    assert(strstr(app.top.save, "file present"));
     options.values[GAME_SLOT] = 0;
     assert(game_options_write(app.root, app.entries[0].path, &options));
     write_text("roms/Fixture.sav", "First slot-zero fixture");
     write_text("roms/saves/Fixture.sav", "Second slot-zero fixture");
     prepare();
-    assert(strstr(app.top.save, "multiple save paths"));
+    assert(strstr(app.top.save, "multiple paths"));
 
     for (unsigned mode = 1; mode < TOP_CONTENT_COUNT; mode++) {
         app.top_content = mode;
@@ -196,6 +197,22 @@ int main(int argc, char **argv)
     assert(top_content_mode(&app) == TOP_CONTENT_NEIGHBORS);
     app.themes.active.top_content = 999;
     assert(top_content_mode(&app) == TOP_CONTENT_THEME);
+    char theme_root[PATH_CAP], theme_folder[PATH_CAP];
+    assert(path_join(theme_root, app.root, "_nds/dsi-frontend/themes") && !mkdir(theme_root, 0777));
+    assert(path_join(theme_folder, theme_root, "context") && !mkdir(theme_folder, 0777));
+    write_text("_nds/dsi-frontend/themes/context/theme.ini",
+               "[theme]\nversion=1\nname=Context fixture\n[layout]\ntop_content=context\n");
+    app.top_content = TOP_CONTENT_THEME;
+    path_copy(app.theme_id, "context", sizeof app.theme_id);
+    themes_init(&app);
+    assert(app.themes.active.top_content == TOP_CONTENT_CONTEXT);
+    assert(top_content_mode(&app) == TOP_CONTENT_CONTEXT);
+    app.top_content = TOP_CONTENT_ORIGINAL;
+    assert(top_content_mode(&app) == TOP_CONTENT_THEME);
+    write_text("_nds/dsi-frontend/themes/context/theme.ini",
+               "[theme]\nversion=1\nname=Context fixture\n[layout]\ntop_content=unknown\n");
+    themes_init(&app);
+    assert(!*app.themes.active.id && app.themes.active.top_content == TOP_CONTENT_THEME);
     puts("PASS: lazy top content, bounded UTF-8 metadata, idle/read-free rendering, "
          "persistence/recovery, and all layout/view/tab/icon combinations");
     return 0;
