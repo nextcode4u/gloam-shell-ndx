@@ -436,6 +436,28 @@ int main(int argc, char **argv)
     themes_move(&app, 1);
     assert(app.themes.selected == 0);
     themes_cancel(&app);
+    /* Preview status stays on its own surface, clear of all seven touch rows
+     * and the footer, including glyphs that reach the bottom of a 12px face. */
+    themes_open(&app);
+    app.themes.ready = false;
+    font_builtin(&app.themes.active.font);
+    app.themes.active.font.rows['W' - 32][11] = 0x3fff;
+    font_use(&app.themes.active.font);
+    app.themes.status[0] = 0;
+    render_app(&app, top, bottom, "12:00");
+    uint16_t footer[256 * 16];
+    memcpy(footer, bottom + 176 * 256, sizeof footer);
+    strcpy(app.themes.status, "WWWW Press X to load this preview.");
+    render_app(&app, top, bottom, "12:00");
+    assert(!memcmp(footer, bottom + 176 * 256, sizeof footer));
+    for (int y = 160; y < 176; y++)
+        assert(bottom[y * 256 + 248] == app.themes.active.palette.bg);
+    app.themes.selected = app.themes.scroll = 0;
+    themes_touch(&app, 20, THEME_LIST_TOP + 6 * THEME_ROW_HEIGHT + 8);
+    assert(app.themes.selected == 6);
+    themes_touch(&app, 20, 162);
+    assert(app.themes.selected == 6);
+    themes_cancel(&app);
     /* Both lines of a selected Extended row use its configured readable ink. */
     app_category(&app, CATEGORY_HOME);
     app.browser_style = BROWSER_EXTENDED;

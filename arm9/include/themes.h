@@ -2,6 +2,9 @@
 #define FRONTEND_THEMES_H
 #include "file_types.h"
 #include "types.h"
+#define THEME_LIST_TOP 40
+#define THEME_ROW_HEIGHT 17
+#define THEME_VISIBLE_ROWS 7
 #define THEME_TAB_ICON_FIRST (PLACEHOLDER_COUNT + 7)
 #define THEME_ICON_COUNT (THEME_TAB_ICON_FIRST + CATEGORY_COUNT + 1)
 void themes_icons_load(const ThemePackage *package, bool preview);

@@ -659,7 +659,8 @@ void themes_open(App *app)
     for (int index = 0; index < state->count; index++)
         if (!strcmp(state->ids[index], state->active.id))
             state->selected = index;
-    state->scroll = state->selected >= 7 ? state->selected - 6 : 0;
+    state->scroll =
+        state->selected >= THEME_VISIBLE_ROWS ? state->selected - THEME_VISIBLE_ROWS + 1 : 0;
     select_preview(app);
 }
 void themes_move(App *app, int direction)
@@ -670,8 +671,8 @@ void themes_move(App *app, int direction)
     state->selected = (state->selected + direction + state->count) % state->count;
     if (state->selected < state->scroll)
         state->scroll = state->selected;
-    if (state->selected >= state->scroll + 7)
-        state->scroll = state->selected - 6;
+    if (state->selected >= state->scroll + THEME_VISIBLE_ROWS)
+        state->scroll = state->selected - THEME_VISIBLE_ROWS + 1;
     select_preview(app);
 }
 void themes_cancel(App *app)
@@ -720,9 +721,10 @@ void themes_apply(App *app)
 }
 void themes_touch(App *app, int x, int y)
 {
-    if (x < 6 || x >= 250 || y < 41 || y >= 167)
+    if (x < 6 || x >= 250 || y < THEME_LIST_TOP ||
+        y >= THEME_LIST_TOP + THEME_VISIBLE_ROWS * THEME_ROW_HEIGHT)
         return;
-    int index = app->themes.scroll + (y - 41) / 18;
+    int index = app->themes.scroll + (y - THEME_LIST_TOP) / THEME_ROW_HEIGHT;
     if (index >= app->themes.count)
         return;
     if (index == app->themes.selected) {
