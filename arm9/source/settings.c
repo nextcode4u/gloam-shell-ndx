@@ -361,12 +361,12 @@ static const SettingsOption games[] = {
      "application; see launch documentation.",
      false, OPT_LAUNCH},
     {"Game defaults",
-     "Default nds-bootstrap options, save slots and in-game menu keys. Handoff remains "
-     "experimental; DSiWare and Slot-1 use separate routes.",
+     "Default nds-bootstrap options, save slots and in-game menu keys. Retail DS launch, "
+     "saves and return are tested on DSi; compatibility varies by title.",
      false, OPT_LOADERS},
     {"Title cheats",
      "Read revision-matched usrcheat.dat entries for the selected title. Selection is separate "
-     "from the database. Actual in-game effect still needs validation.",
+     "from the database. Effects depend on the code and title; see the cheat guide.",
      false, OPT_CHEATS},
 };
 static const SettingsOption system_options[] = {
@@ -410,8 +410,8 @@ static const SettingsOption maintenance[] = {
      "Write frontend settings now. Failed writes remain unsaved and report an error.", false,
      OPT_SAVE},
     {"Build information",
-     "BlocksDS frontend. Direct homebrew, bounded audio and native theme packs are implemented. "
-     "Retail handoff is experimental.",
+     "BlocksDS frontend with homebrew, audio and theme packs. Retail DS launch, saves and "
+     "return have passed DSi hardware tests.",
      false, OPT_ABOUT},
     {"Folder tabs",
      "Edit _nds/dsi-frontend/tabs.ini for library roots and custom tabs. Restart after editing. "
@@ -1404,7 +1404,8 @@ void settings_value(const App *app, const SettingsOption *option, char *out, siz
         translate = !app->updates.available;
         break;
     case OPT_ABOUT:
-        value = "Development";
+        value = GLOAM_VERSION;
+        translate = false;
         break;
     case OPT_TABS:
         snprintf(out, capacity, "%d %s", app->tab_count,

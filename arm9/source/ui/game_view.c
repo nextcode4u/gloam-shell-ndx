@@ -56,10 +56,14 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
         top, 10, 77,
         ui_translate(&app->language, help_keys[editor->selected], help[editor->selected]), p.text,
         33, 7);
-    draw_text(top, 10, 174,
-              ui_translate(&app->language, "dialog.backend_experimental",
-                           "Backend handoff: experimental"),
-              p.muted, 33);
+    bool plain_footer =
+        app->themes.active.minimal_chrome || !themes_component(&app->themes.active, THEME_FOOTER);
+    if (plain_footer)
+        draw_rectangle(top, 4, 176, 248, 16, p.bg);
+    draw_text_clipped(
+        top, 10, 180,
+        ui_translate(&app->language, "dialog.backend_options", "nds-bootstrap launch options"),
+        plain_footer ? p.text : themes_footer_color(&app->themes.active, p.text), 33);
     draw_heading(&app->themes.active, bottom, 10, 7,
                  editor->defaults
                      ? ui_translate(&app->language, "dialog.game_defaults", "Game defaults")
