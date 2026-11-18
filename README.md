@@ -108,3 +108,9 @@ TWiLight Menu++, Pico Launcher and HBMenu. Gloam's two-screen organization also
 draws on Firmux, an earlier deprecated project by me.
 
 [Full credits](CREDITS.md) · [License](LICENSE) · [Contributing and building](CONTRIBUTING.md)
+
+## Developer note
+
+This project was developed with assistance from AI language models. Some source
+code was generated or refined using AI, then reviewed, modified and integrated
+by the project author where appropriate.
