@@ -1,6 +1,7 @@
-# Documentation
+# Detailed guides
 
-Start with [setup and controls](GETTING_STARTED.md) and [current support](CURRENT_SUPPORT.md).
+For everyday use, start with [Install](INSTALL.md), [Using Gloam](USING.md) or
+[Themes](THEMES.md). The references below cover advanced setup and development.
 
 ## User guides
 
