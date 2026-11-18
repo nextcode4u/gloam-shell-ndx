@@ -168,7 +168,7 @@ After `tools/host-check.sh`, run:
 python3 tools/profile_frontend.py --items 10000
 ```
 
-This creates an isolated authored library under `build/`, profiles preparation
+This creates an isolated authored library in system temporary storage, profiles preparation
 and 300 rendered frames for Phosphor, Eclipse and Prism, and removes the fixture.
 `build/frontend-profile.json` records timings, the retained browser batch and
 static App/framebuffer sizes. These are host CPU/filesystem measurements, not
@@ -212,3 +212,8 @@ transitions, reloads audio and alternates icon labels. Compare retained heap
 samples only when `heap_comparable` is true: snapshots then share theme, language,
 label and selection phases. Allocator/cache variance remains possible. These are
 host CPU/filesystem observations, not DSi timings or total peak RAM/VRAM.
+
+Pass `--top-content context`, `neighbors`, `folder`, `activity` or `smart` to
+exercise a top-screen content preset in the same isolated profiling run. Mixed
+fixtures include optional metadata sidecars. Compare the baseline `theme` mode
+on the same host; preparation time is not DSi boot time.

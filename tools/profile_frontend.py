@@ -15,6 +15,7 @@ def main():
     parser.add_argument('--items', type=int, default=1000)
     parser.add_argument('--mixed', action='store_true', help='Include nested folders, images and mixed suffixes')
     parser.add_argument('--cycles', type=int, default=0, help='Theme/navigation stress cycles per run (0-1000)')
+    parser.add_argument('--top-content', choices=('theme','context','neighbors','folder','activity','smart','layout'), default='theme', help='Exercise a top-screen content preset during navigation and rendering')
     parser.add_argument('--output', type=Path, default=ROOT / 'build/frontend-profile.json')
     args = parser.parse_args()
     if not 1 <= args.items <= 10000:
@@ -24,8 +25,8 @@ def main():
     preview = ROOT / 'build/host/preview'
     if not preview.exists():
         parser.error('Run tools/host-check.sh first.')
-    results = {'environment': 'Host CPU/filesystem; not DSi timings or total peak RAM', 'items': args.items, 'themes': {}}
-    with tempfile.TemporaryDirectory(prefix='frontend-profile-', dir=ROOT / 'build') as temporary:
+    results = {'environment': 'Host CPU/filesystem; not DSi timings or total peak RAM', 'items': args.items, 'top_content': args.top_content, 'themes': {}}
+    with tempfile.TemporaryDirectory(prefix='frontend-profile-') as temporary:
         card = Path(temporary)
         shutil.copytree(ROOT / 'sdroot', card, dirs_exist_ok=True)
         for index in range(args.items):
@@ -34,6 +35,8 @@ def main():
             item.write_bytes(b'Authored profiling fixture; not a playable ROM')
             if args.mixed and index % 8 == 0:
                 shutil.copyfile(ROOT / 'tests/fixtures/cover-example.png', Path(str(item)+'.png'))
+            if args.mixed and index % 8 == 0:
+                Path(str(item)+'.gloam.ini').write_text('version=1\ntitle=Authored profile title\ngenre=Fixture\nyear=2026\ndescription=Bounded optional metadata used during repeated selection and theme changes.\n')
             if args.mixed and index % 100 == 0:
                 nested = card / 'roms' / f'Collection {index:05d}' / 'Nested'
                 nested.mkdir(parents=True)
@@ -41,7 +44,7 @@ def main():
         for theme in ('phosphor', 'eclipse', 'prism'):
             (card / '_nds/dsi-frontend/state.ini').write_text(
                 f'version=1\ntheme_id={theme}\ncategory=1\nbrowser_style=3\nicon_size=1\n')
-            output = subprocess.check_output([str(preview), str(card), str(card/'unused'), '1', 'profile', str(args.cycles)], text=True)
+            output = subprocess.check_output([str(preview), str(card), str(card/'unused'), '1', 'profile', str(args.cycles), str(('theme','context','neighbors','folder','activity','smart','layout').index(args.top_content))], text=True)
             result = json.loads(output)
             if args.cycles and (result.get('theme_changes', -1) < args.cycles // 2 or
                                 result['locale_changes'] != args.cycles or

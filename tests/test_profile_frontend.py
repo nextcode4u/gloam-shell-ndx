@@ -36,3 +36,13 @@ class FrontendProfileTests(unittest.TestCase):
                 self.assertFalse(sample['heap_comparable'])
                 self.assertGreaterEqual(sample['sampled_heap_peak_bytes'],sample['heap_end_bytes'])
                 self.assertLessEqual(sample['visible_batch_items'],512)
+
+    @unittest.skipUnless((ROOT/'build/host/preview').exists(), 'Build the host renderer first')
+    def test_top_content_mode_uses_a_private_mixed_fixture(self):
+        with tempfile.TemporaryDirectory(dir=ROOT/'build') as directory:
+            output=Path(directory)/'context.json'
+            subprocess.run([sys.executable,str(ROOT/'tools/profile_frontend.py'),'--items','8','--mixed','--top-content','context','--output',str(output)],check=True,capture_output=True)
+            report=json.loads(output.read_text())
+            self.assertEqual(report['top_content'],'context')
+            self.assertEqual(set(report['themes']),{'phosphor','eclipse','prism'})
+            self.assertTrue(all(row['visible_batch_items'] <= 512 for row in report['themes'].values()))

@@ -75,6 +75,8 @@ int main(int argc, char **argv)
     bool picker_preview = argc > 4 && !strcmp(argv[4], "picker");
     double started = milliseconds();
     app_init(&app, argv[1], true, true);
+    if (argc > 6 && atoi(argv[6]) >= 0 && atoi(argv[6]) < TOP_CONTENT_COUNT)
+        app.top_content = atoi(argv[6]);
     if (argc > 3)
         app_category(&app, atoi(argv[3]));
     if (argc > 4 && !strcmp(argv[4], "settings")) {
