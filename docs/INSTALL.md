@@ -6,6 +6,8 @@ hide:
 # Set up your SD card
 
 You need a DSi that can already run homebrew from its SD card.
+If yours cannot yet, follow the [DSi homebrew guide](https://dsi.cfw.guide/) first,
+then return here to install Gloam.
 Back up your card first. Gloam does not install Unlaunch.
 
 ## SD Setup for Windows

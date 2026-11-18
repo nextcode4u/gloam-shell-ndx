@@ -29,8 +29,10 @@ with your setup.
 
 ## Install
 
-Your DSi must already be able to run homebrew from its SD card. Some features
-also need Unlaunch. Gloam does not install Unlaunch or modify your console's setup.
+Your DSi must already be able to run homebrew from its SD card.
+Not set up yet? Follow the [DSi homebrew guide](https://dsi.cfw.guide/) first.
+
+Some features also need Unlaunch. Gloam does not install Unlaunch or modify your console's setup.
 Back up your SD card before installing.
 
 ### Windows setup tool

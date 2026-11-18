@@ -37,6 +37,7 @@ A launcher for games, apps and media on your **Nintendo DSi SD card**.
 Install Gloam, add emulators and pick themes—all in one tool.
 
 Back up your card first. Your DSi must already be able to run homebrew.
+Not set up yet? Start with the [DSi homebrew guide](https://dsi.cfw.guide/), then come back here.
 
 1. Open **Windows PowerShell**.
 2. Copy this command, paste it into PowerShell and press **Enter**:
