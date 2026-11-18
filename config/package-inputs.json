@@ -1025,6 +1025,7 @@
     ".editorconfig",
     ".gitattributes",
     ".github/workflows/ci.yml",
+    ".github/workflows/docs.yml",
     ".github/workflows/prerelease.yml",
     ".gitignore",
     "AGENTS.md",
@@ -1247,6 +1248,7 @@
     "docs/development/ARTWORK_CACHE.md",
     "docs/development/BROWSER_JOBS.md",
     "docs/development/BUILDING.md",
+    "docs/development/DOCUMENTATION.md",
     "docs/development/RELEASING.md",
     "docs/development/TOOLCHAIN.md",
     "docs/development/toolchain-libnds-commit.txt",
@@ -1285,6 +1287,8 @@
     "docs/images/theme-personalities.png",
     "docs/images/theme-selections.png",
     "docs/images/theme-variants.png",
+    "docs/index.md",
+    "docs/stylesheets/gloam.css",
     "forwarder/Makefile",
     "forwarder/arm9/include/target.h",
     "forwarder/arm9/source/main.c",
@@ -1293,6 +1297,7 @@
     "forwarder/icon.png",
     "pyproject.toml",
     "requirements-dev.txt",
+    "requirements-docs.txt",
     "sdroot/_gba/.gitkeep",
     "sdroot/_nds/dsi-frontend/cache/.gitkeep",
     "sdroot/_nds/dsi-frontend/covers/.gitkeep",
@@ -2342,6 +2347,7 @@
     "tests/system_catalog_test.c",
     "tests/tabs_test.c",
     "tests/test_addons.py",
+    "tests/test_build_docs.py",
     "tests/test_configuration.py",
     "tests/test_default_splash.py",
     "tests/test_download_addons.py",
@@ -2445,6 +2451,7 @@
     "tools/audit_localization.py",
     "tools/audit_theme_fonts.py",
     "tools/build_addons.py",
+    "tools/build_docs.py",
     "tools/build_forwarder.py",
     "tools/build_homebrew_loader.py",
     "tools/build_release.py",
@@ -2503,7 +2510,8 @@
     "tools/theme_prepared_surfaces.py",
     "tools/theme_selections.py",
     "tools/verify_release.py",
-    "tools/write_build_info.py"
+    "tools/write_build_info.py",
+    "zensical.toml"
   ],
   "include_forwarder": true
 }

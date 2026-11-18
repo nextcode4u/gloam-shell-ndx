@@ -71,7 +71,7 @@ available to launch.
 Classic, Extended and Grid show row/tile icons. List remains text-only below,
 while the selected system icon appears in the top-screen preview when covers are
 enabled. Slot-1 uses the inserted cartridge's banner when readable, with its
-title in the preview; see [cartridge metadata](SLOT1_LAUNCH.md#cartridge-icon-and-title).
+title in the preview; see [cartridge metadata](SLOT1_LAUNCH.md#icon-and-title).
 Native animated banners use the existing playback and reduced motion settings.
 
 NAND is mounted with `nandInit(true)`; see the official

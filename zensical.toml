@@ -1,0 +1,96 @@
+[project]
+site_name = "Gloam Shell NDX"
+site_description = "Setup, customization and development guides for the Nintendo DSi SD-card launcher."
+site_url = "https://nextcode4u.github.io/gloam-shell-ndx/"
+repo_url = "https://github.com/nextcode4u/gloam-shell-ndx"
+repo_name = "nextcode4u/gloam-shell-ndx"
+edit_uri = "edit/main/docs/"
+docs_dir = "build/docs-source"
+site_dir = "build/site"
+extra_css = ["stylesheets/gloam.css"]
+nav = [
+  { "Home" = "index.md" },
+  { "Setup" = [
+    { "Install and controls" = "GETTING_STARTED.md" },
+    { "Windows SD Setup" = "guides/WINDOWS_SETUP.md" },
+    { "SD folders" = "guides/SD_LAYOUT.md" },
+    { "Emulators and BIOS" = "guides/ADDONS.md" },
+  ] },
+  { "Games & apps" = [
+    { "Game loading and saves" = "guides/GAME_LOADING.md" },
+    { "Cheats" = "guides/CHEATS.md" },
+    { "Emulators and associations" = "guides/EMULATORS.md" },
+    { "Association editor" = "guides/ASSOCIATION_EDITOR.md" },
+    { "Homebrew and system apps" = "guides/HOMEBREW_LAUNCH.md" },
+    { "Installed DSiWare" = "guides/INSTALLED_DSIWARE.md" },
+    { "Slot-1 cartridges" = "guides/SLOT1_LAUNCH.md" },
+    { "DSi Menu forwarder" = "guides/GLOAM_FORWARDER.md" },
+    { "Item preferences" = "guides/ITEM_PREFERENCES.md" },
+  ] },
+  { "Customization" = [
+    { "Themes" = "guides/THEME_PACKAGES.md" },
+    { "Fonts" = "guides/THEME_FONTS.md" },
+    { "Languages and title names" = "guides/TEXT_AND_TITLES.md" },
+    { "Appearance presets" = "guides/APPEARANCE_PRESETS.md" },
+    { "Folder tabs" = "guides/TABS.md" },
+    { "Home dashboard" = "guides/DASHBOARD.md" },
+    { "Top-screen views" = "guides/TOP_SCREEN.md" },
+    { "Library search" = "guides/LIBRARY_SEARCH.md" },
+    { "Startup splashes" = "guides/STARTUP_SPLASHES.md" },
+    { "Community themes" = "https://github.com/nextcode4u/gloam-shell-theme-directory" },
+  ] },
+  { "Help" = [
+    { "Compatibility and known limits" = "CURRENT_SUPPORT.md" },
+    { "Backups and recovery" = "guides/CONFIGURATION_BACKUPS.md" },
+    { "Download-only add-ons" = "guides/DOWNLOAD_ONLY_ADDONS.md" },
+    { "GBARunner3 notices" = "guides/GBARUNNER3_NOTICES.md" },
+    { "tuna-viDS notices" = "guides/TUNA_VIDS_NOTICES.md" },
+    { "All guides" = "README.md" },
+    { "Report a problem" = "https://github.com/nextcode4u/gloam-shell-ndx/issues" },
+  ] },
+  { "Development" = [
+    { "Build and package" = "development/BUILDING.md" },
+    { "Source map" = "SOURCE_MAP.md" },
+    { "Toolchain" = "development/TOOLCHAIN.md" },
+    { "Browser jobs" = "development/BROWSER_JOBS.md" },
+    { "Artwork cache" = "development/ARTWORK_CACHE.md" },
+    { "Releases" = "development/RELEASING.md" },
+    { "Documentation site" = "development/DOCUMENTATION.md" },
+  ] },
+]
+
+[project.theme]
+variant = "modern"
+font = false
+logo = "images/gloam.png"
+favicon = "images/gloam.png"
+features = [
+  "navigation.tabs", "navigation.sections", "navigation.top",
+  "navigation.tracking", "content.code.copy", "content.action.edit",
+  "search.highlight", "search.suggest", "toc.follow",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "deep purple"
+accent = "deep purple"
+toggle.icon = "material/weather-night"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "deep purple"
+accent = "deep purple"
+toggle.icon = "material/weather-sunny"
+toggle.name = "Switch to light mode"
+
+[project.markdown_extensions]
+admonition = {}
+attr_list = {}
+md_in_html = {}
+toc = { permalink = true }
+"pymdownx.details" = {}
+"pymdownx.highlight" = { anchor_linenums = true }
+"pymdownx.superfences" = {}

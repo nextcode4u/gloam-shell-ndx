@@ -1,0 +1,24 @@
+/* Keep documentation readable; let the console screenshots supply the color. */
+:root {
+  --md-text-font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --md-code-font: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #6945a6;
+  --md-accent-fg-color: #6945a6;
+}
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #bca5ef;
+  --md-accent-fg-color: #cbb7fb;
+  --md-default-bg-color: #17151e;
+}
+.md-typeset { line-height: 1.7; }
+.md-typeset h1 { font-weight: 700; letter-spacing: -.025em; }
+.md-typeset h2 { font-weight: 600; }
+.md-typeset .md-button { margin: .25rem .35rem .5rem 0; }
+.md-typeset img { height: auto; }
+.md-typeset a { text-underline-offset: .18em; }
+.md-typeset a:focus-visible, .md-button:focus-visible {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 4px;
+}

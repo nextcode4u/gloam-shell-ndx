@@ -6,6 +6,7 @@ games, homebrew and media, and open DSi system apps using both screens.
 “Gloam” means twilight—a nod to the DSi's **TWL** codename.
 
 **[Download the latest release](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest)**
+· [Documentation](https://nextcode4u.github.io/gloam-shell-ndx/)
 · [Setup and controls](docs/GETTING_STARTED.md)
 · [Themes](https://github.com/nextcode4u/gloam-shell-theme-directory)
 
