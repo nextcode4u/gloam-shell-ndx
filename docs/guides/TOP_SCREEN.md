@@ -28,6 +28,13 @@ and application-managed emulator saves are not inspected or modified here.
 
 ## Optional title details
 
+In desktop SD Setup, open **Artwork**, scan a collection, select a file/folder,
+then choose **Edit title details**. Enter fields or import a JSON object with
+`title`, `developer`, `genre`, `year` and `description`. Import fills the editor
+for review; **Save details** writes the sidecar, and **Cancel** closes without
+saving. Existing files receive a setup backup; external edits require reopening
+before saving.
+
 For a file `Example.nds`, the sidecar is `Example.nds.gloam.ini`. A folder uses
 `folder.gloam.ini` inside that folder. Both are optional UTF-8 text files:
 

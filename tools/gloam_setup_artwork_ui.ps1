@@ -159,3 +159,62 @@ $ui.ArtworkUpdateDat.Add_Click({ Invoke-UiAction {
     $system=Get-GloamSelectedDatSystem
     Start-SetupJob 'ArtworkDatUpdate' @() @{ System=$system; DatDirectory=(Join-Path $env:LOCALAPPDATA 'Gloam/Setup/databases') }
 } })
+
+function Open-GloamTitleEditor([string]$Root, [string]$Content) {
+    $record = Read-GloamTitleMetadata $Root $Content
+    $dialog = [Windows.Window]::new()
+    $dialog.Owner = $window; $dialog.Title = 'Title details'; $dialog.Width = 560; $dialog.Height = 560
+    $dialog.MinWidth = 420; $dialog.MinHeight = 440
+    $dialog.WindowStartupLocation = 'CenterOwner'; $dialog.Background = $window.Background
+    $dialog.Foreground = $window.Foreground; $dialog.Resources = $window.Resources
+    $panel = [Windows.Controls.StackPanel]::new(); $panel.Margin = '18'
+    $scroll = [Windows.Controls.ScrollViewer]::new(); $scroll.VerticalScrollBarVisibility = 'Auto'
+    $scroll.Content = $panel; $dialog.Content = $scroll
+    $heading = [Windows.Controls.TextBlock]::new(); $heading.Text = $Content
+    $heading.TextWrapping = 'Wrap'; $panel.Children.Add($heading) | Out-Null
+    $note = [Windows.Controls.TextBlock]::new()
+    $note.Text = 'Optional details for the top-screen Context view. These do not rename the file or affect its cover, handler or launch options.'
+    $note.TextWrapping = 'Wrap'; $note.Margin = '0,8,0,12'; $panel.Children.Add($note) | Out-Null
+    $fields = [ordered]@{}
+    foreach ($key in $GloamTitleFields.Keys) {
+        $label = [Windows.Controls.TextBlock]::new()
+        $label.Text = $key.Substring(0,1).ToUpperInvariant() + $key.Substring(1) + ' (up to ' + $GloamTitleFields[$key] + ' UTF-8 bytes)'
+        $panel.Children.Add($label) | Out-Null
+        $inputBox = [Windows.Controls.TextBox]::new(); $inputBox.Text = $record.Values[$key]
+        $inputBox.Margin = '0,3,0,8'; $fields[$key] = $inputBox; $panel.Children.Add($inputBox) | Out-Null
+    }
+    $errorText = [Windows.Controls.TextBlock]::new(); $errorText.TextWrapping = 'Wrap'
+    $panel.Children.Add($errorText) | Out-Null
+    $buttons = [Windows.Controls.WrapPanel]::new(); $panel.Children.Add($buttons) | Out-Null
+    $save = [Windows.Controls.Button]::new(); $save.Content = 'Save details'; $save.IsDefault = $true
+    $cancel = [Windows.Controls.Button]::new(); $cancel.Content = 'Cancel'; $cancel.IsCancel = $true
+    $import = [Windows.Controls.Button]::new(); $import.Content = 'Import JSON...'
+    foreach ($button in @($save,$import,$cancel)) { $buttons.Children.Add($button) | Out-Null }
+    $save.Add_Click({
+        try {
+            $values = [ordered]@{}; foreach ($key in $fields.Keys) { $values[$key] = $fields[$key].Text }
+            $null = Save-GloamTitleMetadata $Root $Content $values $record.Hash
+            $dialog.DialogResult = $true
+        } catch { $errorText.Text = $_.Exception.Message }
+    }.GetNewClosure())
+    $import.Add_Click({
+        $picker = [Windows.Forms.OpenFileDialog]::new(); $picker.Filter = 'Title details JSON|*.json'
+        try {
+            if ($picker.ShowDialog() -ne 'OK') { return }
+            if ((Get-Item -LiteralPath $picker.FileName).Length -gt 8192) { throw 'Import exceeds 8 KiB.' }
+            $data = [IO.File]::ReadAllText($picker.FileName, [Text.UTF8Encoding]::new($false,$true)) | ConvertFrom-Json
+            if (-not $data -or $data -is [array] -or $data -is [string]) { throw 'Expected one JSON object with title-detail fields.' }
+            foreach ($property in $data.PSObject.Properties) { Test-GloamTitleField $property.Name ([string]$property.Value) }
+            foreach ($property in $data.PSObject.Properties) { $fields[$property.Name].Text = [string]$property.Value }
+            $errorText.Text = 'Imported for review. Save details applies the changes.'
+        } catch { $errorText.Text = $_.Exception.Message }
+        finally { $picker.Dispose() }
+    }.GetNewClosure())
+    if ($dialog.ShowDialog()) { Write-Activity ('Saved title details: ' + $Content) }
+}
+$ui.ArtworkMetadata.Add_Click({ Invoke-UiAction {
+    if ($null -ne $script:Job) { throw 'Wait for the current SD operation to finish.' }
+    $item = $ui.ArtworkList.SelectedItem
+    if (-not $item) { throw 'Scan a collection and select a file or folder first.' }
+    Open-GloamTitleEditor (Get-SelectedRoot) $item.Content
+} })

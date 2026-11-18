@@ -290,3 +290,62 @@ function Clear-GloamArtwork([string]$Root, [string]$Content) {
     Save-GloamArtworkRecord $Root $record
     # Sidecars, shared covers, embedded art and managed images are not deleted.
 }
+
+# Optional title details are sidecars, independent of cover and application assignments.
+$GloamTitleFields = [ordered]@{ title=95; developer=63; genre=47; year=7; description=255 }
+function Get-GloamTitleMetadataPath([string]$Root, [string]$Content) {
+    $relative = ConvertTo-GloamRelative $Root $Content
+    if (-not $relative) { throw 'Select a content file or folder, not the SD root.' }
+    $target = Get-GloamPath $Root $relative
+    if (-not (Test-Path -LiteralPath $target)) { throw 'The selected content no longer exists.' }
+    $sidecar = if (Test-Path -LiteralPath $target -PathType Container) { $relative + '/folder.gloam.ini' } else { $relative + '.gloam.ini' }
+    if ([Text.Encoding]::UTF8.GetByteCount('sd:/' + $sidecar) -ge 768) { throw 'The metadata sidecar path is too long for Gloam.' }
+    Get-GloamPath $Root $sidecar | Out-Null
+    return $sidecar
+}
+function Test-GloamTitleField([string]$Key, [string]$Value) {
+    if ($Key -cnotin @($GloamTitleFields.Keys)) { throw "Unknown title field: $Key" }
+    $null = [Text.UTF8Encoding]::new($false,$true).GetBytes($Value)
+    if ($Value -match '[\x00-\x1f\x7f]' -or [Text.Encoding]::UTF8.GetByteCount($Value) -gt $GloamTitleFields[$Key]) { throw "Title field exceeds its UTF-8 limit or contains a control character: $Key" }
+    if ($Key -eq 'year' -and $Value -and $Value -notmatch '^[0-9]{4}$') { throw 'Year must be four digits or empty.' }
+}
+function Read-GloamTitleMetadata([string]$Root, [string]$Content) {
+    $relative = Get-GloamTitleMetadataPath $Root $Content
+    $path = Get-GloamPath $Root $relative
+    $values = [ordered]@{}; foreach ($key in $GloamTitleFields.Keys) { $values[$key] = '' }
+    $hash = ''
+    if (Test-Path -LiteralPath $path) {
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Item -LiteralPath $path).Length -gt 2048) { throw 'Metadata must be a UTF-8 file no larger than 2 KiB.' }
+        $bytes = [IO.File]::ReadAllBytes($path)
+        $text = [Text.UTF8Encoding]::new($false,$true).GetString($bytes)
+        $seen = @{}
+        foreach ($line in ($text -split "`n")) {
+            $line = $line.TrimEnd([char]13)
+            if (-not $line -or $line.StartsWith('#') -or $line.StartsWith(';')) { continue }
+            if ($line -notmatch '^([^=]+)=(.*)$' -or $seen.ContainsKey($Matches[1])) { throw 'Malformed or duplicate title metadata field.' }
+            $key = $Matches[1]; $value = $Matches[2]; $seen[$key] = $true
+            if ($key -ceq 'version') { if ($value -cne '1') { throw 'Unsupported title metadata version.' } }
+            else { Test-GloamTitleField $key $value; $values[$key] = $value }
+        }
+        if (-not $seen.ContainsKey('version')) { throw 'Missing title metadata version.' }
+        $hash = Get-GloamHash $path
+    }
+    return [pscustomobject]@{ Relative=$relative; Values=$values; Hash=$hash }
+}
+function Save-GloamTitleMetadata([string]$Root, [string]$Content, $Values, [string]$ExpectedHash) {
+    Assert-GloamConfigurationReady $Root
+    $relative = Get-GloamTitleMetadataPath $Root $Content
+    $path = Get-GloamPath $Root $relative
+    $current = if (Test-Path -LiteralPath $path -PathType Leaf) { Get-GloamHash $path } else { '' }
+    if ($current -cne $ExpectedHash) { throw 'Title metadata changed. Reopen the editor before saving.' }
+    foreach ($key in $Values.Keys) { Test-GloamTitleField $key ([string]$Values[$key]) }
+    $lines = @('version=1')
+    foreach ($key in $GloamTitleFields.Keys) {
+        $value = if ($Values.Contains($key)) { [string]$Values[$key] } else { '' }
+        $lines += $key + '=' + $value
+    }
+    $bytes = [Text.UTF8Encoding]::new($false,$true).GetBytes(($lines -join "`n") + "`n")
+    if ($bytes.Length -gt 2048) { throw 'Title metadata exceeds 2 KiB.' }
+    Write-GloamFile $Root $relative $bytes $true | Out-Null
+    return $relative
+}

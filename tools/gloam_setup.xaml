@@ -351,6 +351,7 @@
               <Button x:Name="ArtworkClearChecks" Content="Clear selection"/>
               <Button x:Name="ArtworkFetch" Content="Download previews"/>
               <Button x:Name="ArtworkImport" Content="Import image..."/>
+              <Button x:Name="ArtworkMetadata" Content="Edit title details..." ToolTip="Edit or import optional title, developer, year, genre and description for the top-screen Context view."/>
               <Button x:Name="ArtworkRemove" Content="Clear assignment" ToolTip="Restore automatic artwork lookup. Original images, sidecars and embedded art are not deleted."/>
             </WrapPanel>
           </StackPanel>

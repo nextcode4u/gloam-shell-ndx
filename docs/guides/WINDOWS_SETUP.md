@@ -412,3 +412,12 @@ until preparation succeeds. The date/count status updates after completion;
 refresh after copying or organizing content. The cache is optional and is never
 built during console startup. See [Library search](LIBRARY_SEARCH.md) for controls,
 filters, Unicode support and bounds.
+
+### Optional title details
+
+Artwork → **Edit title details** opens an editor for the selected file or folder.
+Enter a title, developer, genre, year and short description, or import these fields
+from a JSON object. Import is a preview; Save writes the optional UTF-8 metadata
+sidecar with a backup. Cancel closes without writes. Launch and cover assignments
+remain independent. See [top-screen content](TOP_SCREEN.md#optional-title-details)
+for file names, field limits and display behavior.

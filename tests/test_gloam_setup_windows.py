@@ -1488,3 +1488,35 @@ if ((Read-GloamState $root).Values.interface_language -cne 'custom') { throw 'La
         directory = self.root / 'release-lookup'
         code = "function Invoke-RestMethod { param($Uri,$UserAgent,$TimeoutSec); if ($Uri -notmatch 'setup_refresh=[0-9]+') { throw 'Cached release listing used' }; return @([pscustomobject]@{draft=$false; tag_name='v0.1.0-preview.8'; published_at='2026-11-10T00:00:00Z'; assets=@([pscustomobject]@{name='addons.zip'})}) }; "
         self.run_ps(code + '$release=Get-GloamRelease ' + literal(win(directory)) + "; if ($release.tag_name -ne 'v0.1.0-preview.8') { throw 'Wrong release' }")
+
+    def test_title_metadata_utf8_roundtrip_limits_and_external_edit_guard(self):
+        content = self.sd / 'roms/Example.nds'
+        content.parent.mkdir(parents=True)
+        content.write_bytes(b'Authored content, not a game')
+        self.run_ps("$record=Read-GloamTitleMetadata $root 'roms/Example.nds'; "
+                    "$values=[ordered]@{title='星の図書館';developer='Example studio';genre='Adventure';year='2026';description='Readable optional details.'}; "
+                    "$null=Save-GloamTitleMetadata $root 'roms/Example.nds' $values $record.Hash; "
+                    "$read=Read-GloamTitleMetadata $root 'roms/Example.nds'; "
+                    "if ($read.Values.title -cne $values.title -or $read.Values.year -cne '2026') {throw 'Roundtrip failed'}; "
+                    "$null=Save-GloamTitleMetadata $root 'roms/Example.nds' $values $read.Hash; "
+                    "$bad=@(@{year='20xx'},@{unknown='x'},@{title=('x'*96)},@{description=\"line`nbreak\"}); "
+                    "foreach ($item in $bad) {$failed=$false;try {$null=Save-GloamTitleMetadata $root 'roms/Example.nds' $item $read.Hash} catch {$failed=$true};if(-not $failed){throw 'Invalid metadata accepted'}}; "
+                    "$failed=$false;try {$null=Save-GloamTitleMetadata $root 'roms/Example.nds' $values 'stale'} catch {$failed=$true};if(-not $failed){throw 'External edit overwritten'}")
+        sidecar = content.with_name(content.name + '.gloam.ini')
+        self.assertIn('title=星の図書館', sidecar.read_text())
+        self.assertFalse(sidecar.read_bytes().startswith(b'\xef\xbb\xbf'))
+        self.assertEqual(content.read_bytes(), b'Authored content, not a game')
+        for bad in (b'version=1\ntitle=One\ntitle=Two', b'version=1\ntitle=bad\x00hidden', b'version=2', b'x'*2049):
+            sidecar.write_bytes(bad)
+            self.run_ps("Read-GloamTitleMetadata $root 'roms/Example.nds'", success=False)
+
+    def test_title_metadata_organizer_companion_and_top_setting(self):
+        self.organizer_file('roms/Nintendo DS/Moon.nds', b'Authored content')
+        sidecar = self.organizer_file('roms/Nintendo DS/Moon.nds.gloam.ini', b'version=1\ntitle=Moon\n')
+        self.organize()
+        moved = self.sd / 'roms/Nintendo DS/M/Moon.nds.gloam.ini'
+        self.assertFalse(sidecar.exists())
+        self.assertEqual(moved.read_bytes(), b'version=1\ntitle=Moon\n')
+        self.run_ps("$state=Read-GloamState $root; Save-GloamSettings $root @{top_content='5'} $state.Hash; "
+                    "if((Read-GloamState $root).Values.top_content -cne '5'){throw 'Top content lost'}; "
+                    "if(Test-GloamSetting 'top_content' '999'){throw 'Out of bounds content accepted'}")
