@@ -44,7 +44,7 @@ No library is moved or created when its root changes. Restart after editing.
 | Field | Meaning |
 | --- | --- |
 | `[tab.id]` | Stable identifier, 1–31 ASCII letters/digits, `_` or `-`. Case-insensitive. Keep it unchanged when renaming/reordering a tab. |
-| `label` | Display name, up to 63 bytes. Optional; defaults to the ID. Current UI glyph coverage remains ASCII. |
+| `label` | Display name, up to 63 bytes. Optional; defaults to the ID. UTF-8 labels use the active theme font and shared script fallbacks; see [text coverage](TEXT_AND_TITLES.md). |
 | `path` | Assigned folder. Accepts `sd:/roms/SNES`, `/roms/SNES` or `roms/SNES`; all resolve against the SD root. Spaces are supported without quotes. Put comments on separate lines. |
 | `folder` | Alias for `path`; prefer one field per section. |
 
@@ -68,7 +68,7 @@ Desktop setup display changes apply the edited fields across all tabs.
 
 L/R moves between all loaded tabs. Holding a shoulder button repeats at the configured browser navigation rate. The six-row top rail scrolls as needed to keep the active tab visible. Up/down markers indicate more tabs beyond the current window; the header shows the current position and total. Wrap works in both directions between the first and last tab.
 
-Long rail labels are clipped with an ellipsis inside the rail. The bottom header has more room for the active tab's label. Rendering never draws additional rows beyond the six-row viewport.
+Long active/focused rail labels loop within the rail; unselected labels remain clipped. Reduced motion keeps labels static. The bottom header has more room for the active tab's label. Rendering never draws additional rows beyond the six-row viewport.
 
 Each library and custom tab remembers its directory, selection and list scroll independently. B goes up within its assigned folder tree; B at its assigned root stays there. Use Files for unrestricted browsing elsewhere on the SD. Custom tabs also appear as Home shortcuts and use the same browser views, icons, artwork and contextual actions as ordinary folder browsing.
 

@@ -2,14 +2,22 @@
 
 ## Install or upgrade
 
-Build with the [build guide](development/BUILDING.md), then merge `dist/sd.zip`
-onto a backed-up SD card. `/BOOT.NDS` is the entry point. Keep existing libraries,
+Use [Windows SD Setup](guides/WINDOWS_SETUP.md), or download `sd.zip` from the
+[latest release](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest)
+and merge it onto a backed-up SD card. To build locally, follow the
+[build guide](development/BUILDING.md) and use `dist/sd.zip`. `/BOOT.NDS` is the entry point. Keep existing libraries,
 saves and application support files; replace Gloam's assets deliberately without
 replacing the whole `_nds` folder or your edited configuration.
 
 For a frontend-only update, copy the standalone release `BOOT.NDS` to the SD
 root instead of extracting `sd.zip`. This preserves your settings, themes,
 backends and libraries. Check release notes for required asset/backend updates.
+When upgrading from 1.1.0 or earlier to 1.2.0, update the shared SD assets too:
+`/_nds/dsi-frontend/fonts/`, `languages/` and the supplied themes. Use SD Setup
+or merge `sd.zip` while preserving your edited configuration and saves. A
+BOOT.NDS-only update still runs, but missing external script fonts leave Japanese
+and other extended-script characters as question marks.
+
 Each release also supplies `licenses.zip`, a combined `source.zip` and checksums.
 The SD ZIP contains runtime files only. Documentation is available in this
 repository and the source archive; licenses and credits accompany the download
@@ -109,7 +117,7 @@ started. Clearing the artwork cache never removes source images or game saves.
 ### Library Index
 
 Choose **Index** under START → Appearance → Browser view, or use `view=index`
-in a theme. The bottom screen shows a title list with small (16-pixel) or large (32-pixel)
+in a theme. The bottom screen shows a title list with small (16-pixel), medium (24-pixel) or large (32-pixel)
 icons and matching row spacing; the top
 screen shows folders and alphabetical groups. Left/Right jumps to the first
 item in the next populated group, wrapping past empty groups. Up/Down browses

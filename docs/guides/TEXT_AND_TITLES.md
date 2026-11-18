@@ -78,10 +78,12 @@ therefore shows completely as two lines. File size, console and storage rows
 sit below the reserved label area, so longer labels do not overlap them or the
 tab rail. Selected filenames, paths and tab names retain their scrolling loop.
 
-## Partial interface catalogs
+## Custom and legacy interface catalogs
 
-`/_nds/dsi-frontend/language.ini` is an optional UTF-8 catalog independent of the
-banner-title language and theme font. It currently covers built-in tab labels,
+For normal use, select an installed language as described [below](#selecting-an-external-interface-language).
+`/_nds/dsi-frontend/language.ini` remains an optional custom UTF-8 catalog, used
+when Interface language is **Custom / English** (`auto`). It is independent of
+the banner-title language and theme font. It currently covers built-in tab labels,
 Settings, reading-folder text, browser/footer hints, settings labels/help and
 common dialog controls. Untranslated entries retain English; catalogs remain
 partial rather than complete interface translations.
@@ -111,10 +113,10 @@ setting values or launch behavior. Keep help within six display lines and test
 long labels with scrolling enabled and Reduced motion.
 
 [The editable English template](../../config/languages/template.ini) lists the
-settings keys. [The Spanish starter](../../config/languages/spanish.ini) covers
-navigation, settings labels, sections and common hints/values; most help and
-runtime errors still fall back to English. Copy the desired file to
-`/_nds/dsi-frontend/language.ini` and restart. These are interface catalogs,
+settings keys. [The Spanish catalog](../../config/languages/spanish.ini) covers
+navigation, settings labels, sections and common hints/values; missing entries
+fall back to English. For a custom override, copy the desired file to
+`/_nds/dsi-frontend/language.ini`, select **Custom / English**, and restart. These are interface catalogs,
 not the separate language passed to games or used for their title banners.
 
 ## Japanese titles and interface
@@ -127,11 +129,11 @@ glyphs advance 12 pixels, halfwidth kana advance six, and headings align this
 fallback to their baseline. Wrapping, clipping and scrolling use those widths.
 Rare characters outside the supplied set still use the fallback question mark.
 
-The optional [Japanese starter catalog](../../config/languages/japanese.ini)
-translates navigation, settings labels, common values and dialog controls.
-Copy it to `/_nds/dsi-frontend/language.ini` and restart to enable it; omitted
-help and runtime messages retain English. Leave that file absent to keep English
-menus while still displaying Japanese titles. Title language in settings selects
+The [Japanese catalog](../../config/languages/japanese.ini) translates
+navigation, settings labels, common values and dialog controls. Select
+**START → Appearance → Interface language → Japanese** to enable the shipped
+`languages/ja.ini`; omitted entries retain English. Select **English** to keep
+English menus while still displaying Japanese titles. Title language in settings selects
 which banner field to read; it does not select the interface language.
 
 [Font attribution and source details](../../third_party/mplus-bitmap/UPSTREAM.md).
@@ -162,7 +164,7 @@ Regenerate with `tools/make_japanese_font.py` and `tools/pack_script_fonts.py`.
 START → Appearance → **Interface language** (also in desktop Setup settings)
 selects English, Custom / English, or an installed catalog. `auto` retains the
 legacy `language.ini` override; `en` always uses built-in English. Other IDs load
-`/_nds/dsi-frontend/languages/<id>.ini`. SD packages built from this source ship:
+`/_nds/dsi-frontend/languages/<id>.ini`. Gloam 1.2.0 SD packages ship:
 
 | ID | Interface catalog | Editable source |
 | --- | --- | --- |
@@ -174,8 +176,8 @@ legacy `language.ini` override; `en` always uses built-in English. Other IDs loa
 | `pt-BR` | Brazilian Portuguese | [portuguese-brazilian.ini](../../config/languages/portuguese-brazilian.ini) |
 | `nl` | Dutch | [dutch.ini](../../config/languages/dutch.ini) |
 
-Use a frontend build with the **Interface language** setting. If it is absent,
-update the frontend and shared SD assets together.
+The **Interface language** selector requires Gloam 1.2.0 or later. When upgrading
+from an earlier release, update the frontend and shared SD assets together.
 
 These are partial catalogs, with English for missing entries. The five newer
 catalogs include every registered label/control and selected help; longer help

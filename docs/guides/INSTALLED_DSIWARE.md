@@ -39,8 +39,9 @@ metadata is listed. No installer, Nintendo icons, games, NAND or saves are bundl
 ## Compatibility
 
 Discovery does not establish that a title can launch in the current boot
-environment. Physical DSi, SDNAND, private saves and title-specific exit behavior
-require further validation. See [current support](../CURRENT_SUPPORT.md).
+environment. An installed title passed launch and save-persistence testing on
+the reported DSi hardware setup. Broader title coverage, SDNAND, private saves
+and title-specific exit behavior still require validation. See [current support](../CURRENT_SUPPORT.md).
 
 Protocol references: [Unlaunch](https://problemkaputt.de/unlaunch.htm) and
 [GBATEK autoload layout](https://mgba-emu.github.io/gbatek/#dsi-autoload-on-warmboot).

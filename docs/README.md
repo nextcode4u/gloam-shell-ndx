@@ -16,6 +16,7 @@ Start with [setup and controls](GETTING_STARTED.md) and [current support](CURREN
   [text and titles](guides/TEXT_AND_TITLES.md), [appearance presets](guides/APPEARANCE_PRESETS.md).
 - [Custom tabs](guides/TABS.md), [dashboard](guides/DASHBOARD.md),
   [item preferences](guides/ITEM_PREFERENCES.md), [association editor](guides/ASSOCIATION_EDITOR.md).
+- [Startup splashes](guides/STARTUP_SPLASHES.md): theme/custom selection, prepared animation format and the separate authoring tools.
 - [PC-built library search](guides/LIBRARY_SEARCH.md).
 - [Configuration backups and resets](guides/CONFIGURATION_BACKUPS.md).
 
@@ -26,5 +27,3 @@ Start with [setup and controls](GETTING_STARTED.md) and [current support](CURREN
 - [Source map](SOURCE_MAP.md) and [contribution conventions](../CONTRIBUTING.md).
 - [Browser jobs](development/BROWSER_JOBS.md) and [artwork cache](development/ARTWORK_CACHE.md).
 - [Dependency sources, licenses and modifications](../THIRD_PARTY.md).
-
-[Startup splashes](guides/STARTUP_SPLASHES.md): theme/custom selection, prepared animation format and the separate authoring tools.

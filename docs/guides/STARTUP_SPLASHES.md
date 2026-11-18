@@ -5,7 +5,7 @@ contain static artwork, simple layer effects or converted frame animations, with
 optional sound. They are loaded once; playback does not decode PNG/GIF images or
 read frames from SD. All package memory is released before normal browsing.
 
-Splash playback is available in source builds after Gloam 1.0.0. The 1.0.0
+Splash playback is available in Gloam 1.1.0 and later. The 1.0.0
 release does not include these settings.
 
 ## On the console

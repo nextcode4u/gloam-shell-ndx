@@ -91,8 +91,8 @@ existing screen geometry while allowing more narrow letters to fit.
 
 PCF, arbitrary CJK/RTL shaping and full UI localization are not supported by this format. A shared 12-pixel Japanese fallback supplies kana/JIS kanji independently of theme packs; see [text and titles](TEXT_AND_TITLES.md).
 
-The Spanish catalog includes every settings label and help entry, plus common
-settings values. Overlay headings and controls cover themes, associations, game options, cheats,
+External interface catalogs cover settings labels, help and common values, with
+coverage varying by language; see [language selection](TEXT_AND_TITLES.md#selecting-an-external-interface-language). Overlay headings and controls cover themes, associations, game options, cheats,
 Home sections and SD removal. Untranslated help and runtime diagnostics retain English.
 Catalogs support up to 384 additional keys within the 32 KiB file limit; values
 share a 24 KiB text pool rather than allocating a full help buffer per key.
@@ -108,7 +108,7 @@ the SIL Open Font License. To fetch the authoring inputs once and rebuild:
 python3 tools/make_theme_samples.py --download-fonts
 ```
 
-Use the pinned Pillow dependency from `requirements.txt`. Downloads use immutable
+Use the pinned Pillow dependency from `requirements-dev.txt`. Downloads use immutable
 Google Fonts URLs and verified SHA-256 digests. Full source faces and their OFL
 notices stay in ignored `build/theme-font-sources/`; prepared DSFONT03 packs and
 both license notices ship with each theme. Subsequent runs work offline and

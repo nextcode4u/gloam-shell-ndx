@@ -3,7 +3,8 @@
 Version 2 adds independent top/bottom reading-surface opacity, optional
 translucent components, proportional body/heading fonts and three additional
 composition presets. It requires a
-frontend built with version-2 support; Gloam 1.0.0 rejects these packages.
+Gloam 1.1.0 or later; Gloam 1.0.0 rejects these packages. Features added in
+1.2.0 are identified below.
 Existing `version=1` themes retain their behavior. New packs declare
 `[theme] version=2`; no conversion of older packs is necessary.
 
@@ -23,7 +24,7 @@ TWiLight theme files directly. Required navigation keeps its shared geometry.
 Packages live at `_nds/dsi-frontend/themes/<id>/theme.ini`. IDs use ASCII letters,
 numbers, hyphens and underscores and are at most 63 bytes. The chooser includes
 Built-in and the alphabetically first 64 valid package directory names.
-This capacity is available in source builds after 1.1.0; 1.1.0 lists 23 installed packages. It reads
+Gloam 1.2.0 supports this capacity; 1.0/1.1 lists 23 installed packages. It reads
 one selected package at a time; startup does not scan all installed themes.
 
 ```ini
@@ -60,14 +61,15 @@ selection text suit light backgrounds. The original first three saved IDs stay
 unchanged. Expanded selections persist in state and named appearance snapshots. The value shows Theme until an override is selected. Reapplying a theme
 restores its accent. Other browser preferences remain independent of the package.
 Copper and Slate demonstrate serif and sans proportional faces respectively;
-Folio, Nocturne and Tide add light/dark layouts, wallpapers and original audio. All screens consume the resolved palette, including settings,
+Folio, Nocturne and Tide add light/dark layouts, wallpapers, licensed music and
+original UI sounds. All screens consume the resolved palette, including settings,
 file pickers and theme preview. PNG covers retain their existing neutral alpha
 matte; they are content artwork rather than theme backgrounds.
 
 ## Bundled sample themes
 
-Choose these from START → Appearance → Theme. Preview with Up/Down, apply with
-A, or cancel with B. The packages are ready to copy; no build step is needed.
+Choose these from START → Appearance → Theme. Select with Up/Down, preview with
+X, apply with A once ready, or cancel with B/START. The packages are ready to copy; no build step is needed.
 
 | Theme | Illustrated identity | Browser character |
 | --- | --- | --- |
@@ -304,7 +306,7 @@ Appearance choices can override them afterward and remain saved across restart.
 Preview/cancel does not change browser preferences. Named presets retain their
 explicit icon/view choices independently of these apply-time defaults.
 
-Medium icons require a frontend built after 1.1.0. Existing small/large settings
+Medium icons require Gloam 1.2.0 or later. Existing small/large settings
 keep their stored values; medium uses `icon_size=2` in state.ini. Theme files use
 `icon_size=medium`. List stays text-only. The browser shares icon, row and touch
 geometry across the other views.
@@ -388,20 +390,19 @@ when loading the theme, adds no image allocation and does no blending per frame.
 The default is 0, preserving existing packages. Personal wallpaper strength
 remains a separate user override.
 
-Source builds after 1.1.0 also accept optional `[colors] header_text`,
+Gloam 1.2.0 and later also accept optional `[colors] header_text`,
 `footer_text` and `header_link_text` RGB colors. They separate title-bar text,
 status/footer legends and the browser's Settings link from body text. Each
 omitted field retains its existing per-view fallback. `header_text` also covers
 title-bar counters and paths inside the taller browser header. These colors do
 not recolor icon PNGs; authors should provide suitable status glyphs for their
-header artwork. A pack using these fields requires a build that supports them;
+header artwork. A pack using these fields requires Gloam 1.2.0 or later;
 the original 1.1.0 parser rejects the new keys.
 
 Optional `[colors] selection_text` sets focused browser-row, quick/action-menu,
-settings-label and picker-label text. `[colors] tab_text` sets active navigation
-text. Omitted values inherit `text` and `ink`, respectively. Secondary metadata,
-settings values and other dialog text retain their established palette roles;
-check these against the selected component artwork too. PNG colors are not
+settings-row and picker-row text, including selected metadata and values. `[colors] tab_text` sets active navigation
+text. Omitted values inherit `text` and `ink`, respectively. Unselected metadata and other dialog text retain their established palette roles;
+check these against component artwork too. PNG colors are not
 recolored by palette or accent changes.
 
 The bundled packs demonstrate Scene, both sidebar directions and Poster. These compositions
@@ -668,7 +669,7 @@ outside 0–12, rejects the preview; Apply/Cancel never mixes asset banks.
 Use palette `surface` behind normal text and `accent` behind tab text (`ink`).
 PNG colors are fixed and personal accent changes do not recolor them. The loader's
 palette checks cannot certify contrast inside arbitrary artwork; inspect both
-screens, small/large icons, every view and settings before sharing a pack.
+screens, small/medium/large icons, every view and settings before sharing a pack.
 
 All eleven supplied packs include components. Folio uses torn-paper silhouettes,
 Slate and Eclipse use broad rounded surfaces, Prism uses bubble forms, and
@@ -789,7 +790,7 @@ neighbor to select it, then tap the selected item to open it. Home and custom
 folder tabs use the same layout. Reduced motion disables the horizontal slide.
 
 Jackets retain their size while artwork resolves. Missing covers and native
-banners follow the icon-size setting: Small uses 32 pixels and Large uses 48,
+banners follow the icon-size setting: Small uses 32 pixels, Medium 40 and Large 48,
 including animated banners. Cards stay the same size, and covers retain their
 aspect ratio inside the jackets. Row-padding and grid-column settings apply
 to their other layouts.
@@ -802,7 +803,7 @@ image and path storage; rendering never reads files or decodes artwork.
 ### Library Index
 
 Choose **Index** under START → Appearance → Browser view, or use `view=index`
-in a theme. The bottom screen shows a title list with small (16-pixel) or large (32-pixel)
+in a theme. The bottom screen shows a title list with small (16-pixel), medium (24-pixel) or large (32-pixel)
 icons and matching row spacing; the top
 screen shows folders and alphabetical groups. Left/Right jumps to the first
 item in the next populated group, wrapping past empty groups. Up/Down browses
@@ -828,7 +829,7 @@ is needed. Users can disable it or select their own override. See
 ## Version 2 composition presets
 
 Version 2 supports six bounded top-screen compositions. Panorama, Dossier and
-Portrait require a frontend built after 1.1.0. Each accepts
+Portrait require Gloam 1.2.0 or later. Each accepts
 `tabs_position=top` or `tabs_position=bottom`, with the existing `tab_style`,
 `tab_visible`, `tab_gap` and highlight controls. Omit the position to use the
 preset's default. These fields do not move the bottom browser or its touch areas.
@@ -937,6 +938,6 @@ Use the first released frontend supporting its required features. New frontends
 reject a newer requirement before decoding assets and show the required version;
 the active appearance is retained. Startup uses built-in appearance if the saved
 package is too new. Omitted requirements preserve existing package behavior.
-This key requires a source build after 1.1.0; older parsers report it as an invalid
+This key requires Gloam 1.2.0 or later; older parsers report it as an invalid
 package. Desktop inspection validates/displays the requirement but does not infer
 an installed binary's version from its filename.

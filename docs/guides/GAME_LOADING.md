@@ -5,8 +5,9 @@ The release package includes official nds-bootstrap at
 Exact versions and source are identified in [the dependency lock](../../config/release-dependencies.json).
 Gloam selects native homebrew, retail and DSiWare adapters from validated headers.
 
-The adapter is experimental. Packaging the official backend does not establish
-end-to-end compatibility; see [current support](../CURRENT_SUPPORT.md). Backend
+Retail DS launch, gameplay, save/reload and Quit/return have passed reported DSi
+hardware tests. Compatibility still depends on the title and boot environment;
+see [current support](../CURRENT_SUPPORT.md) for tested routes and limits. Backend
 first-run cache/preparation work may take longer than subsequent launches.
 Gloam uses BlocksDS; upstream nds-bootstrap has its own devkitARM build system.
 No private test patches are applied by the release builder.

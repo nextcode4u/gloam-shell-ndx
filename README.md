@@ -46,7 +46,7 @@ Each theme includes previews, installation instructions and asset credits.
 - Favorites and recent items, configuration export/import, recovery mode,
   hidden/save/BIOS folder filters and adjustable scrolling.
 
-**Latest release:** [Download Gloam Shell NDX](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest).
+**Latest release:** [Gloam Shell NDX v1.2.0](https://github.com/nextcode4u/gloam-shell-ndx/releases/tag/v1.2.0).
 This README describes current source; check the release notes for features in a
 published binary.
 Core launch, save, settings and sleep routes have passed reported tests on a
@@ -85,8 +85,10 @@ with SD access is required; Gloam does not install or configure Unlaunch.
 
 For frontend-only updates, replace `/BOOT.NDS` using the standalone `BOOT.NDS`
 release download. This leaves settings, themes, backends and libraries untouched.
-Read the release notes for any required asset/backend updates. Builds using external
-script fonts also need `japanese.gsf` and `extended.gsf` from the matching SD
+Read the release notes for any required asset/backend updates. When upgrading
+from 1.1.0 or earlier to 1.2.0, update the shared language/font assets too; see
+[upgrade instructions](docs/GETTING_STARTED.md#install-or-upgrade). External
+script fonts need `japanese.gsf` and `extended.gsf` from the matching SD
 package in `/_nds/dsi-frontend/fonts/`. The setup tool’s Maintenance → Check setup
 reports missing packs; Repair shared assets restores them without replacing valid
 customized files. See [language and font support](docs/guides/TEXT_AND_TITLES.md#external-script-fonts).

@@ -14,13 +14,16 @@ layout; they are intentional compatibility paths.
 │   ├── dsi-frontend/
 │   │   ├── state.ini             preferences and navigation
 │   │   ├── tabs.ini              custom folder tabs
+│   │   ├── fonts/                shared Japanese/extended-script fallback packs
+│   │   ├── languages/            external interface catalogs
 │   │   ├── themes/               palette/font/background/audio packs
+│   │   │   └── default/splash.gsp external default startup splash
 │   │   ├── splashes/             optional custom startup packages (legacy default fallback)
 │   │   ├── plugins/              argv association profiles
 │   │   │   ├── apps/             emulator/player executables and companion files
 │   │   │   └── startup/scummvm.ini optional native collection discovery
 │   │   ├── covers/               optional artwork
-│   │   ├── cache/                disposable thumbnails
+│   │   ├── cache/                disposable artwork and library-search caches
 │   │   ├── loaders/slot1launch.nds
 │   │   └── install/              optional DSi Menu forwarder
 │   ├── nds-bootstrap-release.nds

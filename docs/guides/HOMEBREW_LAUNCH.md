@@ -31,8 +31,8 @@ preconfigured profiles. `argv=1` sends the selected content path as argv[1];
 Profiles requesting `bootstrap=1` or `hbargv=1` use the separate optional
 `_nds/nds-bootstrap-hb-release.nds` adapter. It supports one content argument,
 not arbitrary argument lists. Storage and return compatibility remain application-specific; see
-[backend limits](GAME_LOADING.md). Personal extension defaults precede supplied profiles; supplied shared extensions still use the
-alphabetically first profile filename. See [the association editor](ASSOCIATION_EDITOR.md).
+[backend limits](GAME_LOADING.md). Personal extension defaults precede supplied profiles; supplied profiles resolve by longest suffix and most specific preferred
+folder. Distinct remaining handlers open the chooser. See [the association editor](ASSOCIATION_EDITOR.md).
 
 The direct route accepts the known homebrew game-code markers `####`, `GYOB`
 and `TGDS` plus nds-bootstrap’s `KBSE` marker and validates CPU binary ranges, DSi extension ranges and argv/stub
@@ -84,10 +84,22 @@ For an optional installed DSi Menu shortcut back to the SD launcher, see
 ## Explicit DSi Menu return under Unlaunch
 
 The frontend discovers Launcher (`00030017`) through the same bounded,
-read-only metadata checks as other system titles. The explicit Return to DSi
-System Menu action now supplies its NAND content path as well as the stock
-zero-ID TLNC record. This bypasses Unlaunch's default frontend target when a
-valid Launcher is discovered. Ambiguous/missing metadata never produces a
-guessed path; stock firmware retains its ordinary TLNC fallback. The optional
+read-only metadata checks as other system titles. It also checks for a valid
+`nand:/launcher.dsi`, used by language-patched installations. If present, this
+file takes priority over the stock menu, preserving the patched launch
+environment. A present but invalid patched launcher blocks fallback rather than
+silently switching to the stock menu.
+
+Return to DSi System Menu supplies the patched file directly to Unlaunch, without
+a second numeric Menu request. Without a patched launcher, it uses the discovered
+stock menu content path and ordinary zero-ID TLNC request. System Settings uses
+the same selected menu with a Settings destination request; other system apps
+launch their discovered executables directly. Ambiguous or missing metadata never
+produces a guessed path.
+
+Patched-menu Settings/return routes show a confirmation: A continues after
+release, B cancels. If the patched launch subsequently waits on a blank screen,
+press A again. See [current support](../CURRENT_SUPPORT.md) for the known external
+patching limitation. Gloam does not modify NAND or Unlaunch configuration. The optional
 forwarder's missing-SD retry screen still has its separately implemented Menu
 request and is not certified by this frontend control.
