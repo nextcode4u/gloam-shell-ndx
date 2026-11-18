@@ -48,8 +48,9 @@ Actual source reuse is identified separately below and in THIRD_PARTY.md.
 - COZ / M+ FONTS PROJECT: shared Japanese bitmap fallback. Original sources,
   permissive notices and revision pins are under `third_party/mplus-bitmap/`.
 - pixelpion: “Sentinel,” Copper's music, under the Pixabay Content License.
-- nextcode4u: supplied top/bottom animation artwork for the shared default splash;
-  source GIFs and the conversion recipe are retained in `assets/`.
+- nextcode4u: supplied Gloam website branding and top/bottom animation artwork
+  for the shared default splash; source GIFs and the conversion recipe are
+  retained in `assets/`.
 
 The [dependency inventory](THIRD_PARTY.md) records exact revisions, source links,
 licenses and local changes. Theme CREDITS.md files identify asset ownership.

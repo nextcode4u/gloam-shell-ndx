@@ -22,3 +22,63 @@
   outline: 2px solid var(--md-accent-fg-color);
   outline-offset: 4px;
 }
+
+/* The homepage is a visual introduction; guide pages keep the reading layout. */
+.md-main__inner:has(.gloam-home) { max-width: none; margin: 0; }
+.md-content:has(.gloam-home),
+.md-content__inner:has(.gloam-home) { margin: 0; padding: 0; }
+.gloam-home { --gloam-highlight: #bca5ef; }
+.gloam-visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+.gloam-hero {
+  display: flex; flex-direction: column; align-items: center;
+  background: #10051e; color: #f5efff; text-align: center;
+  padding: 0 1rem 1.6rem;
+}
+.gloam-hero > p { margin: 0; width: 100%; }
+.gloam-hero-art {
+  display: block; width: min(100%, 58rem);
+  max-height: calc(100svh - 17rem); min-height: 12rem;
+  object-fit: contain; margin: 0 auto;
+  animation: gloam-arrive .55s ease-out both;
+}
+.gloam-hero-controls { margin-top: -.25rem; }
+.gloam-hero-controls > p { margin: .5rem 0 .75rem; padding: 0 .5rem; }
+.gloam-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: .6rem; }
+.gloam-actions > p { display: flex; justify-content: center; flex-wrap: wrap; gap: .6rem; margin: 0; }
+.gloam-hero .md-button {
+  margin: 0; color: #f5efff; background: #292035; border: 1px solid #685183;
+  transition: transform .15s ease, background-color .15s ease;
+}
+.gloam-hero .md-button--primary { background: #bca5ef; color: #21132e; border-color: #bca5ef; }
+.gloam-hero .md-button:hover,
+.gloam-hero .md-button:focus-visible { background: #40304f; transform: translateY(-2px); }
+.gloam-hero .md-button--primary:hover,
+.gloam-hero .md-button--primary:focus-visible { background: #d5c2ff; }
+.gloam-badges p { display: flex; justify-content: center; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 0; }
+.gloam-badges a { display: inline-flex; min-height: 1.5rem; align-items: center; }
+.gloam-badges img { display: block; height: 20px; width: auto; }
+.gloam-showcase { max-width: 50rem; margin: 0 auto; padding: 2rem 1.2rem 1rem; text-align: center; }
+.gloam-showcase h2 { margin: 0 0 1.2rem; }
+.gloam-showcase > p { font-size: .85rem; }
+.gloam-screens { display: block; max-width: 768px; margin: auto; }
+.gloam-screens img { display: block; width: 100%; transition: transform .2s ease; }
+.gloam-screens:hover img { transform: translateY(-3px); }
+.gloam-home-links { text-align: center; padding: .5rem 1rem 1.5rem; }
+@keyframes gloam-arrive {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 40rem) {
+  .gloam-hero-art { min-height: 0; max-height: none; width: 100%; }
+  .gloam-hero { padding: 0 .75rem 1.2rem; }
+  .gloam-hero-controls > p { font-size: .85rem; }
+  .gloam-showcase { padding-top: 1.5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gloam-hero-art { animation: none; }
+  .gloam-hero .md-button, .gloam-screens img { transition: none; }
+  .gloam-hero .md-button:hover, .gloam-screens:hover img { transform: none; }
+}
