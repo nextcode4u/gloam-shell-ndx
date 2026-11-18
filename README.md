@@ -5,8 +5,9 @@ homebrew and media, and open system apps from one place.
 
 “Gloam” means twilight—a nod to the DSi's **TWL** codename.
 
-**[Download Gloam](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest)**
-· [Setup guide](docs/GETTING_STARTED.md)
+**[Website & SD Setup](https://nextcode4u.github.io/gloam-shell-ndx/)**
+· [Download Gloam](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest)
+· [Setup guide](docs/INSTALL.md)
 · [Browse themes](https://github.com/nextcode4u/gloam-shell-theme-directory)
 
 <p align="center">
