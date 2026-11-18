@@ -11,6 +11,11 @@ import tempfile
 import unittest
 import zipfile
 
+try:
+    from .library_search_fixture import fnv, blocked_package, package
+except ImportError:  # unittest discovery imports this file as a top-level module.
+    from library_search_fixture import fnv, blocked_package, package
+
 ROOT = Path(__file__).resolve().parents[1]
 PS = shutil.which('powershell.exe') or '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe'
 AVAILABLE = Path(PS).is_file()
@@ -86,7 +91,6 @@ class GloamSetupTests(unittest.TestCase):
         return output
 
     def read_search_index(self):
-        from library_search_fixture import fnv, blocked_package
         data = (self.sd / '_nds/dsi-frontend/cache/library.gli').read_bytes()
         magic, count, payload, built, flags, check = struct.unpack('<8sIIQII', data[:32])
         self.assertIn(magic, (b'GLIDX001', b'GLIDX002'))
@@ -172,7 +176,6 @@ class GloamSetupTests(unittest.TestCase):
         output = self.run_ps('Get-GloamSearchIndexStatus $root')
         self.assertIn('browsing still works', output)
         # Even a correctly checksummed, unreasonable date remains an optional-cache warning.
-        from library_search_fixture import fnv
         header = struct.pack('<8sIIQI', b'GLIDX001', 0, 0, 0xffffffffffffffff, 0)
         index.write_bytes(header + struct.pack('<I', fnv(header)))
         output = self.run_ps('Get-GloamSearchIndexStatus $root')
@@ -190,7 +193,6 @@ class GloamSetupTests(unittest.TestCase):
         self.assertFalse((self.sd / '_nds/dsi-frontend/state.ini').exists())
 
     def test_search_index_worker_reports_cancel_without_replacing_cache(self):
-        from library_search_fixture import package
         (self.sd / 'roms').mkdir()
         (self.sd / 'roms/Fixture.txt').write_text('Authored text')
         index = self.sd / '_nds/dsi-frontend/cache/library.gli'
