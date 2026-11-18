@@ -62,6 +62,8 @@ static void binary(const char *root)
 static void check_menu_cursor(void)
 {
     ThemePalette original = app.themes.active.palette;
+    uint16_t selection_text = app.themes.active.selection_text;
+    app.themes.active.selection_text = original.text;
     /* Glacier intentionally shares its separator and surface colors. A disabled
      * action must still show focus without changing whether it can be invoked. */
     app.themes.active.palette.line = app.themes.active.palette.surface;
@@ -74,6 +76,13 @@ static void check_menu_cursor(void)
             render_app(&app, top.pixels, bottom.pixels, "10:00");
             int row = layout_panel_top(&app) + 29 + (selected - app.panel_scroll) * 15;
             assert(bottom.pixels[row * 256 + 10] == app.themes.active.palette.accent);
+            if (!enabled) {
+                unsigned readable = 0;
+                for (int y = row; y < row + FONT_HEIGHT; y++)
+                    for (int x = 16; x < 230; x++)
+                        readable += bottom.pixels[y * 256 + x] == original.text;
+                assert(readable > 5);
+            }
             assert(app.panel_selection == selected);
             assert(panel || app.action_enabled[selected] == enabled);
             app_panel_move(&app, step < count ? 1 : -1);
@@ -81,6 +90,7 @@ static void check_menu_cursor(void)
         app_back(&app);
     }
     app.themes.active.palette = original;
+    app.themes.active.selection_text = selection_text;
 }
 int main(int argc, char **argv)
 {
@@ -128,6 +138,17 @@ int main(int argc, char **argv)
     render_app(&app, top.pixels, bottom.pixels, "10:00");
     assert(top.before == 0xCAFEABCD && top.after == 0xCAFEABCD);
     assert(bottom.before == 0xCAFEABCD && bottom.after == 0xCAFEABCD);
+    uint16_t footer_ink = app.themes.active.footer_text;
+    app.themes.active.footer_text = 0x801f;
+    render_app(&app, top.pixels, bottom.pixels, "10:00");
+    unsigned footer_pixels = 0, top_footer_pixels = 0;
+    for (int y = 176; y < 192; y++)
+        for (int x = 10; x < 241; x++) {
+            footer_pixels += bottom.pixels[y * 256 + x] == 0x801f;
+            top_footer_pixels += top.pixels[y * 256 + x] == 0x801f;
+        }
+    assert(footer_pixels > 5 && top_footer_pixels > 5);
+    app.themes.active.footer_text = footer_ink;
     picker_touch(&app, 10, 189); /* Footer cannot select a file. */
     assert(app.picker.open);
     picker_activate(&app);

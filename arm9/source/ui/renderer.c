@@ -752,12 +752,14 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
         bool enabled = app->panel == PANEL_QUICK || app->action_enabled[i];
         bool selected = i == app->panel_selection;
         bool has_value = app->panel == PANEL_QUICK && i <= QUICK_BROWSER_STYLE;
-        draw_text_scrolling(
-            pixels, 16, row, app->panel == PANEL_QUICK ? quick[i] : actions[i],
-            enabled && selected ? themes_selection_text(&app->themes.active) : colors.muted,
-            has_value ? 162 : 217, app->selection_idle_frames, selected && !app->reduced_motion);
+        uint16_t ink = selected  ? themes_selection_text(&app->themes.active)
+                       : enabled ? colors.text
+                                 : colors.muted;
+        draw_text_scrolling(pixels, 16, row, app->panel == PANEL_QUICK ? quick[i] : actions[i], ink,
+                            has_value ? 162 : 217, app->selection_idle_frames,
+                            selected && !app->reduced_motion);
         if (!enabled)
-            draw_text(pixels, 239, row, "-", colors.muted, 1);
+            draw_text(pixels, 239, row, "-", ink, 1);
         if (has_value) {
             const char *value = "";
             switch (i) {

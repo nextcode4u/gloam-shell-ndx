@@ -45,11 +45,11 @@ static void render_handlers(const App *app, uint16_t *top, uint16_t *bottom)
                             *profile->content_root ? profile->content_root : "Any folder", p.text,
                             231, picker->idle_frames, !app->reduced_motion);
     }
-    draw_text_wrapped(top, 10, 155,
-                      *picker->status
-                          ? picker->status
-                          : "Several apps handle this file. Your choice applies to this launch.",
-                      p.muted, 33, 3);
+    draw_text_scrolling(top, 10, 155,
+                        *picker->status
+                            ? picker->status
+                            : "Several apps handle this file. Your choice applies to this launch.",
+                        p.muted, 236, picker->idle_frames, !app->reduced_motion);
     draw_heading(&app->themes.active, bottom, 10, 7,
                  ui_translate(&app->language, "dialog.choose_application", "Choose application"),
                  themes_header_color(&app->themes.active, p.text), 224);
@@ -149,7 +149,9 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
             ? "Choose the app for this extension in every folder. Overrides folder rules."
             : "Pick a homebrew app. This file becomes argv[1].",
         text, 18, 8);
-    draw_text_wrapped(top, 10, 163, "START cancels. B opens the parent folder.", muted, 33, 2);
+    draw_text_scrolling(top, 10, 176, "START cancels. B opens the parent folder.",
+                        themes_footer_color(&app->themes.active, muted), 236, picker->idle_frames,
+                        !app->reduced_motion);
     draw_heading(
         &app->themes.active, bottom, 10, 7,
         (picker->kind == PICKER_TOP_BACKGROUND || picker->kind == PICKER_BOTTOM_BACKGROUND)
@@ -163,7 +165,9 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
             ? "Choose cover"
             : ui_translate(&app->language, "dialog.choose_application", "Choose application"),
         themes_header_color(&app->themes.active, text), 210);
-    if (themes_component(&app->themes.active, THEME_ARROW_LEFT) &&
+    /* Body-colored arrow sprites need not contrast with explicit chrome ink. */
+    if (!app->themes.active.header_text &&
+        themes_component(&app->themes.active, THEME_ARROW_LEFT) &&
         themes_component(&app->themes.active, THEME_ARROW_RIGHT)) {
         draw_theme_arrow(&app->themes.active, bottom, 210, 7, THEME_ARROW_LEFT, muted);
         draw_theme_arrow(&app->themes.active, bottom, 230, 7, THEME_ARROW_RIGHT, muted);
@@ -198,10 +202,10 @@ void picker_render(const App *app, uint16_t *top, uint16_t *bottom)
                   muted, 30);
     char batch[64];
     snprintf(batch, sizeof batch, "Batch %u  L/R batches  A choose", picker->batch + 1);
-    draw_text_clipped(bottom, 10, 174,
+    draw_text_clipped(bottom, 10, 176,
                       *picker->status                        ? picker->status
                       : (picker->batch || picker->truncated) ? batch
                       : picker->kind == PICKER_REPAIR        ? "A open/file  Y folder  B parent"
                                                              : "A choose  B parent  START cancel",
-                      muted, 33);
+                      themes_footer_color(&app->themes.active, muted), 33);
 }
