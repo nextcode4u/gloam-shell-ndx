@@ -64,7 +64,7 @@ static void context(const App *app, uint16_t *pixels, TopContentIcon icon)
     card(app, pixels, selected, 10, 51, 64, 60, true, icon);
     const char *handler = *state->handler ? state->handler : entry_type(entry);
     char native_route[96] = "";
-    if (app->info_header_valid) {
+    if (app->info_header_valid && !strcmp(state->handler, "DS/DSi title")) {
         handler = app->info_unit == 0   ? "Nintendo DS"
                   : app->info_unit == 2 ? "DSi enhanced"
                   : app->info_unit == 3 ? "DSi only"

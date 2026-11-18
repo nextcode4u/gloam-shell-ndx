@@ -68,7 +68,8 @@ separate steps. Metadata is read once per selection; missing or malformed files
 are not retried each frame. Rendering reads prepared state only.
 
 Nearby covers reuse the existing three-image Shelf cache, not another image
-bank. Current-folder summaries inspect at most the 512 published entries, never
+bank. If the bottom browser is Shelf, its visible neighbors take cache priority;
+top-screen summary cards outside that window retain their icons. Current-folder summaries inspect at most the 512 published entries, never
 descendants. Changing selection cancels pending image work and clears its text
 snapshot. Recovery ignores these presets and optional metadata. Physical-device
 latency and memory measurements are still needed alongside host checks.

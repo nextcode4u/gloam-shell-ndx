@@ -203,7 +203,9 @@ void artwork_shelf_tick(App *app)
         app->selection_idle_frames < 7 || (!app->artwork.ready && !app->artwork_resolved))
         return;
     int indexes[3];
-    if (supplemental)
+    /* The bottom Shelf keeps its visible neighbors. Other top-screen cards
+     * may reuse those images, or retain icons when they are outside the cache. */
+    if (supplemental && app->browser_style != BROWSER_SHELF)
         top_content_samples(app, indexes);
     else
         for (int i = 0; i < 3; i++)

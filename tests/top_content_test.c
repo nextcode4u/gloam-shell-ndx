@@ -1,5 +1,6 @@
 #include "app.h"
 #include "appearance.h"
+#include "artwork.h"
 #include "browser.h"
 #include "file_types.h"
 #include "game_options.h"
@@ -197,6 +198,35 @@ int main(int argc, char **argv)
     assert(top_content_mode(&app) == TOP_CONTENT_NEIGHBORS);
     app.themes.active.top_content = 999;
     assert(top_content_mode(&app) == TOP_CONTENT_THEME);
+    app_reset_preview(&app);
+    app.top_content = TOP_CONTENT_FOLDER;
+    app.browser_style = BROWSER_SHELF;
+    app.show_covers = true;
+    app.artwork_resolved = true;
+    app.selection_idle_frames = 7;
+    app.entry_count = 5;
+    app.locations[app.category].selected = 3;
+    app.top.stage = 1;
+    for (int i = 0; i < 3; i++)
+        app.top.samples[i] = i;
+    for (int i = 1; i < 5; i++) {
+        char name[32];
+        snprintf(name, sizeof name, "Fixture-%d.txt", i);
+        char folder[PATH_CAP];
+        assert(path_join(folder, app.root, "roms"));
+        assert(path_join(app.entries[i].path, folder, name));
+        path_copy(app.entries[i].name, name, sizeof app.entries[i].name);
+        app.entries[i].kind = ITEM_FILE;
+    }
+    for (int i = 0; i < 4; i++)
+        artwork_shelf_tick(&app);
+    for (int i = 2; i <= 4; i++) {
+        bool cached = false;
+        for (unsigned slot = 0; slot < 3; slot++)
+            cached |= !strcmp(app.shelf_paths[slot], app.entries[i].path);
+        assert(cached);
+    }
+
     char theme_root[PATH_CAP], theme_folder[PATH_CAP];
     assert(path_join(theme_root, app.root, "_nds/dsi-frontend/themes") && !mkdir(theme_root, 0777));
     assert(path_join(theme_folder, theme_root, "context") && !mkdir(theme_folder, 0777));
