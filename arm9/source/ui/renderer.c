@@ -32,6 +32,8 @@ typedef ThemePalette Palette;
 
 static void draw_browser_icon(const App *app, uint16_t *pixels, int index, int x, int y, int size,
                               uint16_t color);
+static void draw_preview_icon(const App *app, uint16_t *pixels, int index, int x, int y, int size,
+                              uint16_t color);
 
 static void draw_library_index(const App *app, uint16_t *pixels, Palette colors, int offset)
 {
@@ -376,12 +378,8 @@ static void draw_poster(const App *app, uint16_t *pixels, Palette colors)
                                         xx * app->artwork.width / width];
     } else {
         draw_theme_component(theme, pixels, THEME_CARD, 10, 48, 108, artwork_height);
-        if (icons_for_entry(app, selected))
-            draw_browser_icon(app, pixels, selected, 24, 48 + (artwork_height - 80) / 2, 80,
-                              colors.accent);
-        else
-            draw_theme_icon(theme, pixels, 24, 48 + (artwork_height - 80) / 2, 80,
-                            entry_file_type(entry).icon, colors.accent);
+        draw_preview_icon(app, pixels, selected, 24, 48 + (artwork_height - 80) / 2, 80,
+                          colors.accent);
     }
     draw_text_wrapped(pixels, 130, 53, entry ? entry_type(entry) : "Browse", colors.accent, 16, 2);
     char size[32] = "";
@@ -426,7 +424,7 @@ static void draw_scene(const App *app, uint16_t *pixels, Palette colors, const c
             int size = box_width < box_height ? box_width : box_height;
             int x = box_x + (box_width - size) / 2, y = box_y + (box_height - size) / 2;
             draw_theme_component(theme, pixels, THEME_CARD, x - 2, y - 2, size + 4, size + 4);
-            draw_browser_icon(app, pixels, app->locations[app->category].selected, x, y, size,
+            draw_preview_icon(app, pixels, app->locations[app->category].selected, x, y, size,
                               colors.accent);
         }
     }
@@ -482,7 +480,7 @@ static void draw_composition(const App *app, uint16_t *pixels, Palette colors, c
         if (size > 80)
             size = 80;
         int x = box.x + (box.width - size) / 2, y = box.y + (box.height - size) / 2;
-        draw_browser_icon(app, pixels, selected, x, y, size, colors.accent);
+        draw_preview_icon(app, pixels, selected, x, y, size, colors.accent);
     }
     draw_heading_scrolling(theme, pixels, title.x, title.y + 2, name, colors.text, title.width,
                            app->selection_idle_frames, !app->reduced_motion);
@@ -559,18 +557,8 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
     } else if (app->detail_tab == 0 && app->show_covers) {
         int x = offset + 15, y = 53, w = 96, h = 104;
         int selected = app->locations[app->category].selected;
-        if (entry && (entry->kind == ITEM_SYSTEM || entry->kind == ITEM_INSTALLED_TITLE ||
-                      (entry->kind == ITEM_FILE && icon_is_ds_title(entry->path) &&
-                       !preview_has_cover(app)))) {
-            draw_theme_component(theme, pixels, THEME_CARD, x, y, w, h);
-            draw_browser_icon(app, pixels, selected, offset + 31, 73, 64, colors.accent);
-            draw_text(pixels, offset + 24, 149,
-                      entry->kind == ITEM_INSTALLED_TITLE           ? "NAND TITLE"
-                      : entry->kind == ITEM_FILE                    ? "TITLE ICON"
-                      : entry->target == 6 && app->slot1.icon.ready ? "CARD ICON"
-                                                                    : "SYSTEM ICON",
-                      colors.muted, 14);
-        } else if (app->artwork.ready) {
+        bool native = entry && (entry->kind == ITEM_SYSTEM || entry->kind == ITEM_INSTALLED_TITLE);
+        if (!native && preview_has_cover(app)) {
             w = app->artwork.width;
             h = app->artwork.height;
             if (w == 32 && h == 32) {
@@ -587,28 +575,46 @@ static void draw_top_screen(const App *app, uint16_t *pixels, Palette colors, co
                         app->artwork.pixels[(yy * app->artwork.height / h) * app->artwork.width +
                                             xx * app->artwork.width / w];
         } else {
-            if (!draw_theme_component(&app->themes.active, pixels, THEME_CARD, x, y, w, h)) {
+            if (!draw_theme_component(theme, pixels, THEME_CARD, x, y, w, h)) {
                 draw_rectangle(pixels, x + 3, y + 3, w, h, colors.line);
                 draw_rectangle(pixels, x, y, w, h, colors.surface);
                 draw_rectangle(pixels, x, y, 3, h, colors.accent);
             }
+            /* One footprint for theme, native and associated icons. Keep both
+             * caption lines inside the card, including taller theme fonts. */
+            int padding = theme->component_border > 4 ? theme->component_border : 4;
+            int text_height = (int)font_height(font_current());
+            int suffix_y = y + h - padding - text_height;
+            int label_y = suffix_y - text_height - 2;
+            int outer = label_y - 2 - (y + padding);
+            if (outer > w - 2 * padding)
+                outer = w - 2 * padding;
+            if (outer > 68)
+                outer = 68;
+            draw_preview_icon(app, pixels, selected, x + (w - outer) / 2 + 2, y + padding + 2,
+                              outer - 4, colors.accent);
             EntryFileType type = entry_file_type(entry);
-            draw_theme_icon(&app->themes.active, pixels, x + (w - 48) / 2, y + 12, 48, type.icon,
-                            colors.accent);
+            bool title =
+                entry && (native || (entry->kind == ITEM_FILE && icon_is_ds_title(entry->path)));
             const char *label =
-                app->show_covers && !app->artwork_resolved && app->selection_idle_frames >= 7
+                title ? (entry->kind == ITEM_INSTALLED_TITLE           ? "NAND TITLE"
+                         : entry->kind == ITEM_FILE                    ? "TITLE ICON"
+                         : entry->target == 6 && app->slot1.icon.ready ? "CARD ICON"
+                                                                       : "SYSTEM ICON")
+                : !app->artwork_resolved && app->selection_idle_frames >= 7
                     ? "LOADING"
                     : placeholder_label(type.icon);
-            draw_text(pixels, x + (w - (int)draw_text_width(label)) / 2, y + 67, label, colors.text,
-                      11);
+            draw_text_scrolling(pixels, x + padding, label_y, label,
+                                title ? colors.muted : colors.text, w - 2 * padding,
+                                app->selection_idle_frames, !app->reduced_motion);
             char suffix[9] = "";
             if (entry && entry->kind == ITEM_FILE) {
                 const char *extension = path_extension(entry->name);
                 for (int i = 0; i < 8 && extension[i]; i++)
                     suffix[i] = (char)toupper((unsigned char)extension[i]);
             }
-            draw_text(pixels, x + (w - (int)draw_text_width(suffix)) / 2, y + 85, suffix,
-                      colors.muted, 8);
+            draw_text_scrolling(pixels, x + padding, suffix_y, suffix, colors.muted,
+                                w - 2 * padding, app->selection_idle_frames, !app->reduced_motion);
         }
         /* Preserve the theme's readable font: type labels such as SYSTEM APP
          * wrap inside the metadata column instead of becoming SYSTE.. . */
@@ -815,11 +821,9 @@ static void draw_overlay(const App *app, uint16_t *pixels, Palette colors)
         hint = ui_translate(&app->language, "dialog.icons_hidden", "Icons hidden in List view");
     draw_text(pixels, 14, footer, hint, colors.muted, 34);
 }
-static void draw_browser_icon(const App *app, uint16_t *pixels, int index, int x, int y, int size,
-                              uint16_t color)
+static void draw_icon_image(const App *app, uint16_t *pixels, int index, int x, int y, int size,
+                            uint16_t color)
 {
-    draw_theme_component(&app->themes.active, pixels, THEME_ICON_FRAME, x - 2, y - 2, size + 4,
-                         size + 4);
     const BrowserIcon *icon = icons_for_entry(app, index);
     if (icon) {
         const uint16_t *image = icon->pixels;
@@ -839,8 +843,30 @@ static void draw_browser_icon(const App *app, uint16_t *pixels, int index, int x
         }
         return;
     }
-    draw_theme_icon(&app->themes.active, pixels, x, y, size,
-                    entry_file_type(&app->entries[index]).icon, color);
+    const Entry *entry = index >= 0 && index < app->entry_count ? &app->entries[index] : NULL;
+    draw_theme_icon(&app->themes.active, pixels, x, y, size, entry_file_type(entry).icon, color);
+}
+
+/* Browser cells keep their existing footprint and touch geometry. */
+static void draw_browser_icon(const App *app, uint16_t *pixels, int index, int x, int y, int size,
+                              uint16_t color)
+{
+    draw_theme_component(&app->themes.active, pixels, THEME_ICON_FRAME, x - 2, y - 2, size + 4,
+                         size + 4);
+    draw_icon_image(app, pixels, index, x, y, size, color);
+}
+
+/* A preview's frame owns its border; opaque banners must not paint over it. */
+static void draw_preview_icon(const App *app, uint16_t *pixels, int index, int x, int y, int size,
+                              uint16_t color)
+{
+    const ThemePackage *theme = &app->themes.active;
+    bool framed =
+        draw_theme_component(theme, pixels, THEME_ICON_FRAME, x - 2, y - 2, size + 4, size + 4);
+    bool card = themes_component(theme, THEME_CARD) != NULL;
+    int inset = (framed || card) && theme->component_border > 2 ? theme->component_border - 2 : 0;
+    if (size > 2 * inset)
+        draw_icon_image(app, pixels, index, x + inset, y + inset, size - 2 * inset, color);
 }
 
 /* Fixed-size jackets on a continuous shelf. Banners remain native icons,

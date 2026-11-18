@@ -171,6 +171,9 @@ Top-screen theme compositions live in `ui/renderer.c`: content and navigation
 use independent offsets for left/right rails; Poster has a separate artwork/tab
 composition and preserves the existing information and Index views. Wallpaper
 strength and the reading-surface opacity are preblended by `theme_backgrounds.c`.
+Theme, native and associated icons share each layout's preview footprint. Preview
+images reserve authored frame borders; sidebar captions also reserve the active
+font's full height inside their card. Browser-cell sizing stays independent.
 
 Theme header labels and battery/disconnected-wireless sprites use prepared theme
 state. `theme_components.c` maps cached battery readings to artwork states;

@@ -96,7 +96,7 @@ static void check_poster_preview(const char *name, uint16_t expected)
         app.themes.active.tab_style = style;
         render_app(&app, top.pixels, bottom.pixels, "12:00");
         int y = style == 1 ? 54 : 60;
-        assert(top.pixels[y * 256 + 27] == expected);
+        assert(top.pixels[(y + 16) * 256 + 64] == expected);
         assert(app.icon_reads == reads);
     }
     app.artwork.ready = true;
@@ -277,7 +277,7 @@ int main(int argc, char **argv)
     assert(!icons_for_entry(&app, find_entry("Native.srl")));
     assert(!icons_for_entry(&app, find_entry("Second.smc")));
     render_app(&app, top.pixels, bottom.pixels, "12:00");
-    assert(top.pixels[73 * 256 + 33] == (0x8000 | (31 << 10)));
+    assert(top.pixels[80 * 256 + 64] == (0x8000 | (31 << 10)));
     for (int pixel = 0; pixel < 256 * 192; pixel++)
         assert(bottom.pixels[pixel] != (0x8000 | (31 << 10)));
     settle();
@@ -376,7 +376,7 @@ int main(int argc, char **argv)
     assert(!icons_for_entry(&app, 0));   /* List loads only the top-screen preview. */
     app.show_covers = true;
     render_app(&app, top.pixels, bottom.pixels, "12:00");
-    assert(top.pixels[73 * 256 + 33] == 0x801f);
+    assert(top.pixels[80 * 256 + 64] == 0x801f);
     for (int pixel = 0; pixel < 256 * 192; pixel++)
         assert(bottom.pixels[pixel] != 0x801f); /* List remains text-only. */
     assert(path_join(app.system_catalog.content_paths[1], root, "roms/Bad.nds"));
@@ -387,10 +387,13 @@ int main(int argc, char **argv)
     assert(camera->system_fallback);
     render_app(&app, top.pixels, bottom.pixels, "12:00");
     const uint16_t *themed_camera = themes_icon(&app.themes.active, PLACEHOLDER_COUNT + 1);
-    for (int y = 0; y < 32; y++)
-        for (int x = 0; x < 32; x++)
-            if (themed_camera[y * 32 + x] & 0x8000)
-                assert(top.pixels[(73 + 2 * y) * 256 + 31 + 2 * x] == themed_camera[y * 32 + x]);
+    static uint16_t themed_preview[256 * 192];
+    memcpy(themed_preview, top.pixels, sizeof themed_preview);
+    BrowserIcon *cached_camera = &app.icons[app.entry_icons[1]];
+    cached_camera->system_fallback = false;
+    memcpy(cached_camera->pixels, themed_camera, sizeof cached_camera->pixels);
+    render_app(&app, top.pixels, bottom.pixels, "12:00");
+    assert(!memcmp(themed_preview, top.pixels, sizeof themed_preview));
     reads = app.icon_reads;
     settle();
     assert(app.icon_reads == reads); /* A missing/corrupt banner is not retried every frame. */

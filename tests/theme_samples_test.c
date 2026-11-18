@@ -133,6 +133,70 @@ static void banner_preview_surface(void)
     }
 }
 
+/* Every icon source occupies the same preview slot. Fully opaque banners are
+ * the worst case: transparent theme padding must not be what protects a frame. */
+static void preview_icon_bounds(void)
+{
+    app_category(&app, CATEGORY_GAMES);
+    app.browser_style = BROWSER_CLASSIC;
+    app.show_covers = true;
+    app.detail_tab = 0;
+    app.rail_focus = false;
+    app.reduced_motion = true;
+    app.entry_count = 1;
+    app.locations[app.category].selected = app.locations[app.category].scroll = 0;
+    memset(&app.entries[0], 0, sizeof app.entries[0]);
+    strcpy(app.entries[0].name, "Preview test");
+    app.entry_icons[0] = 0;
+    app.icons[0].ready = true;
+    app.icons[0].system_fallback = false;
+    app.artwork.ready = false;
+    for (unsigned layout = 0; layout < TOP_LAYOUT_COUNT; layout++) {
+        app.themes.active.top_layout = layout;
+        ThemeBox previous = {0};
+        for (unsigned kind = 0; kind < 5; kind++) {
+            app.entries[0].kind = kind == 0   ? ITEM_DIRECTORY
+                                  : kind == 3 ? ITEM_INSTALLED_TITLE
+                                  : kind == 4 ? ITEM_SYSTEM
+                                              : ITEM_FILE;
+            strcpy(app.entries[0].path, kind == 1 ? "sd:/test.nds" : "sd:/test.sfc");
+            for (int pixel = 0; pixel < 32 * 32; pixel++)
+                app.icons[0].pixels[pixel] = 0x801f;
+            draw();
+            memcpy(stationary_rows, top.pixels, sizeof stationary_rows);
+            for (int pixel = 0; pixel < 32 * 32; pixel++)
+                app.icons[0].pixels[pixel] = 0xfc00;
+            draw();
+            int left = 256, right = -1, top_y = 192, bottom_y = -1;
+            for (int y = 0; y < 192; y++)
+                for (int x = 0; x < 256; x++)
+                    if (top.pixels[y * 256 + x] != stationary_rows[y * 256 + x]) {
+                        if (x < left)
+                            left = x;
+                        if (x > right)
+                            right = x;
+                        if (y < top_y)
+                            top_y = y;
+                        if (y > bottom_y)
+                            bottom_y = y;
+                    }
+            assert(right >= left && bottom_y >= top_y);
+            ThemeBox footprint = {left, top_y, right - left + 1, bottom_y - top_y + 1};
+            assert(footprint.width == footprint.height);
+            if (kind)
+                assert(!memcmp(&previous, &footprint, sizeof footprint));
+            previous = footprint;
+            if (layout <= TOP_SIDEBAR_LEFT) {
+                int offset = layout == TOP_SIDEBAR_LEFT ? 78 : 0;
+                unsigned border = app.themes.active.component_border;
+                assert(left >= offset + 15 + (int)border && right < offset + 111 - (int)border);
+                assert(top_y >= 53 + (int)border);
+                assert(bottom_y + 2 * (int)font_height(font_current()) + 2 < 157 - (int)border);
+            }
+        }
+    }
+}
+
 static bool overlaps(ThemeBox a, ThemeBox b)
 {
     return a.width && b.width && a.x < b.x + b.width && b.x < a.x + a.width &&
@@ -414,6 +478,7 @@ int main(int argc, char **argv)
         settings_close(&app);
         picker_material_bounds();
         banner_preview_surface();
+        preview_icon_bounds();
         composition_bounds();
     }
     puts("PASS: shipped themes preview/cancel/apply/restart, Latin-1 font, PNG/JPEG wallpapers, "
