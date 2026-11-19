@@ -1503,7 +1503,7 @@ if ((Read-GloamState $root).Values.interface_language -cne 'custom') { throw 'La
                     "foreach ($item in $bad) {$failed=$false;try {$null=Save-GloamTitleMetadata $root 'roms/Example.nds' $item $read.Hash} catch {$failed=$true};if(-not $failed){throw 'Invalid metadata accepted'}}; "
                     "$failed=$false;try {$null=Save-GloamTitleMetadata $root 'roms/Example.nds' $values 'stale'} catch {$failed=$true};if(-not $failed){throw 'External edit overwritten'}")
         sidecar = content.with_name(content.name + '.gloam.ini')
-        self.assertIn('title=星の図書館', sidecar.read_text())
+        self.assertIn('title=星の図書館', sidecar.read_text(encoding='utf-8'))
         self.assertFalse(sidecar.read_bytes().startswith(b'\xef\xbb\xbf'))
         self.assertEqual(content.read_bytes(), b'Authored content, not a game')
         for bad in (b'version=1\ntitle=One\ntitle=Two', b'version=1\ntitle=bad\x00hidden', b'version=2', b'x'*2049):
