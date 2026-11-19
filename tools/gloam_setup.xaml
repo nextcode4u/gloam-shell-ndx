@@ -501,7 +501,7 @@
                 </StackPanel>
               </Grid>
               <TextBlock Text="Top screen"/>
-              <ComboBox x:Name="SettingTopContent" ToolTip="Theme preserves its composition. Other choices add contextual facts, nearby artwork, current-folder summaries or Home activity. Smart chooses for the current selection."/>
+              <ComboBox x:Name="SettingTopContent" ToolTip="Theme follows its design. Neighbors shows nearby covers. Smart adapts to what you browse. Press Y on the console for item details."/>
               <TextBlock Text="Icon size"/>
               <ComboBox x:Name="SettingIcons"/>
               <WrapPanel>

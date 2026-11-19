@@ -5,6 +5,7 @@
 #include "browser.h"
 #include "paths.h"
 #include "themes.h"
+#include "top_content.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
@@ -53,7 +54,7 @@ bool appearance_save(App *app, int slot)
             appearance_preset_name(slot), app->theme_id, app->accent_index,
             app->theme_accent_override, app->reduced_motion, app->icon_size, app->browser_style,
             app->show_covers, app->clock_12_hour, app->wallpaper_strength, top, bottom,
-            app->show_icon_labels, app->top_content);
+            app->show_icon_labels, top_content_preference(app->top_content));
     bool written = !ferror(file);
     if (fclose(file))
         written = false;
@@ -136,7 +137,7 @@ static bool read_preset(App *app, const char *path)
     app->browser_style = values[4];
     app->show_covers = values[5];
     app->show_icon_labels = icon_labels;
-    app->top_content = top_content;
+    app->top_content = top_content_preference(top_content);
     app->clock_12_hour = values[6];
     app->wallpaper_strength = values[7];
     themes_init(app);

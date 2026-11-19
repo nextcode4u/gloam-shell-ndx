@@ -7,13 +7,9 @@ bottom-screen view, icon size and labels remain independent per tab.
 
 | Choice | Content |
 | --- | --- |
-| Layout only | Always use the original composition, ignoring the theme content preset. |
-| Theme | Use the theme's original layout or its optional content preset. |
-| Context | Selected artwork/icon, resolved player availability, configured DS save slot and per-title override count, plus optional title details. |
-| Neighbors | Previous, selected and next artwork from the current browser batch. |
-| Folder overview | Current loaded folder/batch counts, file-type totals and up to three representative file covers. Selecting a subfolder does not recursively inspect it. |
-| Home activity | Up to three published Home pins, collections or recent requests with available artwork. Hidden Home sections stay hidden. Outside Home, use Context. |
-| Smart | Home activity on Home, Folder overview for a selected folder or empty library, and Context for other entries. |
+| Theme | Follow the selected theme's composition. |
+| Neighbors | Show the previous, selected and next cover. |
+| Smart | Adapt automatically: Home shortcuts on Home, a folder summary while browsing folders, and title context for files. |
 
 Y switches to detailed context and back. L/R and X keep their navigation roles.
 The presets reserve a bottom tab dock, including space for icon-tab captions;
@@ -73,3 +69,9 @@ top-screen summary cards outside that window retain their icons. Current-folder 
 descendants. Changing selection cancels pending image work and clears its text
 snapshot. Recovery ignores these presets and optional metadata. Physical-device
 latency and memory measurements are still needed alongside host checks.
+
+## Older development settings
+
+Saved user choices for Context, Folder overview and Home activity load as Smart;
+Layout only loads as Theme. Existing theme layouts and explicit theme-defined
+content presets keep their behavior. Saved numeric IDs are unchanged.

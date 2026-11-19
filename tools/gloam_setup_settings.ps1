@@ -35,6 +35,13 @@ $GloamSettingRules = [ordered]@{
     auto_launch_delay = @{ Default = '0'; Choices = @('0','3','5','10') }
 }
 
+# Keep reading old development settings without exposing retired modes in the UI.
+function Convert-GloamTopContent([string]$Value) {
+    if ($Value -in @('1','3','4')) { return '5' }
+    if ($Value -eq '6') { return '0' }
+    return $Value
+}
+
 function Test-GloamSetting([string]$Key, [string]$Value) {
     if (-not $GloamSettingRules.Contains($Key)) { return $false }
     $rule = $GloamSettingRules[$Key]
@@ -70,6 +77,7 @@ function Read-GloamState([string]$Root, [string]$Relative = '_nds/dsi-frontend/s
             else { $issues += $key }
         }
     }
+    $values.top_content = Convert-GloamTopContent $values.top_content
     return [pscustomobject]@{ Values = $values; Lines = $lines; Hash = $hash; Issues = $issues }
 }
 
@@ -81,6 +89,7 @@ function Save-GloamSettings([string]$Root, $Changes, [string]$ExpectedHash) {
     foreach ($key in $Changes.Keys) {
         $value = [string]$Changes[$key]
         if (-not (Test-GloamSetting $key $value)) { throw "Unsupported setting value: $key" }
+        if ($key -eq 'top_content') { $value = Convert-GloamTopContent $value }
         $updates[$key] = $value
     }
     $locked = if ($updates.Contains('simple_settings_lock')) { $updates['simple_settings_lock'] } else { $state.Values.simple_settings_lock }

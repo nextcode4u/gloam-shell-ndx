@@ -72,10 +72,9 @@ Current per-tab locations still persist across restarts.
 
 ## Top-screen content
 
-Development builds after 1.2.0 add **Appearance → Top screen**: Theme, Context,
-Neighbors, Folder overview, Home activity and Smart. Theme preserves existing
-layouts; the other presets use cached artwork and bounded information without
-a recursive scan. See [top-screen content](guides/TOP_SCREEN.md).
+Development builds after 1.2.0 add **Appearance → Top screen**: Theme, Neighbors and
+Smart. Theme follows its design, Neighbors shows nearby covers, and Smart adapts
+to your selection. Press Y for item details. See [top-screen content](guides/TOP_SCREEN.md).
 
 ## Simple and Advanced settings
 

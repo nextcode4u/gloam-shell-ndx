@@ -1,6 +1,9 @@
 #ifndef FRONTEND_TOP_CONTENT_H
 #define FRONTEND_TOP_CONTENT_H
 #include "types.h"
+/* Stable saved IDs; legacy standalone summaries migrate to Smart. */
+TopContentMode top_content_preference(unsigned mode);
+TopContentMode top_content_step(unsigned mode, int direction);
 TopContentMode top_content_mode(const App *app);
 const char *top_content_name(unsigned mode);
 const char *top_content_id(unsigned mode);

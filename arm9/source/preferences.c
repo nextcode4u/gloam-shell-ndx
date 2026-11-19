@@ -6,6 +6,7 @@
 #include "system_routes.h"
 #include "tabs.h"
 #include "themes.h"
+#include "top_content.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -149,7 +150,7 @@ static bool read_state_file(App *app, const char *filename)
             app->browser_style = value;
         } else if (sscanf(line, "top_content=%d", &value) == 1 && value >= 0 &&
                    value < TOP_CONTENT_COUNT) {
-            app->top_content = value;
+            app->top_content = top_content_preference(value);
         } else if (sscanf(line, "sort_mode=%d", &value) == 1 && value >= 0 && value < SORT_COUNT) {
             app->sort_mode = value;
         } else if (sscanf(line, "show_hidden=%d", &value) == 1)
@@ -302,7 +303,7 @@ bool app_save(App *app)
             app->recovery_mode ? app->recovery_preferences.icon_size : app->icon_size,
             app->recovery_mode ? app->recovery_preferences.browser_style : app->browser_style,
             app->detail_tab);
-    fprintf(file, "top_content=%d\n", app->top_content);
+    fprintf(file, "top_content=%d\n", top_content_preference(app->top_content));
     fprintf(file,
             "sort_mode=%d\nshow_hidden=%d\nshow_system=%d\nhide_save_folders=%d\nhide_bios_folders="
             "%d\nshow_extensions=%"

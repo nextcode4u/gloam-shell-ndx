@@ -25,10 +25,10 @@ and [the build guide](docs/development/BUILDING.md).
   authorization. Investigate emulator-specific failures in the emulator.
 - Report compatibility limits honestly. Do not turn successful preparation into
   an unverified claim of application boot, save or return support.
-- Commit each completed logical change separately after its relevant checks pass.
-  Keep fixes, features and unrelated cleanup in focused commits; do not accumulate
-  a session's work into one large commit or squash independent changes together.
-  Do not commit user changes as part of an unrelated task.
+- Require a distinct purpose for each UI option; reuse existing controls.
+- Commit each completed logical change separately after relevant checks pass.
+  Never combine unrelated work, squash independent changes or include user edits
+  in unrelated commits.
 - Follow Semantic Versioning for future releases: compatible fixes use patch,
   compatible features use minor, and incompatible public-contract changes use
   major. See `docs/development/RELEASING.md`; never replace published artifacts.

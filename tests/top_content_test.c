@@ -62,8 +62,28 @@ static void draw(void)
 int main(int argc, char **argv)
 {
     assert(argc == 2);
+    /* User choices stay small; persisted enum IDs never shift. */
+    assert(top_content_step(TOP_CONTENT_THEME, 1) == TOP_CONTENT_NEIGHBORS);
+    assert(top_content_step(TOP_CONTENT_NEIGHBORS, 1) == TOP_CONTENT_SMART);
+    assert(top_content_step(TOP_CONTENT_SMART, 1) == TOP_CONTENT_THEME);
+    assert(top_content_step(TOP_CONTENT_THEME, -1) == TOP_CONTENT_SMART);
+    assert(top_content_step(TOP_CONTENT_SMART, -1) == TOP_CONTENT_NEIGHBORS);
+    assert(top_content_step(TOP_CONTENT_NEIGHBORS, -1) == TOP_CONTENT_THEME);
+    assert(top_content_preference(TOP_CONTENT_CONTEXT) == TOP_CONTENT_SMART);
+    assert(top_content_preference(TOP_CONTENT_FOLDER) == TOP_CONTENT_SMART);
+    assert(top_content_preference(TOP_CONTENT_ACTIVITY) == TOP_CONTENT_SMART);
+    assert(top_content_preference(TOP_CONTENT_ORIGINAL) == TOP_CONTENT_THEME);
+    assert(top_content_preference(999) == TOP_CONTENT_THEME);
     app_init(&app, argv[1], true, true);
     assert(app.top_content == TOP_CONTENT_THEME && top_content_mode(&app) == TOP_CONTENT_THEME);
+    for (unsigned legacy = 1; legacy < TOP_CONTENT_COUNT; legacy++) {
+        char record[64];
+        snprintf(record, sizeof record, "version=1\ntop_content=%u\n", legacy);
+        write_text("_nds/dsi-frontend/state.ini", record);
+        app_init(&restored, argv[1], true, true);
+        assert(restored.top_content == top_content_preference(legacy));
+    }
+
     app_category(&app, CATEGORY_GAMES);
     assert(app.entry_count == 0);
     write_text("roms/Fixture.txt", "Authored metadata fixture, not a game");
@@ -94,10 +114,10 @@ int main(int argc, char **argv)
     draw();
     assert(app_save(&app));
     app_init(&restored, argv[1], true, true);
-    assert(restored.top_content == TOP_CONTENT_CONTEXT);
+    assert(restored.top_content == TOP_CONTENT_SMART);
     assert(appearance_save(&app, 0));
     app.top_content = TOP_CONTENT_NEIGHBORS;
-    assert(appearance_load(&app, 0) && app.top_content == TOP_CONTENT_CONTEXT);
+    assert(appearance_load(&app, 0) && app.top_content == TOP_CONTENT_SMART);
 
     const char *bad[] = {"version=2\ntitle=Bad",          "version=1\ntitle=First\ntitle=Second",
                          "version=1\nyear=202A",          "version=1\nunknown=value",

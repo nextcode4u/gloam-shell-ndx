@@ -27,6 +27,32 @@ const char *top_content_name(unsigned mode)
                                   "Home activity", "Smart",   "Layout only"};
     return mode < TOP_CONTENT_COUNT ? names[mode] : names[0];
 }
+TopContentMode top_content_preference(unsigned mode)
+{
+    switch (mode) {
+    case TOP_CONTENT_NEIGHBORS:
+    case TOP_CONTENT_SMART:
+        return (TopContentMode)mode;
+    case TOP_CONTENT_CONTEXT:
+    case TOP_CONTENT_FOLDER:
+    case TOP_CONTENT_ACTIVITY:
+        return TOP_CONTENT_SMART;
+    default:
+        return TOP_CONTENT_THEME;
+    }
+}
+
+TopContentMode top_content_step(unsigned mode, int direction)
+{
+    static const TopContentMode choices[] = {TOP_CONTENT_THEME, TOP_CONTENT_NEIGHBORS,
+                                             TOP_CONTENT_SMART};
+    mode = top_content_preference(mode);
+    for (unsigned i = 0; i < 3; i++)
+        if (choices[i] == mode)
+            return choices[(i + (direction < 0 ? 2 : 1)) % 3];
+    return TOP_CONTENT_THEME;
+}
+
 TopContentMode top_content_mode(const App *app)
 {
     if (app->recovery_mode)

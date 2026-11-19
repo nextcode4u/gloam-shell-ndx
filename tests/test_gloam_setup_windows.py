@@ -1521,6 +1521,19 @@ if ((Read-GloamState $root).Values.interface_language -cne 'custom') { throw 'La
                     "if((Read-GloamState $root).Values.top_content -cne '5'){throw 'Top content lost'}; "
                     "if(Test-GloamSetting 'top_content' '999'){throw 'Out of bounds content accepted'}")
 
+    def test_retired_top_content_settings_migrate_without_changing_other_state(self):
+        state = self.sd / '_nds/dsi-frontend/state.ini'
+        state.parent.mkdir(parents=True, exist_ok=True)
+        for old, expected in (('1', '5'), ('3', '5'), ('4', '5'), ('6', '0')):
+            original = 'version=1\ntop_content=' + old + '\nfavorite=sd:/roms/Keep.nds\n'
+            state.write_text(original)
+            self.run_ps("$state=Read-GloamState $root; "
+                        "if($state.Values.top_content -cne '" + expected + "'){throw 'Legacy choice not mapped'}; "
+                        "Save-GloamSettings $root @{top_content='" + old + "'} $state.Hash; "
+                        "if((Read-GloamState $root).Values.top_content -cne '" + expected + "'){throw 'Migration not retained'}")
+            self.assertIn('top_content=' + expected, state.read_text())
+            self.assertIn('favorite=sd:/roms/Keep.nds', state.read_text())
+
     def test_organizer_never_treats_metadata_as_a_rom_with_custom_ini_filter(self):
         self.organizer_file('roms/Nintendo DS/Moon.nds', b'Authored content')
         self.organizer_file('roms/Nintendo DS/Moon.nds.gloam.ini', b'version=1\ntitle=Moon\n')

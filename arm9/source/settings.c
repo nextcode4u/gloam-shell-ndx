@@ -286,8 +286,8 @@ static const SettingsOption appearance[] = {
      "bypasses it. Missing translations keep English. Recovery keeps English.",
      true, OPT_INTERFACE_LANGUAGE},
     {"Top screen",
-     "Theme preserves its layout. Context shows launch facts. Neighbors shows nearby art. "
-     "Folder summarizes this batch. Activity shows Home shortcuts. Smart chooses by context. Layout only ignores theme content presets.",
+     "Theme follows its design. Neighbors shows nearby covers. Smart adapts to what you browse. "
+     "Press Y for item details.",
      true, OPT_TOP_CONTENT}};
 static const SettingsOption browser[] = {
     {"Sort order",
@@ -791,8 +791,7 @@ void settings_adjust(App *app, int direction)
         app_adjust_control(app, QUICK_SCROLL_SPEED, direction);
         return;
     case OPT_TOP_CONTENT:
-        app->top_content =
-            (app->top_content + TOP_CONTENT_COUNT + (direction < 0 ? -1 : 1)) % TOP_CONTENT_COUNT;
+        app->top_content = top_content_step(app->top_content, direction);
         app_reset_preview(app);
         break;
     case OPT_COVERS:
