@@ -1,4 +1,4 @@
-/* Exercise FAT's non-replacing rename semantics and failed save transactions. */
+/* Exercise FAT save transactions and recovery from malformed or interrupted reads. */
 #include "paths.h"
 #include "preferences.h"
 #include <assert.h>
@@ -8,6 +8,15 @@
 #include <unistd.h>
 
 static App app;
+static bool short_read;
+static FILE *state_stream;
+static int state_lines;
+size_t __real_fread(void *, size_t, size_t, FILE *);
+char *__real_fgets(char *, int, FILE *);
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+char *__real___fgets_chk(char *, size_t, int, FILE *);
+#endif
 static bool deny_open, deny_close, deny_remove, deny_rotate, deny_install, deny_restore;
 FILE *__real_fopen(const char *, const char *);
 int __real_fclose(FILE *);
@@ -24,10 +33,44 @@ FILE *__wrap_fopen(const char *path, const char *mode)
         errno = EROFS;
         return NULL;
     }
-    return __real_fopen(path, mode);
+    FILE *file = __real_fopen(path, mode);
+    if (short_read && named(path, "state.ini") && *mode == 'r') {
+        state_stream = file;
+        state_lines = 0;
+    }
+    return file;
 }
+size_t __wrap_fread(void *buffer, size_t size, size_t count, FILE *file)
+{
+    if (file == state_stream && count > 16)
+        count = 16;
+    return __real_fread(buffer, size, count, file);
+}
+char *__wrap_fgets(char *buffer, int size, FILE *file)
+{
+    if (file == state_stream && ++state_lines > 2)
+        return NULL;
+    return __real_fgets(buffer, size, file);
+}
+/* Fortified glibc builds route these reads through checked entry points. */
+#ifdef __GLIBC__
+size_t __wrap___fread_chk(void *buffer, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    if (file == state_stream && count > 16)
+        count = 16;
+    return __real___fread_chk(buffer, capacity, size, count, file);
+}
+char *__wrap___fgets_chk(char *buffer, size_t capacity, int size, FILE *file)
+{
+    if (file == state_stream && ++state_lines > 2)
+        return NULL;
+    return __real___fgets_chk(buffer, capacity, size, file);
+}
+#endif
 int __wrap_fclose(FILE *file)
 {
+    if (file == state_stream)
+        state_stream = NULL;
     int result = __real_fclose(file);
     if (deny_close) {
         errno = ENOSPC;
@@ -118,6 +161,60 @@ int main(int argc, char **argv)
     expect(backup, "version=1\n");
     assert(path_commit_file(current, current, backup) == FILE_COMMIT_INSPECT);
     expect(current, "version=1\n");
-    puts("PASS: FAT save rotation, read-only/full-disk errors, rollback and recovery-copy "
+    /* A failed primary read must not apply even its first complete setting. */
+    put(current, "version=1\nmusic_volume=99\nshow_hidden=1\n");
+    put(backup, "version=1\nshow_hidden=1\n");
+    app.audio.music_volume = 37;
+    app.show_hidden = false;
+    short_read = true;
+    preferences_load(&app);
+    short_read = false;
+    assert(app.show_hidden && app.audio.music_volume == 37);
+    app.show_hidden = false;
+    deny_close = true;
+    preferences_load(&app);
+    deny_close = false;
+    assert(!app.show_hidden && app.audio.music_volume == 37);
+
+    /* A continuation of an overlong record must never become a setting. */
+    FILE *long_file = __real_fopen(current, "w");
+    assert(long_file && fputs("version=1\n", long_file) >= 0);
+    for (int i = 0; i < 1023; i++)
+        assert(fputc('#', long_file) != EOF);
+    assert(fputs("show_hidden=1\nmusic_volume=42", long_file) >= 0);
+    assert(!__real_fclose(long_file));
+    app.show_hidden = false;
+    preferences_load(&app);
+    assert(!app.show_hidden && app.audio.music_volume == 42);
+
+    /* Binary corruption rejects the entire primary before applying values. */
+    FILE *binary = __real_fopen(current, "wb");
+    static const char corrupt[] = "version=1\nmusic_volume=99\n\0show_hidden=0\n";
+    assert(binary && fwrite(corrupt, 1, sizeof corrupt - 1, binary) == sizeof corrupt - 1);
+    assert(!__real_fclose(binary));
+    app.audio.music_volume = 37;
+    app.show_hidden = false;
+    preferences_load(&app);
+    assert(app.show_hidden && app.audio.music_volume == 37);
+    put(current, "version=1\r\nmusic_volume=43\r\nshow_hidden=0");
+    preferences_load(&app);
+    assert(!app.show_hidden && app.audio.music_volume == 43);
+    put(current, "version=1");
+    app.audio.music_volume = 29;
+    preferences_load(&app);
+    assert(app.audio.music_volume == 29); /* Header-only files remain valid. */
+    put(current, "");
+    app.show_hidden = false;
+    preferences_load(&app);
+    assert(app.show_hidden); /* Empty primary uses the backup. */
+    FILE *oversized = __real_fopen(current, "wb");
+    assert(oversized && fputs("version=1\nmusic_volume=99\n", oversized) >= 0);
+    assert(!fseek(oversized, 128 * 1024, SEEK_SET) && fputc('x', oversized) != EOF);
+    assert(!__real_fclose(oversized));
+    app.audio.music_volume = 29;
+    preferences_load(&app);
+    assert(app.audio.music_volume == 29);
+    puts("PASS: complete settings reads, corrupt-record recovery, FAT save rotation, "
+         "read-only/full-disk errors, rollback and recovery-copy "
          "preservation");
 }

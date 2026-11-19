@@ -105,6 +105,8 @@ claimed: real DSi timings, WPA2 connectivity and power use need hardware checks.
 Preference-save failures identify the operation and filesystem error on the
 console (for example, opening `state.tmp` or rotating `state.ini`). Failed backup
 rotation stops the save; failed installation attempts restore the previous
-state, and a lone `state.bak` recovery copy survives retries. A failed save still
+state, and a lone `state.bak` recovery copy survives retries. Settings load only
+after a complete, bounded read; unreadable or binary-corrupted state falls back
+to the backup. Overlong records are skipped as a whole. A failed save still
 blocks launching rather than silently losing changes. These checks do not
 establish the cause of an individual SD write failure without its error details.

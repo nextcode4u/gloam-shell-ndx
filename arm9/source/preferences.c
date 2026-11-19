@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 static void read_location(App *app, const char *line, bool reset_locations[TAB_CAP])
 {
@@ -60,17 +61,31 @@ static bool read_state_file(App *app, const char *filename)
     if (!file)
         return false;
 
-    if (fseek(file, 0, SEEK_END) || ftell(file) < 0 || ftell(file) > 128 * 1024 ||
-        fseek(file, 0, SEEK_SET)) {
+    struct stat metadata;
+    if (fstat(fileno(file), &metadata) || !S_ISREG(metadata.st_mode) || metadata.st_size < 9 ||
+        metadata.st_size > 128 * 1024) {
         fclose(file);
         return false;
     }
+    size_t size = (size_t)metadata.st_size;
+    char *contents = malloc(size + 1);
+    if (!contents) {
+        fclose(file);
+        return false;
+    }
+    /* Validate the complete read before changing settings, so a failed primary
+     * cannot contaminate defaults or values recovered from state.bak. */
+    bool complete = fread(contents, 1, size, file) == size && !ferror(file);
+    if (fclose(file))
+        complete = false;
+    if (!complete || memchr(contents, '\0', size) || memcmp(contents, "version=1", 9) ||
+        (size > 9 && contents[9] != '\r' && contents[9] != '\n')) {
+        free(contents);
+        return false;
+    }
+    contents[size] = '\0';
+    char *cursor = contents + strcspn(contents, "\r\n");
     char line[1024];
-    if (!fgets(line, sizeof line, file) || strncmp(line, "version=1", 9) != 0 ||
-        (line[9] != '\r' && line[9] != '\n' && line[9] != '\0')) {
-        fclose(file);
-        return false;
-    }
 
     /* Older state files had the full settings UI; preserve that view on upgrade. */
     app->advanced_settings = true;
@@ -79,8 +94,16 @@ static bool read_state_file(App *app, const char *filename)
     char active_tab[TAB_ID_CAP] = "";
     bool has_active_tab = false;
     bool reset_locations[TAB_CAP] = {false};
-    while (fgets(line, sizeof line, file)) {
-        line[strcspn(line, "\r\n")] = '\0';
+    while (*cursor) {
+        cursor += strspn(cursor, "\r\n");
+        size_t length = strcspn(cursor, "\r\n");
+        const char *record = cursor;
+        cursor += length;
+        /* Skip an oversized record as a whole, never parse its continuation. */
+        if (length >= sizeof line)
+            continue;
+        memcpy(line, record, length);
+        line[length] = '\0';
         int value;
         if (!strcmp(line, "settings_mode=simple"))
             app->advanced_settings = false;
@@ -235,7 +258,7 @@ static bool read_state_file(App *app, const char *filename)
                 path_copy(app->favorites[app->favorite_count++], path, PATH_CAP);
         }
     }
-    fclose(file);
+    free(contents);
     /* Batch records can precede or follow locations in a hand-edited file. */
     for (int tab = 0; tab < app->tab_count; tab++)
         if (reset_locations[tab])
