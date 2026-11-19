@@ -8,19 +8,58 @@
 #include "themes.h"
 #include "top_content.h"
 #include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 
+/* Require a complete numeric field and report overflow before narrowing it. */
+static bool read_integer(const char **cursor, char delimiter, int *value)
+{
+    char *end;
+    errno = 0;
+    long parsed = strtol(*cursor, &end, 10);
+    if (end == *cursor || errno == ERANGE || parsed < INT_MIN || parsed > INT_MAX)
+        return false;
+    end += strspn(end, " \t");
+    if (*end != delimiter)
+        return false;
+    *value = (int)parsed;
+    *cursor = end + (delimiter != '\0');
+    return true;
+}
+
+static bool read_setting_integer(const char *line, const char *key, int *value)
+{
+    size_t length = strlen(key);
+    if (strncmp(line, key, length))
+        return false;
+    const char *cursor = line + length;
+    return read_integer(&cursor, '\0', value);
+}
+
+static bool read_tab_id(const char **cursor, char id[TAB_ID_CAP])
+{
+    const char *comma = strchr(*cursor, ',');
+    if (!comma || comma == *cursor || (size_t)(comma - *cursor) >= TAB_ID_CAP)
+        return false;
+    size_t length = (size_t)(comma - *cursor);
+    memcpy(id, *cursor, length);
+    id[length] = '\0';
+    *cursor = comma + 1;
+    return true;
+}
+
 static void read_location(App *app, const char *line, bool reset_locations[TAB_CAP])
 {
-    int category, selected, scroll, path_offset = 0;
-    if (sscanf(line, "location=%d,%d,%d,%n", &category, &selected, &scroll, &path_offset) != 3 ||
-        path_offset == 0 || category <= CATEGORY_HOME || category >= CATEGORY_COUNT)
+    int category, selected, scroll;
+    const char *path = line + 9;
+    if (!read_integer(&path, ',', &category) || !read_integer(&path, ',', &selected) ||
+        !read_integer(&path, ',', &scroll) || category <= CATEGORY_HOME ||
+        category >= CATEGORY_COUNT)
         return;
 
-    const char *path = line + path_offset;
     /* Old unrestricted locations must not escape a newly assigned library. */
     if (strlen(path) >= PATH_CAP || !path_is_within_root(path, tabs_browse_root(app, category))) {
         reset_locations[category] = true;
@@ -36,14 +75,14 @@ static void read_location(App *app, const char *line, bool reset_locations[TAB_C
 static void read_tab_location(App *app, const char *line, bool reset_locations[TAB_CAP])
 {
     char id[TAB_ID_CAP];
-    int selected, scroll, offset = 0;
-    if (sscanf(line, "tab_location=%31[^,],%d,%d,%n", id, &selected, &scroll, &offset) != 3 ||
-        !offset)
+    int selected, scroll;
+    const char *path = line + 13;
+    if (!read_tab_id(&path, id) || !read_integer(&path, ',', &selected) ||
+        !read_integer(&path, ',', &scroll))
         return;
     int index = tabs_find(app, id);
     if (index < CATEGORY_COUNT)
         return;
-    const char *path = line + offset;
     /* A changed folder assignment must not reopen the previous folder tree. */
     if (strlen(path) >= PATH_CAP || !path_is_within_root(path, tabs_browse_root(app, index))) {
         reset_locations[index] = true;
@@ -109,9 +148,9 @@ static bool read_state_file(App *app, const char *filename)
             app->advanced_settings = false;
         else if (!strcmp(line, "settings_mode=advanced"))
             app->advanced_settings = true;
-        else if (sscanf(line, "background_updates=%d", &value) == 1)
+        else if (read_setting_integer(line, "background_updates=", &value))
             app->updates.enabled = value == 1;
-        else if (sscanf(line, "simple_settings_lock=%d", &value) == 1)
+        else if (read_setting_integer(line, "simple_settings_lock=", &value))
             app->simple_settings_lock = value == 1;
         else if (!strncmp(line, "selected_path=", 14) && strlen(line + 14) < PATH_CAP &&
                  path_is_within_root(line + 14, app->root))
@@ -124,100 +163,109 @@ static bool read_state_file(App *app, const char *filename)
             app->auto_launch_delay = 5;
         else if (!strcmp(line, "auto_launch_delay=10"))
             app->auto_launch_delay = 10;
-        else if (sscanf(line, "splash_mode=%d", &value) == 1 && value >= SPLASH_OFF &&
+        else if (read_setting_integer(line, "splash_mode=", &value) && value >= SPLASH_OFF &&
                  value < SPLASH_MODE_COUNT)
             app->splash_mode = value;
-        else if (sscanf(line, "splash_once=%d", &value) == 1)
+        else if (read_setting_integer(line, "splash_once=", &value))
             app->splash_once = value == 1;
-        else if (sscanf(line, "splash_sound=%d", &value) == 1)
+        else if (read_setting_integer(line, "splash_sound=", &value))
             app->splash_sound = value == 1;
         else if (!strncmp(line, "splash_path=", 12) && line[12])
             path_resolve_sd(app->splash_path, app->root, line + 12);
-        else if (sscanf(line, "music_mode=%d", &value) == 1 && value >= MUSIC_OFF &&
+        else if (read_setting_integer(line, "music_mode=", &value) && value >= MUSIC_OFF &&
                  value < MUSIC_MODE_COUNT)
             app->audio.mode = value;
-        else if (sscanf(line, "music_volume=%d", &value) == 1 && value >= 0 && value <= 100)
+        else if (read_setting_integer(line, "music_volume=", &value) && value >= 0 && value <= 100)
             app->audio.music_volume = value;
-        else if (sscanf(line, "effects_volume=%d", &value) == 1 && value >= 0 && value <= 100)
+        else if (read_setting_integer(line, "effects_volume=", &value) && value >= 0 &&
+                 value <= 100)
             app->audio.effects_volume = value;
-        else if (sscanf(line, "theme_sounds=%d", &value) == 1)
+        else if (read_setting_integer(line, "theme_sounds=", &value))
             app->audio.effects_enabled = value == 1;
         else if (!strncmp(line, "music_path=", 11) && line[11])
             path_resolve_sd(app->audio.custom_path, app->root, line + 11);
         else if (!strncmp(line, "theme_id=", 9) && strlen(line + 9) < THEME_ID_CAP)
             path_copy(app->theme_id, line + 9, THEME_ID_CAP);
-        else if (sscanf(line, "installed_open=%d", &value) == 1)
+        else if (read_setting_integer(line, "installed_open=", &value))
             app->installed_open = value == 1;
         else if (!strncmp(line, "installed_selection=", 20)) {
-            unsigned long id = strtoul(line + 20, NULL, 16);
-            if (id <= UINT32_MAX)
+            const char *start = line + 20;
+            start += strspn(start, " \t\v\f");
+            char *end;
+            errno = 0;
+            unsigned long id = strtoul(start, &end, 16);
+            if (end != start && *start != '-' && errno != ERANGE && id <= UINT32_MAX &&
+                !end[strspn(end, " \t")])
                 app->installed_selected_id = (uint32_t)id;
-        } else if (sscanf(line, "theme_accent_override=%d", &value) == 1)
+        } else if (read_setting_integer(line, "theme_accent_override=", &value))
             app->theme_accent_override = value == 1;
-        else if (sscanf(line, "theme=%d", &value) == 1 && value >= 0 &&
+        else if (read_setting_integer(line, "theme=", &value) && value >= 0 &&
                  value < THEME_ACCENT_COUNT) {
             app->accent_index = value;
-        } else if (sscanf(line, "category=%d", &value) == 1 && value >= CATEGORY_HOME &&
+        } else if (read_setting_integer(line, "category=", &value) && value >= CATEGORY_HOME &&
                    value < CATEGORY_COUNT) {
             app->category = value;
-        } else if (sscanf(line, "reduced_motion=%d", &value) == 1) {
+        } else if (read_setting_integer(line, "reduced_motion=", &value)) {
             app->reduced_motion = value != 0;
-        } else if (sscanf(line, "scroll_speed=%d", &value) == 1 && value >= SCROLL_SLOW &&
+        } else if (read_setting_integer(line, "scroll_speed=", &value) && value >= SCROLL_SLOW &&
                    value < SCROLL_SPEED_COUNT) {
             app->scroll_speed = value;
-        } else if (sscanf(line, "icon_size=%d", &value) == 1 && value >= 0 &&
+        } else if (read_setting_integer(line, "icon_size=", &value) && value >= 0 &&
                    value < ICON_SIZE_COUNT) {
             app->icon_size = value;
-        } else if (sscanf(line, "browser_style=%d", &value) == 1 && value >= 0 &&
+        } else if (read_setting_integer(line, "browser_style=", &value) && value >= 0 &&
                    value < BROWSER_STYLE_COUNT) {
             app->browser_style = value;
-        } else if (sscanf(line, "top_content=%d", &value) == 1 && value >= 0 &&
+        } else if (read_setting_integer(line, "top_content=", &value) && value >= 0 &&
                    value < TOP_CONTENT_COUNT) {
             app->top_content = top_content_preference(value);
-        } else if (sscanf(line, "sort_mode=%d", &value) == 1 && value >= 0 && value < SORT_COUNT) {
+        } else if (read_setting_integer(line, "sort_mode=", &value) && value >= 0 &&
+                   value < SORT_COUNT) {
             app->sort_mode = value;
-        } else if (sscanf(line, "show_hidden=%d", &value) == 1)
+        } else if (read_setting_integer(line, "show_hidden=", &value))
             app->show_hidden = value != 0;
-        else if (sscanf(line, "show_system=%d", &value) == 1)
+        else if (read_setting_integer(line, "show_system=", &value))
             app->show_system = value != 0;
-        else if (sscanf(line, "hide_bios_folders=%d", &value) == 1)
+        else if (read_setting_integer(line, "hide_bios_folders=", &value))
             app->hide_bios_folders = value != 0;
-        else if (sscanf(line, "hide_save_folders=%d", &value) == 1)
+        else if (read_setting_integer(line, "hide_save_folders=", &value))
             app->hide_save_folders = value != 0;
         else if (!strncmp(line, "top_background=", 15) && line[15])
             path_resolve_sd(app->custom_backgrounds[0], app->root, line + 15);
         else if (!strncmp(line, "bottom_background=", 18) && line[18])
             path_resolve_sd(app->custom_backgrounds[1], app->root, line + 18);
-        else if (sscanf(line, "wallpaper_strength=%d", &value) == 1 && value >= -1 && value <= 35)
+        else if (read_setting_integer(line, "wallpaper_strength=", &value) && value >= -1 &&
+                 value <= 35)
             app->wallpaper_strength = value;
         else if (!strncmp(line, "interface_language=", 19) && ui_locale_valid(line + 19))
             path_copy(app->interface_language, line + 19, sizeof app->interface_language);
-        else if (sscanf(line, "internal_titles=%d", &value) == 1)
+        else if (read_setting_integer(line, "internal_titles=", &value))
             app->internal_titles = value == 1;
-        else if (sscanf(line, "title_language=%d", &value) == 1 && value >= 0 && value < 8)
+        else if (read_setting_integer(line, "title_language=", &value) && value >= 0 && value < 8)
             app->title_language = value;
-        else if (sscanf(line, "show_extensions=%d", &value) == 1)
+        else if (read_setting_integer(line, "show_extensions=", &value))
             app->show_extensions = value != 0;
-        else if (sscanf(line, "show_icon_labels=%d", &value) == 1)
+        else if (read_setting_integer(line, "show_icon_labels=", &value))
             app->show_icon_labels = value != 0;
-        else if (sscanf(line, "show_covers=%d", &value) == 1)
+        else if (read_setting_integer(line, "show_covers=", &value))
             app->show_covers = value != 0;
-        else if (sscanf(line, "filter_recognized=%d", &value) == 1)
+        else if (read_setting_integer(line, "filter_recognized=", &value))
             app->filter_recognized = value != 0;
-        else if (sscanf(line, "clock_12_hour=%d", &value) == 1)
+        else if (read_setting_integer(line, "clock_12_hour=", &value))
             app->clock_12_hour = value != 0;
         else if (!strncmp(line, "startup_tab=", 12) && strlen(line + 12) < TAB_ID_CAP)
             path_copy(app->startup_tab, line + 12, TAB_ID_CAP);
-        else if (sscanf(line, "detail=%d", &value) == 1 && value >= 0 && value < 2) {
+        else if (read_setting_integer(line, "detail=", &value) && value >= 0 && value < 2) {
             app->detail_tab = value;
             memset(app->tab_details, value, sizeof app->tab_details);
         } else if (!strncmp(line, "tab_display=", 12)) {
             char id[TAB_ID_CAP];
-            unsigned view, icons, labels;
-            int end = 0;
-            if (sscanf(line + 12, "%31[^,],%u,%u,%u%n", id, &view, &icons, &labels, &end) == 4 &&
-                end && !line[12 + end] && view < BROWSER_STYLE_COUNT && icons < ICON_SIZE_COUNT &&
-                labels <= 1) {
+            int view, icons, labels;
+            const char *cursor = line + 12;
+            if (read_tab_id(&cursor, id) && read_integer(&cursor, ',', &view) &&
+                read_integer(&cursor, ',', &icons) && read_integer(&cursor, '\0', &labels) &&
+                view >= 0 && view < BROWSER_STYLE_COUNT && icons >= 0 && icons < ICON_SIZE_COUNT &&
+                labels >= 0 && labels <= 1) {
                 int index = tabs_find(app, id);
                 if (index >= 0) {
                     app->tab_display[index].view = view;
@@ -228,7 +276,9 @@ static bool read_state_file(App *app, const char *filename)
             }
         } else if (!strncmp(line, "tab_detail=", 11)) {
             char id[TAB_ID_CAP];
-            if (sscanf(line + 11, "%31[^,],%d", id, &value) == 2 && value >= 0 && value < 2) {
+            const char *cursor = line + 11;
+            if (read_tab_id(&cursor, id) && read_integer(&cursor, '\0', &value) && value >= 0 &&
+                value < 2) {
                 int index = tabs_find(app, id);
                 if (index >= 0)
                     app->tab_details[index] = value;
@@ -241,8 +291,10 @@ static bool read_state_file(App *app, const char *filename)
                 active_tab[0] = 0;
         } else if (!strncmp(line, "folder_batch=", 13)) {
             char id[TAB_ID_CAP];
-            unsigned batch;
-            if (sscanf(line + 13, "%31[^,],%u", id, &batch) == 2 && batch < 4096) {
+            int batch;
+            const char *cursor = line + 13;
+            if (read_tab_id(&cursor, id) && read_integer(&cursor, '\0', &batch) && batch >= 0 &&
+                batch < 4096) {
                 int tab = tabs_find(app, id);
                 if (tab >= CATEGORY_GAMES && tab != CATEGORY_SYSTEM)
                     app->locations[tab].batch = batch;

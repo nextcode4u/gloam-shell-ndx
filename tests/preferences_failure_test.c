@@ -1,6 +1,7 @@
 /* Exercise FAT save transactions and recovery from malformed or interrupted reads. */
 #include "paths.h"
 #include "preferences.h"
+#include "tabs.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -214,7 +215,80 @@ int main(int argc, char **argv)
     app.audio.music_volume = 29;
     preferences_load(&app);
     assert(app.audio.music_volume == 29);
-    puts("PASS: complete settings reads, corrupt-record recovery, FAT save rotation, "
+    /* Reject numeric prefixes/overflow without discarding later valid records. */
+    static const char *invalid_numbers[] = {"1junk",
+                                            "4294967297",
+                                            "18446744073709551617",
+                                            "999999999999999999999999999999",
+                                            "1.0",
+                                            "1e0",
+                                            "0x1",
+                                            "--1",
+                                            "+",
+                                            "",
+                                            "-4294967295"};
+    char tabs_path[PATH_CAP];
+    assert(path_preferences_file(tabs_path, app.root, "tabs.ini"));
+    put(tabs_path, "[tabs]\nversion=1\n[tab.books]\npath=roms/Books\n");
+    tabs_load(&app);
+    int books = tabs_find(&app, "books");
+    assert(books >= CATEGORY_COUNT);
+    for (size_t i = 0; i < sizeof invalid_numbers / sizeof *invalid_numbers; i++) {
+        char state[2048];
+        const char *number = invalid_numbers[i];
+        snprintf(state, sizeof state,
+                 "version=1\nmusic_volume=%s\nshow_hidden=%s\nicon_size=%s\n"
+                 "simple_settings_lock=%s\nfolder_batch=games,%s\n"
+                 "tab_detail=games,%s\ntab_display=games,%s,0,1\n"
+                 "location=1,%s,0,%s\ntab_location=books,%s,0,%s\neffects_volume=41\n",
+                 number, number, number, number, number, number, number, number,
+                 tabs_browse_root(&app, CATEGORY_GAMES), number, tabs_browse_root(&app, books));
+        put(current, state);
+        app.audio.music_volume = 37;
+        app.show_hidden = false;
+        app.icon_size = ICON_SMALL;
+        app.simple_settings_lock = false;
+        app.locations[CATEGORY_GAMES].batch = 7;
+        app.locations[CATEGORY_GAMES].selected = 11;
+        app.locations[books].selected = 13;
+        app.tab_details[CATEGORY_GAMES] = 0;
+        app.tab_display[CATEGORY_GAMES].saved = false;
+        preferences_load(&app);
+        assert(app.audio.music_volume == 37 && !app.show_hidden && app.icon_size == ICON_SMALL);
+        assert(!app.simple_settings_lock && app.locations[CATEGORY_GAMES].batch == 7);
+        assert(app.locations[CATEGORY_GAMES].selected == 11 && app.locations[books].selected == 13);
+        assert(!app.tab_details[CATEGORY_GAMES] && !app.tab_display[CATEGORY_GAMES].saved);
+        assert(app.audio.effects_volume == 41);
+    }
+    static const char *invalid_display[] = {"0,4294967297,1", "0,0,4294967297", "0,-1,1",
+                                            "0,0,-1",         "0,0,1junk",      "0,0,1,0"};
+    for (size_t i = 0; i < sizeof invalid_display / sizeof *invalid_display; i++) {
+        char state[256];
+        snprintf(state, sizeof state, "version=1\ntab_display=games,%s\n", invalid_display[i]);
+        put(current, state);
+        app.tab_display[CATEGORY_GAMES].saved = false;
+        preferences_load(&app);
+        assert(!app.tab_display[CATEGORY_GAMES].saved);
+    }
+    static const char *invalid_ids[] = {
+        "", "xyz", "1234junk", "100000000", "-1", "10000000000000000", "\v-1", "0x100000000"};
+    for (size_t i = 0; i < sizeof invalid_ids / sizeof *invalid_ids; i++) {
+        char state[256];
+        snprintf(state, sizeof state, "version=1\ninstalled_selection=%s\n", invalid_ids[i]);
+        put(current, state);
+        app.installed_selected_id = 0x12345678;
+        preferences_load(&app);
+        assert(app.installed_selected_id == 0x12345678);
+    }
+    put(current, "version=1\nmusic_volume= +42 \t\nwallpaper_strength=-1\n"
+                 "installed_selection=ffffffff\ntab_detail=games,1 \n"
+                 "folder_batch=games,8\ntab_display=games,0,1,0\n");
+    preferences_load(&app);
+    assert(app.audio.music_volume == 42 && app.wallpaper_strength == -1);
+    assert(app.installed_selected_id == UINT32_MAX && app.tab_details[CATEGORY_GAMES] == 1);
+    assert(app.locations[CATEGORY_GAMES].batch == 8 && app.tab_display[CATEGORY_GAMES].saved);
+    puts("PASS: strict numeric fields, complete settings reads, corrupt-record recovery, FAT save "
+         "rotation, "
          "read-only/full-disk errors, rollback and recovery-copy "
          "preservation");
 }
