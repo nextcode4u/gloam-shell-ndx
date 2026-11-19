@@ -165,11 +165,49 @@ class ThemeDirectoryTests(unittest.TestCase):
         destination.mkdir(parents=True)
         (destination / "custom.txt").write_text("Keep this")
         self.run_ps(
-            "$script:checks=0; function Assert-GloamThemeNotCancelled { $script:checks++; if ($script:checks -eq 3) { throw [OperationCanceledException]::new('fixture cancel') } }; Install-GloamCatalogTheme $root $cache demo demo $true $false $true",
+            "$script:resolve=${function:Get-GloamPath}; "
+            "function Get-GloamPath {param($Root,$Relative); "
+            "if($Relative -like '_nds/dsi-frontend/.theme-install-*/*'){throw [OperationCanceledException]::new('fixture cancel during staging')}; "
+            "& $script:resolve $Root $Relative}; "
+            "Install-GloamCatalogTheme $root $cache demo demo $true $false $true",
             success=False,
         )
         self.assertEqual((destination / "custom.txt").read_text(), "Keep this")
         self.assertEqual(list((self.sd / "_nds/dsi-frontend").glob(".theme-install-*")), [])
+
+    def test_cancelled_cached_preview_stops_before_hashing_or_decoding(self):
+        cancel = self.root / "cancel"
+        cancel.write_bytes(b"")
+        self.run_ps(
+            "$script:GloamCancelFile=" + literal(win(cancel)) + "; "
+            "function Get-GloamThemeBlobHash { throw 'Cancelled cache was read' }; "
+            "try {Get-GloamCatalogThemePreview $cache demo $true; throw 'Cancellation ignored'} "
+            "catch [OperationCanceledException] {Write-Host 'Cancelled before reading cache'}")
+        self.assertEqual(list(self.sd.iterdir()), [])
+
+    def test_cancel_after_first_cached_file_does_not_prepare_the_rest(self):
+        cancel = self.root / "cancel"
+        self.run_ps(
+            "$script:GloamCancelFile=" + literal(win(cancel)) + "; "
+            "$script:prepared=0; $script:reader=${function:Get-GloamThemeCachedBlob}; "
+            "function Get-GloamThemeCachedBlob {param($Cache,$Revision,$File,$Offline); "
+            "$script:prepared++; $result=& $script:reader $Cache $Revision $File $Offline; "
+            "[IO.File]::WriteAllText($script:GloamCancelFile,''); return $result}; "
+            "try {Install-GloamCatalogTheme $root $cache demo demo $false $false $true; throw 'Cancellation ignored'} "
+            "catch [OperationCanceledException] {}; "
+            "if($script:prepared -ne 1){throw 'Prepared more cached files after Cancel'}; "
+            "Write-Host 'Cancelled before next cached file'")
+        self.assertFalse((self.sd / "_nds/dsi-frontend/themes/demo").exists())
+        self.assertEqual(list((self.sd / "_nds/dsi-frontend").glob(".theme-install-*")), [])
+
+    def test_cancelled_request_never_reaches_network_setup(self):
+        cancel = self.root / "cancel"
+        cancel.write_bytes(b"")
+        self.run_ps(
+            "$script:GloamCancelFile=" + literal(win(cancel)) + "; "
+            "try {Get-GloamThemeNetwork 'http://example.invalid/never' 1024; throw 'Cancellation ignored'} "
+            "catch [OperationCanceledException] {Write-Host 'Cancelled before network setup'}")
+        self.assertEqual(list(self.sd.iterdir()), [])
 
     def test_noncommercial_acceptance_and_alternate_install_id(self):
         self.theme["License"] = "CC-BY-NC-SA-2.5"

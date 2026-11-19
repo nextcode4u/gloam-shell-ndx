@@ -20,6 +20,7 @@ function Assert-GloamThemeNotCancelled {
     if ($cancel -and $cancel.Value -and [IO.File]::Exists($cancel.Value)) { throw [OperationCanceledException]::new('Theme operation cancelled; installed themes were kept.') }
 }
 function Get-GloamThemeNetwork([string]$Url, [long]$Limit) {
+    Assert-GloamThemeNotCancelled
     $uri = [Uri]$Url
     if ($uri.Scheme -ne 'https' -or $uri.UserInfo -or
         ($uri.Host -ne 'api.github.com' -and $uri.Host -ne 'raw.githubusercontent.com')) { throw 'Unexpected theme download origin.' }
@@ -135,6 +136,7 @@ function Get-GloamThemeCatalogEntry($Catalog, [string]$Id) {
     return $entry[0]
 }
 function Get-GloamThemeCachedBlob([string]$Cache, [string]$Revision, $File, [bool]$Offline) {
+    Assert-GloamThemeNotCancelled
     $folder = Get-GloamThemeCache $Cache
     $path = Get-GloamPath $folder ('blobs/' + $File.Sha)
     if ([IO.File]::Exists($path) -and ([IO.FileInfo]::new($path)).Length -eq $File.Bytes -and
@@ -177,6 +179,7 @@ function Install-GloamCatalogTheme([string]$Root, [string]$Cache, [string]$Id, [
     # Complete every network read and identity check before touching the SD.
     $cached = @()
     foreach ($file in $theme.Files) {
+        Assert-GloamThemeNotCancelled
         Write-Host ('Preparing: ' + $file.Relative)
         $cached += [pscustomobject]@{ File=$file; Source=(Get-GloamThemeCachedBlob $Cache $catalog.Revision $file $Offline) }
     }

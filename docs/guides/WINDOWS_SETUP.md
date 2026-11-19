@@ -203,8 +203,9 @@ both versions, or explicitly select **Replace existing theme** and confirm it;
 the previous folder is retained under `setup-backups/themes/`. Noncommercial
 packs require accepting their displayed terms. Offline mode uses cached catalog,
 preview and runtime files, and reports any missing download. Refreshing and
-previewing run in the background without blocking page navigation; Stop/Cancel
-leaves existing themes intact. The cache is under
+previewing run in the background without blocking page navigation. Stop/Cancel
+leaves existing themes intact and stops before preparing the next file, including
+cached files. The cache is under
 `%LOCALAPPDATA%\Gloam\Setup\theme-directory`.
 
 Open the themes folder or import a folder containing `theme.ini`. Import keeps
