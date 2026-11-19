@@ -9,6 +9,7 @@
 #include "paths.h"
 #include "picker.h"
 #include "startup.h"
+#include "top_content.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -16,6 +17,24 @@
 
 static App app;
 static uint16_t top[256 * 192], bottom[256 * 192];
+static bool inspecting;
+static unsigned write_attempts;
+FILE *__real_fopen(const char *, const char *);
+FILE *__wrap_fopen(const char *path, const char *mode)
+{
+    if (inspecting && strpbrk(mode, "wa+"))
+        write_attempts++;
+    return __real_fopen(path, mode);
+}
+static void inspect_checked(const char *path)
+{
+    bool dirty = app.preferences_dirty;
+    inspecting = true;
+    inspection_prepare(&app, path);
+    inspecting = false;
+    assert(!write_attempts && app.preferences_dirty == dirty && !app.launch_requested);
+}
+
 static void folder(const char *root, const char *name)
 {
     char path[PATH_CAP];
@@ -273,6 +292,80 @@ int main(int argc, char **argv)
     select_file(root, "apps/Reader.nds");
     app_open(&app);
     assert(app.launch_requested && !app.picker.open && app.launch.arguments.count == 1);
+    /* Built-in NDS/ARGV routes ignore extension handlers; diagnostics must too. */
+    app.launch_requested = false;
+    profile(root, "native.ini", "Misleading", "nds", "", "/apps/Alternate.nds", true);
+    associations_load(&app);
+    assert(launch_prepare(&app, reader_path, &plan, error));
+    assert(plan.route == LAUNCH_DIRECT && plan.arguments.count == 1);
+    inspect_checked(reader_path);
+    assert(!strcmp(app.inspection->application, plan.application));
+    assert(!strcmp(app.inspection->backend, "Direct homebrew loader"));
+    app.top_content = TOP_CONTENT_CONTEXT;
+    app.detail_tab = 0;
+    app_reset_preview(&app);
+    app.selection_idle_frames = 7;
+    for (unsigned i = 0; i < 4; i++)
+        top_content_tick(&app);
+    assert(!strcmp(app.top.handler, "DS/DSi title"));
+    profile(root, "native-second.ini", "Also ignored", "nds", "", "/apps/Genesis.nds", true);
+    associations_load(&app);
+    inspect_checked(reader_path);
+    assert(!strcmp(app.inspection->backend, "Direct homebrew loader"));
+
+    memset(&item, 0, sizeof item);
+    assert(path_join(item.application, root, "apps/Alternate.nds"));
+    assert(item_preferences_save(root, reader_path, &item));
+    assert(launch_prepare(&app, reader_path, &plan, error) && plan.arguments.count == 2);
+    inspect_checked(reader_path);
+    assert(!strcmp(app.inspection->application, item.application));
+    assert(strstr(app.inspection->backend, "Direct") && strstr(app.inspection->backend, "argv"));
+    item.application[0] = 0;
+    assert(item_preferences_save(root, reader_path, &item));
+
+    profile(root, "shortcut.ini", "Ignored shortcut handler", "argv", "", "/apps/Alternate.nds",
+            true);
+    associations_load(&app);
+    assert(path_join(explain, root, "misc/Explicit.ARGV"));
+    assert(launch_prepare(&app, explain, &plan, error) && plan.arguments.count == 2);
+    inspect_checked(explain);
+    assert(!strcmp(app.inspection->application, plan.application));
+    assert(strstr(app.inspection->backend, "Direct") && strstr(app.inspection->backend, "argv"));
+    profile(root, "shortcut-second.ini", "Also ignored", "argv", "", "/apps/Genesis.nds", true);
+    associations_load(&app);
+    inspect_checked(explain);
+    assert(strstr(app.inspection->backend, "Direct"));
+    text(root, "misc/Explicit.ARGV", "sd:/apps/Reader.nds\n");
+    assert(launch_prepare(&app, explain, &plan, error) && plan.arguments.count == 1);
+    inspect_checked(explain);
+    assert(!strcmp(app.inspection->backend, "Direct homebrew loader"));
+    text(root, "misc/Explicit.ARGV", "sd:/apps/Absent.nds\n");
+    assert(!launch_prepare(&app, explain, &plan, error));
+    inspect_checked(explain);
+    assert(!strstr(app.inspection->status, "Preflight passed"));
+    /* HB arguments live in the backend plan, not its own argv list. */
+    binary(root, "_nds/nds-bootstrap-hb-release.nds");
+    text(root, "misc/Content.hbtest", "Synthetic homebrew content");
+    text(root, "_nds/dsi-frontend/plugins/backend.ini",
+         "[plugin]\nversion=1\nextensions=hbtest\napplication=/apps/Reader.nds\n"
+         "argv=1\nbootstrap=1\n");
+    associations_load(&app);
+    assert(path_join(explain, root, "misc/Content.hbtest"));
+    assert(launch_prepare(&app, explain, &plan, error));
+    assert(plan.route == LAUNCH_BOOTSTRAP_HB && plan.arguments.count == 1 &&
+           *plan.homebrew_argument);
+    inspect_checked(explain);
+    assert(!strcmp(app.inspection->application, reader_path));
+    assert(!strcmp(app.inspection->backend, "nds-bootstrap / homebrew + argv"));
+    text(root, "_nds/dsi-frontend/plugins/backend.ini",
+         "[plugin]\nversion=1\nextensions=hbtest\napplication=/apps/Reader.nds\n"
+         "argv=0\nbootstrap=1\n");
+    associations_load(&app);
+    assert(launch_prepare(&app, explain, &plan, error) && !*plan.homebrew_argument);
+    inspect_checked(explain);
+    assert(!strcmp(app.inspection->backend, "nds-bootstrap / homebrew"));
+    inspection_close(&app);
+
     puts(
         "PASS: folder/descendant/boundary rules, shared suffix chooser, route flags, cancellation, "
         "missing apps, supported filter, and personal/per-file precedence");

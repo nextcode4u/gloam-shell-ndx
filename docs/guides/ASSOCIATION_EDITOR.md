@@ -44,7 +44,9 @@ The path view does not run preflight. The explanation is prepared on its first
 request and cached until the inspector closes.
 
 Inspection follows the same per-file, personal-extension, preferred-folder and
-shared-extension resolution as launch. If multiple handlers remain, it explains
+shared-extension resolution as launch. DS/DSi executables and ARGV shortcuts
+otherwise use their built-in routes, even if an extension rule exists. Per-file
+application assignments still take priority. If multiple handlers remain, it explains
 that a choice is required rather than selecting one silently. File icons continue
 to use the resolved application's banner or an explicit icon override; covers
 remain independent.

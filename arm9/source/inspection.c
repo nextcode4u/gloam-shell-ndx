@@ -38,10 +38,13 @@ void inspection_prepare(App *app, const char *path)
     }
     ItemPreferences item;
     bool personal = item_preferences_load(app->root, path, &item) && *item.application;
-    const Association *profile = personal ? NULL : association_find(app, path);
-    const Association *custom = association_user(app, path_extension(path));
+    /* The launcher handles native titles and shortcuts before extension rules. */
+    bool built_in = icon_is_ds_title(path) || !strcasecmp(path_extension(path), "argv");
+    const Association *profile = personal || built_in ? NULL : association_find(app, path);
+    const Association *custom =
+        personal || built_in ? NULL : association_user(app, path_extension(path));
     const Association *choices[ASSOCIATION_CAP];
-    int count = association_choices(app, path, choices);
+    int count = personal || built_in ? 0 : association_choices(app, path, choices);
     const char *reason = personal ? "Application assigned to this file"
                          : !strcasecmp(path_extension(path), "argv") ? "ARGV shortcut"
                          : icon_is_ds_title(path)     ? "DS/DSi header determines the route"
@@ -68,7 +71,7 @@ void inspection_prepare(App *app, const char *path)
     bool ready = launch_prepare(app, path, plan, details->status);
     if (*plan->target)
         path_copy(details->application, plan->target, PATH_CAP);
-    else if (!*details->application && *plan->application)
+    else if (*plan->application)
         path_copy(details->application, plan->application, PATH_CAP);
     const char *backend = plan->route == LAUNCH_DSIWARE        ? "nds-bootstrap / DSiWare"
                           : plan->route == LAUNCH_BOOTSTRAP    ? "nds-bootstrap / retail"
@@ -79,10 +82,7 @@ void inspection_prepare(App *app, const char *path)
                           : !*details->application ? "Unavailable"
                                                    : "Direct homebrew loader";
     snprintf(details->backend, sizeof details->backend, "%s%s", backend,
-             plan->arguments.count > 1 || personal ||
-                     (profile && (profile->use_argv || profile->hbargv))
-                 ? " + argv"
-                 : "");
+             plan->arguments.count > 1 || *plan->homebrew_argument ? " + argv" : "");
     path_copy(details->save,
               !ready        ? "Not resolved until preflight succeeds"
               : *plan->save ? plan->save

@@ -97,7 +97,7 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
 ASAN_OPTIONS=detect_leaks=1 build/host/presets-test "$fixture/presets" "$fixture/presets/expected.tsv"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" "${ui_objects[@]}" tests/association_resolver_test.c -o build/host/association-resolver-test
+    "${model_objects[@]}" "${ui_objects[@]}" tests/association_resolver_test.c -Wl,--wrap=fopen -o build/host/association-resolver-test
 mkdir "$fixture/association-resolver"
 ASAN_OPTIONS=detect_leaks=1 build/host/association-resolver-test "$fixture/association-resolver"
 

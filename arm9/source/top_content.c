@@ -180,9 +180,11 @@ static void prepare_handler(App *app, const Entry *entry)
         return;
     ItemPreferences item;
     bool personal = item_preferences_load(app->root, entry->path, &item) && *item.application;
-    const Association *profile = personal ? NULL : association_find(app, entry->path);
+    bool built_in =
+        icon_is_ds_title(entry->path) || !strcasecmp(path_extension(entry->path), "argv");
+    const Association *profile = personal || built_in ? NULL : association_find(app, entry->path);
     const Association *choices[ASSOCIATION_CAP];
-    int count = association_choices(app, entry->path, choices);
+    int count = personal || built_in ? 0 : association_choices(app, entry->path, choices);
     const char *application = personal ? item.application : profile ? profile->application : "";
     if (personal || (count == 1 && profile)) {
         struct stat info;
