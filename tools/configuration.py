@@ -176,16 +176,22 @@ def read_archive(source: Path) -> dict[str, bytes]:
             ):
                 raise ValueError("Unsupported or oversized archive entry")
         manifest = json.loads(archive.read("manifest.json"))
-        if manifest.get("version") != 1 or not isinstance(manifest.get("files"), list):
+        if (not isinstance(manifest, dict) or type(manifest.get("version")) is not int
+                or manifest["version"] != 1 or not isinstance(manifest.get("files"), list)):
             raise ValueError("Unsupported configuration archive version")
         if len(manifest["files"]) > MAX_FILES:
             raise ValueError("Too many configuration records")
         records: dict[str, bytes] = {}
         total = 0
         for record in manifest["files"]:
-            name = record["path"]
+            if not isinstance(record, dict):
+                raise ValueError("Invalid configuration manifest record")
+            name = record.get("path")
             if not isinstance(name, str) or not allowed_record(name) or name in records:
                 raise ValueError("Unsupported or duplicate manifest path")
+            if (name not in names or type(record.get("bytes")) is not int
+                    or not isinstance(record.get("sha256"), str)):
+                raise ValueError("Invalid configuration manifest record")
             data = archive.read(name)
             total += len(data)
             if (
@@ -206,7 +212,32 @@ def write_journal(backup: Path, journal: dict) -> None:
     atomic_write(backup / "transaction.json", (json.dumps(journal, indent=2) + "\n").encode())
 
 
+def validate_journal(journal: dict) -> None:
+    """Reject ambiguous recovery plans before inspecting or replacing records."""
+    if (not isinstance(journal, dict) or type(journal.get("version")) is not int
+            or journal["version"] != 1
+            or journal.get("state") not in ("prepared", "complete", "rolled_back")
+            or not isinstance(journal.get("files"), list)
+            or len(journal["files"]) > MAX_FILES):
+        raise ValueError("Invalid recovery journal")
+    seen = set()
+    for record in journal["files"]:
+        if not isinstance(record, dict) or set(record) != {"path", "old_sha256", "new_sha256"}:
+            raise ValueError("Invalid recovery record")
+        name = record["path"]
+        if not isinstance(name, str) or not allowed_record(name) or name.casefold() in seen:
+            raise ValueError("Unsupported or duplicate recovery path")
+        seen.add(name.casefold())
+        for key in ("old_sha256", "new_sha256"):
+            value = record[key]
+            if key == "old_sha256" and value is None:
+                continue
+            if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
+                raise ValueError("Invalid recovery checksum")
+
+
 def rollback(private: Path, backup: Path, journal: dict) -> None:
+    validate_journal(journal)
     # Validate every current/old record before changing anything during recovery.
     plans: list[tuple[Path, bytes | None]] = []
     for record in journal["files"]:
@@ -244,13 +275,12 @@ def recover_configuration(sd: Path) -> int:
             raise ValueError("Redirected recovery journal")
         if path.stat().st_size > MAX_TOTAL_BYTES:
             raise ValueError("Oversized recovery journal")
-        journal = json.loads(path.read_text())
-        if (
-            journal.get("version") != 1
-            or not isinstance(journal.get("files"), list)
-            or len(journal["files"]) > MAX_FILES
-        ):
-            raise ValueError("Invalid recovery journal")
+        with path.open("rb") as stream:
+            data = stream.read(MAX_TOTAL_BYTES + 1)
+        if len(data) > MAX_TOTAL_BYTES:
+            raise ValueError("Oversized recovery journal")
+        journal = json.loads(data)
+        validate_journal(journal)
         if journal.get("state") == "prepared":
             rollback(private, path.parent, journal)
             count += 1

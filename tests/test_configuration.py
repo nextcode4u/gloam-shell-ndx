@@ -85,6 +85,24 @@ class ConfigurationTests(unittest.TestCase):
                 config.import_configuration(self.target, bad)
             self.assertFalse((self.target / config.OWNER / "state.ini").exists())
 
+    def test_malformed_manifest_shapes_leave_the_target_untouched(self):
+        with zipfile.ZipFile(self.archive) as archive:
+            original = {name: archive.read(name) for name in archive.namelist()}
+        valid = json.loads(original["manifest.json"])
+        invalid = [[], None, 1, dict(valid, version=True), dict(valid, files=[None]),
+                   dict(valid, files=[{}]),
+                   dict(valid, files=[dict(valid["files"][0], bytes=True)]),
+                   dict(valid, files=[dict(valid["files"][0], sha256=[])])]
+        for manifest in invalid:
+            with self.subTest(manifest=manifest):
+                bad = self.root / "malformed.zip"
+                with zipfile.ZipFile(bad, "w") as archive:
+                    for name, data in original.items():
+                        archive.writestr(name, json.dumps(manifest) if name == "manifest.json" else data)
+                with self.assertRaises(ValueError):
+                    config.import_configuration(self.target, bad)
+                self.assertEqual(list(self.target.iterdir()), [])
+
     def test_failed_import_rolls_back_all_records(self):
         target = config.private_directory(self.target)
         original = b"version=1\nicon_size=0\n"
@@ -120,6 +138,55 @@ class ConfigurationTests(unittest.TestCase):
         self.assertEqual(config.recover_configuration(self.target), 1)
         self.assertEqual((target / "state.ini").read_text(), "version=1\nold=1\n")
         self.assertFalse((target / "games/0123456789abcdef.ini").exists())
+
+    def recovery_fixture(self):
+        target = config.private_directory(self.target)
+        (target / "state.ini").write_bytes(b"version=1\noriginal=1\n")
+        backup = config.import_configuration(self.target, self.archive)
+        journal = json.loads((backup / "transaction.json").read_text())
+        journal["state"] = "prepared"
+        config.write_journal(backup, journal)
+        return target, backup, journal
+
+    def test_duplicate_recovery_record_cannot_erase_restored_settings(self):
+        target, backup, journal = self.recovery_fixture()
+        before = (target / "state.ini").read_bytes()
+        record = next(item for item in journal["files"] if item["path"] == "state.ini")
+        journal["files"].append(dict(record, old_sha256=None))
+        config.write_journal(backup, journal)
+        with self.assertRaises(ValueError):
+            config.recover_configuration(self.target)
+        self.assertEqual((target / "state.ini").read_bytes(), before)
+        self.assertTrue((target / "games/0123456789abcdef.ini").exists())
+
+    def test_malformed_recovery_journals_are_rejected_before_writes(self):
+        target, backup, valid = self.recovery_fixture()
+        before = (target / "state.ini").read_bytes()
+        invalid = [[], None, dict(valid, version=True), dict(valid, state="unknown"),
+                   dict(valid, files=[None]), dict(valid, files=[{}]),
+                   dict(valid, files=[dict(valid["files"][0], new_sha256=[])]),
+                   dict(valid, files=[dict(valid["files"][0], old_sha256="bad")])]
+        for journal in invalid:
+            with self.subTest(journal=journal):
+                config.write_journal(backup, journal)
+                with self.assertRaises(ValueError):
+                    config.recover_configuration(self.target)
+                self.assertEqual((target / "state.ini").read_bytes(), before)
+
+    def test_recovery_can_resume_after_a_second_interruption(self):
+        target, backup, journal = self.recovery_fixture()
+        real_write = config.atomic_write
+        def interrupted(path, data):
+            if path == target / "state.ini":
+                raise OSError("Recovery interrupted after removing a new record")
+            return real_write(path, data)
+        with patch.object(config, "atomic_write", side_effect=interrupted):
+            with self.assertRaises(OSError):
+                config.recover_configuration(self.target)
+        self.assertFalse((target / "games/0123456789abcdef.ini").exists())
+        self.assertEqual(config.recover_configuration(self.target), 1)
+        self.assertEqual((target / "state.ini").read_bytes(), b"version=1\noriginal=1\n")
+        self.assertEqual(config.recover_configuration(self.target), 0)
 
     def test_redirected_record_is_rejected(self):
         target = config.private_directory(self.target)

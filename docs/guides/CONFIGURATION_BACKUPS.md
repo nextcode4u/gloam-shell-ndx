@@ -71,7 +71,8 @@ atomicity across FAT/device-level power loss.
 Python computer imports retain originals plus a SHA-256 transaction journal under
 `configuration-backups/<timestamp>-<unique suffix>/`. Detected failures roll
 back; `recover` handles incomplete computer journals while preserving external
-edits. Completed backups remain available without automatic pruning. The
+edits. Recovery rejects malformed or duplicate journal entries before replacing
+any settings. An interrupted recovery can be retried. Completed backups remain available without automatic pruning. The
 computer `recover` command does not interpret a native pending transaction.
 
 ## Reset and maintenance scopes
