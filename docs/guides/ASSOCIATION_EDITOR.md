@@ -39,7 +39,8 @@ choosing a replacement does not move the original application or its data.
 Choose **SELECT → Inspect item / path**, then press left/right to open **Why this
 handler?** for an SD file. The two-screen explanation shows the matching rule,
 application, configured backend/argv route and read-only preflight status.
-Left/right returns to the path view; B returns to the item menu.
+Left/right returns to the path view; B returns to the item menu. Long fields
+scroll continuously unless Reduced motion is enabled.
 The path view does not run preflight. The explanation is prepared on its first
 request and cached until the inspector closes.
 

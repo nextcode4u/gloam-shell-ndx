@@ -18,7 +18,6 @@
 #include "icons.h"
 #include "image_job.h"
 #include "inspection.h"
-#include "top_content.h"
 #include "installed_titles.h"
 #include "item_preferences.h"
 #include "launch.h"
@@ -37,6 +36,7 @@
 #include "theme_motion.h"
 #include "themes.h"
 #include "title_metadata.h"
+#include "top_content.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -377,6 +377,7 @@ void app_panel(App *app, Panel p)
     app->panel_selection = 0;
     app->panel_scroll = 0;
     app->panel_age = 0;
+    app->panel_text_started_frame = app->frame_count;
     app->selection_idle_frames = 0;
 }
 
@@ -731,6 +732,7 @@ void app_panel_adjust(App *app, int direction)
         else
             app_show_message(app, "Launch inspection needs SD access and free memory.");
         app->panel_age = 0;
+        app->panel_text_started_frame = app->frame_count;
         return;
     }
     if (app->panel == PANEL_QUICK)
@@ -949,8 +951,8 @@ void app_tick(App *app)
             app->selection_y_fixed = target;
     }
     if ((app->browser_style != BROWSER_INDEX || top_content_mode(app) != TOP_CONTENT_THEME) &&
-        !app->settings.open && app->show_covers &&
-        !app->artwork.ready && !app->artwork_resolved && app->selection_idle_frames >= 7)
+        !app->settings.open && app->show_covers && !app->artwork.ready && !app->artwork_resolved &&
+        app->selection_idle_frames >= 7)
         artwork_load(app);
     if (!app->settings.open && app->panel == PANEL_NONE)
         artwork_shelf_tick(app);

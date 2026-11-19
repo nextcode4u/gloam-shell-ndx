@@ -165,6 +165,42 @@ int main(int argc, char **argv)
     render_app(&app, top.pixels, bottom.pixels, "10:00");
     assert(top.before == 0xCAFEABCD && top.after == 0xCAFEABCD);
     assert(bottom.before == 0xCAFEABCD && bottom.after == 0xCAFEABCD);
+    /* Long diagnostic paths must keep moving after the panel's entry animation. */
+    for (size_t i = 0; i + 1 < sizeof app.inspection->application; i++)
+        app.inspection->application[i] = 'a' + i % 26;
+    app.inspection->application[sizeof app.inspection->application - 1] = 0;
+    bool reduced_motion = app.reduced_motion;
+    app.reduced_motion = false;
+    static uint16_t path_before[256 * 12], path_after[256 * 12], status_before[256 * 12];
+    path_copy(app.inspection->status,
+              "Launching requires DSi mode with SD access. Start Gloam through a DSi SD boot "
+              "method, then retry.",
+              sizeof app.inspection->status);
+    for (unsigned i = 0; i < 30; i++)
+        app_tick(&app);
+    render_app(&app, top.pixels, bottom.pixels, "10:00");
+    memcpy(path_before, top.pixels + 150 * 256, sizeof path_before);
+    memcpy(status_before, bottom.pixels + 152 * 256, sizeof status_before);
+    for (unsigned i = 0; i < 180; i++)
+        app_tick(&app);
+    render_app(&app, top.pixels, bottom.pixels, "10:00");
+    memcpy(path_after, top.pixels + 150 * 256, sizeof path_after);
+    assert(memcmp(path_before, path_after, sizeof path_before));
+    assert(memcmp(status_before, bottom.pixels + 152 * 256, sizeof status_before));
+    app.reduced_motion = true;
+    render_app(&app, top.pixels, bottom.pixels, "10:00");
+    memcpy(path_before, top.pixels + 150 * 256, sizeof path_before);
+    memcpy(status_before, bottom.pixels + 152 * 256, sizeof status_before);
+    for (unsigned i = 0; i < 180; i++)
+        app_tick(&app);
+    render_app(&app, top.pixels, bottom.pixels, "10:00");
+    assert(!memcmp(path_before, top.pixels + 150 * 256, sizeof path_before));
+    assert(!memcmp(status_before, bottom.pixels + 152 * 256, sizeof status_before));
+    app.reduced_motion = reduced_motion;
+    app_panel_adjust(&app, 1);
+    assert(app.panel_selection == 0);
+    app_panel_adjust(&app, 1);
+    assert(app.panel_selection == 1 && app.panel_text_started_frame == app.frame_count);
     app_back(&app);
     assert(app.panel == PANEL_ACTIONS && app.panel_selection == 2 && !app.inspection);
     app.panel_selection = 4;

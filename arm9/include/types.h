@@ -445,7 +445,7 @@ typedef struct {
     unsigned icon_reads, icons_idle_frames;
     int panel_age, selection_idle_frames, preferences_idle_frames;
     int selection_y_fixed; /* Selection offset in 24.8 fixed-point pixels. */
-    unsigned frame_count;
+    unsigned frame_count, panel_text_started_frame;
     char message[160], title[128], code[8];
     char info_title[128], info_code[5];
     bool info_loaded, info_header_valid;
