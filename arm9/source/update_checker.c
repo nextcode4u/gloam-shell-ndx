@@ -200,11 +200,41 @@ static bool json_value(const char **p, unsigned depth, char tag[UPDATE_TAG_CAP],
         return true;
     if (!length || length > 32)
         return false;
-    char number[33], *end;
-    memcpy(number, start, length);
-    number[length] = 0;
-    strtod(number, &end);
-    return end == number + length && (isdigit((unsigned char)*number) || *number == '-');
+    /* strtod also accepts hex, leading zeros and a trailing decimal point.
+     * Validate JSON's decimal grammar without converting an unused value. */
+    const char *digit = start, *end = start + length;
+    if (*digit == '-')
+        digit++;
+    if (digit == end)
+        return false;
+    if (*digit == '0')
+        digit++;
+    else {
+        if (*digit < '1' || *digit > '9')
+            return false;
+        do {
+            digit++;
+        } while (digit < end && isdigit((unsigned char)*digit));
+    }
+    if (digit < end && *digit == '.') {
+        digit++;
+        const char *fraction = digit;
+        while (digit < end && isdigit((unsigned char)*digit))
+            digit++;
+        if (digit == fraction)
+            return false;
+    }
+    if (digit < end && (*digit == 'e' || *digit == 'E')) {
+        digit++;
+        if (digit < end && (*digit == '+' || *digit == '-'))
+            digit++;
+        const char *exponent = digit;
+        while (digit < end && isdigit((unsigned char)*digit))
+            digit++;
+        if (digit == exponent)
+            return false;
+    }
+    return digit == end;
 }
 
 bool update_response_tag(char *response, size_t size, char tag[UPDATE_TAG_CAP])

@@ -50,6 +50,20 @@ int main(int argc, char **argv)
                          "[{\"body\":{\"tag_name\":\"v1.0.0\"}}]"};
     for (unsigned i = 0; i < sizeof bad / sizeof *bad; i++)
         assert(!parse(bad[i], tag));
+    /* Unknown numeric fields still have to obey JSON syntax. */
+    const char *bad_numbers[] = {"01", "-01", "0x10", "-0x10", "1.", "-.1", "1e", "1e+"};
+    const char *good_numbers[] = {"0", "-0", "12", "-12", "0.25", "-0.25", "1e3", "1E-3", "1e+3"};
+    char numeric_json[256];
+    for (unsigned i = 0; i < sizeof bad_numbers / sizeof *bad_numbers; i++) {
+        snprintf(numeric_json, sizeof numeric_json, "[{\"tag_name\":\"v1.2.3\",\"size\":%s}]",
+                 bad_numbers[i]);
+        assert(!parse(numeric_json, tag));
+    }
+    for (unsigned i = 0; i < sizeof good_numbers / sizeof *good_numbers; i++) {
+        snprintf(numeric_json, sizeof numeric_json, "[{\"tag_name\":\"v1.2.3\",\"size\":%s}]",
+                 good_numbers[i]);
+        assert(parse(numeric_json, tag) && !strcmp(tag, "v1.2.3"));
+    }
     for (size_t i = 0; i < strlen(good); i++) {
         char partial[512];
         memcpy(partial, good, i);
