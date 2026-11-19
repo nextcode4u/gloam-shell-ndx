@@ -1,9 +1,7 @@
 /* On-demand index reader: bounded work and memory, no directory walking. */
 #include "library_search.h"
 #include "app.h"
-#include "associations.h"
 #include "browser.h"
-#include "icons.h"
 #include "inspection.h"
 #include "paths.h"
 #include "script_fonts.h"
@@ -304,8 +302,7 @@ static bool allowed(const App *app, const char *path, unsigned flags)
             root = true;
     if (!root || (!app->search->all && !path_is_within_root(path, app->search->scope)))
         return false;
-    return !app->filter_recognized || icon_is_ds_title(path) ||
-           !strcasecmp(path_extension(path), "argv") || association_registered(app, path);
+    return !app->filter_recognized || browser_recognizes_file(app, path);
 }
 void library_search_step(App *app)
 {

@@ -58,10 +58,12 @@ def prepare(root):
     root.mkdir(parents=True, exist_ok=True)
     for name in ('roms', 'apps', 'media/books', 'extra', '_nds/dsi-frontend/cache'):
         (root / name).mkdir(parents=True, exist_ok=True)
-    (root / '_nds/dsi-frontend/tabs.ini').write_text('[tabs]\nversion=1\n[tab.extra]\npath=extra\n')
+    (root / '_nds/dsi-frontend/tabs.ini').write_text('[tabs]\nversion=1\n[tab.extra]\npath=extra\n[tab.collection]\npath=roms/Collection\n')
     rows = [(f'roms/Game{n:04}.txt', 0) for n in range(1300)]
     rows += [('apps/Player.nds', 0), ('media/books/Überblick.txt', 0), ('media/books/日本語.txt', 0),
-             ('extra/Notes.md', 0), ('roms/.Hidden/Hidden game.txt', 1), ('roms/System game.txt', 2),
+             ('extra/Notes.md', 0), ('media/Standalone.png', 0), ('roms/Unsupported.weird', 0),
+             ('roms/Collection/Deep/Scoped.nds', 0), ('roms/Collection-extra/Escape.txt', 0),
+             ('roms/.Hidden/Hidden game.txt', 1), ('roms/System game.txt', 2),
              ('outside/Ignore game.txt', 0), ('roms/MovedAway.txt', 0)]
     for name, _ in rows:
         if name.startswith('outside/') or name.endswith('MovedAway.txt'):

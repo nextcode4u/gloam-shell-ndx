@@ -18,7 +18,9 @@ cover sidecars are omitted. Unicode filenames are retained within the path limit
 oversized paths/names are included in the reported skipped count. This is a file index,
 not a game database or a list of installed NAND titles. Multi-file application
 collections keep their own in-app browsers. Search honors the console's
-recognized-file and hidden/system filters.
+recognized-file and hidden/system filters. The recognized-file rule is shared
+with folder browsing: familiar document/media types remain visible even before
+you install a matching app. Launching still requires an available handler.
 
 The completed file is installed at
 `/_nds/dsi-frontend/cache/library.gli`. Preparation happens on the PC; a failed

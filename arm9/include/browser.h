@@ -11,6 +11,8 @@ void browser_refresh(App *app);
 void browser_restore_selection(App *app, const char *path);
 /* Explicit search result: locate across bounded folder batches, never launch. */
 bool browser_reveal_file(App *app, const char *path);
+/* Known file types or registered suffixes; launch availability is checked separately. */
+bool browser_recognizes_file(const App *app, const char *path);
 void browser_display_name(const App *app, const Entry *entry, char output[256]);
 const Entry *app_selected(const App *app);
 const char *entry_type(const Entry *entry);

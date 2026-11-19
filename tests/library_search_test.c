@@ -5,6 +5,7 @@
 #include "picker.h"
 #include "renderer.h"
 #include "storage_state.h"
+#include "tabs.h"
 #include "themes.h"
 #include <assert.h>
 #include <stdio.h>
@@ -124,6 +125,15 @@ int main(int argc, char **argv)
     assert(!app.search->count); /* Outside configured library roots. */
     app.filter_recognized = true;
     query("Game0012");
+    assert(app.search->count == 1); /* Recognized TXT files also appear in browsing. */
+    library_search_locate(&app);
+    assert(!app.search && app_selected(&app) && app.filter_recognized);
+    assert(strstr(app_selected(&app)->path, "/Game0012.txt"));
+    assert(library_search_open(&app));
+    library_search_scope(&app); /* Continue checking all libraries. */
+    query("Standalone");
+    assert(app.search->count == 1); /* A known image type does not require a player. */
+    query("Unsupported");
     assert(!app.search->count);
     query("Player");
     assert(app.search->count == 1);
@@ -203,6 +213,25 @@ int main(int argc, char **argv)
     app_back(&app);
     assert(!app.search && app.panel == PANEL_ACTIONS && app.panel_selection == 2);
     app_panel_close(&app);
+    /* Custom roots bound search and locate chooses the most specific tab. */
+    int collection = tabs_find(&app, "collection");
+    assert(collection >= CATEGORY_COUNT);
+    app_category(&app, collection);
+    assert(library_search_open(&app) && !app.search->all);
+    query("Escape");
+    assert(!app.search->count); /* A similarly named sibling is outside this tab. */
+    query("Scoped");
+    assert(app.search->count == 1);
+    library_search_locate(&app);
+    assert(!app.search && app.category == collection && app_selected(&app));
+    assert(strstr(app_selected(&app)->path, "/Collection/Deep/Scoped.nds"));
+    assert(!app.launch_requested);
+    app_back(&app);
+    assert(!strcmp(app.locations[collection].path, app.tabs[collection].home));
+    app_back(&app);
+    assert(!strcmp(app.locations[collection].path, app.tabs[collection].home));
+    app_category(&app, CATEGORY_GAMES);
+    assert(library_search_open(&app));
     for (int n = 0; n < 32; n++) {
         char name[64];
         snprintf(name, sizeof name, "truncated-%d.gli", n);

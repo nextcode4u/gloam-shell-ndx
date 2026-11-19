@@ -70,7 +70,7 @@ static int compare_modified(const void *left, const void *right)
         return a->modified > b->modified ? -1 : 1;
     return strcasecmp(a->name, b->name);
 }
-static bool recognized_file(const App *app, const char *name)
+bool browser_recognizes_file(const App *app, const char *name)
 {
     if (icon_is_ds_title(name))
         return true;
@@ -220,7 +220,7 @@ void browser_scan_step(App *app)
             continue;
         if (app->hide_bios_folders && directory_scan_is_bios_folder(&record))
             continue;
-        if (app->filter_recognized && record.regular && !recognized_file(app, record.name))
+        if (app->filter_recognized && record.regular && !browser_recognizes_file(app, record.name))
             continue;
         if (app->scan_eligible++ < app->locations[app->category].batch * ENTRY_CAP)
             continue;
