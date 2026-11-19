@@ -20,6 +20,7 @@ nav = [
   { "Using Gloam" = "USING.md" },
   { "Themes" = "THEMES.md" },
   { "Help" = "HELP.md" },
+  { "Glossary" = "GLOSSARY.md" },
 ]
 
 [project.theme]
@@ -50,6 +51,7 @@ toggle.name = "Switch to dark mode"
 
 [project.markdown_extensions]
 admonition = {}
+def_list = {}
 attr_list = {}
 md_in_html = {}
 toc = { permalink = true }

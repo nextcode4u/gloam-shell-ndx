@@ -1,7 +1,8 @@
 # Detailed guides
 
 For everyday use, start with [Install](INSTALL.md), [Using Gloam](USING.md) or
-[Themes](THEMES.md). The references below cover advanced setup and development.
+[Themes](THEMES.md). The [glossary](GLOSSARY.md) explains common terms.
+The references below cover advanced setup and development.
 
 ## User guides
 

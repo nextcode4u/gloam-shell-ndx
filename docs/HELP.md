@@ -34,5 +34,5 @@ Include your Gloam version, console, how you started it and what happened.
 
 ---
 
-[Detailed guides](README.md) · [Backups and recovery](guides/CONFIGURATION_BACKUPS.md)
+[Glossary](GLOSSARY.md) · [Detailed guides](README.md) · [Backups and recovery](guides/CONFIGURATION_BACKUPS.md)
 · [Credits](../CREDITS.md) · [For contributors](../CONTRIBUTING.md)
