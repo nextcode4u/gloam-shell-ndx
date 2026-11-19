@@ -253,12 +253,15 @@ static void prepare_options(App *app, const Entry *entry)
     if (entry->kind != ITEM_FILE || !icon_is_ds_title(entry->path))
         return;
     GameOptions effective, overrides;
-    game_options_effective(app->root, entry->path, &effective);
+    game_options_effective(app->root, "", &effective);
     bool custom = game_options_read(app->root, entry->path, &overrides);
     unsigned changed = 0;
     if (custom)
         for (int i = 0; i < GAME_OPTION_COUNT; i++)
-            changed += overrides.values[i] != GAME_INHERIT;
+            if (overrides.values[i] != GAME_INHERIT) {
+                effective.values[i] = overrides.values[i];
+                changed++;
+            }
     snprintf(app->top.options, sizeof app->top.options, "Slot %d / %u overrides",
              effective.values[GAME_SLOT], changed);
     save_summary(app, entry, effective.values[GAME_SLOT]);
@@ -306,10 +309,16 @@ void top_content_tick(App *app)
             metadata_read(entry, state);
         state->stage++;
     } else if (state->stage == 2) {
+        /* Neighbor/folder cards do not display launch or save details. Leave
+         * those reads pending until Y (or Smart) actually needs them. */
+        if (top_content_mode(app) != TOP_CONTENT_CONTEXT)
+            return;
         if (entry)
             prepare_handler(app, entry);
         state->stage++;
     } else if (state->stage == 3) {
+        if (top_content_mode(app) != TOP_CONTENT_CONTEXT)
+            return;
         if (entry)
             prepare_options(app, entry);
         state->stage++;

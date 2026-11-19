@@ -61,7 +61,8 @@ independent of an optional descriptive title.
 No whole-library scan, artwork prefetch or metadata import runs at boot. After a
 selection settles for seven frames, the controller prepares bounded state in
 separate steps. Metadata is read once per selection; missing or malformed files
-are not retried each frame. Rendering reads prepared state only.
+are not retried each frame. Rendering reads prepared state only. Launch-handler and save details are read
+only when a details view needs them; cover views leave that work pending until Y.
 
 Nearby covers reuse the existing three-image Shelf cache, not another image
 bank. If the bottom browser is Shelf, its visible neighbors take cache priority;

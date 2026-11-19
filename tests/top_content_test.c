@@ -24,12 +24,15 @@ static struct {
     unsigned after;
 } top, bottom;
 static bool count_reads;
-static unsigned opens;
+static unsigned opens, game_opens;
 FILE *__real_fopen(const char *, const char *);
 FILE *__wrap_fopen(const char *path, const char *mode)
 {
-    if (count_reads)
+    if (count_reads) {
         opens++;
+        if (strstr(path, "/games/"))
+            game_opens++;
+    }
     return __real_fopen(path, mode);
 }
 static void write_text(const char *name, const char *value)
@@ -146,6 +149,32 @@ int main(int argc, char **argv)
     prepare();
     assert(!app.top.metadata_present && !app.top.metadata_invalid);
 
+    /* Mutated optional metadata must never poison prepared state or rendering. */
+    const char *seed = "version=1\ntitle=Library\ndeveloper=Author\ngenre=Adventure\n"
+                       "year=2026\ndescription=Optional title details\n";
+    unsigned mutation = 0x474C4F41;
+    for (unsigned trial = 0; trial < 400; trial++) {
+        char bytes[256];
+        size_t length = strlen(seed);
+        memcpy(bytes, seed, length);
+        for (unsigned change = 0; change < 1 + trial % 8; change++) {
+            mutation ^= mutation << 13;
+            mutation ^= mutation >> 17;
+            mutation ^= mutation << 5;
+            bytes[mutation % length] ^= 1 + (mutation >> 16) % 255;
+        }
+        if (trial % 3 == 0)
+            length = mutation % length;
+        f = fopen(sidecar, "wb");
+        assert(f && fwrite(bytes, 1, length, f) == length && !fclose(f));
+        prepare();
+        if (app.top.metadata_invalid)
+            assert(!app.top.metadata_present && !*app.top.title && !*app.top.developer &&
+                   !*app.top.genre && !*app.top.year && !*app.top.description);
+        draw();
+    }
+    assert(!remove(sidecar));
+
     app.association_count = 1;
     path_copy(app.associations[0].extensions, "txt", sizeof app.associations[0].extensions);
     path_copy(app.associations[0].name, "Example reader", sizeof app.associations[0].name);
@@ -183,6 +212,43 @@ int main(int argc, char **argv)
     write_text("roms/saves/Fixture.sav", "Second slot-zero fixture");
     prepare();
     assert(strstr(app.top.save, "multiple paths"));
+
+    /* Defaults and title overrides are read once each, with the same precedence. */
+    GameOptions defaults;
+    game_options_defaults(&defaults, true);
+    defaults.values[GAME_SLOT] = 7;
+    assert(game_options_write(app.root, "", &defaults));
+    count_reads = true;
+    unsigned games_before = game_opens;
+    prepare();
+    count_reads = false;
+    assert(game_opens - games_before == 2);
+    assert(strstr(app.top.options, "Slot 0")); /* Explicit title value beats defaults. */
+    options.values[GAME_SLOT] = GAME_INHERIT;
+    assert(game_options_write(app.root, app.entries[0].path, &options));
+    prepare();
+    assert(strstr(app.top.options, "Slot 7"));
+
+    /* Cover-oriented presets defer settings/association reads until details open. */
+    for (unsigned mode = TOP_CONTENT_NEIGHBORS; mode <= TOP_CONTENT_FOLDER; mode++) {
+        app.top_content = mode;
+        app.detail_tab = 0;
+        app_reset_preview(&app);
+        app.selection_idle_frames = 7;
+        for (unsigned frame = 0; frame < 4; frame++)
+            top_content_tick(&app);
+        assert(app.top.stage == 2 && !*app.top.handler && !*app.top.options);
+        unsigned reads_before = opens;
+        count_reads = true;
+        for (unsigned frame = 0; frame < 1000; frame++)
+            top_content_tick(&app);
+        count_reads = false;
+        assert(opens == reads_before);
+        app_toggle_details(&app);
+        top_content_tick(&app);
+        top_content_tick(&app);
+        assert(app.top.stage == 4 && strstr(app.top.options, "Slot 7"));
+    }
 
     for (unsigned mode = 1; mode < TOP_CONTENT_COUNT; mode++) {
         app.top_content = mode;
