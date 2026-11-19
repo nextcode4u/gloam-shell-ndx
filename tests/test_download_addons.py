@@ -421,6 +421,44 @@ class DownloadAddonTests(unittest.TestCase):
             self.assertEqual(fetch(item, self.cache, offline=False), self.blob)
         self.assertEqual(cached.read_bytes(), self.blob)
 
+    def test_oversized_cache_is_rejected_without_reading_its_contents(self):
+        item = self.app['files'][0]['download']
+        legacy = self.cache / item['asset']
+        hashed = self.cache / (item['sha256'] + '-' + item['asset'])
+        for cached in (legacy, hashed):
+            with self.subTest(cache=cached.name):
+                legacy.write_bytes(self.blob)
+                hashed.unlink(missing_ok=True)
+                cached.write_bytes(b'x' * 2048)
+                with patch('tools.download_addons.MAX_DOWNLOAD', 1024), \
+                     patch.object(Path, 'open', side_effect=AssertionError('Oversized cache was opened')):
+                    with self.assertRaisesRegex(ValueError, 'cache hash mismatch'):
+                        fetch(item, self.cache, offline=True)
+                    with patch('urllib.request.urlopen', return_value=io.BytesIO(self.blob)):
+                        self.assertEqual(fetch(item, self.cache, offline=False), self.blob)
+                self.assertEqual(hashed.read_bytes(), self.blob)
+
+    def test_cache_growth_after_stat_still_has_a_bounded_read(self):
+        item = self.app['files'][0]['download']
+        stream = io.BytesIO(b'x' * 2048)
+        with patch('tools.download_addons.MAX_DOWNLOAD', 1024), \
+             patch.object(Path, 'open', return_value=stream), \
+             patch.object(stream, 'read', wraps=stream.read) as read:
+            with self.assertRaisesRegex(ValueError, 'cache hash mismatch'):
+                fetch(item, self.cache, offline=True)
+            read.assert_called_once_with(1025)
+
+    def test_valid_legacy_cache_is_read_only_once(self):
+        item = self.app['files'][0]['download']
+        real_open = Path.open
+        opened = []
+        def track(path, *args, **kwargs):
+            opened.append(path)
+            return real_open(path, *args, **kwargs)
+        with patch.object(Path, 'open', track):
+            self.assertEqual(fetch(item, self.cache, offline=True), self.blob)
+        self.assertEqual(opened, [self.cache / item['asset']])
+
     def test_full_cache_disk_does_not_publish_partial_download(self):
         item = self.app['files'][0]['download']
         (self.cache / 'demo.zip').unlink()

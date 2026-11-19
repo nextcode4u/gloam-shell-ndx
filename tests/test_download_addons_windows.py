@@ -1,4 +1,5 @@
 """Exercise standalone menus in Windows PowerShell 5.1 and the CMD launcher."""
+import base64
 import copy
 import hashlib
 import json
@@ -8,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from textwrap import dedent
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,6 +67,53 @@ class WindowsInstallerMenuTests(unittest.TestCase):
         self.assertIn('Gloam Add-on Installer', result.stdout, result.stderr)
         self.assertNotIn('Operation stopped:', result.stdout)
         return result.stdout
+
+    def test_locked_oversized_cache_is_rejected_before_opening_in_powershell(self):
+        def quote(path):
+            return "'" + windows_path(path).replace("'", "''") + "'"
+        source = self.installer / 'download-addons.ps1'
+        wrapper = self.root / 'cache-limit.ps1'
+        script = dedent("""
+            $ErrorActionPreference='Stop'
+            Set-StrictMode -Version Latest
+            $tokens=$null; $errors=$null
+            $ast=[Management.Automation.Language.Parser]::ParseFile(__SOURCE__, [ref]$tokens, [ref]$errors)
+            if($errors.Count){throw 'Script parse failed'}
+            $ast.FindAll({param($n)
+                $n -is [Management.Automation.Language.FunctionDefinitionAst] -and
+                $n.Name -in @('Get-Digest','Get-CachedDownload','Get-Download')
+            },$true) | ForEach-Object {Invoke-Expression $_.Extent.Text}
+            $Cache=__CACHE__; $Offline=$true; $MaxDownload=1024
+            $item=[pscustomobject]@{
+                asset='fixture.nds'; sha256='__DIGEST__'; url='https://example.invalid/fixture.nds'
+            }
+            $legacy=Join-Path $Cache $item.asset
+            $hashed=Join-Path $Cache ($item.sha256+'-'+$item.asset)
+            $payload=[Convert]::FromBase64String('__PAYLOAD__')
+            foreach($candidate in @($legacy,$hashed)){
+                if(Test-Path -LiteralPath $hashed){Remove-Item -LiteralPath $hashed}
+                [IO.File]::WriteAllBytes($legacy,$payload)
+                [IO.File]::WriteAllBytes($candidate,[byte[]]::new(2048))
+                $handle=[IO.File]::Open($candidate,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::None)
+                try {
+                    try {$null=Get-Download $item; throw 'Oversized cache accepted'}
+                    catch {if($_.Exception.Message -notlike 'Download cache hash mismatch:*'){throw}}
+                } finally {$handle.Dispose()}
+            }
+            Remove-Item -LiteralPath $hashed
+            [IO.File]::WriteAllBytes($legacy,$payload)
+            $bytes=Get-Download $item
+            if((Get-Digest $bytes) -ne $item.sha256){throw 'Valid cache rejected'}
+        """)
+        for key, value in {'__SOURCE__': quote(source), '__CACHE__': quote(self.cache),
+                           '__DIGEST__': self.digest,
+                           '__PAYLOAD__': base64.b64encode(self.payload).decode('ascii')}.items():
+            script = script.replace(key, value)
+        wrapper.write_text(script)
+        result = subprocess.run([POWERSHELL, '-NoProfile', '-ExecutionPolicy', 'Bypass',
+                                 '-File', windows_path(wrapper)], capture_output=True, timeout=45)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(self.binary.exists())
 
     def test_locked_executable_survives_failed_update_and_retry_repairs_backup(self):
         old = b'Working executable before update'

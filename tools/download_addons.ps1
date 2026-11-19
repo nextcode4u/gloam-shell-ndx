@@ -262,6 +262,24 @@ function Write-CompleteFile([string]$Path, [byte[]]$Data) {
     } finally { if ([IO.File]::Exists($temporary)) { [IO.File]::Delete($temporary) } }
 }
 
+function Get-CachedDownload($Path) {
+    $info = Get-Item -Force -LiteralPath $Path
+    if ($info -isnot [IO.FileInfo] -or $info.Length -gt $MaxDownload) { return $null }
+    $stream = [IO.File]::OpenRead($Path)
+    try {
+        $bytes = [byte[]]::new([int]$info.Length)
+        $offset = 0
+        while ($offset -lt $bytes.Length) {
+            $count = $stream.Read($bytes, $offset, $bytes.Length - $offset)
+            if (-not $count) { return $null }
+            $offset += $count
+        }
+        # A cache file that changed size is incomplete; never allocate beyond the limit.
+        if ($stream.ReadByte() -ne -1) { return $null }
+        return ,$bytes
+    } finally { $stream.Dispose() }
+}
+
 function Get-Download($Item) {
     if ($Item.asset -cnotmatch '^[A-Za-z0-9_.-]+$' -or $Item.asset -in @('.', '..')) { throw 'Unsafe cache filename' }
     if ($Item.sha256 -cnotmatch '^[0-9a-f]{64}$') { throw 'Invalid download hash' }
@@ -270,13 +288,14 @@ function Get-Download($Item) {
     $legacy = Join-Path $Cache $Item.asset
     if (-not (Test-Path -LiteralPath $path) -and (Test-Path -LiteralPath $legacy)) {
         if ((Get-Item -Force -LiteralPath $legacy).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Cache entry is a link' }
-        if ((Get-Digest ([IO.File]::ReadAllBytes($legacy))) -eq $Item.sha256) { $path = $legacy }
+        $cached = Get-CachedDownload $legacy
+        if ($null -ne $cached -and (Get-Digest $cached) -eq $Item.sha256) { return ,$cached }
         elseif ($Offline) { throw "Download cache hash mismatch: $($Item.asset)" }
     }
     if (Test-Path -LiteralPath $path) {
         if ((Get-Item -Force -LiteralPath $path).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Cache entry is a link' }
-        $bytes = [IO.File]::ReadAllBytes($path)
-        if ($bytes.Length -le $MaxDownload -and (Get-Digest $bytes) -eq $Item.sha256) { return ,$bytes }
+        $bytes = Get-CachedDownload $path
+        if ($null -ne $bytes -and (Get-Digest $bytes) -eq $Item.sha256) { return ,$bytes }
         if ($Offline) { throw "Download cache hash mismatch: $($Item.asset)" }
         Write-Host "Replacing incomplete or corrupt cache: $($Item.asset)"
     } elseif ($Offline) { throw "Offline cache missing: $($Item.asset)" }

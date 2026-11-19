@@ -256,6 +256,15 @@ def write_atomic(path, data):
             temporary.unlink(missing_ok=True)
 
 
+def cached_download(path):
+    """Bound cache reads too, including a file that grows after its size check."""
+    if path.stat().st_size > MAX_DOWNLOAD:
+        return None
+    with path.open("rb") as stream:
+        data = stream.read(MAX_DOWNLOAD + 1)
+    return data if len(data) <= MAX_DOWNLOAD else None
+
+
 def fetch(item, cache, offline):
     name = item["asset"]
     if not re.fullmatch(r"[A-Za-z0-9_.-]+", name) or name in {".", ".."}:
@@ -269,15 +278,16 @@ def fetch(item, cache, offline):
     if not path.exists() and legacy.exists():
         if legacy.is_symlink():
             raise ValueError("Download cache entry is a symlink")
-        if digest(legacy.read_bytes()) == item["sha256"]:
-            path = legacy
+        cached = cached_download(legacy)
+        if cached is not None and digest(cached) == item["sha256"]:
+            return cached
         elif offline:
             raise ValueError(f"Download cache hash mismatch: {name}")
     if path.is_symlink():
         raise ValueError("Download cache entry is a symlink")
     if path.exists():
-        data = path.read_bytes()
-        if len(data) <= MAX_DOWNLOAD and digest(data) == item["sha256"]:
+        data = cached_download(path)
+        if data is not None and digest(data) == item["sha256"]:
             return data
         if offline:
             raise ValueError(f"Download cache hash mismatch: {name}")
