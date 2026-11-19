@@ -807,6 +807,65 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.assertEqual([p.read_bytes() for p in backups.rglob(homebrew.name)], [b'previous homebrew backend'])
         self.assertEqual([p.read_bytes() for p in backups.rglob(version.name)], [b'old version'])
 
+    def local_theme_fixture(self):
+        source = self.root / 'local-theme'
+        source.mkdir()
+        (source / 'theme.ini').write_bytes(b'[theme]\nversion=2\nname=Local fixture\n')
+        (source / 'CREDITS.md').write_bytes(b'Original fixture credits')
+        return source, self.sd / '_nds/dsi-frontend/themes/local-theme'
+
+    def test_failed_local_theme_import_leaves_no_partial_pack(self):
+        source, target = self.local_theme_fixture()
+        self.run_ps(
+            "$script:writer=${function:Write-GloamFile}; $script:copies=0; "
+            "function Write-GloamFile {param($Root,$Relative,$Data,$Replace=$false); "
+            "$script:copies++; if($script:copies -eq 2){throw 'Interrupted local import'}; "
+            "& $script:writer $Root $Relative $Data $Replace}; "
+            'Import-GloamTheme $root ' + literal(win(source)), success=False)
+        self.assertFalse(target.exists())
+        self.assertFalse(list((self.sd / '_nds/dsi-frontend').glob('.theme-import-*')))
+        self.run_ps('Import-GloamTheme $root ' + literal(win(source)))
+        self.assertEqual((target / 'theme.ini').read_bytes(), (source / 'theme.ini').read_bytes())
+
+    def test_local_theme_import_preserves_a_destination_created_during_copy(self):
+        source, target = self.local_theme_fixture()
+        self.run_ps(
+            "$script:writer=${function:Write-GloamFile}; $script:appeared=$false; "
+            "function Write-GloamFile {param($Root,$Relative,$Data,$Replace=$false); "
+            "if(-not $script:appeared){$script:appeared=$true; "
+            "$other=Get-GloamPath $Root '_nds/dsi-frontend/themes/local-theme'; "
+            "[IO.Directory]::CreateDirectory($other)|Out-Null; "
+            "[IO.File]::WriteAllText((Join-Path $other 'theme.ini'),'Keep this theme')}; "
+            "& $script:writer $Root $Relative $Data $Replace}; "
+            'Import-GloamTheme $root ' + literal(win(source)), success=False)
+        self.assertEqual((target / 'theme.ini').read_text(), 'Keep this theme')
+        self.assertEqual([p.name for p in target.iterdir()], ['theme.ini'])
+        self.assertFalse(list((self.sd / '_nds/dsi-frontend').glob('.theme-import-*')))
+
+    def test_local_theme_import_revalidates_the_staged_manifest(self):
+        source, target = self.local_theme_fixture()
+        self.run_ps(
+            "$script:writer=${function:Write-GloamFile}; "
+            "function Write-GloamFile {param($Root,$Relative,$Data,$Replace=$false); "
+            "if($Relative.EndsWith('/theme.ini')){$Data=[Text.Encoding]::UTF8.GetBytes('[theme]'+[Environment]::NewLine+'version=99')}; "
+            "& $script:writer $Root $Relative $Data $Replace}; "
+            'Import-GloamTheme $root ' + literal(win(source)), success=False)
+        self.assertFalse(target.exists())
+        self.assertFalse(list((self.sd / '_nds/dsi-frontend').glob('.theme-import-*')))
+        self.assertIn(b'version=2', (source / 'theme.ini').read_bytes())
+
+    def test_local_theme_import_matches_frontend_folder_id_limit(self):
+        source, _ = self.local_theme_fixture()
+        too_long = self.root / ('x' * 64)
+        source.rename(too_long)
+        self.run_ps('Import-GloamTheme $root ' + literal(win(too_long)), success=False)
+        self.assertFalse((self.sd / '_nds/dsi-frontend/themes').exists())
+        valid = self.root / ('x' * 63)
+        too_long.rename(valid)
+        self.run_ps('Import-GloamTheme $root ' + literal(win(valid)))
+        installed = self.sd / '_nds/dsi-frontend/themes' / valid.name
+        self.assertEqual((installed / 'theme.ini').read_bytes(), (valid / 'theme.ini').read_bytes())
+
     def test_archive_preflight_rejects_escapes_and_parent_collisions_without_writes(self):
         for members in [{'roms/good.txt': b'good', '../escape': b'bad'},
                         {'roms/good.txt': b'good', 'apps/block': b'file', 'apps/block/child': b'bad'},

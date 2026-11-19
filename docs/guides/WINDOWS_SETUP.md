@@ -209,6 +209,11 @@ leaves existing themes intact and stops before preparing the next file, includin
 cached files. The cache is under
 `%LOCALAPPDATA%\Gloam\Setup\theme-directory`.
 
+For a pack already on your PC, choose **Import theme folder...** and select its folder
+containing `theme.ini`. Setup stages and validates the complete folder before
+publishing it. A failed copy leaves no partial installed theme. Existing folders
+are never merged or replaced; rename the imported folder to keep both packs.
+
 Open the themes folder or import a folder containing `theme.ini`. Import keeps
 existing themes; rename the source folder to install a separate version. Choose
 the active theme on the console, or select an installed theme and press **Apply

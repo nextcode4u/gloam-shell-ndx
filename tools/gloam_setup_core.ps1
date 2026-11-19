@@ -417,7 +417,23 @@ function Import-GloamTheme([string]$Root, [string]$Source) {
             $files.Add([pscustomobject]@{ Source = $item.FullName; Relative = $name })
         }
     }
-    foreach ($item in $files) { Write-GloamFile $Root $item.Relative ([IO.File]::ReadAllBytes($item.Source)) | Out-Null }
+    $stageRelative = '_nds/dsi-frontend/.theme-import-' + [Guid]::NewGuid().ToString('N')
+    $stage = Get-GloamPath $Root $stageRelative
+    try {
+        [IO.Directory]::CreateDirectory($stage) | Out-Null
+        foreach ($item in $files) {
+            $stagedFile = $stageRelative + $item.Relative.Substring($relative.Length)
+            if (-not (Write-GloamFile $Root $stagedFile ([IO.File]::ReadAllBytes($item.Source)))) {
+                throw 'A staging file appeared during theme import.'
+            }
+        }
+        $prepared = Test-GloamTheme $stage
+        if (-not $prepared.Valid) { throw ($prepared.Errors -join "`n") }
+        $destination = Get-GloamPath $Root $relative
+        if (Test-Path -LiteralPath $destination) { throw 'A theme appeared at the destination. Choose another folder name.' }
+        [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($destination)) | Out-Null
+        [IO.Directory]::Move($stage, $destination)
+    } finally { if ([IO.Directory]::Exists($stage)) { [IO.Directory]::Delete($stage, $true) } }
     Write-Host "Imported theme: $($folder.Name). Select it in Gloam's settings."
 }
 
