@@ -42,7 +42,8 @@ A DSi homebrew boot method with SD access is still required; see
   apps, use Recommended, or use Select all to include every app. Install selected can fetch
   any app in this list, including apps also bundled in `addons.zip`. It fills missing files;
   Update selected replaces changed application binaries while preserving personal
-  configurations and saves. Check updates reports differences first.
+  configurations and saves. Check updates reports executable differences and missing
+  support files, including per-game emulator configurations.
 - **Check installed BIOS / support** checks every installed app, independently
   of the selection checkboxes, using the console installer's read-only checks.
   Hover an add-on row for its version, terms and firmware requirements.

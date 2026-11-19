@@ -2,6 +2,7 @@
 import base64
 import copy
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -11,6 +12,7 @@ import sys
 import tempfile
 from textwrap import dedent
 import unittest
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 POWERSHELL = shutil.which('powershell.exe') or '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe'
@@ -114,6 +116,50 @@ class WindowsInstallerMenuTests(unittest.TestCase):
                                  '-File', windows_path(wrapper)], capture_output=True, timeout=45)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertFalse(self.binary.exists())
+
+    def test_update_and_support_checks_find_separate_game_configs_in_both_scripts(self):
+        relative = '_gba/configs/ABCE01.json'
+        archive = io.BytesIO()
+        with zipfile.ZipFile(archive, 'w') as output:
+            output.writestr(relative, b'{}')
+        data = archive.getvalue()
+        (self.cache / 'settings.zip').write_bytes(data)
+        self.app['game_configs'] = {
+            'download': {'asset': 'settings.zip', 'url': 'https://example.invalid/settings.zip',
+                         'sha256': hashlib.sha256(data).hexdigest()},
+            'files': {relative: hashlib.sha256(b'{}').hexdigest()}}
+        self.write_manifest()
+        self.binary.parent.mkdir(parents=True)
+        self.binary.write_bytes(self.payload)
+        python = [sys.executable, str(self.installer / 'download-addons.py'),
+                  '--manifest', str(self.installer / 'downloads.json'),
+                  '--target', str(self.target), '--offline', '--only', 'demo']
+        powershell = self.ps + ['-Target', windows_path(self.target), '-Offline', '-Only', 'demo']
+        for command, update, support in ((python, '--check-updates', '--check-support'),
+                                         (powershell, '-CheckUpdates', '-CheckSupport')):
+            with self.subTest(command=command[0]):
+                result = subprocess.run(command + [update], text=True, capture_output=True, timeout=45)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn('missing support files', result.stdout)
+                result = subprocess.run(command + [support], text=True, capture_output=True, timeout=45)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn('MISSING support file: ' + relative, result.stdout)
+        config = self.target / relative
+        self.assertFalse(config.exists())
+        config.parent.mkdir(parents=True)
+        config.write_bytes(b'{"custom":true}')
+        for command, option in ((python, '--check-updates'), (powershell, '-CheckUpdates')):
+            result = subprocess.run(command + [option], text=True, capture_output=True, timeout=45)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('up to date', result.stdout)
+        self.assertEqual(config.read_bytes(), b'{"custom":true}')
+        self.assertEqual(self.binary.read_bytes(), self.payload)
+        config.unlink()
+        result = subprocess.run(powershell + ['-Update', '-Cache', windows_path(self.cache)],
+                                text=True, capture_output=True, timeout=45)
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertEqual(config.read_bytes(), b'{}')
+        self.assertEqual(self.binary.read_bytes(), self.payload)
 
     def test_locked_executable_survives_failed_update_and_retry_repairs_backup(self):
         old = b'Working executable before update'

@@ -130,14 +130,15 @@ def check_updates(manifest, target, only=None, noncommercial=False, upstream=Fal
     if not root.is_dir():
         raise ValueError("Target must be an existing SD root or staging directory")
     for app in select_apps(manifest, only, noncommercial):
-        files = [f for f in app["files"] if f["destination"].endswith((".nds", ".srl"))]
+        all_files = application_files(app)
+        files = [f for f in all_files if f["destination"].endswith((".nds", ".srl"))]
         paths = [destination(root, f["destination"]) for f in files]
         status = "not installed"
         if any(p.exists() for p in paths):
             current = all(p.is_file() and digest(p.read_bytes()) == f["sha256"]
                           for p, f in zip(paths, files))
             status = "up to date" if current else "differs from reviewed executable"
-        support = [f for f in app["files"] if not f["destination"].endswith((".nds", ".srl"))]
+        support = [f for f in all_files if not f["destination"].endswith((".nds", ".srl"))]
         if status == "up to date" and any(not destination(root, f["destination"]).is_file() for f in support):
             status = "missing support files"
         print(f"{app['id']}: {status}; reviewed {app['version']}")
@@ -196,7 +197,7 @@ def check_support(manifest, target, only=None):
     missing = 0
     for app in select_apps(manifest, names, noncommercial=True):
         print(f"{app['id']}: {app.get('bios') or 'No firmware metadata in this catalog.'}")
-        for item in app["files"]:
+        for item in application_files(app):
             if not item["destination"].endswith((".nds", ".srl")):
                 path = destination(root, item["destination"])
                 if not path.is_file() or not path.stat().st_size:

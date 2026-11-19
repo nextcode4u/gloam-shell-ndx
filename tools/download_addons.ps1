@@ -203,13 +203,24 @@ function Get-Destination([string]$Root, [string]$Name) {
     return Get-SdPath $Root $Name
 }
 
+function Get-ApplicationFiles($App) {
+    $files = @($App.files)
+    if ($App.PSObject.Properties.Name -contains 'game_configs' -and $App.game_configs) {
+        foreach ($property in $App.game_configs.files.PSObject.Properties) {
+            $files += [pscustomobject]@{ download = $App.game_configs.download; format = 'zip';
+                member = $property.Name; destination = $property.Name; sha256 = $property.Value }
+        }
+    }
+    return $files
+}
+
 function Test-Support($Apps, [string]$Folder, [string[]]$Names) {
     if (-not $Names) { $Names = @(Get-MenuInstalledApps $Apps $Folder | ForEach-Object { $_.id }) }
     if (-not $Names.Count) { Write-Output 'No matching applications are installed.'; return }
     foreach ($app in @(Get-SelectedApps $Apps $Names $true)) {
         $note = if ($app.PSObject.Properties.Name -contains 'bios' -and $app.bios) { $app.bios } else { 'No firmware metadata in this catalog.' }
         Write-Output "$($app.id): $note"
-        foreach ($item in @($app.files | Where-Object { $_.destination -notmatch '\.(nds|srl)$' })) {
+        foreach ($item in @((Get-ApplicationFiles $app) | Where-Object { $_.destination -notmatch '\.(nds|srl)$' })) {
             $path = Get-Destination $Folder $item.destination
             if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Item -Force -LiteralPath $path).Length -eq 0) {
                 Write-Output "  MISSING support file: $($item.destination)"
@@ -523,7 +534,8 @@ try {
     $selected = @(Get-SelectedApps $applications $Only)
     if ($CheckUpdates) {
         foreach ($app in $selected) {
-            $executables = @($app.files | Where-Object { $_.destination -match '\.(nds|srl)$' })
+            $files = @(Get-ApplicationFiles $app)
+            $executables = @($files | Where-Object { $_.destination -match '\.(nds|srl)$' })
             $present = $false
             $current = $true
             foreach ($item in $executables) {
@@ -534,7 +546,7 @@ try {
                 } else { $current = $false }
             }
             $status = if (-not $present) { 'not installed' } elseif ($current) { 'up to date' } else { 'differs from reviewed executable' }
-            $missingSupport = @($app.files | Where-Object {
+            $missingSupport = @($files | Where-Object {
                 $_.destination -notmatch '\.(nds|srl)$' -and
                 -not (Test-Path -LiteralPath (Get-Destination $root $_.destination) -PathType Leaf)
             }).Count -gt 0
@@ -564,12 +576,7 @@ try {
     foreach ($app in $selected) {
         if ($app.PSObject.Properties.Name -contains 'experimental' -and $app.experimental) { Write-Host "Experimental $($app.id): $($app.notes)" }
         $name = $app.id
-        $files = @($app.files)
-        if ($app.PSObject.Properties.Name -contains 'game_configs') {
-            foreach ($property in $app.game_configs.files.PSObject.Properties) {
-                $files += [pscustomobject]@{ download = $app.game_configs.download; format = 'zip'; member = $property.Name; destination = $property.Name; sha256 = $property.Value }
-            }
-        }
+        $files = @(Get-ApplicationFiles $app)
         foreach ($item in $files) {
             $path = Get-Destination $root $item.destination
             if ($seen.ContainsKey($item.destination)) { throw 'Applications have overlapping destinations' }

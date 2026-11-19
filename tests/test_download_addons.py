@@ -369,6 +369,27 @@ class DownloadAddonTests(unittest.TestCase):
         self.assertIn('Other upstream release: v2 (not selected', output.getvalue())
         self.assertEqual((self.sd / self.name).read_bytes(), self.binary)
 
+    def test_update_and_support_checks_include_separate_game_configs(self):
+        self.run_stage()
+        self.app['version'] = 'v1'
+        config = self.sd / '_gba/configs/ABCE01.json'
+        config.unlink()
+        output = io.StringIO()
+        with redirect_stdout(output):
+            check_updates(self.manifest, self.sd)
+            missing = check_support(self.manifest, self.sd, only=['demo'])
+        self.assertIn('missing support files', output.getvalue())
+        self.assertIn('MISSING support file: _gba/configs/ABCE01.json', output.getvalue())
+        self.assertEqual(missing, 1)
+        self.assertFalse(config.exists())
+        self.assertEqual((self.sd / self.name).read_bytes(), self.binary)
+        self.run_stage(update=True)
+        self.assertEqual(config.read_bytes(), self.config)
+        output = io.StringIO()
+        with redirect_stdout(output):
+            check_updates(self.manifest, self.sd)
+        self.assertIn('up to date', output.getvalue())
+
     def test_fresh_cli_install_refreshes_pins_without_expanding_selection(self):
         import copy
         from tools.download_addons import main
