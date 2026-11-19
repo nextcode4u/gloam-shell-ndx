@@ -788,6 +788,25 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
         self.assertEqual(theme.read_bytes(), b'personal theme')
         self.assertEqual([p.read_bytes() for p in (self.sd / '_nds/dsi-frontend/setup-backups').rglob('nds-bootstrap-release.nds')], [b'old backend'])
 
+    def test_runtime_update_keeps_homebrew_backend_and_version_in_step(self):
+        homebrew = self.sd / '_nds/nds-bootstrap-hb-release.nds'
+        homebrew.parent.mkdir()
+        homebrew.write_bytes(b'previous homebrew backend')
+        version = self.sd / '_nds/release-bootstrap.ver'
+        version.write_bytes(b'old version')
+        archive = self.archive('backend-update.zip', {
+            '_nds/nds-bootstrap-hb-release.nds': b'updated homebrew backend',
+            '_nds/release-bootstrap.ver': b'new version'})
+        self.run_ps('Install-GloamArchive $root ' + literal(win(archive)))
+        self.assertEqual(homebrew.read_bytes(), b'previous homebrew backend')
+        self.assertEqual(version.read_bytes(), b'old version')
+        self.run_ps('Install-GloamArchive $root ' + literal(win(archive)) + ' $true')
+        self.assertEqual(homebrew.read_bytes(), b'updated homebrew backend')
+        self.assertEqual(version.read_bytes(), b'new version')
+        backups = self.sd / '_nds/dsi-frontend/setup-backups'
+        self.assertEqual([p.read_bytes() for p in backups.rglob(homebrew.name)], [b'previous homebrew backend'])
+        self.assertEqual([p.read_bytes() for p in backups.rglob(version.name)], [b'old version'])
+
     def test_archive_preflight_rejects_escapes_and_parent_collisions_without_writes(self):
         for members in [{'roms/good.txt': b'good', '../escape': b'bad'},
                         {'roms/good.txt': b'good', 'apps/block': b'file', 'apps/block/child': b'bad'},

@@ -32,8 +32,9 @@ A DSi homebrew boot method with SD access is still required; see
   configuration, themes, associations, BIOS, saves and other applications.
   The checked bundled add-on pack is included by default; uncheck it for a
   frontend-only setup.
-- **Update Gloam + backends** refreshes the frontend, official nds-bootstrap,
-  Slot-1 helper and forwarder/TMD, plus unchanged bundled themes. Existing
+- **Update Gloam + backends** refreshes the frontend, both official nds-bootstrap
+  backends, their version file, the Slot-1 helper and forwarder/TMD, plus unchanged
+  bundled themes. Existing
   settings, profiles, customized themes and saves are kept; replaced files receive backups.
 - **Update BOOT.NDS only** downloads the current frontend binary. Existing
   assets, backend versions, settings and content stay in place. Check release

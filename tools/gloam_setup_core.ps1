@@ -241,6 +241,7 @@ function Install-GloamArchive([string]$Root, [string]$ArchivePath, [bool]$Update
             try { $stream.CopyTo($memory); [byte[]]$bytes = $memory.ToArray() }
             finally { $stream.Dispose(); $memory.Dispose() }
             $owned = @('BOOT.NDS','_nds/nds-bootstrap-release.nds',
+                '_nds/nds-bootstrap-hb-release.nds','_nds/release-bootstrap.ver',
                 '_nds/dsi-frontend/loaders/slot1launch.nds','_nds/dsi-frontend/install/gloam-forwarder.dsi',
                 '_nds/dsi-frontend/install/gloam-forwarder.tmd')
             $replace = ($themeFile -and $UpdateRuntime) -or $item.Relative -ceq 'BOOT.NDS' -or ($UpdateRuntime -and $item.Relative -cin $owned)
