@@ -29,6 +29,8 @@ def main() -> None:
         "blocksds_recorded": version[1],
         "support": "docs/CURRENT_SUPPORT.md",
     }
+    tls = json.loads((PROJECT / "build/mbedtls/build-info.json").read_text())
+    manifest["mbedtls"] = tls
     elf = PROJECT / "build/gloam-shell-ndx.elf"
     if elf.is_file():
         manifest["elf_sha256"] = hashlib.sha256(elf.read_bytes()).hexdigest()

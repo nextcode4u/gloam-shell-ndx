@@ -37,17 +37,6 @@ BlocksDS SDK v1.25.0 resolves to commit
 during this audit). Its submodule selections, rather than current library
 branches, identify the SDK dependency versions used by a pinned build.
 
-The HTTPS client links the BlocksDS `blocksds-mbedtls` package **3.6.4-2**
-(Mbed TLS 3.6.4). `mbedtls-LICENSE` is the complete dual Apache-2.0 OR
-GPL-2.0-or-later notice copied from that package; it accompanies releases.
-Upstream source: https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-3.6.4
-BlocksDS packaging: https://codeberg.org/blocksds/packages
-This is an external SDK dependency, installed with `wf-pacman`; retain the
-selected package version when reproducing a release.
-
-`sdroot/_nds/dsi-frontend/update-ca.pem` contains the public USERTrust ECC
-and RSA Certification Authority trust anchors, exported from the system
-Mozilla CA collection. They authenticate GitHub's Sectigo certificate chain;
-no private keys are included. Certificate changes are reviewed source changes,
-never downloaded from an unauthenticated endpoint. The bundle SHA-256 is
-`642666485d6100976d906ca94909fa4aca4b9f6f3e21139a8a075c67112e421b`.
+The frontend's HTTPS client now builds Mbed TLS 3.6.8 separately; see
+`third_party/mbedtls`. The retained `mbedtls-LICENSE` matches the older SDK package
+and remains an SDK provenance record, not the frontend's current TLS version.

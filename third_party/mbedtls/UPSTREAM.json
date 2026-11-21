@@ -1,0 +1,10 @@
+{
+  "version": "3.6.8",
+  "repository": "https://github.com/Mbed-TLS/mbedtls",
+  "tag": "mbedtls-3.6.8",
+  "archive": "mbedtls-3.6.8.tar.bz2",
+  "url": "https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.8/mbedtls-3.6.8.tar.bz2",
+  "sha256": "bc54b818e87f49c0b3281dd85d24adaede0e63b4e822e3fbd49c005a38b9595b",
+  "port_repository": "https://github.com/blocksds/packages",
+  "port_commit": "3dfd6051fc950d6e9189462afbd9dc26ab886d06"
+}

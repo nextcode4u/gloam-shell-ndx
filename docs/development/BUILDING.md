@@ -3,8 +3,9 @@
 ## Requirements
 
 - BlocksDS **1.25.0 or later**, with Wonderful Toolchain and ARM tools on PATH.
-- BlocksDS Mbed TLS **3.6.4-2** (`wf-pacman -Sy blocksds-mbedtls`), under
-  `BLOCKSDSEXT` (default `/opt/blocksds/external`).
+- `patch` and Make for the pinned Mbed TLS **3.6.8** build. The first `make`
+  downloads its verified source; later builds reuse local libraries.
+  Use `make MBEDTLS_OFFLINE=1` with a populated source cache for offline builds.
 - GNU Make, Git and Python **3.11+**.
 - For checks/asset authoring: a host C compiler, Bash and the Python dependencies
   in `requirements-dev.txt`. Pillow is not needed for a normal frontend build.

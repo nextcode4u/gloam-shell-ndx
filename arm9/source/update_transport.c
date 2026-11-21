@@ -8,11 +8,15 @@
 #include <mbedtls/entropy.h>
 #include <mbedtls/net_sockets.h>
 #include <mbedtls/ssl.h>
+#include <mbedtls/version.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
+_Static_assert(MBEDTLS_VERSION_NUMBER == 0x03060800,
+               "Build with the pinned Mbed TLS 3.6.8 headers");
 
 /* A single bounded DNS A query avoids libc's blocking DNS retry loop. TLS still
  * authenticates the hostname; no address returned by DNS is trusted on its own. */

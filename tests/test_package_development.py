@@ -22,6 +22,14 @@ class PackageTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name) / "project"
         self.root.mkdir()
+        tls_source = self.root / "build/tls-source.tar.bz2"
+        tls_source.parent.mkdir()
+        tls_source.write_bytes(b"synthetic TLS source archive")
+        self.tls_pin = {"version": "3.6.8", "archive": tls_source.name,
+                        "sha256": hashlib.sha256(tls_source.read_bytes()).hexdigest()}
+        tls_download = patch("tools.build_mbedtls.source_archive", return_value=(tls_source, self.tls_pin))
+        tls_download.start()
+        self.addCleanup(tls_download.stop)
         files = {
             "README.md": b"Development frontend\n",
             "CREDITS.md": b"Original fixture attribution\n",
@@ -55,7 +63,8 @@ class PackageTests(unittest.TestCase):
         manifest = self.root / "dist/build-info.json"
         manifest.parent.mkdir()
         manifest.write_text(
-            json.dumps({"sha256": hashlib.sha256(bytes(512)).hexdigest(), "bytes": 512})
+            json.dumps({"sha256": hashlib.sha256(bytes(512)).hexdigest(), "bytes": 512,
+                        "mbedtls": {"version": "3.6.8", "source_sha256": self.tls_pin["sha256"]}})
         )
 
     def output(self, name="package"):
@@ -249,6 +258,8 @@ class PackageTests(unittest.TestCase):
             self.assertIn("THIRD_PARTY.md", archive.namelist())
             self.assertEqual(archive.read("docs/notices/third_party/test/LICENSE"), b"Full test license\n")
         with zipfile.ZipFile(dist / "source.zip") as archive:
+            self.assertEqual(archive.read("dependencies/mbedtls/tls-source.tar.bz2"),
+                             b"synthetic TLS source archive")
             self.assertEqual(archive.read("dependencies/test/LICENSE"), b"Full test license\n")
             script = archive.getinfo("dependencies/test/build.sh")
             self.assertEqual(script.external_attr >> 16, 0o100755)
@@ -263,6 +274,12 @@ class PackageTests(unittest.TestCase):
             self.assertEqual(archive.read("docs/GETTING_STARTED.md"), b"Installation\n")
             for name, checksum in manifest["source_files"].items():
                 self.assertEqual(hashlib.sha256(archive.read(name)).hexdigest(), checksum)
+        info_path = dist / "build-info.json"
+        recorded = json.loads(info_path.read_text())
+        recorded["mbedtls"]["version"] = "3.6.4"
+        info_path.write_text(json.dumps(recorded))
+        with self.assertRaisesRegex(ValueError, "pinned Mbed TLS"):
+            build_release(self.root, offline=True)
         self.assertFalse((dist / "dependencies-source.zip").exists())
         sums = (dist / "SHA256SUMS").read_text().splitlines()
         expected = {"BOOT.NDS", "sd.zip", "licenses.zip", "source.zip"}
@@ -292,6 +309,8 @@ class PackageTests(unittest.TestCase):
         with zipfile.ZipFile(dist / "licenses.zip") as archive:
             self.assertEqual(archive.read("addons/demo/LICENSE"), b"Synthetic retained notice")
         with zipfile.ZipFile(dist / "source.zip") as archive:
+            self.assertEqual(archive.read("dependencies/mbedtls/tls-source.tar.bz2"),
+                             b"synthetic TLS source archive")
             self.assertEqual(archive.read("dependencies/addons/demo/source.tar.gz"),
                              b"Synthetic source archive")
             manifest = json.loads(archive.read("package-manifest.json"))

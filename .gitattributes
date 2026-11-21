@@ -17,3 +17,6 @@ Makefile text eol=lf
 
 # Preserve exact upstream bytes, including existing vendor line endings.
 third_party/** -text
+
+# Unified-diff context includes literal single-space lines.
+third_party/mbedtls/blocksds.patch -whitespace

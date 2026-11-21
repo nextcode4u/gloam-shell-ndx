@@ -37,6 +37,7 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r requirements-dev.txt
       - run: tools/host-check.sh
+      - run: python tools/check_tls_transport.py
       - run: python -m unittest discover -s tests -p 'test_*.py'
       - run: python tools/check_tree.py
 
@@ -65,11 +66,9 @@ jobs:
             -e 's|http://archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' \
             -e 's|http://security.ubuntu.com/ubuntu|https://security.ubuntu.com/ubuntu|g' {} +
           apt-get -o Acquire::Retries=3 -o Acquire::https::Timeout=30 update
-          apt-get -o Acquire::Retries=3 -o Acquire::https::Timeout=30 install -y --no-install-recommends python3 gh
-      - name: Install HTTPS library
-        run: |
-          wf-pacman -Sy --noconfirm blocksds-mbedtls
-          test "$(wf-pacman -Q blocksds-mbedtls)" = "blocksds-mbedtls 3.6.4-2"
+          apt-get -o Acquire::Retries=3 -o Acquire::https::Timeout=30 install -y --no-install-recommends python3 gh patch
+      - name: Build pinned HTTPS library
+        run: python3 tools/build_mbedtls.py --jobs 2
       - name: Verify pinned SDK
         run: test "$(cat "$BLOCKSDS/version.txt")" = v1.25.0
       - name: Build both SD-command modes and restore the release default

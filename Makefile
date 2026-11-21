@@ -1,7 +1,8 @@
 BLOCKSDS ?= /opt/blocksds/core
 BLOCKSDSEXT ?= /opt/blocksds/external
-LIBS := -ldswifi9 -lnds9 -lmbedtls -lmbedx509 -lmbedcrypto
-LIBDIRS := $(BLOCKSDS)/libs/dswifi $(BLOCKSDSEXT)/mbedtls
+# Resolve TLS platform calls through libnds before libc fallback stubs.
+LIBS := -lmbedtls -lmbedx509 -lmbedcrypto -ldswifi9 -lnds9
+LIBDIRS := $(BLOCKSDS)/libs/dswifi build/mbedtls
 NAME := gloam-shell-ndx
 GAME_TITLE := Gloam Shell NDX
 GAME_SUBTITLE := DSi SD frontend
@@ -19,6 +20,17 @@ override SOURCES_S := $(sort $(shell find -L $(SOURCEDIRS) -name "*.s"))
 override SOURCES_C := $(sort $(shell find -L $(SOURCEDIRS) -name "*.c"))
 override SOURCES_CPP := $(sort $(shell find -L $(SOURCEDIRS) -name "*.cpp"))
 include $(BLOCKSDS)/sys/default_makefiles/rom_arm9/Makefile
+
+# Verify/build the pinned HTTPS libraries before compiling their consumers.
+# The builder preserves output mtimes when the verified build is unchanged.
+MBEDTLS_OFFLINE ?= 0
+.PHONY: mbedtls
+mbedtls:
+	python3 tools/build_mbedtls.py --blocksds "$(BLOCKSDS)" --toolchain "$(ARM_NONE_EABI_PATH)" $(if $(filter 1,$(MBEDTLS_OFFLINE)),--offline)
+MBEDTLS_LIBRARIES := $(addprefix build/mbedtls/lib/,libmbedtls.a libmbedx509.a libmbedcrypto.a)
+$(OBJS_SOURCES): | mbedtls
+$(MBEDTLS_LIBRARIES): | mbedtls
+$(ELF): $(MBEDTLS_LIBRARIES)
 
 # Optional size experiment for configuration/launch paths. Rendering, image/text
 # decoding and directory sorting retain the SDK's speed optimization.

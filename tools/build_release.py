@@ -171,13 +171,25 @@ def build_release(root: Path, offline: bool = False, *, addons: bool = False,
         source, revisions = export_source(checkout, "dependencies/" + dependency["id"], source_modes)
         sources.update(source)
         provenance.append({**dependency, "source_revisions": revisions, "local_changes": []})
-    sources["dependencies/source-manifest.json"] = json_bytes({"format": 1, "dependencies": provenance})
+    if __package__:
+        from .build_mbedtls import source_archive
+    else:
+        from build_mbedtls import source_archive
+    tls_archive, tls_pin = source_archive(root, offline)
+    build_info = json.loads((root / "dist/build-info.json").read_text())
+    linked_tls = build_info.get("mbedtls", {})
+    if (not isinstance(linked_tls, dict) or linked_tls.get("version") != tls_pin["version"]
+            or linked_tls.get("source_sha256") != tls_pin["sha256"]):
+        raise ValueError("Build manifest does not match the pinned Mbed TLS source; rebuild first")
+    sources["dependencies/mbedtls/" + tls_pin["archive"]] = tls_archive.read_bytes()
+    sources["dependencies/source-manifest.json"] = json_bytes({"format": 1, "dependencies": provenance, "linked_libraries": [tls_pin]})
     sources["dependencies/README.md"] = (
         "# Gloam launch dependencies\n\nExact unmodified upstream source for the binaries in sd.zip.\n"
         "Revisions, releases and hashes: source-manifest.json.\n"
         "Each tree retains its own build instructions, licenses and notices.\n"
         "nds-bootstrap uses devkitARM; Slot-1 Launcher uses BlocksDS.\n"
-        "SDK/runtime source references are retained in Gloam's third_party documentation.\n"
+        "Mbed TLS source archive is under mbedtls/; the frontend includes its port patch and builder.\n"
+        "Other SDK/runtime source references are retained in Gloam's third_party documentation.\n"
     ).encode()
     dist = root / "dist"
     dist.mkdir(exist_ok=True)

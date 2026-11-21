@@ -32,3 +32,19 @@ to collect names, attributes, sizes and timestamps without per-entry pathname
 searches. No separate filesystem implementation is built. This optimization
 is version-gated to SDK 1.25.0; other SDKs fall back to POSIX. Review the exact
 FatFs revision, configuration and symbol namespace when updating the SDK.
+
+## HTTPS library
+
+The frontend builds Mbed TLS 3.6.8 locally, independently of the SDK's optional
+`blocksds-mbedtls` package. `make` runs `tools/build_mbedtls.py`, which verifies
+its pinned archive, applies the retained BlocksDS port patch and caches ARM9
+libraries under `build/mbedtls`. Compiler/SDK identity, headers and library hashes
+control reuse. No system package is replaced.
+
+Pins, license and port attribution are under `third_party/mbedtls`. Release source
+packages include the exact upstream archive; license packages include its notice.
+Run `python3 tools/check_tls_transport.py --offline` after populating the source
+cache. It uses authored loopback DNS/TLS servers and the actual transport with
+sanitizers; no external requests are made by the client. It checks trust/hostname
+failures, success, malformed responses, cancellation and deadlines. DSi Wi-Fi,
+entropy and timing still need hardware checks.
