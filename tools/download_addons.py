@@ -58,6 +58,8 @@ def reviewed_apps(catalog):
         item["bios_mode"] = app.get("bios_mode", "unknown")
         item["content_guidance"] = app.get("content_guidance", "")
         item["support_requirements"] = app.get("support_requirements", [])
+        if app.get("compatibility_notes"):
+            item["notes"] = app["compatibility_notes"]
         if app.get("experimental"):
             item.update(experimental=True, notes=app.get("compatibility_notes", "Experimental build"))
         if "game_configs" in package:
@@ -334,6 +336,8 @@ def stage(manifest, target, cache, only=None, noncommercial=False, overwrite=Fal
     for app in selected:
         if app.get("experimental"):
             print(f"Experimental {app['id']}: {app.get('notes', 'Experimental build')}")
+        elif app.get("notes"):
+            print(f"Note {app['id']}: {app['notes']}")
         for item in application_files(app):
             path = destination(target, item["destination"])
             key = item["destination"].casefold()

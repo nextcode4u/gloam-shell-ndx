@@ -8,8 +8,9 @@ Content: .mx2 cartridges, .mxd disks
 Application: Hachibitto argv fork
 
 Argv in the audited upstream build: direct. Fork handles selected .mx2
-cartridges and .mxd disks. Cartridge startup has been exercised; disk startup
-remains unverified. Stock 1.9 has no selected-file argv support.
+cartridges and .mxd disks. The 2.1 argv build reaches a cartridge game intro
+in DSi-mode emulation; disk startup remains unverified. Stock upstream has no
+selected-file argv handler.
 
 Firmware: Stock binary embeds MSX/MSX2/MSX2+ and disk firmware. Optional Kanji
 font is user-supplied. C-BIOS is not a verified drop-in full replacement.
@@ -23,13 +24,13 @@ addons.zip/addon-installer, or install directly from upstream. Existing files
 are preserved by default.
 
 Upstream: https://github.com/nextcode4u/Hachibitto
-Release: https://github.com/nextcode4u/Hachibitto/releases/tag/v1.9-argv.2
+Release: https://github.com/nextcode4u/Hachibitto/releases/tag/v2.1-argv.1
 
 The configured .mx2/.mxd associations target nextcode4u/Hachibitto
-v1.9-argv.1. Use the shared downloader with noncommercial opt-in to install
+v2.1-argv.1. Use the shared downloader with noncommercial opt-in to install
 its release. No Hachibitto binary/source/notices are bundled because inherited
-firmware permissions remain unconfirmed. Stock 1.9 has no selected-file argv
-support.
+firmware permissions remain unconfirmed. Save states from 1.9/2.0 cannot load
+in 2.1; preserve older snapshots. Cartridge .srm saves are separate.
 
 Keep required companion files and saves together. Other emulator-supported
 formats may need its own browser or a per-file application choice. Changing an

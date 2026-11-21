@@ -57,6 +57,7 @@ function Convert-ReviewedCatalog($Data) {
         $item.bios_mode = if ($app.PSObject.Properties.Name -contains 'bios_mode') { $app.bios_mode } else { 'unknown' }
         $item.content_guidance = if ($app.PSObject.Properties.Name -contains 'content_guidance') { $app.content_guidance } else { '' }
         $item.support_requirements = if ($app.PSObject.Properties.Name -contains 'support_requirements') { @($app.support_requirements) } else { @() }
+        if ($app.PSObject.Properties.Name -contains 'compatibility_notes' -and $app.compatibility_notes) { $item.notes = $app.compatibility_notes }
         if ($app.PSObject.Properties.Name -contains 'experimental' -and $app.experimental) {
             $item.experimental = $true
             $item.notes = if ($app.PSObject.Properties.Name -contains 'compatibility_notes') { $app.compatibility_notes } else { 'Experimental build' }
@@ -575,6 +576,7 @@ try {
     $seen = @{}
     foreach ($app in $selected) {
         if ($app.PSObject.Properties.Name -contains 'experimental' -and $app.experimental) { Write-Host "Experimental $($app.id): $($app.notes)" }
+        elseif ($app.PSObject.Properties.Name -contains 'notes' -and $app.notes) { Write-Host "Note $($app.id): $($app.notes)" }
         $name = $app.id
         $files = @(Get-ApplicationFiles $app)
         foreach ($item in $files) {

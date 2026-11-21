@@ -316,6 +316,13 @@ class WindowsInstallerMenuTests(unittest.TestCase):
         backup = self.cache / 'previous-files' / hashlib.sha256(old).hexdigest() / 'demo.nds'
         self.assertEqual(backup.read_bytes(), old)
 
+    def test_nonexperimental_compatibility_note_is_shown_on_install(self):
+        self.app['notes'] = 'Older snapshots cannot load'
+        self.write_manifest()
+        output = self.run_menu(self.ps + self.options, '1\n1\ny\n\n0\n')
+        self.assertIn('Note demo: Older snapshots cannot load', output)
+        self.assertEqual(self.binary.read_bytes(), self.payload)
+
     def test_noncommercial_confirmation_can_be_declined_or_accepted(self):
         self.app['noncommercial'] = True
         self.write_manifest()

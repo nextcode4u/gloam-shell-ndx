@@ -272,6 +272,21 @@ class DownloadAddonTests(unittest.TestCase):
         self.assertEqual(select_apps({"applications": [app]}, None, False), [])
         self.assertEqual(select_apps({"applications": [app]}, ["demo"], False), [app])
 
+    def test_nonexperimental_compatibility_note_is_retained_and_shown(self):
+        catalog = {"format": 1, "applications": [{"id": "demo", "version": "v2",
+            "repository": "https://example.invalid/demo", "license": "Authored fixture",
+            "redistribution": "approved", "compatibility_notes": "Older snapshots cannot load",
+            "package": {"files": self.app["files"]}}]}
+        app = reviewed_apps(catalog)[0]
+        self.assertNotIn("experimental", app)
+        self.assertEqual(select_apps({"applications": [app]}, None, False), [app])
+        self.manifest["applications"] = [app]
+        output = io.StringIO()
+        with redirect_stdout(output):
+            self.run_stage()
+        self.assertIn("Note demo: Older snapshots cannot load", output.getvalue())
+        self.assertEqual((self.sd / self.name).read_bytes(), self.binary)
+
     def test_free_boot_rom_is_staged_but_existing_firmware_is_preserved_on_update(self):
         item = dict(self.app["files"][0], destination="roms/bios/gbc_bios.bin")
         self.app["files"].append(item)

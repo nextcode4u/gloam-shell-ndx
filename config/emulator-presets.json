@@ -259,7 +259,7 @@
       "application": "Hachibitto argv fork",
       "formats": ".mx2 cartridges, .mxd disks",
       "addon": "hachibitto",
-      "notes": "The configured .mx2/.mxd associations target nextcode4u/Hachibitto v1.9-argv.1. Use the shared downloader with noncommercial opt-in to install its release. No Hachibitto binary/source/notices are bundled because inherited firmware permissions remain unconfirmed. Stock 1.9 has no selected-file argv support."
+      "notes": "The configured .mx2/.mxd associations target nextcode4u/Hachibitto v2.1-argv.1. Use the shared downloader with noncommercial opt-in to install its release. No Hachibitto binary/source/notices are bundled because inherited firmware permissions remain unconfirmed. Save states from 1.9/2.0 cannot load in 2.1; preserve older snapshots. Cartridge .srm saves are separate."
     },
     {
       "folder": "roms/ScummVM",
