@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <sys/stat.h>
 
 #define TABS_FILE_LIMIT (64 * 1024)
 
@@ -214,24 +215,25 @@ void tabs_load(App *app)
     FILE *file = fopen(path, "rb");
     if (!file)
         return;
-    long size = -1;
-    if (fseek(file, 0, SEEK_END) == 0)
-        size = ftell(file);
-    if (size < 0 || size > TABS_FILE_LIMIT || fseek(file, 0, SEEK_SET) != 0) {
+    /* Reject oversized configuration without walking its FAT cluster chain. */
+    struct stat metadata;
+    if (fstat(fileno(file), &metadata) || !S_ISREG(metadata.st_mode) || metadata.st_size < 0 ||
+        metadata.st_size > TABS_FILE_LIMIT) {
         app->tab_config_skipped++;
         fclose(file);
         return;
     }
-    char *data = malloc((size_t)size + 1);
+    size_t size = (size_t)metadata.st_size;
+    char *data = malloc(size + 1);
     if (!data) {
         app->tab_config_skipped++;
         fclose(file);
         return;
     }
-    bool read = fread(data, 1, (size_t)size, file) == (size_t)size;
+    bool read = fread(data, 1, size, file) == size;
     fclose(file);
     data[size] = 0;
-    if (read && strlen(data) == (size_t)size)
+    if (read && strlen(data) == size)
         parse_config(app, data);
     else
         app->tab_config_skipped++;

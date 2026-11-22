@@ -30,11 +30,13 @@ static bool load_profile(const App *app, const char *path, const char *filename,
     FILE *file = fopen(path, "r");
     if (!file)
         return false;
-    if (fseek(file, 0, SEEK_END) != 0 || ftell(file) > 4096) {
+    /* Size validation must not walk a large FAT chain during startup. */
+    struct stat metadata;
+    if (fstat(fileno(file), &metadata) || !S_ISREG(metadata.st_mode) || metadata.st_size < 0 ||
+        metadata.st_size > 4096) {
         fclose(file);
         return false;
     }
-    rewind(file);
     char line[1024], fallback[PATH_CAP] = "", mode[PATH_CAP] = "";
     bool section = false, valid = true;
     snprintf(profile->extensions, sizeof profile->extensions, "%.*s", (int)strlen(filename) - 4,

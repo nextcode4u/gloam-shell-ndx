@@ -93,7 +93,7 @@ with (root / "expected.tsv").open("w") as output:
                 output.write(f"{mode}\t{content}\t{application}\n")
 PY
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" tests/presets_test.c -o build/host/presets-test
+    "${model_objects[@]}" tests/presets_test.c -Wl,--wrap=fseek -o build/host/presets-test
 ASAN_OPTIONS=detect_leaks=1 build/host/presets-test "$fixture/presets" "$fixture/presets/expected.tsv"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
@@ -103,7 +103,7 @@ ASAN_OPTIONS=detect_leaks=1 build/host/association-resolver-test "$fixture/assoc
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" \
-    tests/tabs_test.c -o build/host/tabs-test
+    tests/tabs_test.c -Wl,--wrap=fseek -o build/host/tabs-test
 mkdir "$fixture/tabs"
 ASAN_OPTIONS=detect_leaks=1 build/host/tabs-test "$fixture/tabs"
 

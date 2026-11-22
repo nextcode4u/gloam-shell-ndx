@@ -7,12 +7,25 @@
 #include <string.h>
 
 static App app;
+static bool count_size_seeks;
+static unsigned size_seeks;
+int __real_fseek(FILE *, long, int);
+int __wrap_fseek(FILE *file, long offset, int whence)
+{
+    if (count_size_seeks && whence == SEEK_END)
+        size_seeks++;
+    return __real_fseek(file, offset, whence);
+}
 int main(int argc, char **argv)
 {
     assert(argc == 3);
     unsigned checked = 0;
     for (int mode = 0; mode <= 1; mode++) {
         app_init(&app, argv[1], true, mode != 0);
+        count_size_seeks = true;
+        associations_load(&app);
+        count_size_seeks = false;
+        assert(!size_seeks);
         assert(app.association_count == 31);
         FILE *file = fopen(argv[2], "r");
         assert(file);

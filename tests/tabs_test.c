@@ -11,6 +11,15 @@
 #include <sys/stat.h>
 
 static App app, restored;
+static bool count_size_seeks;
+static unsigned size_seeks;
+int __real_fseek(FILE *, long, int);
+int __wrap_fseek(FILE *file, long offset, int whence)
+{
+    if (count_size_seeks && whence == SEEK_END)
+        size_seeks++;
+    return __real_fseek(file, offset, whence);
+}
 static struct {
     unsigned before;
     uint16_t pixels[256 * 192];
@@ -140,6 +149,10 @@ int main(int argc, char **argv)
                "[tab.music]\nlabel=Music\npath=/media/music\n"
                "[tab.work]\nlabel=A long custom tab label with spaces\nfolder=roms/B\n");
     app_init(&app, root, true, true);
+    count_size_seeks = true;
+    tabs_load(&app);
+    count_size_seeks = false;
+    assert(!size_seeks);
     assert(app.tab_count == 9 && !app.tab_config_skipped);
     assert(tabs_find(&app, "SNES") == 6 && tabs_find(&app, "work") == 8);
     assert(!strcmp(tabs_label(&app, 8), "A long custom tab label with spaces"));
