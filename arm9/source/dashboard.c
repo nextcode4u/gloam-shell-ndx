@@ -69,19 +69,41 @@ static bool read_values(const char *text, int values[DASH_SECTION_COUNT])
 }
 static bool read_config(App *app, const char *path)
 {
-    FILE *file = fopen(path, "r");
+    FILE *file = fopen(path, "rb");
     if (!file)
         return false;
+    /* The format allows at most sixteen bounded lines. Validate the complete
+     * file first so embedded NULs and short reads cannot hide invalid records. */
+    struct stat metadata;
+    if (fstat(fileno(file), &metadata) || !S_ISREG(metadata.st_mode) || metadata.st_size < 0 ||
+        metadata.st_size > 2048) {
+        fclose(file);
+        return false;
+    }
+    char contents[2049];
+    size_t size = (size_t)metadata.st_size;
+    bool complete = fread(contents, 1, size, file) == size && !ferror(file);
+    if (fclose(file))
+        complete = false;
+    if (!complete || memchr(contents, 0, size))
+        return false;
+    contents[size] = 0;
+    char *cursor = contents;
     DashboardConfig candidate = app->dashboard.config;
     char line[128];
     bool valid = true;
     unsigned seen_fields = 0;
     int lines = 0;
-    while (fgets(line, sizeof line, file)) {
-        if (++lines > 16 || (!strchr(line, '\n') && !feof(file))) {
+    while (*cursor) {
+        char *next = strchr(cursor, '\n');
+        size_t length = next ? (size_t)(next - cursor) : strlen(cursor);
+        if (++lines > 16 || length >= sizeof line) {
             valid = false;
             break;
         }
+        memcpy(line, cursor, length);
+        line[length] = 0;
+        cursor += length + (next != NULL);
         line[strcspn(line, "\r\n")] = 0;
         int values[DASH_SECTION_COUNT];
         unsigned field;
@@ -135,8 +157,7 @@ static bool read_config(App *app, const char *path)
             break;
     }
     /* Version, order and visibility are required; older files may omit limits. */
-    valid = valid && (seen_fields & 7) == 7 && !ferror(file);
-    fclose(file);
+    valid = valid && (seen_fields & 7) == 7;
     if (valid)
         app->dashboard.config = candidate;
     return valid;

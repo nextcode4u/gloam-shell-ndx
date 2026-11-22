@@ -25,6 +25,7 @@ and item-artwork identities are not automatically migrated. Folder tabs retain t
 
 `_nds/dsi-frontend/dashboard.ini` stores version 1, an `order=` permutation of
 0–3, `visible=` booleans and optional `limits=` counts indexed by section ID.
+Keep the file within 2 KiB and 16 lines.
 A zero limit means All. Old version-1 files without limits retain that behavior. IDs are links=0, tabs=1,
 pins=2 and recent=3. `_nds/dsi-frontend/recent.ini` contains version 1 and bounded
 `request=<timestamp>,sd:/<content path>` records. Both use recoverable

@@ -77,9 +77,19 @@ static void check_dashboard_recovery(const char *root)
             assert(restored.dashboard.config.limit[i] == i + 2);
         }
     }
+    char config_path[PATH_CAP];
+    assert(path_preferences_file(config_path, root, "dashboard.ini"));
+    const char embedded_nul[] = "version=1\norder=0,1,2,3\nvisible=1,1,1,1\0ignored";
+    FILE *damaged_file = fopen(config_path, "wb");
+    assert(damaged_file &&
+           fwrite(embedded_nul, 1, sizeof embedded_nul - 1, damaged_file) ==
+               sizeof embedded_nul - 1 &&
+           !fclose(damaged_file));
+    dashboard_load(&restored);
+    assert(restored.dashboard.config.order[0] == DASH_RECENT);
     /* Limits are optional in legacy files; unknown metadata stays ignorable. */
     text(root, "_nds/dsi-frontend/dashboard.ini",
-         "version=1\norder=0,1,2,3\nvisible=0,1,0,1\nfuture_metadata=example\n");
+         "version=1\r\norder=0,1,2,3\r\nvisible=0,1,0,1\r\nfuture_metadata=example");
     dashboard_load(&restored);
     for (int i = 0; i < DASH_SECTION_COUNT; i++) {
         assert(restored.dashboard.config.order[i] == i);
