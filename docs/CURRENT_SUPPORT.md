@@ -58,6 +58,11 @@ that a blank screen after launch may require pressing A again. It does not
 automatically launch after a timeout.
 Stock-menu launches and direct system-title launches have no added delay.
 
+[Astronaut](https://github.com/Vickerinox/Astronaut) compatibility remains unverified.
+One reported setup booted Gloam, but Settings/menu return failed; directly selecting
+`nand:/launcher.dsi` in Astronaut produced the same error. Its build version was
+not supplied. The Unlaunch input-wait workaround above does not resolve this failure.
+
 The release script packages unmodified upstream nds-bootstrap and Slot-1 Launcher
 releases identified in [the dependency lock](../config/release-dependencies.json).
 Hash verification establishes artifact identity, not launch compatibility.
