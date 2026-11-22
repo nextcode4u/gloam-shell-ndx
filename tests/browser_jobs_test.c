@@ -18,7 +18,7 @@ static void drain(void)
         unsigned before = app.scan_visited;
         assert(app.entry_count == 0); /* Never publish partially sorted snapshots. */
         browser_scan_step(&app);
-        assert(app.scan_visited - before <= 16);
+        assert(app.scan_visited < before || app.scan_visited - before <= 16);
         assert(++frames < fixture_count / 16 + 200);
     }
 }
@@ -80,6 +80,16 @@ int main(int argc, char **argv)
     app_init(&restored, argv[1], true, true);
     assert(restored.locations[CATEGORY_GAMES].batch == last_batch &&
            restored.entry_count == last_count);
+    /* A saved later batch can disappear after the card's library is pruned.
+     * Boot and refresh must recover to a real batch, not show an empty folder. */
+    for (int i = 0; i < restored.entry_count; i++)
+        assert(!remove(restored.entries[i].path));
+    app_init(&restored, argv[1], true, true);
+    assert(!restored.locations[CATEGORY_GAMES].batch && restored.entry_count == ENTRY_CAP);
+    assert(restored.truncated == (fixture_count - (unsigned)last_count > ENTRY_CAP));
+    assert(app_save(&restored));
+    browser_refresh(&app);
+    assert(!app.locations[CATEGORY_GAMES].batch && app.entry_count == ENTRY_CAP);
     while (app.locations[CATEGORY_GAMES].batch)
         browser_batch(&app, -1);
     assert(app.locations[CATEGORY_GAMES].batch == 0 && app.entry_count == ENTRY_CAP);
@@ -87,6 +97,36 @@ int main(int argc, char **argv)
     app_category(&app, CATEGORY_HOME);
     assert(!app.scan_directory && app.category == CATEGORY_HOME);
     app_category(&app, CATEGORY_GAMES);
+    char filtered[PATH_CAP];
+    assert(path_join(filtered, folder, "filtered-control") && !mkdir(filtered, 0777));
+    for (int i = 0; i < ENTRY_CAP + 1; i++) {
+        char name[32];
+        snprintf(name, sizeof name, "%04d.weird", i);
+        assert(path_join(path, filtered, name));
+        FILE *file = fopen(path, "w");
+        assert(file && !fclose(file));
+    }
+    assert(path_join(path, filtered, "Visible.txt"));
+    FILE *visible = fopen(path, "w");
+    assert(visible && !fclose(visible));
+    path_copy(app.locations[CATEGORY_GAMES].path, filtered, PATH_CAP);
+    app_scan(&app);
+    assert(app.entry_count == ENTRY_CAP && app.truncated);
+    browser_batch(&app, 1);
+    assert(app.locations[CATEGORY_GAMES].batch == 1 && app.entry_count == 2);
+    app.filter_recognized = true;
+    browser_scan_begin(&app);
+    browser_restore_selection(&app, path);
+    drain();
+    assert(!app.locations[CATEGORY_GAMES].batch && app.entry_count == 1);
+    assert(!strcmp(app_selected(&app)->path, path));
+    /* An actually empty filtered folder must finish rather than restarting. */
+    assert(!remove(path));
+    app.locations[CATEGORY_GAMES].batch = 4095;
+    browser_scan_begin(&app);
+    drain();
+    assert(!app.locations[CATEGORY_GAMES].batch && !app.entry_count && !app.scan_directory);
+    app.filter_recognized = false;
     char restore_folder[PATH_CAP];
     assert(path_join(restore_folder, folder, "restore-control") && !mkdir(restore_folder, 0777));
     for (int i = 0; i < 3; i++) {
@@ -114,6 +154,6 @@ int main(int argc, char **argv)
     storage_observe(&app, false);
     assert(!app.scan_directory && app.storage_lost);
     printf("PASS: bounded directory work, cancellation, unpublished partial snapshots, %u-file "
-           "batch coverage and persistent batch selection\n",
+           "batch coverage, stale/filtered batch recovery and persistent batch selection\n",
            fixture_count);
 }

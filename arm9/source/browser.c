@@ -144,6 +144,19 @@ static void finish_scan(App *app)
 {
     directory_scan_close(app->scan_directory);
     app->scan_directory = NULL;
+    Location *location = &app->locations[app->category];
+    if (!app->scan_count && location->batch && !app->scan_seek_all) {
+        /* Pruning a library or changing filters can invalidate its saved batch.
+         * Restart once at zero, retaining any pending path restoration. */
+        char target[PATH_CAP];
+        path_copy(target, app->scan_restore_path, sizeof target);
+        location->batch = 0;
+        location->selected = location->scroll = 0;
+        browser_scan_begin(app);
+        path_copy(app->scan_restore_path, target, sizeof app->scan_restore_path);
+        app_mark_preferences_dirty(app);
+        return;
+    }
     app->entry_count = app->scan_count;
     int (*comparators[])(const void *, const void *) = {compare_names, compare_names_desc,
                                                         compare_types, compare_modified};
