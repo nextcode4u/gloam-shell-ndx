@@ -1304,6 +1304,7 @@
     "docs/images/theme-variants.png",
     "docs/index.md",
     "docs/javascripts/showcase.js",
+    "docs/javascripts/starfield.js",
     "docs/stylesheets/gloam.css",
     "forwarder/Makefile",
     "forwarder/arm9/include/target.h",
