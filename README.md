@@ -8,7 +8,7 @@ homebrew and media, and open system apps from one place.
 **[Website & SD Setup](https://nextcode4u.github.io/gloam-shell-ndx/)**
 · [Download Gloam](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest)
 · [Setup guide](docs/INSTALL.md)
-· [Browse themes](https://github.com/nextcode4u/gloam-shell-theme-directory)
+· [Community themes](https://nextcode4u.github.io/gloam-shell-theme-directory/)
 
 <p align="center">
   <img src="docs/images/theme-variants.png" width="768" alt="Phosphor, Eclipse and Prism themes showing Gloam's two-screen browser">

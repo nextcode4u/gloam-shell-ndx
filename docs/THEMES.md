@@ -3,16 +3,23 @@ hide:
   - navigation
 ---
 
-# Find your look
+# Community themes
 
 [![A selection of Gloam themes](images/theme-personalities.png)](images/theme-personalities.png)
 
-[Browse community themes](https://github.com/nextcode4u/gloam-shell-theme-directory){ .md-button .md-button--primary }
+[Browse community themes](https://nextcode4u.github.io/gloam-shell-theme-directory/){ .md-button .md-button--primary }
 
 ## Install a theme
 
 In the Windows setup tool, open **Themes**, then **Refresh theme directory**.
 Choose a theme, preview it and select **Download and install selected theme**.
+
+## Install a ZIP instead
+
+1. Choose a theme from the gallery, download its ZIP and extract it.
+2. Copy its whole theme folder into `/_nds/dsi-frontend/themes/` on your SD.
+
+Keep a copy of any customized theme with the same name before replacing it.
 
 ## Use it on your DSi
 

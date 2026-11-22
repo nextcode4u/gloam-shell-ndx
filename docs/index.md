@@ -18,7 +18,7 @@ A launcher for games, apps and media on your **Nintendo DSi SD card**.
 <div class="gloam-actions" markdown="1">
 
 [Set up my SD card](#sd-setup-for-windows){ .md-button .md-button--primary }
-[Explore themes](THEMES.md){ .md-button }
+[Community themes](https://nextcode4u.github.io/gloam-shell-theme-directory/){ .md-button }
 
 </div>
 <div class="gloam-badges" markdown="1">
@@ -60,7 +60,7 @@ Not set up yet? Start with the [DSi homebrew guide](https://dsi.cfw.guide/), the
 
 Theme previews with example content. Tap to view full size.
 
-[Browse the collection →](https://github.com/nextcode4u/gloam-shell-theme-directory)
+[Community themes →](https://nextcode4u.github.io/gloam-shell-theme-directory/)
 
 </section>
 <nav class="gloam-home-links" aria-label="Getting help" markdown="1">
