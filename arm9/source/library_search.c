@@ -2,6 +2,7 @@
 #include "library_search.h"
 #include "app.h"
 #include "browser.h"
+#include "directory_scan.h"
 #include "inspection.h"
 #include "paths.h"
 #include "script_fonts.h"
@@ -291,6 +292,28 @@ static bool query_matches(const char *path, const char *query)
     }
     return true;
 }
+static bool hidden_folder(const App *app, const char *path, const char *root)
+{
+    if (!app->hide_save_folders && !app->hide_bios_folders)
+        return false;
+    const char *part = path + strlen(root);
+    while (*part == '/')
+        part++;
+    DirectoryRecord folder = {.directory = true};
+    const char *end;
+    while ((end = strchr(part, '/'))) {
+        size_t length = (size_t)(end - part);
+        if (length < sizeof folder.name) {
+            memcpy(folder.name, part, length);
+            folder.name[length] = 0;
+            if ((app->hide_save_folders && directory_scan_is_save_folder(&folder)) ||
+                (app->hide_bios_folders && directory_scan_is_bios_folder(&folder)))
+                return true;
+        }
+        part = end + 1;
+    }
+    return false;
+}
 static bool allowed(const App *app, const char *path, unsigned flags)
 {
     if ((!app->show_hidden && (flags & 1)) || (!app->show_system && (flags & 2)))
@@ -298,9 +321,11 @@ static bool allowed(const App *app, const char *path, unsigned flags)
     bool root = false;
     for (int i = CATEGORY_GAMES; i < app->tab_count; i++)
         if (i != CATEGORY_SYSTEM && i != CATEGORY_FILES &&
-            path_is_within_root(path, app->tabs[i].home))
+            path_is_within_root(path, app->tabs[i].home) &&
+            !hidden_folder(app, path, app->tabs[i].home))
             root = true;
-    if (!root || (!app->search->all && !path_is_within_root(path, app->search->scope)))
+    if (!root || (!app->search->all && (!path_is_within_root(path, app->search->scope) ||
+                                        hidden_folder(app, path, app->search->scope))))
         return false;
     return !app->filter_recognized || browser_recognizes_file(app, path);
 }

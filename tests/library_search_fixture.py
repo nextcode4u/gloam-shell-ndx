@@ -64,7 +64,12 @@ def prepare(root):
              ('extra/Notes.md', 0), ('media/Standalone.png', 0), ('roms/Unsupported.weird', 0),
              ('roms/Collection/Deep/Scoped.nds', 0), ('roms/Collection-extra/Escape.txt', 0),
              ('roms/.Hidden/Hidden game.txt', 1), ('roms/System game.txt', 2),
-             ('outside/Ignore game.txt', 0), ('roms/MovedAway.txt', 0)]
+             ('outside/Ignore game.txt', 0), ('roms/MovedAway.txt', 0),
+             ('roms/SAVES/Nested/SaveNeedle.sav', 0),
+             ('roms/Console/SaveStates/StateNeedle.bin', 0),
+             ('roms/Console/BIOS/FirmwareNeedle.bin', 0),
+             ('roms/Biosphere/VisibleNeedle.nds', 0),
+             ('roms/saves.nds', 0), ('roms/bios.nds', 0)]
     for name, _ in rows:
         if name.startswith('outside/') or name.endswith('MovedAway.txt'):
             continue

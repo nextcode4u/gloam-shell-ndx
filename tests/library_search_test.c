@@ -121,6 +121,45 @@ int main(int argc, char **argv)
     app.show_system = true;
     query("System game");
     assert(app.search->count == 1);
+    /* Search must not expose descendants of folders hidden in the browser.
+     * Folder matching is case-insensitive, whole-component and excludes filenames. */
+    query("SaveNeedle");
+    assert(!app.search->count);
+    query("StateNeedle");
+    assert(!app.search->count);
+    query("FirmwareNeedle");
+    assert(!app.search->count);
+    app.hide_save_folders = false;
+    query("SaveNeedle");
+    assert(app.search->count == 1);
+    query("StateNeedle");
+    assert(app.search->count == 1);
+    query("FirmwareNeedle");
+    assert(!app.search->count);
+    app.hide_bios_folders = false;
+    query("FirmwareNeedle");
+    assert(app.search->count == 1);
+    app.hide_save_folders = app.hide_bios_folders = true;
+    /* An explicitly assigned tab root remains browsable even when its own
+     * name is "saves"; only hidden descendants of that root are filtered. */
+    int direct = tabs_find(&app, "extra");
+    assert(direct >= CATEGORY_COUNT);
+    char previous_root[PATH_CAP];
+    path_copy(previous_root, app.tabs[direct].home, PATH_CAP);
+    assert(path_join(app.tabs[direct].home, app.root, "roms/SAVES"));
+    query("SaveNeedle");
+    assert(app.search->count == 1);
+    app.search->all = false;
+    query("SaveNeedle");
+    assert(!app.search->count); /* Games still hides that descendant. */
+    app.search->all = true;
+    path_copy(app.tabs[direct].home, previous_root, PATH_CAP);
+    query("VisibleNeedle");
+    assert(app.search->count == 1);
+    query("saves.nds");
+    assert(app.search->count == 1);
+    query("bios.nds");
+    assert(app.search->count == 1);
     query("Ignore");
     assert(!app.search->count); /* Outside configured library roots. */
     app.filter_recognized = true;
