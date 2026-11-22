@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 bool arguments_add(ArgumentList *args, const char *value)
 {
@@ -27,21 +28,26 @@ bool arguments_read(const char *path, ArgumentList *args, char error[160])
         snprintf(error, 160, "Could not read argv shortcut.");
         return false;
     }
-    long size = -1;
-    if (!fseek(file, 0, SEEK_END))
-        size = ftell(file);
-    if (size < 0 || size > LAUNCH_DATA_CAP || fseek(file, 0, SEEK_SET)) {
+    /* Seeking to EOF can walk a large FAT cluster chain before rejecting it.
+     * Validate the open file's metadata without moving its read position. */
+    struct stat metadata;
+    bool inspected =
+        !fstat(fileno(file), &metadata) && S_ISREG(metadata.st_mode) && metadata.st_size >= 0;
+    if (!inspected || metadata.st_size > LAUNCH_DATA_CAP) {
         fclose(file);
-        snprintf(error, 160, "Shortcut exceeds the 4 KiB limit.");
+        snprintf(error, 160,
+                 inspected ? "Shortcut exceeds the 4 KiB limit."
+                           : "Could not inspect argv shortcut.");
         return false;
     }
-    char *input = malloc((size_t)size + 1);
+    size_t size = (size_t)metadata.st_size;
+    char *input = malloc(size + 1);
     if (!input) {
         fclose(file);
         snprintf(error, 160, "Not enough memory for shortcut.");
         return false;
     }
-    bool valid = fread(input, 1, (size_t)size, file) == (size_t)size && !ferror(file);
+    bool valid = fread(input, 1, size, file) == size && !ferror(file);
     fclose(file);
     if (!valid) {
         free(input);
@@ -49,7 +55,7 @@ bool arguments_read(const char *path, ArgumentList *args, char error[160])
         return false;
     }
     input[size] = 0;
-    if (strlen(input) != (size_t)size)
+    if (strlen(input) != size)
         valid = false;
     char token[LAUNCH_DATA_CAP];
     size_t used = 0;

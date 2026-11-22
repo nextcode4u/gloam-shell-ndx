@@ -114,7 +114,7 @@ mkdir "$fixture/settings"
 ASAN_OPTIONS=detect_leaks=1 build/host/settings-test "$fixture/settings"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" tests/launch_test.c -Wl,--wrap=fread,--wrap=__fread_chk -o build/host/launch-test
+    "${model_objects[@]}" tests/launch_test.c -Wl,--wrap=fread,--wrap=__fread_chk,--wrap=fseek -o build/host/launch-test
 mkdir "$fixture/launch"
 ASAN_OPTIONS=detect_leaks=1 build/host/launch-test "$fixture/launch"
 

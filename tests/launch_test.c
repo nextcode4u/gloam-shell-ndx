@@ -15,6 +15,15 @@ static App app;
 static LaunchPlan plan;
 static char error[160], path[PATH_CAP];
 static int shortcut_read_limit = -1;
+static bool count_shortcut_seeks;
+static unsigned shortcut_seeks;
+int __real_fseek(FILE *, long, int);
+int __wrap_fseek(FILE *file, long offset, int whence)
+{
+    if (count_shortcut_seeks)
+        shortcut_seeks++;
+    return __real_fseek(file, offset, whence);
+}
 size_t __real_fread(void *, size_t, size_t, FILE *);
 size_t __wrap_fread(void *data, size_t size, size_t count, FILE *file)
 {
@@ -92,6 +101,11 @@ int main(int argc, char **argv)
     assert(plan.arguments.count == 4);
     assert(!strcmp(arguments_get(&plan.arguments, 2), "two words"));
     assert(!strcmp(arguments_get(&plan.arguments, 3), ";literal"));
+    /* File size comes from metadata; FAT must not seek through the file chain. */
+    count_shortcut_seeks = true;
+    assert(arguments_read(path, &plan.arguments, error));
+    count_shortcut_seeks = false;
+    assert(!shortcut_seeks && plan.arguments.count == 4);
     /* Windows editors can prefix UTF-8 shortcuts with a byte-order mark.
      * It must not become part of a comment or the executable's pathname. */
     shortcut(root, "\xEF\xBB\xBF# UTF-8 shortcut\r\n\"/probe.nds\" \"two words\"\r\n");
