@@ -1,6 +1,7 @@
 /* Bounded, preconverted startup artwork. See docs/guides/STARTUP_SPLASHES.md. */
 #include "splash.h"
 #include "image_decode.h"
+#include "image_input.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -154,13 +155,22 @@ bool splash_load(Splash *splash, const char *path)
     FILE *file = fopen(path, "rb");
     if (!file)
         return false;
-    bool valid = !fseek(file, 0, SEEK_END);
-    long size = valid ? ftell(file) : -1;
-    valid = size >= 64 && (unsigned long)size <= SPLASH_FILE_CAP && !fseek(file, 0, SEEK_SET);
+    size_t size;
+    unsigned char header[16];
+    bool valid = image_file_size(file, 64, SPLASH_FILE_CAP, &size) &&
+                 fread(header, 1, sizeof header, file) == sizeof header &&
+                 (!memcmp(header, "GLOMSP01", 8) || !memcmp(header, "GLOMSP02", 8) ||
+                  !memcmp(header, "GLOMSP03", 8)) &&
+                 read32(header + 8) == size;
     if (valid) {
-        splash->bytes = (size_t)size;
-        splash->data = malloc(splash->bytes);
-        valid = splash->data && fread(splash->data, 1, splash->bytes, file) == splash->bytes;
+        splash->bytes = size;
+        splash->data = malloc(size);
+        valid = splash->data != NULL;
+        if (valid) {
+            memcpy(splash->data, header, sizeof header);
+            valid = fread(splash->data + sizeof header, 1, size - sizeof header, file) ==
+                    size - sizeof header;
+        }
     }
     fclose(file);
     if (valid && validate(splash))

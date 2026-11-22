@@ -366,7 +366,8 @@ mkdir "$fixture/parser-mutation"
 ASAN_OPTIONS=detect_leaks=1 build/host/parser-mutation-test "$fixture/parser-mutation"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" tests/splash_test.c -o build/host/splash-test
+    "${model_objects[@]}" tests/splash_test.c \
+    -Wl,--wrap=fread,--wrap=__fread_chk,--wrap=malloc,--wrap=fseek -o build/host/splash-test
 "$test_python" tests/splash_fixture.py "$fixture/splash"
 ASAN_OPTIONS=detect_leaks=1 build/host/splash-test "$fixture/splash"
 

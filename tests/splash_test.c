@@ -9,6 +9,93 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
+/* Observe only splash_load, not fixture creation or the surrounding app. */
+static bool watch_input;
+static unsigned input_calls, fail_input, end_seeks;
+static size_t input_bytes, allocation_bytes;
+size_t __real_fread(void *, size_t, size_t, FILE *);
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+#endif
+void *__real_malloc(size_t);
+int __real_fseek(FILE *, long, int);
+static bool stop_read(size_t bytes)
+{
+    if (!watch_input)
+        return false;
+    input_bytes += bytes;
+    return ++input_calls == fail_input;
+}
+size_t __wrap_fread(void *buffer, size_t size, size_t count, FILE *file)
+{
+    return __real_fread(buffer, size, stop_read(size * count) ? count / 2 : count, file);
+}
+#ifdef __GLIBC__
+size_t __wrap___fread_chk(void *buffer, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    return __real___fread_chk(buffer, capacity, size, stop_read(size * count) ? count / 2 : count,
+                              file);
+}
+#endif
+void *__wrap_malloc(size_t bytes)
+{
+    if (watch_input)
+        allocation_bytes += bytes;
+    return __real_malloc(bytes);
+}
+int __wrap_fseek(FILE *file, long offset, int origin)
+{
+    if (watch_input && origin == SEEK_END)
+        end_seeks++;
+    return __real_fseek(file, offset, origin);
+}
+static void input_checks(const char *root)
+{
+    char valid[PATH_CAP], bad[PATH_CAP];
+    assert(path_join(valid, root, "valid.gsp") && path_join(bad, root, "bad-input.gsp"));
+    unsigned char header[16];
+    FILE *file = fopen(valid, "rb");
+    assert(file && fread(header, 1, sizeof header, file) == sizeof header && !fclose(file));
+    Splash splash = {0};
+    /* Wrong magic, mismatched length, too small, and too large must fail before allocation. */
+    const size_t sizes[] = {SPLASH_FILE_CAP, SPLASH_FILE_CAP, 63, SPLASH_FILE_CAP + 1};
+    for (unsigned i = 0; i < sizeof sizes / sizeof *sizes; i++) {
+        unsigned char candidate[16];
+        memcpy(candidate, header, sizeof candidate);
+        if (!i) {
+            candidate[0] = '?';
+            for (unsigned byte = 0; byte < 4; byte++)
+                candidate[8 + byte] = (unsigned char)(sizes[i] >> (8 * byte));
+        }
+        file = fopen(bad, "wb");
+        assert(file && fwrite(candidate, 1, sizeof candidate, file) == sizeof candidate);
+        assert(!ftruncate(fileno(file), sizes[i]) && !fclose(file));
+        input_calls = fail_input = end_seeks = 0;
+        input_bytes = allocation_bytes = 0;
+        watch_input = true;
+        bool loaded = splash_load(&splash, bad);
+        watch_input = false;
+        assert(!loaded && !splash.data && !splash.sound);
+        assert(!allocation_bytes && !end_seeks && input_bytes <= sizeof header);
+    }
+    /* Interrupted header/body reads must leave no partial package or decoded layers. */
+    for (unsigned failure = 1; failure <= 2; failure++) {
+        input_calls = end_seeks = 0;
+        fail_input = failure;
+        watch_input = true;
+        bool loaded = splash_load(&splash, valid);
+        watch_input = false;
+        assert(!loaded && !splash.data && !splash.bytes && !splash.count && !splash.sound);
+        assert(input_calls == failure && !end_seeks);
+        for (unsigned i = 0; i < SPLASH_LAYER_CAP; i++)
+            assert(!splash.layers[i].decoded);
+    }
+    fail_input = 0;
+    assert(splash_load(&splash, valid)); /* A failed load must not poison a later retry. */
+    splash_close(&splash);
+    assert(!remove(bad));
+}
 static App app, restored;
 static struct {
     unsigned before;
@@ -125,6 +212,7 @@ static bool option(const char *name)
 int main(int argc, char **argv)
 {
     assert(argc == 2);
+    input_checks(argv[1]);
     motion_checks(argv[1]);
     char valid[PATH_CAP], bad[PATH_CAP];
     assert(path_join(valid, argv[1], "valid.gsp") && path_join(bad, argv[1], "bad.gsp"));
