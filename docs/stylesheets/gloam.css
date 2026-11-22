@@ -89,3 +89,137 @@
   .gloam-hero .md-button, .gloam-screens img { transition: none; }
   .gloam-hero .md-button:hover, .gloam-screens:hover img { transform: none; }
 }
+
+/* Homepage feature disclosure and renderer showcase. */
+.md-typeset .gloam-about {
+  max-width: 48rem;
+  margin: 1rem auto 0;
+  padding: 0 1.2rem;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  font-size: inherit;
+}
+.md-typeset .gloam-about summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 48px;
+  margin: 0;
+  padding: .65rem 0;
+  background: transparent;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.md-typeset .gloam-about summary::before,
+.md-typeset .gloam-about summary::marker,
+.md-typeset .gloam-about summary::-webkit-details-marker { display: none; }
+.md-typeset .gloam-about summary::after {
+  content: "+";
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  background: none;
+  mask: none;
+  transform: none;
+  font-size: 1.2rem;
+  color: var(--md-accent-fg-color);
+}
+.md-typeset .gloam-about[open] > summary::after { content: "−"; transform: none; }
+.gloam-about li { margin-bottom: .55rem; }
+.gloam-showcase { max-width: 1200px; }
+.gloam-showcase [hidden] { display: none !important; }
+.gloam-showcase-tabs {
+  display: flex;
+  justify-content: center;
+  gap: .25rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.3rem;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+.gloam-showcase-tabs button {
+  min-height: 48px;
+  padding: .55rem 1rem;
+  border-bottom: 3px solid transparent;
+  color: var(--md-default-fg-color--light);
+  font: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+}
+.gloam-showcase-tabs button[aria-selected="true"] {
+  border-color: var(--md-accent-fg-color);
+  color: var(--md-default-fg-color);
+  font-weight: 600;
+}
+.gloam-showcase-intro { margin: 0 0 1.4rem; color: var(--md-default-fg-color--light); }
+.gloam-view-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  justify-content: center;
+}
+.gloam-view-grid figure { margin: 0; }
+.gloam-view-grid figure > a {
+  display: block;
+  width: fit-content;
+  margin: auto;
+  padding: 10px;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 8px;
+  background: #111219;
+  transition: transform .15s ease;
+}
+.gloam-view-grid figure > a:hover { transform: translateY(-3px); }
+.gloam-view-grid img { display: block; max-width: 256px; width: 100%; image-rendering: pixelated; }
+.md-typeset .gloam-view-grid figcaption { margin: .8rem 0 0; font-style: normal; }
+.gloam-view-grid figcaption strong { display: block; font-size: .9rem; }
+.gloam-view-grid figcaption span { display: block; margin-top: .25rem; font-size: .75rem; color: var(--md-default-fg-color--light); }
+.gloam-showcase-panel { margin-bottom: 1.5rem; }
+.gloam-preview-note { margin-top: 1.2rem; font-size: .72rem !important; color: var(--md-default-fg-color--light); }
+.gloam-preview-dialog {
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  padding: 16px;
+  border: 1px solid #61576e;
+  border-radius: 10px;
+  background: #17151e;
+  color: #f5efff;
+  overflow: auto;
+}
+.gloam-preview-dialog::backdrop { background: #09070deb; }
+.gloam-preview-dialog form { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+.gloam-preview-dialog button {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #746487;
+  border-radius: 5px;
+  font: inherit;
+  cursor: pointer;
+}
+.gloam-preview-dialog img {
+  display: block;
+  max-width: calc(100vw - 64px);
+  max-height: calc(100dvh - 130px);
+  height: auto;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+html:has(.gloam-preview-dialog[open]) { overflow: hidden; }
+.gloam-about summary:focus-visible,
+.gloam-showcase button:focus-visible,
+.gloam-preview-dialog button:focus-visible {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 4px;
+}
+@media (max-width: 40rem) {
+  .gloam-showcase-tabs button { padding-inline: .6rem; }
+  .gloam-view-grid { gap: 1.4rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gloam-view-grid figure > a { transition: none; }
+  .gloam-view-grid figure > a:hover { transform: none; }
+}

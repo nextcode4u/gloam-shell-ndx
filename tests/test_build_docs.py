@@ -64,6 +64,9 @@ class DocumentationTests(unittest.TestCase):
         pages = {name for name in reviewed if name.startswith('docs/') and name.endswith('.md')}
         self.assertTrue(set(nav).issubset(pages))
         self.assertEqual(len(nav), len(set(nav)))
+        for name in config["project"].get("extra_css", []) + config["project"].get("extra_javascript", []):
+            self.assertIn("docs/" + name, reviewed)
+            self.assertTrue((ROOT / "docs" / name).is_file())
 
 
 if __name__ == '__main__':

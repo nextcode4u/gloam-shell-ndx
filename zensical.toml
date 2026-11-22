@@ -5,6 +5,7 @@ site_url = "https://nextcode4u.github.io/gloam-shell-ndx/"
 docs_dir = "build/docs-source"
 site_dir = "build/site"
 extra_css = ["stylesheets/gloam.css"]
+extra_javascript = ["javascripts/showcase.js"]
 # Detailed references remain linked and searchable, outside the main menu.
 not_in_nav = """
 README.md
