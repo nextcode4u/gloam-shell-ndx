@@ -12,7 +12,8 @@ Existing application files, saves and other frontend configurations are not
 rewritten.
 
 A shortcut is a text file containing an SD application/content path and optional
-arguments. SD-absolute paths are recommended:
+arguments. Save it as UTF-8, with or without a byte-order mark. SD-absolute paths
+are recommended:
 
 ```text
 "sd:/apps/Homebrew Apps/My Application.nds" --option "two words"

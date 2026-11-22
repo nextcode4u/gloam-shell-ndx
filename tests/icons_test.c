@@ -131,7 +131,7 @@ int main(int argc, char **argv)
     text_file(root, "roms/Game.SFC", "association fixture, not a game");
     text_file(root, "roms/Second.smc", "association fixture, not a game");
     text_file(root, "roms/Shortcut.argv",
-              "# comment\n\"sd:/apps/My Emulator.nds\" \"sd:/roms/Game.SFC\"\n");
+              "\xEF\xBB\xBF# comment\n\"sd:/apps/My Emulator.nds\" \"sd:/roms/Game.SFC\"\n");
     text_file(root, "roms/Bad.argv", "\"sd:/apps/unterminated.nds\n");
     text_file(root, "_nds/dsi-frontend/plugins/10-snes.ini",
               "[plugin]\nversion=1\nextensions=sfc, .smc\napplication=sd:/apps/Other.nds\n"

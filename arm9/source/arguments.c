@@ -50,7 +50,9 @@ bool arguments_read(const char *path, ArgumentList *args, char error[160])
     size_t used = 0;
     bool started = false;
     char quote = 0;
-    for (char *p = input; valid && *p; p++) {
+    /* A UTF-8 BOM belongs to the file encoding, not argv[0] or a comment. */
+    char *first = size >= 3 && !memcmp(input, "\xEF\xBB\xBF", 3) ? input + 3 : input;
+    for (char *p = first; valid && *p; p++) {
         unsigned char c = (unsigned char)*p;
         if (!quote && !started && (c == '#' || c == ';')) {
             while (*p && *p != '\n')

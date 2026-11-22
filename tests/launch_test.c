@@ -73,6 +73,19 @@ int main(int argc, char **argv)
     assert(plan.arguments.count == 4);
     assert(!strcmp(arguments_get(&plan.arguments, 2), "two words"));
     assert(!strcmp(arguments_get(&plan.arguments, 3), ";literal"));
+    /* Windows editors can prefix UTF-8 shortcuts with a byte-order mark.
+     * It must not become part of a comment or the executable's pathname. */
+    shortcut(root, "\xEF\xBB\xBF# UTF-8 shortcut\r\n\"/probe.nds\" \"two words\"\r\n");
+    assert(launch_prepare(&app, path, &plan, error));
+    assert(plan.arguments.count == 2);
+    assert(!strcmp(arguments_get(&plan.arguments, 1), "two words"));
+    shortcut(root, "\xEF\xBB\xBF/probe.nds --flag");
+    assert(launch_prepare(&app, path, &plan, error));
+    assert(plan.arguments.count == 2);
+    shortcut(root, "\xEF\xBB\xBF");
+    assert(!launch_prepare(&app, path, &plan, error));
+    shortcut(root, "\xEF\xBB");
+    assert(!launch_prepare(&app, path, &plan, error));
     shortcut(root, "/probe.nds ''");
     assert(!launch_prepare(&app, path, &plan, error));
     shortcut(root, "/probe.nds \"unterminated");
