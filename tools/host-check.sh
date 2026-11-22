@@ -39,7 +39,7 @@ trap 'rm -rf "$fixture"' EXIT
 "$test_python" tests/theme_surface_fixture.py "$fixture/prepared-surfaces"
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/theme_surfaces_test.c \
-    -Wl,--wrap=image_decode_background,--wrap=image_decode_surface,--wrap=image_decode_material \
+    -Wl,--wrap=image_decode_background,--wrap=image_decode_surface,--wrap=image_decode_material,--wrap=fseek \
     -o build/host/theme-surfaces-test
 ASAN_OPTIONS=detect_leaks=1 build/host/theme-surfaces-test "$fixture/prepared-surfaces"
 

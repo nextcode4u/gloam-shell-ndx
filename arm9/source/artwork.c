@@ -29,9 +29,8 @@ bool artwork_decode_image(Artwork *artwork, const char *path)
     FILE *file = fopen(path, "rb");
     if (!file)
         return false;
-    bool valid = !fseek(file, 0, SEEK_END);
-    long size = valid ? ftell(file) : -1;
-    valid = size > 0 && size <= 1024 * 1024 && !fseek(file, 0, SEEK_SET);
+    size_t size;
+    bool valid = image_file_size(file, 1, 1024 * 1024, &size);
     unsigned char *data = valid ? malloc((size_t)size) : NULL;
     valid = valid && data && image_read_exact(file, data, (size_t)size);
     fclose(file);

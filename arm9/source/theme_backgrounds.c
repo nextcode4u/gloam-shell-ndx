@@ -1,6 +1,7 @@
 /* Two active and two preview surfaces. All decoding happens in controllers. */
 #include "app.h"
 #include "image_decode.h"
+#include "image_input.h"
 #include "image_job.h"
 #include "paths.h"
 #include "theme_assets.h"
@@ -26,12 +27,11 @@ static bool decode_file(Background *background, bool surface)
     FILE *file = fopen(path, "rb");
     if (!file)
         return false;
-    bool valid = !fseek(file, 0, SEEK_END);
-    long bytes = valid ? ftell(file) : -1;
-    long limit = surface ? 256 * 1024 : 1024 * 1024;
-    unsigned char *encoded = bytes > 0 && bytes <= limit ? malloc((size_t)bytes) : NULL;
-    valid = encoded && !fseek(file, 0, SEEK_SET) &&
-            fread(encoded, 1, (size_t)bytes, file) == (size_t)bytes;
+    size_t bytes;
+    size_t limit = surface ? 256 * 1024 : 1024 * 1024;
+    bool valid = image_file_size(file, 1, limit, &bytes);
+    unsigned char *encoded = valid ? malloc(bytes) : NULL;
+    valid = encoded && fread(encoded, 1, bytes, file) == bytes;
     fclose(file);
     app_loading_checkpoint();
     if (valid && !image_job_cancelled()) {

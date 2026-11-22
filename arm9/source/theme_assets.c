@@ -1,6 +1,7 @@
 /* Prepared icons/components replace dozens of opens and PNG decodes. */
 #include "theme_assets.h"
 #include "image_decode.h"
+#include "image_input.h"
 #include "paths.h"
 #include "themes.h"
 #include <stdio.h>
@@ -42,11 +43,11 @@ void theme_assets_begin(const ThemePackage *package)
     bool valid = read && (extended || !memcmp(header, "GLMART01", 8));
     unsigned raw_size = valid ? read32(header + 8) : 0;
     unsigned count = valid ? read32(header + 12) : 0;
+    size_t total_bytes = 0;
     valid = valid && raw_size > 0 && raw_size <= (extended ? RAW_CAP : 192 * 1024) && count > 0 &&
             count <= THEME_ICON_COUNT + THEME_COMPONENT_COUNT + (extended ? 4u : 0u) &&
-            !fseek(file, 0, SEEK_END);
-    long bytes = valid ? ftell(file) - 16 : -1;
-    valid = valid && bytes >= 6 && bytes <= (long)raw_size + 1024 && !fseek(file, 16, SEEK_SET);
+            image_file_size(file, sizeof header + 6, sizeof header + raw_size + 1024, &total_bytes);
+    size_t bytes = valid ? total_bytes - sizeof header : 0;
     unsigned char *packed = valid ? malloc((size_t)bytes) : NULL;
     prepared.data = valid ? malloc(raw_size) : NULL;
     valid = packed && prepared.data && fread(packed, 1, (size_t)bytes, file) == (size_t)bytes;

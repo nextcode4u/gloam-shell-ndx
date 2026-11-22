@@ -2,6 +2,7 @@
 #include "icons.h"
 #include "associations.h"
 #include "image_decode.h"
+#include "image_input.h"
 #include "layout.h"
 #include "paths.h"
 #include <limits.h>
@@ -29,9 +30,8 @@ bool icon_load_png_coverage(const char *path, uint16_t pixels[32 * 32], uint8_t 
     FILE *file = fopen(path, "rb");
     if (!file)
         return false;
-    bool valid = !fseek(file, 0, SEEK_END);
-    long bytes = valid ? ftell(file) : -1;
-    valid = valid && bytes >= 24 && bytes <= 65536 && !fseek(file, 0, SEEK_SET);
+    size_t bytes;
+    bool valid = image_file_size(file, 24, 65536, &bytes);
     unsigned char *data = valid ? malloc((size_t)bytes) : NULL;
     valid = data && fread(data, 1, (size_t)bytes, file) == (size_t)bytes &&
             image_decode_component(pixels, coverage, data, (size_t)bytes);

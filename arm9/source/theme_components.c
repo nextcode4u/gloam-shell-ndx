@@ -2,6 +2,7 @@
 #include "app.h"
 #include "icons.h"
 #include "image_decode.h"
+#include "image_input.h"
 #include "image_job.h"
 #include "paths.h"
 #include "theme_assets.h"
@@ -74,12 +75,11 @@ static uint8_t *load_material(const ThemePackage *package, unsigned index)
     FILE *file = fopen(path, "rb");
     if (!file)
         return NULL;
-    bool valid = !fseek(file, 0, SEEK_END);
-    long bytes = valid ? ftell(file) : -1;
-    unsigned char *encoded = bytes > 0 && bytes <= 256 * 1024 ? malloc((size_t)bytes) : NULL;
+    size_t bytes;
+    bool valid = image_file_size(file, 1, 256 * 1024, &bytes);
+    unsigned char *encoded = valid ? malloc(bytes) : NULL;
     uint8_t *field = encoded ? malloc(256 * 192 / 2) : NULL;
-    valid = field && !fseek(file, 0, SEEK_SET) &&
-            fread(encoded, 1, (size_t)bytes, file) == (size_t)bytes;
+    valid = field && fread(encoded, 1, bytes, file) == bytes;
     fclose(file);
     valid = valid && image_decode_material(field, encoded, (size_t)bytes);
     free(encoded);
