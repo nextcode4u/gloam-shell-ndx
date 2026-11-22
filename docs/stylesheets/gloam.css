@@ -157,12 +157,19 @@
 }
 .gloam-showcase-intro { margin: 0 0 1.4rem; color: var(--md-default-fg-color--light); }
 .gloam-view-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  align-items: flex-start;
+  gap: 1.5rem;
 }
-.gloam-view-grid figure { margin: 0; }
+.gloam-view-grid figure {
+  display: block;
+  flex: 0 1 256px;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+}
 .gloam-view-grid figure > a {
   display: block;
   width: fit-content;
@@ -175,7 +182,7 @@
 }
 .gloam-view-grid figure > a:hover { transform: translateY(-3px); }
 .gloam-view-grid img { display: block; max-width: 256px; width: 100%; image-rendering: pixelated; }
-.md-typeset .gloam-view-grid figcaption { margin: .8rem 0 0; font-style: normal; }
+.md-typeset .gloam-view-grid figcaption { display: block; margin: .8rem 0 0; font-style: normal; }
 .gloam-view-grid figcaption strong { display: block; font-size: .9rem; }
 .gloam-view-grid figcaption span { display: block; margin-top: .25rem; font-size: .75rem; color: var(--md-default-fg-color--light); }
 .gloam-showcase-panel { margin-bottom: 1.5rem; }
