@@ -14,6 +14,25 @@
 static App app;
 static LaunchPlan plan;
 static char error[160], path[PATH_CAP];
+static int shortcut_read_limit = -1;
+size_t __real_fread(void *, size_t, size_t, FILE *);
+size_t __wrap_fread(void *data, size_t size, size_t count, FILE *file)
+{
+    if (shortcut_read_limit < 0)
+        return __real_fread(data, size, count, file);
+    size_t limit = (size_t)shortcut_read_limit;
+    return __real_fread(data, size, count < limit ? count : limit, file);
+}
+/* Fortified glibc builds use the checked read entry point instead. */
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+size_t __wrap___fread_chk(void *data, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    if (shortcut_read_limit >= 0 && count > (size_t)shortcut_read_limit)
+        count = (size_t)shortcut_read_limit;
+    return __real___fread_chk(data, capacity, size, count, file);
+}
+#endif
 static void word(unsigned char *data, unsigned value)
 {
     for (int i = 0; i < 4; i++)
@@ -86,6 +105,17 @@ int main(int argc, char **argv)
     assert(!launch_prepare(&app, path, &plan, error));
     shortcut(root, "\xEF\xBB");
     assert(!launch_prepare(&app, path, &plan, error));
+    char interrupted[LAUNCH_DATA_CAP + 1];
+    memset(interrupted, 'x', sizeof interrupted - 1);
+    interrupted[sizeof interrupted - 1] = 0;
+    shortcut(root, interrupted);
+    const int short_reads[] = {0, 1, 2, 3, LAUNCH_DATA_CAP - 1};
+    for (unsigned i = 0; i < sizeof short_reads / sizeof *short_reads; i++) {
+        shortcut_read_limit = short_reads[i];
+        assert(!arguments_read(path, &plan.arguments, error));
+        shortcut_read_limit = -1;
+        assert(strstr(error, "reading") && !plan.arguments.count);
+    }
     shortcut(root, "/probe.nds ''");
     assert(!launch_prepare(&app, path, &plan, error));
     shortcut(root, "/probe.nds \"unterminated");

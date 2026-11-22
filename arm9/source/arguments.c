@@ -41,8 +41,13 @@ bool arguments_read(const char *path, ArgumentList *args, char error[160])
         snprintf(error, 160, "Not enough memory for shortcut.");
         return false;
     }
-    bool valid = fread(input, 1, (size_t)size, file) == (size_t)size;
+    bool valid = fread(input, 1, (size_t)size, file) == (size_t)size && !ferror(file);
     fclose(file);
+    if (!valid) {
+        free(input);
+        snprintf(error, 160, "Could not finish reading argv shortcut.");
+        return false;
+    }
     input[size] = 0;
     if (strlen(input) != (size_t)size)
         valid = false;
