@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 static App app, restored;
 static uint16_t top[256 * 192], bottom[256 * 192];
@@ -152,6 +153,119 @@ static void check_recent_recovery(const char *root)
     assert(restored.dashboard.recent_count == RECENT_CAP);
     assert(!restored.dashboard.recent[0].timestamp);
     assert(restored.dashboard.recent[RECENT_CAP - 1].timestamp == RECENT_CAP - 1);
+}
+static void check_shortcut_merge(const char *root)
+{
+    app_init(&restored, root, true, true);
+    char missing[PATH_CAP], target[PATH_CAP], other[PATH_CAP], blocked[PATH_CAP];
+    assert(path_join(missing, root, "roms/MergedMissing.xyz"));
+    assert(path_join(target, root, "roms/Content.xyz"));
+    assert(path_join(other, root, "apps/Probe.nds"));
+    restored.favorite_count = 3;
+    path_copy(restored.favorites[0], missing, PATH_CAP);
+    path_copy(restored.favorites[1], target, PATH_CAP);
+    path_copy(restored.favorites[2], other, PATH_CAP);
+    assert(app_save(&restored));
+    text(root, "_nds/dsi-frontend/recent.ini",
+         "version=1\nrequest=300,sd:/roms/MergedMissing.xyz\n"
+         "request=200,sd:/apps/Probe.nds\nrequest=100,sd:/roms/Content.xyz\n");
+    dashboard_load(&restored);
+    assert(restored.dashboard.recent_count == 3);
+    /* Fail the second file write: both in-memory and reloaded references survive. */
+    assert(path_preferences_file(blocked, root, "recent.tmp") && !mkdir(blocked, 0777));
+    assert(!dashboard_relink(&restored, missing, target));
+    assert(restored.favorite_count == 3 && !strcmp(restored.favorites[0], missing) &&
+           !strcmp(restored.favorites[1], target) && !strcmp(restored.favorites[2], other));
+    assert(restored.dashboard.recent_count == 3 &&
+           !strcmp(restored.dashboard.recent[0].path, missing) &&
+           restored.dashboard.recent[0].timestamp == 300 &&
+           !strcmp(restored.dashboard.recent[1].path, other) &&
+           restored.dashboard.recent[1].timestamp == 200 &&
+           !strcmp(restored.dashboard.recent[2].path, target) &&
+           restored.dashboard.recent[2].timestamp == 100);
+    app_init(&app, root, true, true);
+    assert(app.favorite_count == 3 && !strcmp(app.favorites[0], missing));
+    assert(app.dashboard.recent_count == 3 && !strcmp(app.dashboard.recent[0].path, missing));
+    assert(!rmdir(blocked));
+    assert(dashboard_relink(&restored, missing, target));
+    assert(restored.favorite_count == 2 && !strcmp(restored.favorites[0], target) &&
+           !strcmp(restored.favorites[1], other));
+    assert(restored.dashboard.recent_count == 2);
+    assert(!strcmp(restored.dashboard.recent[0].path, target) &&
+           restored.dashboard.recent[0].timestamp == 300);
+    assert(!strcmp(restored.dashboard.recent[1].path, other));
+    app_init(&app, root, true, true);
+    assert(app.favorite_count == 2 && app.dashboard.recent_count == 2);
+    /* When the destination was already newest, keep its original timestamp. */
+    restored.favorite_count = 2;
+    path_copy(restored.favorites[0], target, PATH_CAP);
+    path_copy(restored.favorites[1], missing, PATH_CAP);
+    restored.dashboard.recent_count = 2;
+    path_copy(restored.dashboard.recent[0].path, target, PATH_CAP);
+    restored.dashboard.recent[0].timestamp = 500;
+    path_copy(restored.dashboard.recent[1].path, missing, PATH_CAP);
+    restored.dashboard.recent[1].timestamp = 100;
+    assert(dashboard_relink(&restored, missing, target));
+    assert(restored.favorite_count == 1 && restored.dashboard.recent_count == 1 &&
+           restored.dashboard.recent[0].timestamp == 500);
+    /* A stored target string remains stable while references are compacted. */
+    restored.favorite_count = 3;
+    path_copy(restored.favorites[0], missing, PATH_CAP);
+    path_copy(restored.favorites[1], target, PATH_CAP);
+    path_copy(restored.favorites[2], other, PATH_CAP);
+    restored.dashboard.recent_count = 3;
+    path_copy(restored.dashboard.recent[0].path, missing, PATH_CAP);
+    restored.dashboard.recent[0].timestamp = 300;
+    path_copy(restored.dashboard.recent[1].path, other, PATH_CAP);
+    restored.dashboard.recent[1].timestamp = 200;
+    path_copy(restored.dashboard.recent[2].path, target, PATH_CAP);
+    restored.dashboard.recent[2].timestamp = 100;
+    assert(dashboard_relink(&restored, missing, restored.favorites[1]));
+    assert(restored.favorite_count == 2 && !strcmp(restored.favorites[1], other));
+    assert(restored.dashboard.recent_count == 2 &&
+           !strcmp(restored.dashboard.recent[0].path, target) &&
+           restored.dashboard.recent[0].timestamp == 300);
+    /* Walk the actual Locate picker when its destination is already pinned. */
+    restored.favorite_count = 3;
+    path_copy(restored.favorites[0], target, PATH_CAP);
+    path_copy(restored.favorites[1], missing, PATH_CAP);
+    path_copy(restored.favorites[2], other, PATH_CAP);
+    text(root, "_nds/dsi-frontend/dashboard.ini", "version=1\norder=0,1,2,3\nvisible=1,1,1,0\n");
+    dashboard_load(&restored);
+    app_category(&restored, CATEGORY_HOME);
+    int selected = -1;
+    for (int i = 0; i < restored.entry_count; i++)
+        if (!strcmp(restored.entries[i].path, missing))
+            selected = i;
+    assert(selected >= 0);
+    restored.locations[CATEGORY_HOME].selected = selected;
+    app_open(&restored);
+    assert(restored.picker.open && restored.picker.kind == PICKER_REPAIR);
+    char roms[PATH_CAP];
+    assert(path_join(roms, root, "roms"));
+    selected = -1;
+    for (int i = 0; i < restored.picker.count; i++)
+        if (!strcmp(restored.picker.entries[i].path, roms))
+            selected = i;
+    assert(selected >= 0);
+    restored.picker.selected = selected;
+    picker_activate(&restored);
+    selected = -1;
+    for (int i = 0; i < restored.picker.count; i++)
+        if (!strcmp(restored.picker.entries[i].path, target))
+            selected = i;
+    assert(selected >= 0);
+    restored.picker.selected = selected;
+    picker_activate(&restored);
+    assert(!restored.picker.open && !restored.launch_requested);
+    assert(restored.favorite_count == 2 && app_selected(&restored) &&
+           !strcmp(app_selected(&restored)->path, target));
+    assert(restored.preferences_dirty);
+    app_back(&restored);
+    assert(app_save(&restored));
+    app_init(&app, root, true, true);
+    assert(app.category == CATEGORY_HOME && app_selected(&app) &&
+           !strcmp(app_selected(&app)->path, target));
 }
 int main(int argc, char **argv)
 {
@@ -395,6 +509,7 @@ int main(int argc, char **argv)
     assert(!diagnostics_export(&app));
     check_dashboard_recovery(root);
     check_recent_recovery(root);
+    check_shortcut_merge(root);
     puts("PASS: extension editor/defaults/disable/restore, picker priority, dashboard layout and "
          "bounded request journal, stale shortcut repair/removal and isolated appearance presets");
 }

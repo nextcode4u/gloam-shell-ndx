@@ -379,8 +379,39 @@ void dashboard_touch(App *app, int x, int y)
         app->dashboard.selected = selected;
 }
 
+static void merge_relinked_targets(App *app, const char *path)
+{
+    /* The argument may itself belong to the array being compacted. */
+    char target[PATH_CAP];
+    path_copy(target, path, sizeof target);
+    bool kept = false;
+    int count = 0;
+    for (int i = 0; i < app->favorite_count; i++) {
+        bool match = !strcmp(app->favorites[i], target);
+        if (match && kept)
+            continue;
+        kept |= match;
+        if (count != i)
+            path_copy(app->favorites[count], app->favorites[i], PATH_CAP);
+        count++;
+    }
+    app->favorite_count = count;
+    kept = false;
+    count = 0;
+    for (int i = 0; i < app->dashboard.recent_count; i++) {
+        bool match = !strcmp(app->dashboard.recent[i].path, target);
+        if (match && kept)
+            continue;
+        kept |= match;
+        if (count != i)
+            app->dashboard.recent[count] = app->dashboard.recent[i];
+        count++;
+    }
+    app->dashboard.recent_count = count;
+}
+
 /* Repoint/remove only our references. Save and game data retain their identities.
- * Both preference files are restored if either write reports a failure. */
+ * Failed writes restore RAM references and retry saving the original records. */
 bool dashboard_relink(App *app, const char *old_path, const char *new_path)
 {
     if (!app->storage_ready || !old_path ||
@@ -427,6 +458,8 @@ bool dashboard_relink(App *app, const char *old_path, const char *new_path)
             i--;
         }
     }
+    if (changed && new_path)
+        merge_relinked_targets(app, new_path);
     bool saved = changed && app_save(app) && save_recent(app);
     if (!saved) {
         memcpy(app->favorites, backup->favorites, sizeof backup->favorites);

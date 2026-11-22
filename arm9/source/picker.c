@@ -369,6 +369,8 @@ static void repair_target(App *app, const char *path)
     }
     picker_close(app);
     browser_refresh(app);
+    browser_restore_selection(app, replacement);
+    app_mark_preferences_dirty(app);
     message(app, "Shortcut updated; files and saves stay in place");
 }
 void picker_choose_folder(App *app)

@@ -20,7 +20,9 @@ is retained. Y in the dashboard editor clears this history. It does not remove
 pins, titles, covers or saves. History write failures do not prevent launching.
 Missing targets stay visible with a Missing label. Open or SELECT → Locate
 chooses a replacement; Remove shortcut removes only frontend references.
-References in both pins and history are updated together. Per-title saves/options
+References in both pins and history are updated together. Choosing an existing
+target merges duplicates, keeping the first pin and newest request. The replacement
+stays selected after repair. Per-title saves/options
 and item-artwork identities are not automatically migrated. Folder tabs retain their existing configuration and independent paths.
 
 `_nds/dsi-frontend/dashboard.ini` stores version 1, an `order=` permutation of
