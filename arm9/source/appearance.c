@@ -7,7 +7,9 @@
 #include "themes.h"
 #include "top_content.h"
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 const char *appearance_preset_name(int slot)
@@ -66,6 +68,22 @@ bool appearance_save(App *app, int slot)
         return false;
     return true;
 }
+static bool read_values(const char *text, int values[8])
+{
+    const int maxima[] = {THEME_ACCENT_COUNT - 1,  1, 1, ICON_SIZE_COUNT - 1,
+                          BROWSER_STYLE_COUNT - 1, 1, 1, 35};
+    for (int i = 0; i < 8; i++) {
+        char *end;
+        errno = 0;
+        long number = strtol(text, &end, 10);
+        if (errno || end == text || number < (i == 7 ? -1 : 0) || number > maxima[i] ||
+            *end != (i == 7 ? '\0' : ','))
+            return false;
+        values[i] = (int)number;
+        text = end + (i != 7);
+    }
+    return true;
+}
 static bool read_preset(App *app, const char *path)
 {
     FILE *file = fopen(path, "r");
@@ -93,16 +111,8 @@ static bool read_preset(App *app, const char *path)
             for (const char *p = theme; *p; p++)
                 valid &= isalnum((unsigned char)*p) || *p == '_' || *p == '-';
         } else if (!strncmp(line, "values=", 7)) {
-            int end = 0;
             field = 8;
-            valid &=
-                sscanf(line + 7, "%d,%d,%d,%d,%d,%d,%d,%d%n", &values[0], &values[1], &values[2],
-                       &values[3], &values[4], &values[5], &values[6], &values[7], &end) == 8 &&
-                end && !line[7 + end];
-            const int maxima[] = {THEME_ACCENT_COUNT - 1,  1, 1, ICON_SIZE_COUNT - 1,
-                                  BROWSER_STYLE_COUNT - 1, 1, 1, 35};
-            for (int i = 0; i < 8; i++)
-                valid &= values[i] >= (i == 7 ? -1 : 0) && values[i] <= maxima[i];
+            valid &= read_values(line + 7, values);
         } else if (!strncmp(line, "top=", 4) || !strncmp(line, "bottom=", 7)) {
             int screen = line[0] == 'b';
             const char *value = line + (screen ? 7 : 4);

@@ -216,6 +216,35 @@ int main(int argc, char **argv)
     text(root, "_nds/dsi-frontend/appearance-3.ini",
          "version=1\nname=Bad\ntheme=../escape\nvalues=0,0,0,0,0,0,0,-1\ntop=\nbottom=\n");
     assert(!appearance_load(&app, 2) && app.browser_style == BROWSER_GRID);
+    const char *bad_values[] = {
+        "4294967296,0,0,0,0,0,0,-1",
+        "0,4294967297,0,0,0,0,0,-1",
+        "0,0,0,-4294967296,0,0,0,-1",
+        "0,0,0,0,0,0,0,4294967295",
+        "999999999999999999999999,0,0,0,0,0,0,-1",
+        "0,0,0,0,999,0,0,-1",
+        "0,0,0,0,0,0,0,-1trailing",
+        "0,0,0,0,0,0,0",
+    };
+    for (unsigned i = 0; i < sizeof bad_values / sizeof *bad_values; i++) {
+        char damaged[512];
+        snprintf(damaged, sizeof damaged,
+                 "version=1\nname=Bad numbers\ntheme=\nvalues=%s\ntop=\nbottom=\n", bad_values[i]);
+        text(root, "_nds/dsi-frontend/appearance-3.ini", damaged);
+        assert(!appearance_load(&app, 2));
+        assert(app.browser_style == BROWSER_GRID && app.icon_size == ICON_LARGE &&
+               app.reduced_motion && app.wallpaper_strength == 17 && !app.show_icon_labels);
+    }
+    /* An invalid primary still permits the existing recovery copy. */
+    text(root, "_nds/dsi-frontend/appearance-3.bak",
+         "version=1\nname=Recovery\ntheme=\nvalues=0,0,1,1,3,1,0,17\ntop=\nbottom=\nicon_labels="
+         "0\n");
+    assert(appearance_load(&app, 2));
+    assert(app.browser_style == BROWSER_GRID && app.icon_size == ICON_LARGE && app.reduced_motion &&
+           app.wallpaper_strength == 17 && !app.show_icon_labels);
+    char preset_backup[PATH_CAP];
+    assert(path_preferences_file(preset_backup, root, "appearance-3.bak"));
+    assert(!remove(preset_backup));
     text(root, "_nds/dsi-frontend/appearance-3.ini",
          "version=1\nname=Legacy\ntheme=\nvalues=0,0,0,1,3,1,0,-1\ntop=\nbottom=\n");
     assert(appearance_load(&app, 2) && app.show_icon_labels);
