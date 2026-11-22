@@ -4,6 +4,8 @@
 #include "paths.h"
 #include "preferences.h"
 #include "system_routes.h"
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,6 +53,20 @@ static bool save_config(App *app)
         written = false;
     return written && replace_file(current, temporary, backup);
 }
+static bool read_values(const char *text, int values[DASH_SECTION_COUNT])
+{
+    for (int i = 0; i < DASH_SECTION_COUNT; i++) {
+        char *end;
+        errno = 0;
+        long number = strtol(text, &end, 10);
+        if (errno || end == text || number < 0 || number > INT_MAX ||
+            *end != (i + 1 == DASH_SECTION_COUNT ? '\0' : ','))
+            return false;
+        values[i] = (int)number;
+        text = end + (i + 1 != DASH_SECTION_COUNT);
+    }
+    return true;
+}
 static bool read_config(App *app, const char *path)
 {
     FILE *file = fopen(path, "r");
@@ -58,7 +74,8 @@ static bool read_config(App *app, const char *path)
         return false;
     DashboardConfig candidate = app->dashboard.config;
     char line[128];
-    bool version = false, valid = true;
+    bool valid = true;
+    unsigned seen_fields = 0;
     int lines = 0;
     while (fgets(line, sizeof line, file)) {
         if (++lines > 16 || (!strchr(line, '\n') && !feof(file))) {
@@ -66,39 +83,59 @@ static bool read_config(App *app, const char *path)
             break;
         }
         line[strcspn(line, "\r\n")] = 0;
-        int values[4];
+        int values[DASH_SECTION_COUNT];
+        unsigned field;
         if (!strncmp(line, "version=", 8)) {
-            version = !strcmp(line, "version=1");
-            valid &= version;
-        } else if (sscanf(line, "order=%d,%d,%d,%d", &values[0], &values[1], &values[2],
-                          &values[3]) == 4) {
+            field = 1;
+            valid = !strcmp(line, "version=1");
+        } else if (!strncmp(line, "order=", 6)) {
+            field = 2;
+            if (!read_values(line + 6, values)) {
+                valid = false;
+                break;
+            }
             unsigned seen = 0;
-            for (int i = 0; i < 4; i++) {
-                if (values[i] < 0 || values[i] >= 4 || (seen & (1u << values[i]))) {
+            for (int i = 0; i < DASH_SECTION_COUNT; i++) {
+                if (values[i] >= DASH_SECTION_COUNT || (seen & (1u << values[i]))) {
                     valid = false;
                     break;
                 }
                 seen |= 1u << values[i];
                 candidate.order[i] = values[i];
             }
-        } else if (sscanf(line, "limits=%d,%d,%d,%d", &values[0], &values[1], &values[2],
-                          &values[3]) == 4) {
+        } else if (!strncmp(line, "limits=", 7)) {
+            field = 8;
+            if (!read_values(line + 7, values)) {
+                valid = false;
+                break;
+            }
             for (int i = 0; i < DASH_SECTION_COUNT; i++) {
-                if (values[i] < 0 || values[i] > section_capacity[i])
+                if (values[i] > section_capacity[i])
                     valid = false;
                 else
                     candidate.limit[i] = (unsigned char)values[i];
             }
-        } else if (sscanf(line, "visible=%d,%d,%d,%d", &values[0], &values[1], &values[2],
-                          &values[3]) == 4) {
-            for (int i = 0; i < 4; i++) {
+        } else if (!strncmp(line, "visible=", 8)) {
+            field = 4;
+            if (!read_values(line + 8, values)) {
+                valid = false;
+                break;
+            }
+            for (int i = 0; i < DASH_SECTION_COUNT; i++) {
                 if (values[i] != 0 && values[i] != 1)
                     valid = false;
                 candidate.enabled[i] = values[i] == 1;
             }
-        }
+        } else
+            continue; /* Retain compatibility with optional future metadata. */
+        if (seen_fields & field)
+            valid = false;
+        seen_fields |= field;
+        if (!valid)
+            break;
     }
-    valid = valid && version && !ferror(file);
+    /* Version, order and visibility are required; older files may omit limits. */
+    valid = valid && (seen_fields & 7) == 7 && !ferror(file);
     fclose(file);
     if (valid)
         app->dashboard.config = candidate;

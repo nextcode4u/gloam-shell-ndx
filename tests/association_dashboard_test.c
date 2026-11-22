@@ -45,6 +45,48 @@ static void binary(const char *root)
     FILE *file = fopen(path, "wb");
     assert(file && fwrite(data, 1, sizeof data, file) == sizeof data && !fclose(file));
 }
+static void check_dashboard_recovery(const char *root)
+{
+    app_init(&restored, root, true, true);
+    text(root, "_nds/dsi-frontend/dashboard.bak",
+         "version=1\norder=3,2,1,0\nvisible=1,0,1,1\nlimits=2,3,4,5\n");
+    const char *damaged[] = {
+        "version=1\n",
+        "version=1\norder=0,1,2,3\n",
+        "version=1\norder=4294967296,1,2,3\nvisible=1,1,1,1\n",
+        "version=1\norder=-4294967296,1,2,3\nvisible=1,1,1,1\n",
+        "version=1\norder=0,1,2,3\nvisible=4294967297,1,1,1\n",
+        "version=1\norder=0,1,2,3\nvisible=1,1,1,1\nlimits=4294967296,0,0,0\n",
+        "version=1\norder=0,1,2,3junk\nvisible=1,1,1,1\n",
+        "version=1\norder=0,1,2,3\nvisible=1,1,1\n",
+        "version=1\norder=0,1,2,3\nvisible=1,1,1,1junk\n",
+        "version=1\norder=0,1,2,3\nvisible=1,1,1,1\nlimits=0,0,0,0junk\n",
+        "version=1\norder=0,1,2,3\nvisible=1,1,1,1\nlimits=999999999999999999999,0,0,0\n",
+        "version=1\norder=0,0,2,3\nvisible=1,1,1,1\n",
+        "version=1\nversion=1\norder=0,1,2,3\nvisible=1,1,1,1\n",
+        "version=1\norder=0,1,2,3\norder=0,1,2,3\nvisible=1,1,1,1\n",
+        "version=1\norder=0,1,2,3\nvisible=1,1,1,1\nvisible=1,1,1,1\n",
+    };
+    const bool enabled[] = {true, false, true, true};
+    for (unsigned n = 0; n < sizeof damaged / sizeof *damaged; n++) {
+        text(root, "_nds/dsi-frontend/dashboard.ini", damaged[n]);
+        dashboard_load(&restored);
+        for (int i = 0; i < DASH_SECTION_COUNT; i++) {
+            assert(restored.dashboard.config.order[i] == 3 - i);
+            assert(restored.dashboard.config.enabled[i] == enabled[i]);
+            assert(restored.dashboard.config.limit[i] == i + 2);
+        }
+    }
+    /* Limits are optional in legacy files; unknown metadata stays ignorable. */
+    text(root, "_nds/dsi-frontend/dashboard.ini",
+         "version=1\norder=0,1,2,3\nvisible=0,1,0,1\nfuture_metadata=example\n");
+    dashboard_load(&restored);
+    for (int i = 0; i < DASH_SECTION_COUNT; i++) {
+        assert(restored.dashboard.config.order[i] == i);
+        assert(restored.dashboard.config.enabled[i] == (i % 2 != 0));
+        assert(!restored.dashboard.config.limit[i]);
+    }
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -285,6 +327,7 @@ int main(int argc, char **argv)
     assert(!strstr(report_text, root));
     app.storage_ready = false;
     assert(!diagnostics_export(&app));
+    check_dashboard_recovery(root);
     puts("PASS: extension editor/defaults/disable/restore, picker priority, dashboard layout and "
          "bounded request journal, stale shortcut repair/removal and isolated appearance presets");
 }

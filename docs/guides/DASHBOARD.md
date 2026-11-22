@@ -29,7 +29,8 @@ A zero limit means All. Old version-1 files without limits retain that behavior.
 pins=2 and recent=3. `_nds/dsi-frontend/recent.ini` contains version 1 and bounded
 `request=<timestamp>,sd:/<content path>` records. Both use recoverable
 current/temporary/backup replacement. Config/history loading tries a valid
-backup if the current file is missing or invalid. Paths are normalized against
+backup if the current file is missing or invalid. Truncated, duplicate or malformed
+known configuration records trigger that recovery. Paths are normalized against
 the mounted SD root and foreign devices/parent traversal are rejected.
 
 This is the first configurable dashboard. Arbitrary custom sections, richer
