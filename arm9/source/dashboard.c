@@ -164,37 +164,77 @@ static bool read_config(App *app, const char *path)
 }
 static bool read_recent(App *app, const char *path)
 {
-    FILE *file = fopen(path, "r");
+    app->dashboard.recent_count = 0;
+    FILE *file = fopen(path, "rb");
     if (!file)
         return false;
-    app->dashboard.recent_count = 0;
-    char line[PATH_CAP + 64];
+    struct stat metadata;
+    if (fstat(fileno(file), &metadata) || !S_ISREG(metadata.st_mode) || metadata.st_size < 0 ||
+        metadata.st_size > 16384) {
+        fclose(file);
+        return false;
+    }
+    size_t size = (size_t)metadata.st_size;
+    char *contents = malloc(size + 1);
+    if (!contents) {
+        fclose(file);
+        return false;
+    }
+    bool complete = fread(contents, 1, size, file) == size && !ferror(file);
+    if (fclose(file))
+        complete = false;
+    if (!complete || memchr(contents, 0, size)) {
+        free(contents);
+        return false;
+    }
+    contents[size] = 0;
+    char *cursor = contents;
     bool version = false, valid = true;
-    size_t bytes = 0;
-    while (fgets(line, sizeof line, file)) {
-        bytes += strlen(line);
-        if (bytes > 16384 || (!strchr(line, '\n') && !feof(file))) {
+    while (*cursor) {
+        char *line = cursor, *next = strchr(cursor, '\n');
+        size_t length = next ? (size_t)(next - cursor) : strlen(cursor);
+        if (length >= PATH_CAP + 64) {
             valid = false;
             break;
         }
-        line[strcspn(line, "\r\n")] = 0;
-        if (!strcmp(line, "version=1")) {
+        cursor += length + (next != NULL);
+        if (next)
+            *next = 0;
+        if (length && line[length - 1] == '\r')
+            line[length - 1] = 0;
+        if (!strncmp(line, "version=", 8)) {
+            if (version || strcmp(line, "version=1")) {
+                valid = false;
+                break;
+            }
             version = true;
             continue;
         }
-        unsigned timestamp;
-        int offset = 0;
-        if (app->dashboard.recent_count < RECENT_CAP &&
-            sscanf(line, "request=%u,%n", &timestamp, &offset) == 1 && offset > 0) {
-            RecentRequest *request = &app->dashboard.recent[app->dashboard.recent_count];
-            if (path_resolve_sd(request->path, app->root, line + offset)) {
-                request->timestamp = timestamp;
-                app->dashboard.recent_count++;
-            }
+        if (strncmp(line, "request=", 8))
+            continue;
+        const char *number = line + 8;
+        if (*number < '0' || *number > '9') {
+            valid = false;
+            break;
+        }
+        char *end;
+        errno = 0;
+        unsigned long timestamp = strtoul(number, &end, 10);
+        char resolved[PATH_CAP];
+        if (errno || *end != ',' || timestamp > UINT32_MAX ||
+            !path_resolve_sd(resolved, app->root, end + 1)) {
+            valid = false;
+            break;
+        }
+        /* Preserve the first bounded set from older, longer history files. */
+        if (app->dashboard.recent_count < RECENT_CAP) {
+            RecentRequest *request = &app->dashboard.recent[app->dashboard.recent_count++];
+            path_copy(request->path, resolved, sizeof request->path);
+            request->timestamp = (uint32_t)timestamp;
         }
     }
-    valid = valid && version && !ferror(file);
-    fclose(file);
+    valid = valid && version;
+    free(contents);
     if (!valid)
         app->dashboard.recent_count = 0;
     return valid;

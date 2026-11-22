@@ -28,7 +28,9 @@ and item-artwork identities are not automatically migrated. Folder tabs retain t
 Keep the file within 2 KiB and 16 lines.
 A zero limit means All. Old version-1 files without limits retain that behavior. IDs are links=0, tabs=1,
 pins=2 and recent=3. `_nds/dsi-frontend/recent.ini` contains version 1 and bounded
-`request=<timestamp>,sd:/<content path>` records. Both use recoverable
+`request=<timestamp>,sd:/<content path>` records, bounded to 16 KiB. Invalid
+request records or embedded NUL bytes trigger backup recovery. Version 1 with no
+requests remains valid empty history. Both use recoverable
 current/temporary/backup replacement. Config/history loading tries a valid
 backup if the current file is missing or invalid. Truncated, duplicate or malformed
 known configuration records trigger that recovery. Paths are normalized against

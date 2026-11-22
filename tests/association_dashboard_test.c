@@ -97,6 +97,62 @@ static void check_dashboard_recovery(const char *root)
         assert(!restored.dashboard.config.limit[i]);
     }
 }
+static void check_recent_recovery(const char *root)
+{
+    app_init(&restored, root, true, true);
+    text(root, "_nds/dsi-frontend/recent.bak", "version=1\nrequest=1234,sd:/apps/Probe.nds\n");
+    const char *damaged[] = {
+        "version=1\nrequest=4294967296,sd:/roms/Content.xyz\n",
+        "version=1\nrequest=-1,sd:/roms/Content.xyz\n",
+        "version=1\nrequest=9999999999999999999999,sd:/roms/Content.xyz\n",
+        "version=1\nrequest=bad,sd:/roms/Content.xyz\n",
+        "version=1\nrequest=1 sd:/roms/Content.xyz\n",
+        "version=1\nrequest=1,\n",
+        "version=1\nrequest=1,sd:/../outside\n",
+        "version=1\nrequest=1,fat:/outside\n",
+        "version=1\nversion=1\nrequest=1,sd:/roms/Content.xyz\n",
+        "version=2\nversion=1\nrequest=1,sd:/roms/Content.xyz\n",
+    };
+    char expected[PATH_CAP];
+    assert(path_join(expected, root, "apps/Probe.nds"));
+    for (unsigned n = 0; n < sizeof damaged / sizeof *damaged; n++) {
+        text(root, "_nds/dsi-frontend/recent.ini", damaged[n]);
+        dashboard_load(&restored);
+        assert(restored.dashboard.recent_count == 1);
+        assert(!strcmp(restored.dashboard.recent[0].path, expected));
+        assert(restored.dashboard.recent[0].timestamp == 1234);
+    }
+    char path[PATH_CAP];
+    assert(path_preferences_file(path, root, "recent.ini"));
+    const char nul[] = "version=1\nrequest=1,sd:/roms/Content.xyz\0ignored";
+    FILE *file = fopen(path, "wb");
+    assert(file && fwrite(nul, 1, sizeof nul - 1, file) == sizeof nul - 1 && !fclose(file));
+    dashboard_load(&restored);
+    assert(restored.dashboard.recent_count == 1 &&
+           !strcmp(restored.dashboard.recent[0].path, expected));
+    /* Clearing history is valid and must not revive an older backup. */
+    text(root, "_nds/dsi-frontend/recent.ini", "version=1\r\n");
+    dashboard_load(&restored);
+    assert(!restored.dashboard.recent_count);
+    text(root, "_nds/dsi-frontend/recent.ini",
+         "version=1\r\nrequest=4294967295,sd:/roms/Content.xyz\r\n"
+         "request=0,sd:/roms/Name, Part 2.xyz");
+    dashboard_load(&restored);
+    assert(restored.dashboard.recent_count == 2);
+    assert(restored.dashboard.recent[0].timestamp == UINT32_MAX);
+    assert(!restored.dashboard.recent[1].timestamp);
+    assert(strstr(restored.dashboard.recent[1].path, "Name, Part 2.xyz"));
+    /* Older long lists retain their first bounded set, in file order. */
+    file = fopen(path, "wb");
+    assert(file && fputs("version=1\n", file) >= 0);
+    for (int i = 0; i <= RECENT_CAP; i++)
+        assert(fprintf(file, "request=%d,sd:/roms/Entry%d.nds\r\n", i, i) > 0);
+    assert(fputs("future_metadata=example", file) >= 0 && !fclose(file));
+    dashboard_load(&restored);
+    assert(restored.dashboard.recent_count == RECENT_CAP);
+    assert(!restored.dashboard.recent[0].timestamp);
+    assert(restored.dashboard.recent[RECENT_CAP - 1].timestamp == RECENT_CAP - 1);
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -338,6 +394,7 @@ int main(int argc, char **argv)
     app.storage_ready = false;
     assert(!diagnostics_export(&app));
     check_dashboard_recovery(root);
+    check_recent_recovery(root);
     puts("PASS: extension editor/defaults/disable/restore, picker priority, dashboard layout and "
          "bounded request journal, stale shortcut repair/removal and isolated appearance presets");
 }
