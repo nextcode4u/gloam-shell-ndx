@@ -8,18 +8,55 @@
 #include "tabs.h"
 #include "themes.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 static App app;
 static unsigned index_reads;
+static bool truncate_on_open, fail_close, fail_metadata;
+static FILE *index_file;
 FILE *__real_fopen(const char *, const char *);
+int __real_fclose(FILE *);
+int __real_fstat(int, struct stat *);
 FILE *__wrap_fopen(const char *path, const char *mode)
 {
-    if (strstr(path, "/cache/library.gli") && mode[0] == 'r')
+    bool index = strstr(path, "/cache/library.gli") && mode[0] == 'r';
+    if (index) {
         index_reads++;
-    return __real_fopen(path, mode);
+        if (truncate_on_open) {
+            struct stat status;
+            assert(!stat(path, &status) && status.st_size > 32);
+            assert(!truncate(path, status.st_size - 1));
+        }
+    }
+    FILE *file = __real_fopen(path, mode);
+    if (index)
+        index_file = file;
+    return file;
+}
+int __wrap_fclose(FILE *file)
+{
+    bool deny = file == index_file && fail_close;
+    if (file == index_file)
+        index_file = NULL;
+    int result = __real_fclose(file);
+    if (deny) {
+        errno = EIO;
+        return EOF;
+    }
+    return result;
+}
+int __wrap_fstat(int descriptor, struct stat *status)
+{
+    if (index_file && fileno(index_file) == descriptor && fail_metadata) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_fstat(descriptor, status);
 }
 static struct {
     unsigned before;
@@ -60,6 +97,45 @@ static void query(const char *text)
     path_copy(app.search->query, text, SEARCH_QUERY_CAP);
     library_search_start(&app);
     finish();
+}
+static void index_failures(const char *root)
+{
+    for (unsigned failure = 0; failure < 6; failure++) {
+        install(root, "valid.gli");
+        assert(library_search_open(&app));
+        strcpy(app.search->query, failure == 2 ? "Game" : "no matching term");
+        truncate_on_open = failure == 0;
+        fail_close = failure == 1 || failure == 2;
+        fail_metadata = failure == 3;
+        library_search_start(&app);
+        truncate_on_open = false;
+        if (failure == 4) {
+            char path[PATH_CAP];
+            struct stat status;
+            assert(path_preferences_file(path, root, "cache/library.gli"));
+            assert(!stat(path, &status) && status.st_size > 32);
+            assert(!truncate(path, status.st_size - 1));
+        }
+        if (failure == 5)
+            fail_metadata = true;
+        finish();
+        fail_close = fail_metadata = false;
+        assert(!app.search->available && !app.search->count && !app.search->more &&
+               !app.search->file);
+        /* A clean retry must recover without rebuilding or restarting Gloam. */
+        install(root, "valid.gli");
+        query("Game0012");
+        assert(app.search->available && app.search->count == 1);
+        library_search_close(&app);
+    }
+    /* Header-only availability checks must honor close errors too. */
+    install(root, "valid.gli");
+    fail_close = true;
+    assert(library_search_open(&app) && !app.search->available && !app.search->file);
+    fail_close = false;
+    query("Game0012");
+    assert(app.search->available && app.search->count == 1);
+    library_search_close(&app);
 }
 int main(int argc, char **argv)
 {
@@ -307,6 +383,7 @@ int main(int argc, char **argv)
         assert(!app.search->available && !app.search->file && !app.search->count);
         library_search_close(&app);
     }
+    index_failures(root);
     install(root, "empty.gli");
     assert(library_search_open(&app));
     query("");

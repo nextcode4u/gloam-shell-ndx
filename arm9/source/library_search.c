@@ -28,12 +28,15 @@ static uint32_t checksum(const unsigned char *data, size_t size, uint32_t hash)
         hash = (hash ^ *data++) * 16777619u;
     return hash;
 }
-static void stop(LibrarySearch *s)
+static bool stop(LibrarySearch *s)
 {
-    if (s->file)
-        fclose(s->file);
+    FILE *file = s->file;
+    bool valid = !file || !ferror(file);
+    if (file && fclose(file))
+        valid = false;
     s->file = NULL;
     s->pending = false;
+    return valid;
 }
 void library_search_close(App *app)
 {
@@ -62,6 +65,20 @@ static void failed(LibrarySearch *s, const char *message)
     s->more = s->available = false;
     path_copy(s->status, message, sizeof s->status);
 }
+/* Block filters can skip payload reads. Recheck size before publishing a page
+ * so a truncated index cannot masquerade as a successful empty search. */
+static bool complete(LibrarySearch *s)
+{
+    FILE *file = s->file;
+    struct stat metadata;
+    bool valid = file && !fstat(fileno(file), &metadata) && S_ISREG(metadata.st_mode) &&
+                 metadata.st_size == (off_t)s->bytes;
+    if (!stop(s))
+        valid = false;
+    if (!valid)
+        failed(s, "Search index changed or could not be read. Reopen search or rebuild it.");
+    return valid;
+}
 static bool open_index(App *app)
 {
     LibrarySearch *s = app->search;
@@ -72,19 +89,21 @@ static bool open_index(App *app)
         failed(s, "SD unavailable. Normal browsing remains available.");
         return false;
     }
-    struct stat metadata;
-    if (stat(path, &metadata) || !S_ISREG(metadata.st_mode) || metadata.st_size < 32 ||
-        (uint64_t)metadata.st_size > INDEX_LIMIT) {
-        failed(s, "Search index missing or invalid. Build it in desktop Setup > Library.");
-        return false;
-    }
     FILE *file = fopen(path, "rb");
     if (!file) {
         failed(s, "No search index. Build one in desktop Setup > Library, then reopen search.");
         return false;
     }
+    /* Inspect the opened file, not a pathname that may change before fopen. */
+    struct stat metadata;
+    if (fstat(fileno(file), &metadata) || !S_ISREG(metadata.st_mode) || metadata.st_size < 32 ||
+        (uint64_t)metadata.st_size > INDEX_LIMIT) {
+        fclose(file);
+        failed(s, "Search index missing or invalid. Build it in desktop Setup > Library.");
+        return false;
+    }
     unsigned char header[32];
-    bool valid = fread(header, 1, sizeof header, file) == sizeof header &&
+    bool valid = fread(header, 1, sizeof header, file) == sizeof header && !ferror(file) &&
                  (!memcmp(header, "GLIDX001", 8) || !memcmp(header, "GLIDX002", 8)) &&
                  checksum(header, 28, 2166136261u) == le32(header + 28);
     long bytes = (long)metadata.st_size;
@@ -143,8 +162,10 @@ bool library_search_open(App *app)
     app->rail_focus = false;
     app->panel = PANEL_NONE;
     if (open_index(app)) {
-        stop(s);
-        strcpy(s->status, "Enter words, then Search. Empty query lists indexed files.");
+        if (stop(s))
+            strcpy(s->status, "Enter words, then Search. Empty query lists indexed files.");
+        else
+            failed(s, "Could not finish reading the search index. Reopen search.");
     }
     return true;
 }
@@ -345,7 +366,8 @@ void library_search_step(App *app)
                 failed(s, "Search index record count is invalid. Rebuild it.");
                 return;
             }
-            stop(s);
+            if (!complete(s))
+                return;
             strcpy(s->status, s->count
                                   ? "A: launch  Y: locate in folder"
                                   : "No matching files. Refresh the index after adding files.");
@@ -406,7 +428,8 @@ void library_search_step(App *app)
                 s->next_offset = (uint32_t)offset;
                 s->next_record = s->visited - 1;
                 s->more = true;
-                stop(s);
+                if (!complete(s))
+                    return;
                 strcpy(s->status, "A launch  Y locate  R next page");
                 return;
             } else {

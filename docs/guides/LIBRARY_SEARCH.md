@@ -3,6 +3,8 @@
 Search uses an optional index prepared on your PC. Gloam never scans the SD card
 for this index at startup. Missing or invalid indexes leave ordinary browsing
 available, including installations updated with only `BOOT.NDS`.
+If an index changes size during a search or an SD read/close fails, Gloam
+discards that page and offers retry rather than reporting incomplete results.
 
 ## Prepare the index
 

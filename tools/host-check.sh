@@ -66,7 +66,8 @@ ASAN_OPTIONS=detect_leaks=1 build/host/icons-test "$fixture/icon-test"
 
 "$test_python" tests/library_search_fixture.py "$fixture/library-search"
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" "${ui_objects[@]}" tests/library_search_test.c -Wl,--wrap=fopen -o build/host/library-search-test
+    "${model_objects[@]}" "${ui_objects[@]}" tests/library_search_test.c \
+    -Wl,--wrap=fopen,--wrap=fclose,--wrap=fstat -o build/host/library-search-test
 ASAN_OPTIONS=detect_leaks=1 build/host/library-search-test "$fixture/library-search"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
