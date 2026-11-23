@@ -335,7 +335,8 @@ cc "${common_flags[@]}" -Iarm9/source/ui -O1 -g -fsanitize=address,undefined \
 ASAN_OPTIONS=detect_leaks=1 build/host/file-types-test
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" "${ui_objects[@]}" tests/installed_titles_test.c -o build/host/installed-titles-test
+    "${model_objects[@]}" "${ui_objects[@]}" tests/installed_titles_test.c \
+    -Wl,--wrap=opendir,--wrap=readdir,--wrap=closedir -o build/host/installed-titles-test
 mkdir "$fixture/installed-titles"
 ASAN_OPTIONS=detect_leaks=1 build/host/installed-titles-test "$fixture/installed-titles"
 

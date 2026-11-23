@@ -79,6 +79,9 @@ NAND is mounted with `nandInit(true)`; see the official
 [BlocksDS filesystem guide](https://blocksds.skylyrac.net/docs/guides/filesystem/).
 No NAND writes or icon-export step is needed.
 
+If installed DSiWare scanning fails, press B and reopen the library to retry.
+Partial results are discarded; the remembered title selection is retained.
+
 For an optional installed DSi Menu shortcut back to the SD launcher, see
 [Gloam forwarder](GLOAM_FORWARDER.md). It is separate from an application return stub.
 

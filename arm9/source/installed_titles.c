@@ -5,6 +5,7 @@
 #include "title_metadata.h"
 #include <ctype.h>
 #include <dirent.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -80,9 +81,24 @@ static int compare_titles(const void *a, const void *b)
     return order ? order
                  : (left->title.low > right->title.low) - (left->title.low < right->title.low);
 }
-static void finish(InstalledCatalog *catalog)
+static void fail_scan(InstalledCatalog *catalog)
 {
     installed_catalog_cancel(catalog);
+    catalog->count = 0;
+    catalog->ready = catalog->truncated = false;
+    path_copy(catalog->status,
+              "Could not finish reading installed titles. Press B and reopen to retry.",
+              sizeof catalog->status);
+}
+static void finish(InstalledCatalog *catalog)
+{
+    DIR *directory = catalog->directory;
+    catalog->directory = NULL;
+    catalog->scanning = false;
+    if (directory && closedir(directory)) {
+        fail_scan(catalog);
+        return;
+    }
     qsort(catalog->titles, catalog->count, sizeof *catalog->titles, compare_titles);
     catalog->ready = true;
     snprintf(catalog->status, sizeof catalog->status, "%u installed title%s%s%s", catalog->count,
@@ -109,7 +125,12 @@ bool installed_catalog_step(InstalledCatalog *catalog)
 {
     if (!catalog->scanning)
         return false;
+    errno = 0;
     struct dirent *entry = readdir(catalog->directory);
+    if (!entry && errno) {
+        fail_scan(catalog);
+        return true;
+    }
     if (!entry || catalog->scanned++ >= 4096) {
         catalog->truncated |= entry != NULL;
         finish(catalog);

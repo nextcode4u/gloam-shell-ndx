@@ -7,11 +7,51 @@
 #include "preferences.h"
 #include "system_routes.h"
 #include <assert.h>
+#include <dirent.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 
 static App app, restored;
+static const char *watched_path;
+static DIR *watched_directory;
+static const InstalledCatalog *watched_catalog;
+static bool fail_read, fail_after_title, fail_close, stale_errno;
+DIR *__real_opendir(const char *);
+struct dirent *__real_readdir(DIR *);
+int __real_closedir(DIR *);
+DIR *__wrap_opendir(const char *path)
+{
+    DIR *folder = __real_opendir(path);
+    if (watched_path && !strcmp(path, watched_path))
+        watched_directory = folder;
+    return folder;
+}
+struct dirent *__wrap_readdir(DIR *folder)
+{
+    if (folder == watched_directory &&
+        (fail_read || (fail_after_title && watched_catalog && watched_catalog->count))) {
+        errno = EIO;
+        return NULL;
+    }
+    struct dirent *entry = __real_readdir(folder);
+    if (folder == watched_directory && entry && stale_errno)
+        errno = EIO;
+    return entry;
+}
+int __wrap_closedir(DIR *folder)
+{
+    bool deny = folder == watched_directory && fail_close;
+    if (folder == watched_directory)
+        watched_directory = NULL;
+    int result = __real_closedir(folder);
+    if (deny) {
+        errno = EIO;
+        return -1;
+    }
+    return result;
+}
 static void be32(unsigned char *p, uint32_t n)
 {
     for (int i = 0; i < 4; i++)
@@ -78,6 +118,69 @@ static void scan(InstalledCatalog *catalog, const char *root)
         assert(++steps < 4098);
     }
 }
+static void scan_failures(const char *root)
+{
+    char folder[PATH_CAP];
+    uint32_t selected_id = app.installed_selected_id;
+    assert(path_join(folder, root, "title/00030004"));
+    watched_path = folder;
+    watched_catalog = &app.installed_catalog;
+    app_category(&app, CATEGORY_SYSTEM);
+    app_move(&app, 7);
+    app_open(&app);
+    assert(app.installed_open && app.entry_count == 2);
+    app.installed_selected_id = 0x4B414245;
+    for (unsigned failure = 0; failure < 3; failure++) {
+        fail_read = failure == 0;
+        fail_after_title = failure == 1;
+        fail_close = failure == 2;
+        installed_catalog_begin(&app.installed_catalog, root, 1);
+        unsigned steps = 0;
+        while (app.installed_catalog.scanning) {
+            app_tick(&app);
+            assert(++steps < 4098);
+        }
+        assert(!app.installed_catalog.ready && !app.installed_catalog.count);
+        assert(!app.installed_catalog.directory && !app.entry_count);
+        assert(strstr(app.installed_catalog.status, "retry"));
+        assert(!installed_title_revalidate(&app.installed_catalog, 0));
+        char target[PATH_CAP];
+        assert(!installed_title_path(&app.installed_catalog, 0, target));
+        assert(app.installed_selected_id == 0x4B414245);
+        fail_read = fail_after_title = fail_close = false;
+        app_back(&app);
+        assert(!app.installed_open && !app.installed_catalog.attempted);
+        app_move(&app, 7 - app.locations[CATEGORY_SYSTEM].selected);
+        app_open(&app);
+        assert(app.installed_open && app.installed_discovery_requested);
+        app.installed_discovery_requested = false;
+        stale_errno = true;
+        installed_catalog_begin(&app.installed_catalog, root, 1);
+        steps = 0;
+        while (app.installed_catalog.scanning) {
+            app_tick(&app);
+            assert(++steps < 4098);
+        }
+        stale_errno = false;
+        assert(app.installed_catalog.ready && app.installed_catalog.count == 2 &&
+               app.entry_count == 2);
+        assert(app_selected(&app)->kind == ITEM_INSTALLED_TITLE && app_selected(&app)->target == 1);
+    }
+    watched_path = NULL;
+    watched_catalog = NULL;
+    char empty[PATH_CAP];
+    directory(root, "empty");
+    assert(path_join(empty, root, "empty"));
+    directory(empty, "title");
+    directory(empty, "title/00030004");
+    scan(&restored.installed_catalog, empty);
+    assert(restored.installed_catalog.ready && !restored.installed_catalog.count);
+    assert(strstr(restored.installed_catalog.status, "0 installed titles"));
+    app_back(&app);
+    app.locations[CATEGORY_SYSTEM].selected = app.locations[CATEGORY_SYSTEM].scroll = 0;
+    app.installed_selected_id = selected_id;
+    app_category(&app, CATEGORY_HOME);
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -96,6 +199,7 @@ int main(int argc, char **argv)
     assert(app.installed_catalog.ready && app.installed_catalog.count == 2 &&
            app.installed_catalog.skipped == 1);
     assert(!strcmp(app.installed_catalog.titles[0].name, "Alpha"));
+    scan_failures(root);
     assert(app.installed_catalog.titles[0].title.boot_content == 7);
     assert(installed_title_revalidate(&app.installed_catalog, 0));
     uint32_t request[8];
@@ -142,5 +246,5 @@ int main(int argc, char **argv)
     assert(file && fread(save, 1, 31, file) == 12 && !fclose(file));
     assert(!strcmp(save, "Keep my save"));
     puts("PASS: bounded installed-title discovery, names/metadata identity, native requests/icons, "
-         "read-only actions, persistence and save preservation");
+         "read-error discard/retry, read-only actions, persistence and save preservation");
 }
