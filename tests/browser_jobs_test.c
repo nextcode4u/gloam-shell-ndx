@@ -22,6 +22,17 @@ void *__wrap_directory_scan_open(const char *path)
     return __real_directory_scan_open(path);
 }
 static bool stale_errno;
+static char metadata_failure[PATH_CAP];
+static int metadata_error;
+int __real_stat(const char *, struct stat *);
+int __wrap_stat(const char *path, struct stat *status)
+{
+    if (metadata_error && !strcmp(path, metadata_failure)) {
+        errno = metadata_error;
+        return -1;
+    }
+    return __real_stat(path, status);
+}
 bool __real_directory_scan_read(void *, DirectoryRecord *);
 bool __wrap_directory_scan_read(void *directory, DirectoryRecord *record)
 {
@@ -88,6 +99,39 @@ static void read_failures(void)
     location->batch = 0;
     browser_scan_begin(&app);
     drain();
+}
+static void metadata_failures(void)
+{
+    Location *location = &app.locations[CATEGORY_GAMES];
+    assert(app.entry_count > 7);
+    path_copy(metadata_failure, app.entries[7].path, PATH_CAP);
+    const int errors[] = {EIO, EACCES, ENOTDIR};
+    for (unsigned i = 0; i < sizeof errors / sizeof *errors; i++) {
+        location->selected = 7;
+        location->scroll = 3;
+        app.preferences_dirty = false;
+        browser_scan_begin(&app);
+        metadata_error = errors[i];
+        drain();
+        metadata_error = 0;
+        assert(app.directory_error && !app.entry_count && !app.scan_count && !app.scan_directory &&
+               !app.truncated && !app.preferences_dirty);
+        assert(location->selected == 7 && location->scroll == 3 && !location->batch);
+        browser_scan_begin(&app);
+        drain();
+        assert(!app.directory_error && app.entry_count == ENTRY_CAP);
+    }
+    /* Removing a single entry during enumeration does not invalidate the rest. */
+    browser_scan_begin(&app);
+    metadata_error = ENOENT;
+    drain();
+    metadata_error = 0;
+    assert(!app.directory_error && app.entry_count == ENTRY_CAP);
+    for (int i = 0; i < app.entry_count; i++)
+        assert(strcmp(app.entries[i].path, metadata_failure));
+    browser_scan_begin(&app);
+    drain();
+    assert(!app.directory_error && app.entry_count == ENTRY_CAP);
 }
 static void locate_one_pass(const char *roms)
 {
@@ -188,6 +232,7 @@ int main(int argc, char **argv)
     app_category(&app, CATEGORY_GAMES);
     assert(app.entry_count == 512 && app.truncated);
     read_failures();
+    metadata_failures();
     browser_scan_begin(&app);
     browser_scan_step(&app);
     assert(app.scan_directory && app.scan_visited <= 16 && app.entry_count == 0);

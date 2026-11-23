@@ -14,6 +14,17 @@
 static App app;
 static unsigned scan_opens, read_attempts;
 static int fail_read_after = -1;
+static char metadata_failure[PATH_CAP];
+static int metadata_error;
+int __real_stat(const char *, struct stat *);
+int __wrap_stat(const char *path, struct stat *status)
+{
+    if (metadata_error && !strcmp(path, metadata_failure)) {
+        errno = metadata_error;
+        return -1;
+    }
+    return __real_stat(path, status);
+}
 bool __real_directory_scan_read(void *, DirectoryRecord *);
 bool __wrap_directory_scan_read(void *directory, DirectoryRecord *record)
 {
@@ -48,6 +59,32 @@ static void finish_bounded_scan(void)
         } else
             assert(app.picker.visited - before <= 16);
     }
+}
+static void metadata_failures(void)
+{
+    assert(app.picker.count > 7);
+    path_copy(metadata_failure, app.picker.entries[7].path, PATH_CAP);
+    const int errors[] = {EIO, EACCES, ENOTDIR};
+    for (unsigned i = 0; i < sizeof errors / sizeof *errors; i++) {
+        picker_scan_begin(&app);
+        metadata_error = errors[i];
+        finish_bounded_scan();
+        metadata_error = 0;
+        assert(app.picker.failed && !app.picker.count && !app.picker.directory);
+        picker_scan_begin(&app);
+        finish_bounded_scan();
+        assert(!app.picker.failed && app.picker.count == ENTRY_CAP);
+    }
+    picker_scan_begin(&app);
+    metadata_error = ENOENT;
+    finish_bounded_scan();
+    metadata_error = 0;
+    assert(!app.picker.failed && app.picker.count == ENTRY_CAP);
+    for (int i = 0; i < app.picker.count; i++)
+        assert(strcmp(app.picker.entries[i].path, metadata_failure));
+    picker_scan_begin(&app);
+    finish_bounded_scan();
+    assert(!app.picker.failed && app.picker.count == ENTRY_CAP);
 }
 static void later_parent_batches(const char *roms)
 {
@@ -145,6 +182,7 @@ int main(int argc, char **argv)
     assert(app.picker.directory && !app.picker.count);
     finish_bounded_scan();
     assert(app.picker.count == 512 && app.picker.truncated);
+    metadata_failures();
     bool seen[1000] = {false};
     for (int batch = 0; batch < 2; batch++) {
         for (int i = 0; i < app.picker.count; i++) {

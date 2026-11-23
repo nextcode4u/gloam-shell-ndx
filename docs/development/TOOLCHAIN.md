@@ -32,6 +32,8 @@ to collect names, attributes, sizes and timestamps without per-entry pathname
 searches. No separate filesystem implementation is built. This optimization
 is version-gated to SDK 1.25.0; other SDKs fall back to POSIX. Review the exact
 FatFs revision, configuration and symbol namespace when updating the SDK.
+The POSIX fallback skips entries removed mid-scan; other entry-metadata errors
+abort the snapshot rather than silently hiding files.
 
 ## HTTPS library
 

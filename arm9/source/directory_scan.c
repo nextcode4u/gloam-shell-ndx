@@ -114,8 +114,12 @@ bool directory_scan_read(void *iterator, DirectoryRecord *record)
     path_copy(record->name, entry->d_name, sizeof record->name);
     char path[PATH_CAP];
     struct stat status;
-    if (!path_join(path, directory->path, entry->d_name) || stat(path, &status))
+    if (!path_join(path, directory->path, entry->d_name))
         return true;
+    /* Only a vanished child can be skipped safely. Other metadata failures
+     * invalidate the snapshot, including the batch's eligible-entry count. */
+    if (stat(path, &status))
+        return errno == ENOENT;
     record->valid = true;
     record->directory = S_ISDIR(status.st_mode);
     record->regular = S_ISREG(status.st_mode);
