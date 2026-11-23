@@ -14,6 +14,7 @@
 #include "paths.h"
 #include "system_routes.h"
 #include "tabs.h"
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -197,8 +198,17 @@ void browser_scan_step(App *app)
      * A folder full of rejected records must also yield to input each frame. */
     for (int work = 0; work < 16; work++) {
         DirectoryRecord record;
+        errno = 0;
         if (!directory_scan_read(app->scan_directory, &record)) {
-            finish_scan(app);
+            if (errno) {
+                /* A failed read is not EOF: never publish a partial folder or
+                 * reset its remembered batch as though the library was pruned. */
+                browser_scan_cancel(app);
+                app->entry_count = 0;
+                app->truncated = false;
+                app->directory_error = true;
+            } else
+                finish_scan(app);
             return;
         }
         app->scan_visited++;
@@ -374,6 +384,8 @@ void browser_batch(App *app, int direction)
 
 void browser_reflow(App *app)
 {
+    if (app->directory_error)
+        return; /* An unavailable folder has no snapshot against which to clamp selection. */
     Location *location = &app->locations[app->category];
     if (location->selected >= app->entry_count)
         location->selected = app->entry_count ? app->entry_count - 1 : 0;

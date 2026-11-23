@@ -1,9 +1,11 @@
 #include "app.h"
 #include "browser.h"
+#include "directory_scan.h"
 #include "paths.h"
 #include "preferences.h"
 #include "storage_state.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +13,21 @@
 
 static App app, restored;
 static unsigned fixture_count = 1000;
+static int fail_after = -1;
+static unsigned read_calls;
+static bool stale_errno;
+bool __real_directory_scan_read(void *, DirectoryRecord *);
+bool __wrap_directory_scan_read(void *directory, DirectoryRecord *record)
+{
+    if (fail_after >= 0 && read_calls++ >= (unsigned)fail_after) {
+        errno = EIO;
+        return false;
+    }
+    bool read = __real_directory_scan_read(directory, record);
+    if (read && stale_errno)
+        errno = EIO; /* A skipped entry's metadata can leave an unrelated error. */
+    return read;
+}
 static void drain(void)
 {
     unsigned frames = 0;
@@ -21,6 +38,49 @@ static void drain(void)
         assert(app.scan_visited < before || app.scan_visited - before <= 16);
         assert(++frames < fixture_count / 16 + 200);
     }
+}
+static void read_failures(void)
+{
+    Location *location = &app.locations[CATEGORY_GAMES];
+    const int failures[] = {0, 24};
+    for (unsigned batch = 0; batch < 2; batch++)
+        for (unsigned i = 0; i < sizeof failures / sizeof *failures; i++) {
+            location->batch = batch;
+            location->selected = 7;
+            location->scroll = 3;
+            app.preferences_dirty = false;
+            app.panel = PANEL_NONE;
+            browser_scan_begin(&app);
+            app.scan_seek_all = true;
+            strcpy(app.scan_restore_path, "missing-search-target");
+            read_calls = 0;
+            fail_after = failures[i];
+            drain();
+            fail_after = -1;
+            assert(app.directory_error && !app.entry_count && !app.scan_count);
+            assert(!app.scan_directory && !app.scan_seek_all && !*app.scan_restore_path);
+            assert(!app.truncated && app.panel == PANEL_NONE && !app.preferences_dirty);
+            assert(location->batch == batch && location->selected == 7 && location->scroll == 3);
+            browser_scan_begin(&app);
+            drain();
+            assert(!app.directory_error && app.entry_count && location->batch == batch);
+        }
+    location->batch = 1;
+    location->selected = 7;
+    location->scroll = 3;
+    read_calls = 0;
+    fail_after = 24;
+    browser_refresh(&app);
+    drain();
+    fail_after = -1;
+    assert(app.directory_error && !app.entry_count);
+    assert(location->batch == 1 && location->selected == 7 && location->scroll == 3);
+    browser_refresh(&app);
+    drain();
+    assert(!app.directory_error && app.entry_count && location->selected == 7);
+    location->batch = 0;
+    browser_scan_begin(&app);
+    drain();
 }
 int main(int argc, char **argv)
 {
@@ -43,6 +103,7 @@ int main(int argc, char **argv)
     app_init(&app, argv[1], true, true);
     app_category(&app, CATEGORY_GAMES);
     assert(app.entry_count == 512 && app.truncated);
+    read_failures();
     browser_scan_begin(&app);
     browser_scan_step(&app);
     assert(app.scan_directory && app.scan_visited <= 16 && app.entry_count == 0);
@@ -151,9 +212,15 @@ int main(int argc, char **argv)
     app_init(&restored, argv[1], true, true);
     assert(restored.entry_count == 4 && restored.locations[CATEGORY_GAMES].selected == 2);
     browser_scan_begin(&app);
+    stale_errno = true;
+    drain();
+    stale_errno = false;
+    assert(!app.directory_error && app.entry_count == 4);
+    browser_scan_begin(&app);
     storage_observe(&app, false);
     assert(!app.scan_directory && app.storage_lost);
     printf("PASS: bounded directory work, cancellation, unpublished partial snapshots, %u-file "
-           "batch coverage, stale/filtered batch recovery and persistent batch selection\n",
+           "batch coverage, read-error discard/retry, stale/filtered batch recovery and persistent "
+           "batch selection\n",
            fixture_count);
 }

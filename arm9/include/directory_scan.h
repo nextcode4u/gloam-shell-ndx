@@ -13,6 +13,7 @@ typedef struct {
 } DirectoryRecord;
 
 void *directory_scan_open(const char *path);
+/* Clear errno before reading; false with nonzero errno means enumeration failed. */
 bool directory_scan_read(void *directory, DirectoryRecord *record);
 bool directory_scan_is_save_folder(const DirectoryRecord *record);
 bool directory_scan_is_bios_folder(const DirectoryRecord *record);
