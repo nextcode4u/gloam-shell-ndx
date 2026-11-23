@@ -9,6 +9,7 @@
 #include "paths.h"
 #include "script_fonts.h"
 #include "text.h"
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -97,15 +98,20 @@ static void metadata_read(const Entry *entry, TopContentState *state)
     if (bytes < 0 || bytes >= PATH_CAP)
         return;
     FILE *file = fopen(path, "rb");
-    if (!file)
+    if (!file) {
+        state->metadata_invalid = errno != ENOENT;
         return;
+    }
     struct stat info;
     bool valid = !fstat(fileno(file), &info) && S_ISREG(info.st_mode) && info.st_size >= 0 &&
                  info.st_size <= 2048;
     char data[2049];
-    size_t bytes_read = valid ? fread(data, 1, sizeof data, file) : 0;
-    valid &= bytes_read <= 2048 && !memchr(data, 0, bytes_read);
-    data[bytes_read < sizeof data ? bytes_read : 0] = 0;
+    size_t expected = valid ? (size_t)info.st_size : 0;
+    size_t bytes_read = valid ? fread(data, 1, expected, file) : 0;
+    valid = valid && bytes_read == expected && !ferror(file) && !memchr(data, 0, bytes_read);
+    if (fclose(file))
+        valid = false;
+    data[bytes_read] = 0;
     unsigned seen = 0;
     char line[384];
     char *cursor = data;
@@ -158,8 +164,7 @@ static void metadata_read(const Entry *entry, TopContentState *state)
                 valid &= *c >= '0' && *c <= '9';
         }
     }
-    valid &= !ferror(file) && (seen & 1u);
-    fclose(file);
+    valid &= (seen & 1u);
     state->metadata_present = valid && (seen & ~1u);
     state->metadata_invalid = !valid;
     if (!valid)
@@ -227,7 +232,7 @@ static void save_summary(App *app, const Entry *entry, int slot)
     if (dot)
         *dot = 0;
     unsigned found = 0;
-    bool conflict = false;
+    bool conflict = false, unavailable = false;
     for (int variant = 0; variant < (slot ? 1 : 3); variant++) {
         if (slot)
             snprintf(relative, sizeof relative, "saves/%s.sav%d", stem, slot);
@@ -238,13 +243,17 @@ static void save_summary(App *app, const Entry *entry, int slot)
         else
             snprintf(relative, sizeof relative, "saves/%s.sav", stem);
         struct stat info;
-        if (path_join(candidate, directory, relative) && !stat(candidate, &info)) {
+        if (!path_join(candidate, directory, relative))
+            unavailable = true;
+        else if (!stat(candidate, &info)) {
             found += S_ISREG(info.st_mode);
             conflict |= !S_ISREG(info.st_mode);
-        }
+        } else if (errno != ENOENT)
+            unavailable = true;
     }
     snprintf(app->top.save, sizeof app->top.save, "Save: %s",
-             conflict    ? "path is not a file"
+             unavailable ? "check failed"
+             : conflict  ? "path is not a file"
              : found > 1 ? "multiple paths"
              : found     ? "file present"
                          : "not found");

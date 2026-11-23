@@ -47,14 +47,17 @@ Limits are 95 UTF-8 bytes for title, 63 for developer, 47 for genre, four digits
 for a nonempty year, and 255 bytes for description. The whole file must fit in
 2 KiB. Values occupy one line; comments start with `#` or `;`. Unknown or
 duplicate fields, unsupported versions, invalid UTF-8, control characters and
-oversized files discard the optional metadata without blocking launch. Missing
-fields stay empty. Metadata never renames content, replaces covers or changes
-associations. Normal browsing and PC search omit these sidecars; the ROM organizer
+oversized files discard the optional metadata without blocking launch. Incomplete
+reads and SD errors also discard it; missing fields stay empty. Metadata never
+renames content, replaces covers or changes associations. Normal browsing and PC search omit these sidecars; the ROM organizer
 moves them with their content.
 
 No metadata service is contacted automatically. Authors can supply their own
 text or import details they have permission to use. Native banner names remain
 independent of an optional descriptive title.
+
+Save summaries distinguish absent files from failed SD checks. “Check failed”
+means Gloam could not determine the save state; it does not mean the save is missing.
 
 ## Preparation and cost
 

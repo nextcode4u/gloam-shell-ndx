@@ -48,7 +48,8 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
 ASAN_OPTIONS=detect_leaks=1 build/host/theme-assets-test "$fixture/theme-assets"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" "${ui_objects[@]}" tests/top_content_test.c -Wl,--wrap=fopen -o build/host/top-content-test
+    "${model_objects[@]}" "${ui_objects[@]}" tests/top_content_test.c \
+    -Wl,--wrap=fopen,--wrap=fclose,--wrap=fstat,--wrap=stat,--wrap=fread,--wrap=__fread_chk -o build/host/top-content-test
 mkdir -p "$fixture/top-content/roms" "$fixture/top-content/_nds/dsi-frontend"
 ASAN_OPTIONS=detect_leaks=1 build/host/top-content-test "$fixture/top-content"
 

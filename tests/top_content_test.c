@@ -12,6 +12,7 @@
 #include "themes.h"
 #include "top_content.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,7 +26,17 @@ static struct {
 } top, bottom;
 static bool count_reads;
 static unsigned opens, game_opens;
+static FILE *metadata_file;
+static bool fail_metadata_open, short_metadata, fail_metadata_close, fail_metadata_stat;
+static char unavailable_save[PATH_CAP];
 FILE *__real_fopen(const char *, const char *);
+int __real_fclose(FILE *);
+int __real_fstat(int, struct stat *);
+int __real_stat(const char *, struct stat *);
+size_t __real_fread(void *, size_t, size_t, FILE *);
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+#endif
 FILE *__wrap_fopen(const char *path, const char *mode)
 {
     if (count_reads) {
@@ -33,8 +44,58 @@ FILE *__wrap_fopen(const char *path, const char *mode)
         if (strstr(path, "/games/"))
             game_opens++;
     }
-    return __real_fopen(path, mode);
+    bool metadata = mode[0] == 'r' && strstr(path, ".gloam.ini");
+    if (metadata && fail_metadata_open) {
+        errno = EIO;
+        return NULL;
+    }
+    FILE *file = __real_fopen(path, mode);
+    if (metadata)
+        metadata_file = file;
+    return file;
 }
+int __wrap_fclose(FILE *file)
+{
+    bool deny = file == metadata_file && fail_metadata_close;
+    if (file == metadata_file)
+        metadata_file = NULL;
+    int result = __real_fclose(file);
+    if (deny) {
+        errno = EIO;
+        return EOF;
+    }
+    return result;
+}
+int __wrap_fstat(int descriptor, struct stat *status)
+{
+    if (metadata_file && fileno(metadata_file) == descriptor && fail_metadata_stat) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_fstat(descriptor, status);
+}
+int __wrap_stat(const char *path, struct stat *status)
+{
+    if (*unavailable_save && !strcmp(path, unavailable_save)) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_stat(path, status);
+}
+size_t __wrap_fread(void *data, size_t size, size_t count, FILE *file)
+{
+    if (file == metadata_file && short_metadata && count > 25)
+        count = 25;
+    return __real_fread(data, size, count, file);
+}
+#ifdef __GLIBC__
+size_t __wrap___fread_chk(void *data, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    if (file == metadata_file && short_metadata && count > 25)
+        count = 25;
+    return __real___fread_chk(data, capacity, size, count, file);
+}
+#endif
 static void write_text(const char *name, const char *value)
 {
     char path[PATH_CAP];
@@ -122,6 +183,23 @@ int main(int argc, char **argv)
     app.top_content = TOP_CONTENT_NEIGHBORS;
     assert(appearance_load(&app, 0) && app.top_content == TOP_CONTENT_SMART);
 
+    /* I/O failures must never publish a plausible prefix as complete metadata. */
+    for (unsigned fault = 0; fault < 4; fault++) {
+        write_text("roms/Fixture.txt.gloam.ini",
+                   "version=1\ntitle=Complete title\ndeveloper=Author\nyear=2026\n");
+        short_metadata = fault == 0;
+        fail_metadata_close = fault == 1;
+        fail_metadata_stat = fault == 2;
+        fail_metadata_open = fault == 3;
+        prepare();
+        short_metadata = fail_metadata_close = fail_metadata_stat = fail_metadata_open = false;
+        assert(app.top.metadata_invalid && !app.top.metadata_present && !*app.top.title &&
+               !*app.top.developer && !*app.top.year);
+        draw();
+        prepare();
+        assert(app.top.metadata_present && !strcmp(app.top.title, "Complete title"));
+    }
+
     const char *bad[] = {"version=2\ntitle=Bad",          "version=1\ntitle=First\ntitle=Second",
                          "version=1\nyear=202A",          "version=1\nunknown=value",
                          "version=1\ntitle=bad\tcontrol", "version=1\ntitle=\xFF"};
@@ -206,12 +284,22 @@ int main(int argc, char **argv)
     write_text("roms/saves/Fixture.sav3", "Original test save");
     prepare();
     assert(strstr(app.top.save, "file present"));
+    assert(path_join(unavailable_save, app.root, "roms/saves/Fixture.sav3"));
+    prepare();
+    assert(strstr(app.top.save, "check failed") && !strstr(app.top.save, "not found"));
+    unavailable_save[0] = 0;
+    prepare();
+    assert(strstr(app.top.save, "file present"));
     options.values[GAME_SLOT] = 0;
     assert(game_options_write(app.root, app.entries[0].path, &options));
     write_text("roms/Fixture.sav", "First slot-zero fixture");
     write_text("roms/saves/Fixture.sav", "Second slot-zero fixture");
     prepare();
     assert(strstr(app.top.save, "multiple paths"));
+    assert(path_join(unavailable_save, app.root, "roms/Fixture.sav"));
+    prepare();
+    assert(strstr(app.top.save, "check failed"));
+    unavailable_save[0] = 0;
 
     /* Defaults and title overrides are read once each, with the same precedence. */
     GameOptions defaults;
