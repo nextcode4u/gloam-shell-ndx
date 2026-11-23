@@ -197,7 +197,7 @@ ASAN_OPTIONS=detect_leaks=1 build/host/storage-state-test "$fixture/storage-stat
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/cheats_test.c \
-    -Wl,--wrap=fopen,--wrap=fclose,--wrap=fread,--wrap=__fread_chk,--wrap=stat,--wrap=fstat -o build/host/cheats-test
+    -Wl,--wrap=fopen,--wrap=fclose,--wrap=fread,--wrap=__fread_chk,--wrap=stat,--wrap=fstat,--wrap=fgets,--wrap=__fgets_chk -o build/host/cheats-test
 "$test_python" tools/make_cheat_test_fixture.py "$fixture/cheats"
 ASAN_OPTIONS=detect_leaks=1 build/host/cheats-test "$fixture/cheats"
 
@@ -355,7 +355,8 @@ mkdir "$fixture/ui-strings"
 ASAN_OPTIONS=detect_leaks=1 build/host/ui-strings-test "$fixture/ui-strings"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" "${ui_objects[@]}" tests/collections_test.c -o build/host/collections-test
+    "${model_objects[@]}" "${ui_objects[@]}" tests/collections_test.c \
+    -Wl,--wrap=fopen,--wrap=fclose,--wrap=fstat,--wrap=fgets,--wrap=__fgets_chk -o build/host/collections-test
 mkdir "$fixture/collections"
 ASAN_OPTIONS=detect_leaks=1 build/host/collections-test "$fixture/collections"
 

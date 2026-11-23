@@ -27,7 +27,9 @@ than the record limit remain usable when the selected record fits.
 Selections are versioned records in
 `_nds/dsi-frontend/games/<full-content-identity-hash>.cheats.ini`, separate from
 the database. The full normalized content/database paths, game code, ROM CRC
-and matched-record CRC are verified. Changed records start with all codes off.
+and matched-record CRC are verified. Incomplete reads, duplicate identity fields
+and invalid numeric fields reject the selection; a valid backup may be used.
+Changed records start with all codes off.
 The original database's default-selection bits are not applied automatically.
 Saving first checks the complete existing record's version and title identity.
 Unreadable, unsupported or ambiguous records and their backups stay untouched;

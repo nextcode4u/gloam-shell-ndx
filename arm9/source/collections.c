@@ -4,6 +4,7 @@
 #include "paths.h"
 #include "system_routes.h"
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,12 +27,22 @@ void collections_load(App *app)
     char path[PATH_CAP];
     if (!path_preferences_file(path, app->root, "collections.ini"))
         return;
-    FILE *file = fopen(path, "r");
-    if (!file)
+    FILE *file = fopen(path, "rb");
+    if (!file) {
+        app->collections.invalid = errno != ENOENT;
         return;
+    }
     CollectionState *state = calloc(1, sizeof *state);
     if (!state) {
         fclose(file);
+        return;
+    }
+    struct stat status;
+    if (fstat(fileno(file), &status) || !S_ISREG(status.st_mode) || status.st_size < 0 ||
+        status.st_size > 65536) {
+        fclose(file);
+        free(state);
+        app->collections.invalid = true;
         return;
     }
     char line[1024];
@@ -132,8 +143,9 @@ void collections_load(App *app)
         if (!duplicate)
             collection->items[collection->count++] = (unsigned char)index;
     }
-    valid &= version && !ferror(file);
-    fclose(file);
+    valid &= version && !ferror(file) && bytes == (size_t)status.st_size;
+    if (fclose(file))
+        valid = false;
     if (valid)
         app->collections = *state;
     else

@@ -83,6 +83,10 @@ invalid configs stop preparation without changing the launch plan.
 FAT. PCM reads, chunk boundaries and close results must pass before publishing
 a new sample buffer; a failed load preserves the caller's clip.
 
+Appearance presets, named collections and cheat selections verify the complete
+opened record and close result before applying it. Incomplete reads and embedded
+NUL bytes reject the record; presets and cheats may use a valid recovery copy.
+
 Configuration import and reset retain rollback data before changing settings.
 Do not replace them with recursive deletion of frontend folders: installed
 assets and game saves are outside the reset scope.

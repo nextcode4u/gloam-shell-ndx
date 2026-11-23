@@ -137,14 +137,21 @@ static bool read_selections(CheatState *state, const char *root, const char *suf
     if (!selection_path(path, root, state->content, suffix) ||
         !reference(key, root, state->content) || !reference(database, root, state->database))
         return false;
-    FILE *file = fopen(path, "r");
+    FILE *file = fopen(path, "rb");
     if (!file)
         return false;
+    struct stat status;
+    if (fstat(fileno(file), &status) || !S_ISREG(status.st_mode) || status.st_size < 0 ||
+        status.st_size > 8192) {
+        fclose(file);
+        return false;
+    }
     bool version = false, content = false, source = false, code = false, crc = false,
          record = false;
     bool selected[CHEAT_ENTRY_CAP] = {false}, valid = true;
     char line[PATH_CAP + 32];
     size_t total = 0;
+    unsigned seen = 0;
     while (fgets(line, sizeof line, file)) {
         total += strlen(line);
         if (total > 8192 || (!strchr(line, '\n') && !feof(file))) {
@@ -156,8 +163,21 @@ static bool read_selections(CheatState *state, const char *root, const char *suf
         if (!value)
             continue;
         *value++ = 0;
+        unsigned field = !strcmp(line, "version")      ? 1
+                         : !strcmp(line, "content")    ? 2
+                         : !strcmp(line, "database")   ? 4
+                         : !strcmp(line, "code")       ? 8
+                         : !strcmp(line, "rom_crc")    ? 16
+                         : !strcmp(line, "record_crc") ? 32
+                                                       : 0;
+        if (seen & field)
+            valid = false;
+        seen |= field;
         char *end;
+        errno = 0;
         unsigned long number = strtoul(value, &end, 16);
+        bool numeric = *value && !*end && !errno && number <= UINT32_MAX &&
+                       strspn(value, "0123456789abcdefABCDEF") == strlen(value);
         if (!strcmp(line, "version"))
             version = !strcmp(value, "1");
         else if (!strcmp(line, "content"))
@@ -165,21 +185,22 @@ static bool read_selections(CheatState *state, const char *root, const char *suf
         else if (!strcmp(line, "database"))
             source = !strcmp(value, database);
         else if (!strcmp(line, "code"))
-            code = *value && !*end && number == state->code;
+            code = numeric && number == state->code;
         else if (!strcmp(line, "rom_crc"))
-            crc = *value && !*end && number == state->rom_crc;
+            crc = numeric && number == state->rom_crc;
         else if (!strcmp(line, "record_crc"))
-            record = *value && !*end && number == state->record_crc;
+            record = numeric && number == state->record_crc;
         else if (!strcmp(line, "enabled")) {
-            if (!*value || *end || number >= (unsigned)state->count ||
-                state->entries[number].folder)
+            if (!numeric || number >= (unsigned)state->count || state->entries[number].folder)
                 valid = false;
             else
                 selected[number] = true;
         }
     }
     valid = valid && !ferror(file) && version && content && source && code && crc && record;
-    fclose(file);
+    valid &= total == (size_t)status.st_size;
+    if (fclose(file))
+        valid = false;
     if (valid) {
         for (int i = 0; i < state->count; i++)
             if (selected[i])

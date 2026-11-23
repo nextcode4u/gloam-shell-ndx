@@ -13,6 +13,7 @@
 static const char *watched_paths[2];
 static FILE *watched_streams[2];
 static size_t read_limit = (size_t)-1;
+static int lines_left = -1;
 static bool fail_presence, nonregular_presence, fail_close, fail_open, fail_metadata;
 int __real_fstat(int, struct stat *);
 FILE *__real_fopen(const char *, const char *);
@@ -38,6 +39,23 @@ static bool watched(FILE *file)
 {
     return file && (file == watched_streams[0] || file == watched_streams[1]);
 }
+char *__real_fgets(char *, int, FILE *);
+char *__wrap_fgets(char *text, int capacity, FILE *file)
+{
+    if (watched(file) && lines_left >= 0) {
+        if (!lines_left)
+            return NULL;
+        lines_left--;
+    }
+    return __real_fgets(text, capacity, file);
+}
+#ifdef __GLIBC__
+char *__wrap___fgets_chk(char *text, size_t capacity, int count, FILE *file)
+{
+    assert(count > 0 && (size_t)count <= capacity);
+    return __wrap_fgets(text, count, file);
+}
+#endif
 size_t __wrap_fread(void *buffer, size_t size, size_t count, FILE *file)
 {
     if (watched(file) && count > read_limit)
@@ -211,6 +229,40 @@ static void selection_write_guards(const char *root)
     assert(!cheats_save(&state, root));
     read_database(current, actual, &actual_bytes);
     assert(actual_bytes == (size_t)length + 8 && !memcmp(actual, text, actual_bytes));
+    /* Loading also rejects ambiguous identity, hidden bytes and incomplete I/O.
+     * Hide the recovery copy so a successful fallback cannot mask this test. */
+    assert(!remove(backup));
+    write_file(current, original, bytes);
+    for (int fault = 0; fault < 3; fault++) {
+        fail_close = fault == 0;
+        fail_metadata = fault == 1;
+        lines_left = fault == 2 ? 6 : -1;
+        assert(cheats_load(&restored, root, state.content));
+        for (int i = 0; i < restored.count; i++)
+            assert(!restored.entries[i].selected);
+        cheats_free(&restored);
+    }
+    fail_close = fail_metadata = false;
+    lines_left = -1;
+    const char *extra[] = {"version=1\n", "content=sd:/other.nds\n", "enabled=+1\n",
+                           "enabled=100000000\n"};
+    for (unsigned i = 0; i < sizeof extra / sizeof *extra; i++) {
+        memcpy(text, original, bytes);
+        strcpy(text + bytes, extra[i]);
+        write_file(current, text, bytes + strlen(extra[i]));
+        assert(cheats_load(&restored, root, state.content));
+        for (int j = 0; j < restored.count; j++)
+            assert(!restored.entries[j].selected);
+        cheats_free(&restored);
+    }
+    memcpy(text, original, bytes);
+    memcpy(text + bytes, "\0hidden", 7);
+    write_file(current, text, bytes + 7);
+    assert(cheats_load(&restored, root, state.content) && !restored.entries[2].selected);
+    cheats_free(&restored);
+    write_file(current, original, bytes);
+    assert(cheats_load(&restored, root, state.content) && restored.entries[2].selected);
+    cheats_free(&restored);
     /* Old database/revision fields may change when the same title is saved again. */
     length = snprintf(text, sizeof text,
                       "version=1\r\ncontent=%s\r\ndatabase=sd:/old.dat\r\ncode=0\r\nrom_crc=0\r\n"

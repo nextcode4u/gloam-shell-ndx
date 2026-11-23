@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 const char *appearance_preset_name(int slot)
 {
@@ -86,15 +87,23 @@ static bool read_values(const char *text, int values[8])
 }
 static bool read_preset(App *app, const char *path)
 {
-    FILE *file = fopen(path, "r");
+    FILE *file = fopen(path, "rb");
     if (!file)
         return false;
+    struct stat status;
+    if (fstat(fileno(file), &status) || !S_ISREG(status.st_mode) || status.st_size < 0 ||
+        status.st_size > 9 * (PATH_CAP + 32)) {
+        fclose(file);
+        return false;
+    }
     char line[PATH_CAP + 32], theme[THEME_ID_CAP] = "", backgrounds[2][PATH_CAP] = {{0}};
     int values[8] = {0};
     unsigned seen = 0, lines = 0;
     int icon_labels = 1, top_content = app->top_content;
+    size_t bytes = 0;
     bool valid = true;
     while (fgets(line, sizeof line, file)) {
+        bytes += strlen(line);
         if (++lines > 9 || (!strchr(line, '\n') && !feof(file))) {
             valid = false;
             break;
@@ -133,8 +142,9 @@ static bool read_preset(App *app, const char *path)
             valid = false;
         seen |= field;
     }
-    valid &= !ferror(file) && (seen & 63) == 63;
-    fclose(file);
+    valid &= !ferror(file) && bytes == (size_t)status.st_size && (seen & 63) == 63;
+    if (fclose(file))
+        valid = false;
     if (!valid)
         return false;
     /* All validation precedes mutation. Missing optional assets use theme fallback. */
