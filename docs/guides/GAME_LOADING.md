@@ -92,8 +92,10 @@ snapshot and can be replaced. Revision-matched selection, exclusive groups and o
 Per-title and global options are sparse, versioned records under
 `_nds/dsi-frontend/games/<FNV64 identity>.ini`. `content=sd:/...` is verified
 against the full normalized identity; global defaults use `content=defaults`.
-Backup records recover interrupted/malformed current reads. See retained
-third-party notices for the database's exact revision and GPL terms.
+A matching backup recovers damaged records and remains available when saving
+later edits. Unreadable records, different identities and unsupported versions
+are not overwritten. See retained third-party notices for the database's exact
+revision and GPL terms.
 
 
 ## DSiWare

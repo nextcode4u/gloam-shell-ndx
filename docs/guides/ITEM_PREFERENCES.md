@@ -46,17 +46,18 @@ and do not change the underlying browser's remembered locations.
 ## Storage
 
 Sparse records live in `_nds/dsi-frontend/items/<identity-hash>.ini`. Version 1
-records contain `content`, `cover` and `application` SD-absolute paths. The full
-normalized content identity must match on reading, so a hash collision does not
+records contain `content`, `cover`, `application` and `icon` SD-absolute paths.
+The full normalized content identity must match on reading, so a hash collision does not
 apply another item's data. The location is independent of the host drive used
 for testing. Parent traversal and foreign-device paths are rejected.
 
-Writers use temporary/current/backup replacement and refuse to overwrite an
-invalid or mismatched existing identity. A valid backup can recover a bad/missing
-current record. This is recoverable replacement, not FAT power-loss atomicity.
-Clearing a field preserves other fields. Clearing both leaves a valid empty
-record; no cover, application, ROM or save is removed. Moving content does not
-currently relocate its assignment automatically.
+Writers use temporary/current/backup replacement. A matching valid backup can
+recover a damaged current record and allow later edits without discarding that
+backup. Unreadable records, different content identities and unsupported versions
+remain protected. This is recoverable replacement, not FAT power-loss atomicity.
+Clearing a field preserves other fields. Clearing all assignments leaves a valid
+empty record; no artwork, application, ROM or save is removed. Moving content
+does not currently relocate its assignment automatically.
 
 The main browser also supports Left/Right page movement. Its page size follows
 the selected row layout and clamps at the first/last item; Up/Down retain their

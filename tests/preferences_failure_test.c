@@ -1,14 +1,22 @@
 /* Exercise FAT save transactions and recovery from malformed or interrupted reads. */
+#include "game_options.h"
+#include "item_preferences.h"
 #include "paths.h"
 #include "preferences.h"
 #include "tabs.h"
 #include <assert.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 static App app;
+static const char *record_current, *record_temporary, *record_probe;
+static FILE *record_stream;
+static bool short_record, deny_record_stat;
+static bool deny_record_remove, deny_record_install;
 static bool short_read;
 static FILE *state_stream;
 static int state_lines;
@@ -39,11 +47,13 @@ FILE *__wrap_fopen(const char *path, const char *mode)
         state_stream = file;
         state_lines = 0;
     }
+    if (short_record && record_probe && !strcmp(path, record_probe) && *mode == 'r')
+        record_stream = file;
     return file;
 }
 size_t __wrap_fread(void *buffer, size_t size, size_t count, FILE *file)
 {
-    if (file == state_stream && count > 16)
+    if ((file == state_stream || file == record_stream) && count > 16)
         count = 16;
     return __real_fread(buffer, size, count, file);
 }
@@ -57,7 +67,7 @@ char *__wrap_fgets(char *buffer, int size, FILE *file)
 #ifdef __GLIBC__
 size_t __wrap___fread_chk(void *buffer, size_t capacity, size_t size, size_t count, FILE *file)
 {
-    if (file == state_stream && count > 16)
+    if ((file == state_stream || file == record_stream) && count > 16)
         count = 16;
     return __real___fread_chk(buffer, capacity, size, count, file);
 }
@@ -72,6 +82,8 @@ int __wrap_fclose(FILE *file)
 {
     if (file == state_stream)
         state_stream = NULL;
+    if (file == record_stream)
+        record_stream = NULL;
     int result = __real_fclose(file);
     if (deny_close) {
         errno = ENOSPC;
@@ -79,9 +91,19 @@ int __wrap_fclose(FILE *file)
     }
     return result;
 }
+int __real_stat(const char *, struct stat *);
+int __wrap_stat(const char *path, struct stat *status)
+{
+    if (deny_record_stat && record_current && !strcmp(path, record_current)) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_stat(path, status);
+}
 int __wrap_remove(const char *path)
 {
-    if (deny_remove && named(path, "state.bak")) {
+    if ((deny_record_remove && record_current && !strcmp(path, record_current)) ||
+        (deny_remove && named(path, "state.bak"))) {
         errno = EACCES;
         return -1;
     }
@@ -89,7 +111,8 @@ int __wrap_remove(const char *path)
 }
 int __wrap_rename(const char *from, const char *to)
 {
-    if ((deny_rotate && named(from, "state.ini")) || (deny_install && named(from, "state.tmp")) ||
+    if ((deny_record_install && record_temporary && !strcmp(from, record_temporary)) ||
+        (deny_rotate && named(from, "state.ini")) || (deny_install && named(from, "state.tmp")) ||
         (deny_restore && named(from, "state.bak"))) {
         errno = EIO;
         return -1;
@@ -113,6 +136,128 @@ static void expect(const char *path, const char *text)
     assert(f && fgets(line, sizeof line, f));
     assert(!strcmp(line, text));
     assert(__real_fclose(f) == 0);
+}
+static bool save_record(const char *root, const char *target, bool game, int value)
+{
+    if (game) {
+        GameOptions options;
+        game_options_defaults(&options, true);
+        options.values[GAME_CPU] = value;
+        return game_options_write(root, target, &options);
+    }
+    ItemPreferences item = {0};
+    assert(path_join(item.cover, root, value ? "new.png" : "old.png"));
+    return item_preferences_save(root, target, &item);
+}
+static void check_record(const char *root, const char *target, bool game, int value)
+{
+    if (game) {
+        GameOptions options;
+        assert(game_options_read(root, target, &options) && options.values[GAME_CPU] == value);
+    } else {
+        ItemPreferences item;
+        char expected[PATH_CAP];
+        assert(path_join(expected, root, value ? "new.png" : "old.png"));
+        assert(item_preferences_load(root, target, &item) && !strcmp(item.cover, expected));
+    }
+}
+static void check_record_recovery(const char *root)
+{
+    const char *key = "sd:/roms/Recovery.nds";
+    uint64_t hash = UINT64_C(14695981039346656037);
+    for (const unsigned char *c = (const unsigned char *)key; *c; c++) {
+        hash ^= *c;
+        hash *= UINT64_C(1099511628211);
+    }
+    char target[PATH_CAP];
+    assert(path_join(target, root, "roms/Recovery.nds"));
+    for (int game = 0; game < 2; game++) {
+        char current[PATH_CAP], backup[PATH_CAP], temporary[PATH_CAP], name[80], broken[256];
+        snprintf(name, sizeof name, "%s/%016" PRIx64 ".ini", game ? "games" : "items", hash);
+        assert(path_preferences_file(current, root, name));
+        strcpy(name + strlen(name) - 3, "bak");
+        assert(path_preferences_file(backup, root, name));
+        strcpy(name + strlen(name) - 3, "tmp");
+        assert(path_preferences_file(temporary, root, name));
+        snprintf(broken, sizeof broken, "version=1\ncontent=%s\n%s\n", key,
+                 game ? "cpu=invalid" : "cover=../outside.png");
+        assert(save_record(root, target, game, 0));
+        assert(save_record(root, target, game, 0));
+        put(current, broken);
+        check_record(root, target, game, 0);        /* Backup recovery already works. */
+        assert(save_record(root, target, game, 1)); /* Editing must work after recovery too. */
+        check_record(root, target, game, 1);
+        /* Save recovery must retain the last readable backup, not rotate the damaged primary. */
+        assert(!remove(current));
+        check_record(root, target, game, 0);
+        assert(save_record(root, target, game, 0));
+        const char *damaged[] = {"", "version=1\n", "version=1\ncontent=", broken};
+        for (unsigned i = 0; i < sizeof damaged / sizeof *damaged; i++) {
+            put(current, damaged[i]);
+            check_record(root, target, game, 0);
+            assert(save_record(root, target, game, 1));
+            check_record(root, target, game, 1);
+            assert(!remove(current));
+            check_record(root, target, game, 0);
+        }
+        record_current = current;
+        record_temporary = temporary;
+        assert(save_record(root, target, game, 1));
+        record_probe = current;
+        short_record = true;
+        check_record(root, target, game, 0);
+        assert(!save_record(root, target, game, 0));
+        short_record = false;
+        check_record(root, target, game, 1);
+        deny_record_stat = true;
+        assert(!save_record(root, target, game, 0));
+        deny_record_stat = false;
+        check_record(root, target, game, 1);
+        put(current, broken);
+        record_probe = backup;
+        short_record = true;
+        assert(!save_record(root, target, game, 1));
+        short_record = false;
+        record_probe = NULL;
+        check_record(root, target, game, 0);
+        const char hidden_owner[] = "version=1\ncontent=sd:/roms/Recovery.nds\n"
+                                    "\0content=sd:/roms/Other.nds\n";
+        FILE *file = __real_fopen(current, "wb");
+        assert(file &&
+               fwrite(hidden_owner, 1, sizeof hidden_owner - 1, file) == sizeof hidden_owner - 1);
+        assert(!__real_fclose(file));
+        check_record(root, target, game, 0);
+        assert(!save_record(root, target, game, 1));
+        put(current, broken);
+        deny_record_remove = true;
+        assert(!save_record(root, target, game, 1));
+        deny_record_remove = false;
+        check_record(root, target, game, 0);
+        expect(current, "version=1\n");
+        deny_record_install = true;
+        assert(!save_record(root, target, game, 1));
+        deny_record_install = false;
+        assert(access(current, F_OK) && errno == ENOENT);
+        check_record(root, target, game, 0);
+        assert(save_record(root, target, game, 1));
+        check_record(root, target, game, 1);
+        put(current, "version=2\ncontent=sd:/roms/Recovery.nds\n");
+        assert(!save_record(root, target, game, 1)); /* Do not overwrite a newer schema. */
+        /* A known foreign primary is protected even when our valid backup exists. */
+        put(current, "version=1\ncontent=sd:/roms/Other.nds\n");
+        assert(!save_record(root, target, game, 1));
+        expect(current, "version=1\n");
+        put(current, "version=1\ncontent=sd:/roms/Recovery.nds\n"
+                     "content=sd:/roms/Other.nds\n");
+        assert(!save_record(root, target, game, 1));
+        put(current, broken);
+        put(backup, "version=1\ncontent=sd:/roms/Other.nds\n");
+        assert(!save_record(root, target, game, 1));
+        put(backup, "invalid\n");
+        assert(!save_record(root, target, game, 1));
+        assert(!remove(current) && !remove(backup));
+        record_current = record_temporary = NULL;
+    }
 }
 int main(int argc, char **argv)
 {
@@ -287,6 +432,7 @@ int main(int argc, char **argv)
     assert(app.audio.music_volume == 42 && app.wallpaper_strength == -1);
     assert(app.installed_selected_id == UINT32_MAX && app.tab_details[CATEGORY_GAMES] == 1);
     assert(app.locations[CATEGORY_GAMES].batch == 8 && app.tab_display[CATEGORY_GAMES].saved);
+    check_record_recovery(argv[1]);
     puts("PASS: strict numeric fields, complete settings reads, corrupt-record recovery, FAT save "
          "rotation, "
          "read-only/full-disk errors, rollback and recovery-copy "

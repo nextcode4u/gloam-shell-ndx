@@ -355,7 +355,7 @@ ASAN_OPTIONS=detect_leaks=1 build/host/update-checker-test "$fixture/update-chec
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" tests/preferences_failure_test.c \
-    -Wl,--wrap=fopen,--wrap=fclose,--wrap=rename,--wrap=remove,--wrap=fread,--wrap=fgets,--wrap=__fread_chk,--wrap=__fgets_chk \
+    -Wl,--wrap=fopen,--wrap=fclose,--wrap=rename,--wrap=remove,--wrap=fread,--wrap=fgets,--wrap=__fread_chk,--wrap=__fgets_chk,--wrap=stat \
     -o build/host/preferences-failure-test
 mkdir -p "$fixture/preferences-failure"
 ASAN_OPTIONS=detect_leaks=1 build/host/preferences-failure-test "$fixture/preferences-failure"

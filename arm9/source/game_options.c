@@ -43,47 +43,79 @@ static bool record_path(char output[PATH_CAP], const char *root, const char *key
     snprintf(relative, sizeof relative, "games/%016" PRIx64 ".%s", hash, suffix);
     return path_preferences_file(output, root, relative);
 }
-static bool read_record(const char *file_path, const char *key, GameOptions *options)
+/* Only completely inspected damaged records may be replaced using a matching backup. */
+typedef enum { RECORD_UNREADABLE, RECORD_INVALID, RECORD_PROTECTED, RECORD_VALID } RecordStatus;
+static RecordStatus read_record(const char *file_path, const char *key, GameOptions *options)
 {
-    FILE *file = fopen(file_path, "r");
+    FILE *file = fopen(file_path, "rb");
     if (!file)
-        return false;
-    bool valid = true, version = false, identity = false;
-    char line[PATH_CAP + 32];
-    size_t total = 0;
-    while (fgets(line, sizeof line, file)) {
-        total += strlen(line);
-        if (total > 4096 || (!strchr(line, '\n') && !feof(file))) {
-            valid = false;
-            break;
+        return RECORD_UNREADABLE;
+    struct stat info;
+    bool valid = !fstat(fileno(file), &info) && S_ISREG(info.st_mode) && info.st_size >= 0 &&
+                 info.st_size <= 4096;
+    size_t bytes = valid ? (size_t)info.st_size : 0;
+    char *contents = valid ? malloc(bytes + 1) : NULL;
+    valid = contents && fread(contents, 1, bytes, file) == bytes && !ferror(file);
+    if (fclose(file))
+        valid = false;
+    if (!valid || memchr(contents, 0, bytes)) {
+        free(contents);
+        return RECORD_UNREADABLE;
+    }
+    contents[bytes] = 0;
+    bool version = false, identity = false, foreign = false, unsupported = false;
+    unsigned seen = 0;
+    char *cursor = contents;
+    while (*cursor) {
+        char *line = cursor, *next = strchr(cursor, '\n');
+        cursor = next ? next + 1 : cursor + strlen(cursor);
+        if (next)
+            *next = 0;
+        size_t length = strlen(line);
+        if (length >= PATH_CAP + 31) {
+            free(contents);
+            return RECORD_UNREADABLE;
         }
-        line[strcspn(line, "\r\n")] = 0;
+        if (length && line[length - 1] == '\r')
+            line[length - 1] = 0;
         char *value = strchr(line, '=');
         if (!value)
             continue;
         *value++ = 0;
-        if (!strcmp(line, "version"))
+        unsigned field = 0;
+        if (!strcmp(line, "version")) {
             version = !strcmp(value, "1");
-        else if (!strcmp(line, "content"))
+            unsupported |= *value && !version;
+            valid &= version;
+        } else if (!strcmp(line, "content")) {
+            field = 1;
             identity = !strcmp(value, key);
-        else
-            for (int i = 0; i < GAME_OPTION_COUNT; i++) {
-                if (strcmp(line, keys[i]))
-                    continue;
-                char *end;
-                errno = 0;
-                long number = strtol(value, &end, 10);
-                if (errno || end == value || *end ||
-                    (number != GAME_INHERIT && (number < minimum[i] || number > maximum[i])))
-                    valid = false;
-                else
-                    options->values[i] = (int)number;
+            foreign |= *value && !identity;
+        } else {
+            int i;
+            for (i = 0; i < GAME_OPTION_COUNT && strcmp(line, keys[i]); i++) {
             }
+            if (i == GAME_OPTION_COUNT)
+                continue;
+            field = (unsigned)i + 2;
+            char *end;
+            errno = 0;
+            long number = strtol(value, &end, 10);
+            if (errno || end == value || *end ||
+                (number != GAME_INHERIT && (number < minimum[i] || number > maximum[i])))
+                valid = false;
+            else
+                options->values[i] = (int)number;
+        }
+        valid &= !(seen & (1u << field));
+        seen |= 1u << field;
     }
-    valid = valid && !ferror(file) && version && identity;
-    fclose(file);
-    return valid;
+    free(contents);
+    if (foreign || unsupported)
+        return RECORD_PROTECTED;
+    return valid && version && identity ? RECORD_VALID : RECORD_INVALID;
 }
+
 bool game_options_read(const char *root, const char *path, GameOptions *options)
 {
     game_options_defaults(options, true);
@@ -94,7 +126,7 @@ bool game_options_read(const char *root, const char *path, GameOptions *options)
         GameOptions candidate;
         game_options_defaults(&candidate, true);
         if (record_path(record, root, key, backup ? "bak" : "ini") &&
-            read_record(record, key, &candidate)) {
+            read_record(record, key, &candidate) == RECORD_VALID) {
             *options = candidate;
             return true;
         }
@@ -118,8 +150,17 @@ bool game_options_write(const char *root, const char *path, const GameOptions *o
         !record_path(backup, root, key, "bak"))
         return false;
     GameOptions existing;
-    if (!stat(current, &status) && !read_record(current, key, &existing))
+    bool exists = !stat(current, &status), recovered = false;
+    if (!exists && errno != ENOENT)
         return false;
+    if (exists) {
+        RecordStatus record = read_record(current, key, &existing);
+        if (record != RECORD_VALID) {
+            if (record != RECORD_INVALID || read_record(backup, key, &existing) != RECORD_VALID)
+                return false;
+            recovered = true;
+        }
+    }
     FILE *file = fopen(temporary, "w");
     if (!file)
         return false;
@@ -130,6 +171,11 @@ bool game_options_write(const char *root, const char *path, const GameOptions *o
     if (fclose(file))
         written = false;
     if (!written) {
+        remove(temporary);
+        return false;
+    }
+    /* Preserve the readable recovery copy rather than rotating damaged data over it. */
+    if (recovered && remove(current) && errno != ENOENT) {
         remove(temporary);
         return false;
     }
