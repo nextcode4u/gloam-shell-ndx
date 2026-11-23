@@ -55,6 +55,61 @@ static void read_text(const char *path, char output[4096])
     assert(!ferror(f));
     fclose(f);
 }
+static void save_preflight_failures(const char *root, const char *game)
+{
+    const char *names[] = {"roms/Game with spaces.sav", "roms/Game with spaces.nds.sav",
+                           "roms/saves/Game with spaces.sav"};
+    char paths[3][PATH_CAP], directory[PATH_CAP], error[160];
+    assert(path_join(directory, root, "roms/saves") && !mkdir(directory, 0777));
+    for (unsigned i = 0; i < 3; i++)
+        assert(path_join(paths[i], root, names[i]));
+    for (unsigned variant = 0; variant < 3; variant++) {
+        /* Every recognized location must be inspected, even if it usually does not exist. */
+        probe_save = paths[variant];
+        probe_checks = 0;
+        fail_check = 1;
+        error[0] = 0;
+        assert(!launch_prepare(&app, game, &plan, error) && strstr(error, "inspect"));
+        probe_save = NULL;
+        FILE *file = fopen(paths[variant], "wb");
+        assert(file && fputc(0x37, file) == 0x37 && !fseek(file, 8191, SEEK_SET));
+        assert(fputc(0xA5, file) == 0xA5 && !fclose(file));
+        for (unsigned failure = 1; failure <= 2; failure++) {
+            probe_save = paths[variant];
+            probe_checks = 0;
+            fail_check = failure;
+            error[0] = 0;
+            assert(!launch_prepare(&app, game, &plan, error) && strstr(error, "inspect"));
+            probe_save = NULL;
+            file = fopen(paths[variant], "rb");
+            assert(file && fgetc(file) == 0x37 && !fseek(file, 8191, SEEK_SET));
+            assert(fgetc(file) == 0xA5 && !fclose(file));
+        }
+        assert(launch_prepare(&app, game, &plan, error) && !strcmp(plan.save, paths[variant]));
+        assert(!remove(paths[variant]));
+    }
+    GameOptions options;
+    game_options_defaults(&options, true);
+    options.values[GAME_SLOT] = 1;
+    assert(game_options_write(root, game, &options));
+    assert(path_join(directory, root, "roms/saves/Game with spaces.sav1"));
+    probe_save = directory;
+    probe_checks = 0;
+    fail_check = 1;
+    error[0] = 0;
+    assert(!launch_prepare(&app, game, &plan, error) && strstr(error, "inspect"));
+    probe_save = NULL;
+    assert(!mkdir(directory, 0777));
+    error[0] = 0;
+    assert(!launch_prepare(&app, game, &plan, error) && strstr(error, "directory"));
+    assert(!rmdir(directory));
+    game_options_defaults(&options, true);
+    assert(game_options_write(root, game, &options));
+    assert(launch_prepare(&app, game, &plan, error));
+    struct stat status;
+    for (unsigned i = 0; i < 3; i++)
+        assert(stat(paths[i], &status) && errno == ENOENT);
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -92,6 +147,7 @@ int main(int argc, char **argv)
     assert(strstr(plan.save, "/saves/Game with spaces.sav"));
     struct stat status;
     assert(stat(plan.save, &status)); /* Preflight never creates a save. */
+    save_preflight_failures(root, game);
     assert(path_join(ini, root, "_nds/nds-bootstrap.ini"));
     const char *old = "; keep "
                       "comment\n[NDS-BOOTSTRAP]\nNDS_PATH=old\nSAV_PATH=old.sav\nAPP_PATH=stale."

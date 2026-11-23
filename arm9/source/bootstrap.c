@@ -71,6 +71,9 @@ static bool save_path(const App *app, const char *target, LaunchPlan *plan, char
                 }
                 path_copy(plan->save, candidate, PATH_CAP);
                 found++;
+            } else if (errno != ENOENT) {
+                snprintf(error, 160, "Cannot inspect a save path. Check SD access and retry.");
+                return false;
             }
         }
         if (found > 1) {
@@ -85,14 +88,25 @@ static bool save_path(const App *app, const char *target, LaunchPlan *plan, char
                 return false;
         }
     }
-    uint32_t existing;
-    if (regular_size(plan->save, &existing)) {
-        if (existing == 0 || existing > 64 * 1024 * 1024) {
+    struct stat status;
+    if (stat(plan->save, &status)) {
+        if (errno != ENOENT) {
+            snprintf(error, 160, "Cannot inspect a save path. Check SD access and retry.");
+            return false;
+        }
+    } else {
+        if (!S_ISREG(status.st_mode)) {
+            snprintf(error, 160,
+                     "A save path is occupied by a directory or unsupported file type.");
+            return false;
+        }
+        if (status.st_size <= 0 || (uint64_t)status.st_size > 64 * 1024 * 1024) {
             snprintf(error, 160,
                      "Existing save is empty or exceeds 64 MiB. Back it up and restore a valid "
                      "copy before retrying; it was left unchanged.");
             return false;
         }
+        uint32_t existing = (uint32_t)status.st_size;
         if (plan->save_bytes && existing != plan->save_bytes) {
             snprintf(error, 160,
                      "Existing save size differs from the expected size. Check title options; no "

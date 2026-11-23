@@ -56,6 +56,8 @@ backend version and title, and distinguish that failure from a missing
 Slot 0 recognizes adjacent `Title.sav`, `Title.nds.sav` or `saves/Title.sav`.
 If more than one exists, preflight stops with an ambiguity message. No choice
 is silently overwritten. Missing slot-0 saves default to `saves/Title.sav`.
+If any save location cannot be inspected, launch stops instead of choosing a
+different path. DSiWare public/private saves and numbered slots follow the same rule.
 Slots 1–9 use `saves/Title.sav1` through `.sav9`; they are independent files,
 not copied over the base save. The editor never moves, deletes or resizes a save.
 

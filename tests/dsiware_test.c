@@ -3,12 +3,24 @@
 #include "dsiware.h"
 #include "paths.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 static App app;
+static const char *probe_save;
+static unsigned fail_check, probe_checks;
+int __real_stat(const char *, struct stat *);
+int __wrap_stat(const char *path, struct stat *status)
+{
+    if (probe_save && !strcmp(path, probe_save) && ++probe_checks == fail_check) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_stat(path, status);
+}
 static void put32(unsigned char *p, uint32_t value)
 {
     for (int i = 0; i < 4; i++)
@@ -68,6 +80,41 @@ static void verify_volume(const char *path, unsigned bytes)
     assert(file && !fseek(file, data_start * 512, SEEK_SET) && fgetc(file) == 0xA7);
     assert(!fseek(file, bytes - 1, SEEK_SET) && fgetc(file) == 0x42 && !fclose(file));
 }
+static void save_preflight_failures(const char *root, const char *target,
+                                    const unsigned char *header, LaunchPlan *plan)
+{
+    const char *extensions[] = {"pub", "prv"};
+    const char *patterns[] = {"roms/WARE.%s", "roms/WARE.DSI.%s", "roms/saves/WARE.%s"};
+    char path[PATH_CAP], name[80], error[160];
+    for (unsigned extension = 0; extension < 2; extension++) {
+        for (unsigned variant = 0; variant < 3; variant++) {
+            snprintf(name, sizeof name, variant == 2 ? "roms/saves/WARE.%s" : "roms/%s.%s",
+                     variant == 2 ? extensions[extension]
+                     : variant    ? "WARE.DSI"
+                                  : "WARE",
+                     extensions[extension]);
+            assert(path_join(path, root, name));
+            for (unsigned failure = 1; failure <= (variant == 2 ? 2u : 1u); failure++) {
+                probe_save = path;
+                probe_checks = 0;
+                fail_check = failure;
+                error[0] = 0;
+                assert(!bootstrap_prepare(&app, target, plan, error) && strstr(error, "inspect"));
+                probe_save = NULL;
+            }
+        }
+        snprintf(name, sizeof name, "roms/saves/WARE.%s2", extensions[extension]);
+        assert(path_join(path, root, name));
+        plan->options.values[GAME_SLOT] = 2;
+        probe_save = path;
+        probe_checks = 0;
+        fail_check = 1;
+        error[0] = 0;
+        assert(!dsiware_prepare(&app, target, header, plan, error) && strstr(error, "inspect"));
+        probe_save = NULL;
+    }
+    assert(bootstrap_prepare(&app, target, plan, error));
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -99,6 +146,7 @@ int main(int argc, char **argv)
     LaunchPlan plan = {0};
     assert(bootstrap_prepare(&app, target, &plan, error));
     assert(plan.route == LAUNCH_DSIWARE && plan.save_bytes == 16384 && plan.private_bytes == 8192);
+    save_preflight_failures(root, target, binary, &plan);
     assert(strstr(plan.save, "saves/WARE.pub") && strstr(plan.private_save, "saves/WARE.prv"));
     /* A previous launcher must not redirect this title's Quit Game target. */
     assert(path_join(path, root, "_nds/nds-bootstrap.ini"));

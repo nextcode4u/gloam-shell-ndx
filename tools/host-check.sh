@@ -282,7 +282,7 @@ PYCODE
 ASAN_OPTIONS=detect_leaks=1 build/host/custom-icons-test "$fixture/custom-icons"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" tests/dsiware_test.c -o build/host/dsiware-test
+    "${model_objects[@]}" tests/dsiware_test.c -Wl,--wrap=stat -o build/host/dsiware-test
 mkdir "$fixture/dsiware"
 ASAN_OPTIONS=detect_leaks=1 build/host/dsiware-test "$fixture/dsiware"
 if command -v fsck.fat >/dev/null; then

@@ -60,8 +60,12 @@ static bool choose_save(const char *target, const char *extension, int slot, uin
             return false;
         struct stat status;
         if (stat(path, &status)) {
-            if (errno != ENOENT)
+            if (errno != ENOENT) {
+                snprintf(error, 160,
+                         "Cannot inspect the DSiWare %s save. Check SD access and retry.",
+                         extension);
                 return false;
+            }
             continue;
         }
         if (!S_ISREG(status.st_mode) || (uint64_t)status.st_size != bytes) {
@@ -86,8 +90,14 @@ static bool choose_save(const char *target, const char *extension, int slot, uin
         if (length >= (int)sizeof name || !path_join(output, folder, name))
             return false;
         struct stat status;
-        if (!stat(output, &status) &&
-            (!S_ISREG(status.st_mode) || (uint64_t)status.st_size != bytes)) {
+        if (stat(output, &status)) {
+            if (errno != ENOENT) {
+                snprintf(error, 160,
+                         "Cannot inspect the DSiWare %s save. Check SD access and retry.",
+                         extension);
+                return false;
+            }
+        } else if (!S_ISREG(status.st_mode) || (uint64_t)status.st_size != bytes) {
             snprintf(error, 160,
                      "Existing DSiWare save slot has a conflicting size. No resize was attempted.");
             return false;
