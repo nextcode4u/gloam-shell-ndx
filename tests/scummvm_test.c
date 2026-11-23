@@ -3,9 +3,58 @@
 #include "paths.h"
 #include "scummvm.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+
+static bool watching, fail_open, short_read, fail_close, fail_metadata;
+FILE *__real_fopen(const char *, const char *);
+size_t __real_fread(void *, size_t, size_t, FILE *);
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+#endif
+int __real_fclose(FILE *);
+int __real_fstat(int, struct stat *);
+FILE *__wrap_fopen(const char *path, const char *mode)
+{
+    if (watching && fail_open) {
+        errno = EIO;
+        return NULL;
+    }
+    return __real_fopen(path, mode);
+}
+size_t __wrap_fread(void *data, size_t size, size_t count, FILE *file)
+{
+    if (watching && short_read && count > 10)
+        count = 10;
+    return __real_fread(data, size, count, file);
+}
+#ifdef __GLIBC__
+size_t __wrap___fread_chk(void *data, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    if (watching && short_read && count > 10)
+        count = 10;
+    return __real___fread_chk(data, capacity, size, count, file);
+}
+#endif
+int __wrap_fclose(FILE *file)
+{
+    int result = __real_fclose(file);
+    if (watching && fail_close) {
+        errno = EIO;
+        return EOF;
+    }
+    return result;
+}
+int __wrap_fstat(int descriptor, struct stat *status)
+{
+    if (watching && fail_metadata) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_fstat(descriptor, status);
+}
 
 static LaunchPlan plan;
 static char error[160], config_path[PATH_CAP];
@@ -67,6 +116,19 @@ int main(int argc, char **argv)
     snprintf(expected, sizeof expected, "--path=%s", path);
     assert(!strcmp(arguments_get(&plan.arguments, 2), expected));
     settings("[scummvm]\nauto_add=0\n");
+    /* Never turn an unreadable/partial config into implicit discovery defaults. */
+    for (unsigned failure = 0; failure < 4; failure++) {
+        reset(root, "roms/ScummVM/scummvm.nds");
+        LaunchPlan original = plan;
+        fail_open = failure == 0;
+        short_read = failure == 1;
+        fail_close = failure == 2;
+        fail_metadata = failure == 3;
+        watching = true;
+        bool prepared = scummvm_prepare_arguments(root, &plan, error);
+        watching = fail_open = short_read = fail_close = fail_metadata = false;
+        assert(!prepared && *error && !memcmp(&original, &plan, sizeof plan));
+    }
     reset(root, "roms/ScummVM/scummvm.nds");
     assert(scummvm_prepare_arguments(root, &plan, error) && plan.arguments.count == 1);
     settings("[scummvm]\ntitles=/missing\n");

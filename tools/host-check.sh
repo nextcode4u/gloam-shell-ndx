@@ -119,7 +119,8 @@ mkdir "$fixture/launch"
 ASAN_OPTIONS=detect_leaks=1 build/host/launch-test "$fixture/launch"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" tests/scummvm_test.c -o build/host/scummvm-test
+    "${model_objects[@]}" tests/scummvm_test.c \
+    -Wl,--wrap=fopen,--wrap=fread,--wrap=__fread_chk,--wrap=fclose,--wrap=fstat -o build/host/scummvm-test
 mkdir "$fixture/scummvm"
 ASAN_OPTIONS=detect_leaks=1 build/host/scummvm-test "$fixture/scummvm"
 

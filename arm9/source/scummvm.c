@@ -3,6 +3,7 @@
 #include "arguments.h"
 #include "paths.h"
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -31,11 +32,22 @@ bool scummvm_prepare_arguments(const char *root, LaunchPlan *plan, char error[16
     if (!path_join(path, root, FRONTEND_DATA_DIRECTORY "/plugins/startup/scummvm.ini"))
         return true;
     FILE *file = fopen(path, "rb");
-    if (!file)
-        return true;
-    size_t length = fread(config, 1, sizeof config, file);
-    bool valid = !ferror(file) && length < sizeof config && !memchr(config, 0, length);
-    fclose(file);
+    if (!file) {
+        if (errno == ENOENT)
+            return true;
+        snprintf(error, 160, "Could not read plugins/startup/scummvm.ini. Check the SD card.");
+        return false;
+    }
+    /* A valid prefix must not silently replace the rest of a damaged config.
+     * Inspect the open file, then require every declared byte before parsing. */
+    struct stat metadata;
+    bool valid = !fstat(fileno(file), &metadata) && S_ISREG(metadata.st_mode) &&
+                 metadata.st_size >= 0 && metadata.st_size < (off_t)sizeof config;
+    size_t length = valid ? (size_t)metadata.st_size : 0;
+    valid = valid && fread(config, 1, length, file) == length && !ferror(file) &&
+            !memchr(config, 0, length);
+    if (fclose(file))
+        valid = false;
     if (!valid)
         goto invalid;
     config[length] = 0;
