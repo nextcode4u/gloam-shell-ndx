@@ -321,7 +321,9 @@ mkdir "$fixture/theme-preview-async"
 build/host/theme-preview-async-test "$fixture/theme-preview-async" tests/fixtures/async.png
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" tests/configuration_reset_test.c -o build/host/configuration-reset-test
+    "${model_objects[@]}" tests/configuration_reset_test.c \
+    -Wl,--wrap=fopen,--wrap=fclose,--wrap=fputs,--wrap=fwrite,--wrap=fread,--wrap=__fread_chk,--wrap=remove \
+    -o build/host/configuration-reset-test
 mkdir "$fixture/configuration-reset"
 ASAN_OPTIONS=detect_leaks=1 build/host/configuration-reset-test "$fixture/configuration-reset"
 

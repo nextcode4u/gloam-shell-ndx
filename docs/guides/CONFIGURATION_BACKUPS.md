@@ -95,15 +95,19 @@ Each reset moves original records into a new `configuration/reset-backup-NNN/`
 records, so old preferences cannot silently reappear. A valid minimal state file
 prevents re-importing the first prototype's legacy preferences. Backup entries
 use these fixed names: `00` state.ini, `01` state.bak, `02` tabs.ini, `03` tabs.bak,
-`04` dashboard.ini, `05` dashboard.bak, `06` recent.ini, `07` recent.bak,
-`08` appearance-1.ini, `09` appearance-1.bak, `10` appearance-2.ini,
-`11` appearance-2.bak, `12` appearance-3.ini, `13` appearance-3.bak,
-`14` games/, `15` items/, `16` plugins/user/. Restore while the launcher/emulator
-is stopped, retaining a copy of current settings before replacing any destinations.
+`04` dashboard.ini, `05` dashboard.bak, `06` recent.ini, `07` language.ini,
+`08` collections.ini, `09` recent.bak, `10` appearance-1.ini,
+`11` appearance-1.bak, `12` appearance-2.ini, `13` appearance-2.bak,
+`14` appearance-3.ini, `15` appearance-3.bak, `16` games/, `17` items/,
+`18` plugins/user/. Older builds used different mappings. Restore with the
+matching version's layout while the launcher/emulator is stopped, retaining a
+copy of current settings before replacing any destinations.
 Ordinary exported `.dsconfig` archives can also be imported after a reset.
 
 Before completion, moves stay under `configuration/reset-pending/`. Startup
-rolls these back before reading preferences. Conflicting external edits stop
+rolls these back before reading preferences. Detected write/close failures remove
+only the replacement created by that reset before rollback. If cleanup fails,
+original records remain in the pending folder. Conflicting external edits stop
 recovery and disable ordinary storage actions; the backup is retained. This
 uses bounded same-volume renames, not a promise of FAT-level power-loss atomicity.
 

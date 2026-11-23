@@ -70,9 +70,14 @@ static bool is_default_state(const char *path)
     FILE *file = fopen(path, "rb");
     if (!file)
         return false;
-    size_t bytes = fread(text, 1, sizeof text, file);
-    bool valid = !ferror(file) && bytes == sizeof defaults - 1 && !memcmp(text, defaults, bytes);
-    fclose(file);
+    struct stat status;
+    bool valid = !fstat(fileno(file), &status) && S_ISREG(status.st_mode) &&
+                 status.st_size == (off_t)(sizeof defaults - 1);
+    size_t bytes = valid ? fread(text, 1, sizeof text, file) : 0;
+    valid =
+        valid && !ferror(file) && bytes == sizeof defaults - 1 && !memcmp(text, defaults, bytes);
+    if (fclose(file))
+        valid = false;
     return valid;
 }
 
@@ -96,8 +101,10 @@ bool configuration_reset_recover(const char *root, char error[160])
         bool backup;
         valid = record_paths(base, pending, i, current, saved) && exists(saved, &backup);
         if (valid && backup) {
-            if (i == 0 && is_default_state(current))
-                valid = !remove(current);
+            bool live;
+            valid = exists(current, &live);
+            if (valid && live)
+                valid = i == 0 && is_default_state(current) && !remove(current);
             if (valid)
                 valid = !rename(saved, current);
         }
@@ -152,6 +159,10 @@ bool configuration_reset(const char *root, char error[160])
             valid = fputs(defaults, file) >= 0;
             if (fclose(file))
                 valid = false;
+            /* This call exclusively created the replacement. Remove an incomplete
+             * write before rollback mistakes it for an independent external edit. */
+            if (!valid)
+                remove(state);
         }
     }
     if (valid)
