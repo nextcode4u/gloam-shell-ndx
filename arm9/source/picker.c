@@ -50,18 +50,30 @@ void picker_scan_begin(App *app)
     picker->directory = app->storage_ready ? directory_scan_open(picker->path) : NULL;
     picker->failed = !picker->directory;
 }
+static int restore_index(const PickerState *picker)
+{
+    if (!*picker->restore_path)
+        return -1;
+    for (int i = 0; i < picker->scan_count; i++)
+        if (!strcmp(picker->entries[i].path, picker->restore_path))
+            return i;
+    return -1;
+}
 static void finish_scan(App *app)
 {
     PickerState *picker = &app->picker;
     cancel_scan(picker);
+    if (!picker->failed && *picker->restore_path && restore_index(picker) < 0 && picker->batch) {
+        /* The old folder disappeared. One retry restores a usable first batch. */
+        picker->batch = 0;
+        picker_scan_begin(app);
+        return;
+    }
     picker->count = picker->failed ? 0 : picker->scan_count;
     entry_sort(picker->entries, picker->count, compare_entries);
-    if (*picker->restore_path)
-        for (int i = 0; i < picker->count; i++)
-            if (!strcmp(picker->entries[i].path, picker->restore_path)) {
-                picker_move(app, i);
-                break;
-            }
+    int restored = picker->failed ? -1 : restore_index(picker);
+    if (restored >= 0)
+        picker_move(app, restored);
     picker->restore_path[0] = 0;
 }
 void picker_scan_step(App *app)
@@ -108,9 +120,16 @@ void picker_scan_step(App *app)
         if (picker->eligible++ < picker->batch * ENTRY_CAP)
             continue;
         if (picker->scan_count == ENTRY_CAP) {
-            picker->truncated = true;
-            finish_scan(app);
-            return;
+            if (*picker->restore_path && restore_index(picker) < 0 && picker->batch < 4095) {
+                /* Back may target a later batch. Keep this iterator and reuse
+                 * the entry buffer, rather than rescanning earlier batches. */
+                picker->batch++;
+                picker->scan_count = 0;
+            } else {
+                picker->truncated = true;
+                finish_scan(app);
+                return;
+            }
         }
         Entry *entry = &picker->entries[picker->scan_count++];
         memset(entry, 0, sizeof *entry);

@@ -302,7 +302,8 @@ mkdir "$fixture/startup"
 ASAN_OPTIONS=detect_leaks=1 build/host/startup-test "$fixture/startup"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" "${ui_objects[@]}" tests/picker_jobs_test.c -o build/host/picker-jobs-test
+    "${model_objects[@]}" "${ui_objects[@]}" tests/picker_jobs_test.c \
+    -Wl,--wrap=directory_scan_open,--wrap=directory_scan_read -o build/host/picker-jobs-test
 mkdir "$fixture/picker-jobs"
 ASAN_OPTIONS=detect_leaks=1 build/host/picker-jobs-test "$fixture/picker-jobs"
 

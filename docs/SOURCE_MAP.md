@@ -55,9 +55,10 @@ unwind superseded work; repeated X leaves the current load running. Preview bank
 stay hidden until complete, and A only applies a ready preview. Returning to the
 applied theme reuses its banks; X can reload it to support on-disk theme editing.
 
-Directory and picker scans run in bounded steps. Empty saved browser batches restart
-at batch zero after library or filter changes. Image jobs yield cooperatively
-and cancel when navigation changes. Selected overflow text uses the shared
+Directory and picker scans run in bounded steps. Picker Back restores its folder
+across batches in one pass, with a first-batch fallback if that folder disappeared.
+Empty saved browser batches restart at batch zero after library or filter changes.
+Image jobs yield cooperatively and cancel when navigation changes. Selected overflow text uses the shared
 pixel-clipped `draw_text_scrolling` helper: settings and tabs own their start
 frames, while browser/picker views use selection-idle counters. Repetitions
 follow each other through a three-space gap measured with the active font without stopping at the end. Reduced
