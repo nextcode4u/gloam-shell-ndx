@@ -93,23 +93,23 @@ reset; it does not erase installed assets or libraries.
 Each reset moves original records into a new `configuration/reset-backup-NNN/`
 (000–999), never overwriting an earlier reset. Backups include fallback `.bak`
 records, so old preferences cannot silently reappear. A valid minimal state file
-prevents re-importing the first prototype's legacy preferences. Backup entries
-use these fixed names: `00` state.ini, `01` state.bak, `02` tabs.ini, `03` tabs.bak,
-`04` dashboard.ini, `05` dashboard.bak, `06` recent.ini, `07` language.ini,
-`08` collections.ini, `09` recent.bak, `10` appearance-1.ini,
-`11` appearance-1.bak, `12` appearance-2.ini, `13` appearance-2.bak,
-`14` appearance-3.ini, `15` appearance-3.bak, `16` games/, `17` items/,
-`18` plugins/user/. Older builds used different mappings. Restore with the
-matching version's layout while the launcher/emulator is stopped, retaining a
-copy of current settings before replacing any destinations.
-Ordinary exported `.dsconfig` archives can also be imported after a reset.
+prevents re-importing the first prototype's legacy preferences. Each new backup
+includes `layout.txt`, which maps its numbered entries to their original names.
+Use that map when restoring manually with the launcher stopped, keeping a copy
+of current settings first. Older backups without a map require the originating
+build's layout. Ordinary exported `.dsconfig` archives can also be imported
+after a reset.
 
 Before completion, moves stay under `configuration/reset-pending/`. Startup
-rolls these back before reading preferences. Detected write/close failures remove
-only the replacement created by that reset before rollback. If cleanup fails,
-original records remain in the pending folder. Conflicting external edits stop
-recovery and disable ordinary storage actions; the backup is retained. This
-uses bounded same-volume renames, not a promise of FAT-level power-loss atomicity.
+validates its layout before rolling records back. Known names can appear in an
+older order; unknown layouts, unexpected files and conflicting external edits
+stop recovery and preserve the originals. Older nonempty pending folders without
+`layout.txt` need manual recovery using the originating build's layout; Gloam
+will not guess their filenames. Failed recovery disables ordinary storage actions.
+
+Detected write/close failures remove only the replacement created by that reset
+before rollback. If cleanup fails, originals remain in the pending folder.
+These bounded same-volume renames do not guarantee FAT-level power-loss atomicity.
 
 Export diagnostics writes `diagnostics.txt` with observed frontend/build state.
 It excludes content paths, file contents, BIOS/NAND data and console keys.

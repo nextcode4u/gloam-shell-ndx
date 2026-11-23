@@ -103,11 +103,30 @@ static void write_text(const char *path, const char *text)
 }
 static void check_text(const char *path, const char *expected)
 {
-    char text[128] = "";
+    char text[2048] = "";
     FILE *file = fopen(path, "r");
     assert(file);
     size_t bytes = fread(text, 1, sizeof text - 1, file);
     assert(bytes == strlen(expected) && !strcmp(text, expected) && !fclose(file));
+}
+static const char current_layout[] =
+    "Gloam reset layout 1\n"
+    "00=state.ini\n01=state.bak\n02=tabs.ini\n03=tabs.bak\n"
+    "04=dashboard.ini\n05=dashboard.bak\n06=recent.ini\n07=language.ini\n"
+    "08=collections.ini\n09=recent.bak\n10=appearance-1.ini\n11=appearance-1.bak\n"
+    "12=appearance-2.ini\n13=appearance-2.bak\n14=appearance-3.ini\n15=appearance-3.bak\n"
+    "16=games\n17=items\n18=plugins/user\n";
+static const char older_layout[] =
+    "Gloam reset layout 1\n"
+    "00=state.ini\n01=state.bak\n02=tabs.ini\n03=tabs.bak\n"
+    "04=dashboard.ini\n05=dashboard.bak\n06=recent.ini\n07=recent.bak\n"
+    "08=appearance-1.ini\n09=appearance-1.bak\n10=appearance-2.ini\n11=appearance-2.bak\n"
+    "12=appearance-3.ini\n13=appearance-3.bak\n14=games\n15=items\n16=plugins/user\n";
+static void write_layout_fixture(const char *pending, const char *layout)
+{
+    char path[PATH_CAP];
+    assert(path_join(path, pending, "layout.txt"));
+    write_text(path, layout);
 }
 static void failed_reset_writes(const char *root)
 {
@@ -156,6 +175,7 @@ static void external_reset_edits(const char *root)
         assert(path_preferences_file(state, folder, "state.ini"));
         assert(path_preferences_file(pending, folder, "configuration/reset-pending"));
         assert(!mkdir(pending, 0777) && path_join(saved, pending, "00"));
+        write_layout_fixture(pending, current_layout);
         write_text(saved, "version=1\nshow_hidden=1\n");
         write_text(state, late ? "version=1\n" : "version=1\nexternal_edit=keep\n");
         watched_state = state;
@@ -171,9 +191,100 @@ static void external_reset_edits(const char *root)
         assert(!access(pending, F_OK));
     }
 }
+static void layout_recovery(const char *root)
+{
+    const char *bad[] = {NULL,
+                         "Gloam reset layout 2\n00=state.ini\n",
+                         "Gloam reset layout 1\n01=state.ini\n",
+                         "Gloam reset layout 1\n00=state.ini\n01=state.ini\n",
+                         "Gloam reset layout 1\n00=../state.ini\n",
+                         "Gloam reset layout 1\n00=unknown.ini\n",
+                         "Gloam reset layout 1\n00=state.ini"};
+    for (unsigned i = 0; i < sizeof bad / sizeof *bad; i++) {
+        char folder[PATH_CAP], name[32], path[PATH_CAP], pending[PATH_CAP], state[PATH_CAP];
+        char saved[PATH_CAP], error[160];
+        snprintf(name, sizeof name, "layout-invalid-%u", i);
+        assert(path_join(folder, root, name) && !mkdir(folder, 0777));
+        assert(path_prepare_preferences_directory(folder));
+        assert(path_preferences_file(path, folder, "configuration") && !mkdir(path, 0777));
+        assert(path_preferences_file(pending, folder, "configuration/reset-pending"));
+        assert(!mkdir(pending, 0777));
+        assert(path_preferences_file(state, folder, "state.ini"));
+        assert(path_join(saved, pending, "00"));
+        write_text(state, "version=1\n");
+        write_text(saved, "version=1\nshow_hidden=1\n");
+        if (bad[i])
+            write_layout_fixture(pending, bad[i]);
+        assert(!configuration_reset_recover(folder, error) && strstr(error, "layout"));
+        check_text(state, "version=1\n");
+        check_text(saved, "version=1\nshow_hidden=1\n");
+    }
+    char folder[PATH_CAP], path[PATH_CAP], pending[PATH_CAP], state[PATH_CAP], error[160];
+    char saved[PATH_CAP], recent[PATH_CAP], games[PATH_CAP];
+    assert(path_join(folder, root, "layout-older") && !mkdir(folder, 0777));
+    assert(path_prepare_preferences_directory(folder));
+    assert(path_preferences_file(path, folder, "configuration") && !mkdir(path, 0777));
+    assert(path_preferences_file(pending, folder, "configuration/reset-pending"));
+    assert(!mkdir(pending, 0777));
+    write_layout_fixture(pending, older_layout);
+    assert(path_preferences_file(state, folder, "state.ini"));
+    assert(path_join(saved, pending, "00"));
+    write_text(state, "version=1\n");
+    write_text(saved, "version=1\nshow_hidden=1\n");
+    assert(path_join(saved, pending, "07"));
+    write_text(saved, "original recent backup\n");
+    assert(path_join(saved, pending, "14") && !mkdir(saved, 0777));
+    assert(path_join(path, saved, "original.ini"));
+    write_text(path, "content=sd:/original.nds\n");
+    /* Unknown entries stop recovery before any original moves. */
+    assert(path_join(path, pending, "unexpected"));
+    write_text(path, "keep this file\n");
+    assert(!configuration_reset_recover(folder, error));
+    check_text(state, "version=1\n");
+    assert(!remove(path));
+    /* A short layout read must not partially restore a valid transaction. */
+    assert(path_join(path, pending, "layout.txt"));
+    watched_state = path;
+    prefix_read = true;
+    assert(!configuration_reset_recover(folder, error));
+    prefix_read = false;
+    watched_state = NULL;
+    check_text(state, "version=1\n");
+    assert(configuration_reset_recover(folder, error));
+    check_text(state, "version=1\nshow_hidden=1\n");
+    assert(path_preferences_file(recent, folder, "recent.bak"));
+    check_text(recent, "original recent backup\n");
+    assert(path_preferences_file(games, folder, "games/original.ini"));
+    check_text(games, "content=sd:/original.nds\n");
+    assert(path_preferences_file(path, folder, "language.ini") && access(path, F_OK));
+    assert(path_preferences_file(path, folder, "appearance-3.ini") && access(path, F_OK));
+    /* Names, rather than slot zero, identify the reset-owned default state. */
+    assert(!mkdir(pending, 0777));
+    write_layout_fixture(pending, "Gloam reset layout 1\n00=tabs.ini\n01=state.ini\n");
+    write_text(state, "version=1\n");
+    assert(path_join(saved, pending, "01"));
+    write_text(saved, "version=1\nshow_hidden=1\n");
+    assert(configuration_reset_recover(folder, error));
+    check_text(state, "version=1\nshow_hidden=1\n");
+    /* A crash before layout creation or after cleanup may leave an empty folder. */
+    assert(!mkdir(pending, 0777));
+    assert(configuration_reset_recover(folder, error) && access(pending, F_OK));
+    /* A failed manifest write must not begin moving configuration. */
+    assert(path_join(path, pending, "layout.txt"));
+    watched_state = path;
+    fail_write = true;
+    assert(!configuration_reset(folder, error));
+    fail_write = false;
+    watched_state = NULL;
+    check_text(state, "version=1\nshow_hidden=1\n");
+    check_text(recent, "original recent backup\n");
+    check_text(games, "content=sd:/original.nds\n");
+    assert(access(pending, F_OK));
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
+    layout_recovery(argv[1]);
     failed_reset_writes(argv[1]);
     external_reset_edits(argv[1]);
     char state[PATH_CAP], old[PATH_CAP], pending[PATH_CAP], path[PATH_CAP], other[PATH_CAP];
@@ -194,6 +305,8 @@ int main(int argc, char **argv)
     check_text(path, "A save must survive");
     assert(path_preferences_file(old, argv[1], "configuration/reset-backup-000/00"));
     check_text(old, "version=1\nshow_hidden=1\n");
+    assert(path_preferences_file(old, argv[1], "configuration/reset-backup-000/layout.txt"));
+    check_text(old, current_layout);
     assert(access(other, F_OK));
     app_init(&app, argv[1], true, true);
     assert(!app.show_hidden && app.favorite_count == 0);
@@ -201,6 +314,7 @@ int main(int argc, char **argv)
      * external edit without partially restoring other records. */
     assert(path_preferences_file(pending, argv[1], "configuration/reset-pending"));
     assert(!mkdir(pending, 0777));
+    write_layout_fixture(pending, current_layout);
     assert(path_join(old, pending, "00"));
     assert(!rename(state, old));
     write_text(state, "external edit\n");
