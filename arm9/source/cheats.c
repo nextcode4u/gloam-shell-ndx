@@ -4,6 +4,7 @@
  * contract. All strings, offsets, counts and code payloads are checked here. */
 #include "cheats.h"
 #include "paths.h"
+#include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -307,6 +308,53 @@ bool cheats_payload(const CheatState *state, unsigned char *output, size_t *byte
     *bytes = written + sizeof end;
     return true;
 }
+/* Verify the complete existing record before rotating it into the backup.
+ * Database revisions may change; ownership stays with version and content. */
+static bool selection_replaceable(const char *path, const char *key)
+{
+    FILE *file = fopen(path, "rb");
+    if (!file)
+        return errno == ENOENT;
+    struct stat info;
+    bool valid = !fstat(fileno(file), &info) && S_ISREG(info.st_mode) && info.st_size >= 0 &&
+                 info.st_size <= 8192;
+    size_t bytes = valid ? (size_t)info.st_size : 0;
+    char *contents = valid ? malloc(bytes + 1) : NULL;
+    valid = contents && fread(contents, 1, bytes, file) == bytes && !ferror(file);
+    if (fclose(file))
+        valid = false;
+    if (!valid || memchr(contents, 0, bytes)) {
+        free(contents);
+        return false;
+    }
+    contents[bytes] = 0;
+    unsigned seen = 0;
+    char *cursor = contents;
+    while (valid && *cursor) {
+        char *line = cursor, *next = strchr(cursor, '\n');
+        cursor = next ? next + 1 : cursor + strlen(cursor);
+        if (next)
+            *next = 0;
+        size_t length = strlen(line);
+        if (length >= PATH_CAP + 31) {
+            valid = false;
+            break;
+        }
+        if (length && line[length - 1] == '\r')
+            line[length - 1] = 0;
+        char *value = strchr(line, '=');
+        if (!value)
+            continue;
+        *value++ = 0;
+        unsigned field = !strcmp(line, "version") ? 1 : !strcmp(line, "content") ? 2 : 0;
+        if (field) {
+            valid = !(seen & field) && !strcmp(value, field == 1 ? "1" : key);
+            seen |= field;
+        }
+    }
+    free(contents);
+    return valid && seen == 3;
+}
 bool cheats_save(const CheatState *state, const char *root)
 {
     char current[PATH_CAP], temporary[PATH_CAP], backup[PATH_CAP], key[PATH_CAP], db[PATH_CAP],
@@ -322,24 +370,8 @@ bool cheats_save(const CheatState *state, const char *root)
         return false;
     /* A hash collision or an unrecognized current record must not overwrite
      * another title's saved choices. Database revisions may change normally. */
-    FILE *current_file = fopen(current, "r");
-    if (current_file) {
-        bool matched = false;
-        char line[PATH_CAP + 32];
-        size_t total = 0;
-        while (fgets(line, sizeof line, current_file)) {
-            total += strlen(line);
-            if (total > 8192)
-                break;
-            line[strcspn(line, "\r\n")] = 0;
-            if (!strncmp(line, "content=", 8))
-                matched = !strcmp(line + 8, key);
-        }
-        matched = matched && !ferror(current_file) && total <= 8192;
-        fclose(current_file);
-        if (!matched)
-            return false;
-    }
+    if (!selection_replaceable(current, key))
+        return false;
     FILE *file = fopen(temporary, "w");
     if (!file)
         return false;

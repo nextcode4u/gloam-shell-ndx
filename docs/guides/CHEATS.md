@@ -29,6 +29,9 @@ Selections are versioned records in
 the database. The full normalized content/database paths, game code, ROM CRC
 and matched-record CRC are verified. Changed records start with all codes off.
 The original database's default-selection bits are not applied automatically.
+Saving first checks the complete existing record's version and title identity.
+Unreadable, unsupported or ambiguous records and their backups stay untouched;
+the editor reports a save failure so they can be inspected or restored manually.
 
 ## Backend output
 

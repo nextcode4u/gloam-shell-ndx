@@ -4,6 +4,7 @@
 #include "paths.h"
 #include "renderer.h"
 #include <assert.h>
+#include <dirent.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +13,8 @@
 static const char *watched_paths[2];
 static FILE *watched_streams[2];
 static size_t read_limit = (size_t)-1;
-static bool fail_presence, nonregular_presence, fail_close;
+static bool fail_presence, nonregular_presence, fail_close, fail_open, fail_metadata;
+int __real_fstat(int, struct stat *);
 FILE *__real_fopen(const char *, const char *);
 int __real_fclose(FILE *);
 int __real_stat(const char *, struct stat *);
@@ -22,6 +24,10 @@ size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
 #endif
 FILE *__wrap_fopen(const char *path, const char *mode)
 {
+    if (fail_open && watched_paths[0] && !strcmp(path, watched_paths[0]) && *mode == 'r') {
+        errno = EIO;
+        return NULL;
+    }
     FILE *file = __real_fopen(path, mode);
     for (unsigned i = 0; i < 2; i++)
         if (watched_paths[i] && !strcmp(path, watched_paths[i]) && *mode == 'r')
@@ -58,6 +64,15 @@ int __wrap_fclose(FILE *file)
         return EOF;
     }
     return result;
+}
+int __wrap_fstat(int descriptor, struct stat *status)
+{
+    for (unsigned i = 0; i < 2; i++)
+        if (fail_metadata && watched_streams[i] && fileno(watched_streams[i]) == descriptor) {
+            errno = EIO;
+            return -1;
+        }
+    return __real_fstat(descriptor, status);
 }
 int __wrap_stat(const char *path, struct stat *status)
 {
@@ -137,6 +152,76 @@ static void ownership_failures(const char *root, const char *game, const char *s
     watched_paths[0] = watched_paths[1] = NULL;
     assert(cheats_backend_available(root, error));
 }
+static void selection_write_guards(const char *root)
+{
+    char folder[PATH_CAP], current[PATH_CAP] = "", backup[PATH_CAP], key[PATH_CAP];
+    assert(path_preferences_file(folder, root, "games"));
+    DIR *directory = opendir(folder);
+    assert(directory);
+    struct dirent *entry;
+    while ((entry = readdir(directory))) {
+        size_t length = strlen(entry->d_name);
+        if (length > 11 && !strcmp(entry->d_name + length - 11, ".cheats.ini")) {
+            assert(!*current && path_join(current, folder, entry->d_name));
+        }
+    }
+    assert(!closedir(directory) && *current);
+    path_copy(backup, current, PATH_CAP);
+    strcpy(backup + strlen(backup) - 3, "bak");
+    assert(path_resolve_sd(key, "sd:/", state.content + strlen(root)));
+    unsigned char original[4096], actual[4096];
+    size_t bytes, actual_bytes;
+    read_database(current, original, &bytes);
+    write_file(backup, original, bytes);
+    cheats_toggle(&state, 3); /* A rejected save must not publish the new choices. */
+    watched_paths[0] = current;
+    for (unsigned fault = 0; fault < 4; fault++) {
+        fail_open = fault == 0;
+        fail_close = fault == 1;
+        fail_metadata = fault == 2;
+        read_limit = fault == 3 ? 8 : (size_t)-1;
+        bool saved = cheats_save(&state, root);
+        fail_open = fail_close = fail_metadata = false;
+        read_limit = (size_t)-1;
+        assert(!saved);
+        read_database(current, actual, &actual_bytes);
+        assert(actual_bytes == bytes && !memcmp(actual, original, bytes));
+        read_database(backup, actual, &actual_bytes);
+        assert(actual_bytes == bytes && !memcmp(actual, original, bytes));
+    }
+    const char *bad[] = {
+        "version=2\ncontent=%s\n", "content=%s\n", "version=1\ncontent=sd:/other.nds\ncontent=%s\n",
+        "version=2\nversion=1\ncontent=%s\n", "version=1\ncontent=%s\ncontent=sd:/other.nds\n"};
+    for (unsigned i = 0; i < sizeof bad / sizeof *bad; i++) {
+        char text[2048];
+        int length = snprintf(text, sizeof text, bad[i], key);
+        assert(length > 0 && (size_t)length < sizeof text);
+        write_file(current, text, (size_t)length);
+        assert(!cheats_save(&state, root));
+        read_database(current, actual, &actual_bytes);
+        assert(actual_bytes == (size_t)length && !memcmp(actual, text, actual_bytes));
+        read_database(backup, actual, &actual_bytes);
+        assert(actual_bytes == bytes && !memcmp(actual, original, bytes));
+    }
+    char text[2048];
+    int length = snprintf(text, sizeof text, "version=1\ncontent=%s", key);
+    assert(length > 0 && (size_t)length + 8 < sizeof text);
+    memcpy(text + length, "\0hidden", 8);
+    write_file(current, text, (size_t)length + 8);
+    assert(!cheats_save(&state, root));
+    read_database(current, actual, &actual_bytes);
+    assert(actual_bytes == (size_t)length + 8 && !memcmp(actual, text, actual_bytes));
+    /* Old database/revision fields may change when the same title is saved again. */
+    length = snprintf(text, sizeof text,
+                      "version=1\r\ncontent=%s\r\ndatabase=sd:/old.dat\r\ncode=0\r\nrom_crc=0\r\n"
+                      "record_crc=0\r\n",
+                      key);
+    assert(length > 0 && (size_t)length < sizeof text);
+    write_file(current, text, (size_t)length);
+    cheats_toggle(&state, 3);
+    assert(cheats_save(&state, root));
+    watched_paths[0] = NULL;
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -158,6 +243,7 @@ int main(int argc, char **argv)
     assert(cheats_payload(&state, payload, &bytes) && bytes == 20);
     assert(!memcmp(payload + 16, "\0\0\0\xCF", 4));
     assert(cheats_save(&state, root));
+    selection_write_guards(root);
     assert(cheats_load(&restored, root, game) && restored.entries[2].selected &&
            restored.entries[3].selected);
     read_database(db, after, &after_bytes);
