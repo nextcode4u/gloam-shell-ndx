@@ -54,6 +54,25 @@ def stage_sd(destination: Path, rom: Path) -> None:
             if target.exists() and not target.is_file():
                 raise IsADirectoryError(target)
 
+    def install_file(target: Path, *, source=None, data=None, replace=False,
+                     prefix=".gloam-asset-") -> None:
+        """Publish a complete file; a failed copy must remain retryable."""
+        if target.exists() and not replace:
+            return
+        target.parent.mkdir(parents=True, exist_ok=True)
+        descriptor, temporary = tempfile.mkstemp(prefix=prefix, dir=target.parent)
+        os.close(descriptor)
+        try:
+            if source is not None:
+                shutil.copy2(source, temporary)
+            else:
+                Path(temporary).write_bytes(data)
+            if target.exists() and not replace:
+                return
+            os.replace(temporary, target)
+        finally:
+            Path(temporary).unlink(missing_ok=True)
+
     destination.mkdir(parents=True, exist_ok=True)
     for source in sources:
         relative = source.relative_to(SD_TEMPLATE)
@@ -61,23 +80,15 @@ def stage_sd(destination: Path, rom: Path) -> None:
         if source.is_dir():
             target.mkdir(parents=True, exist_ok=True)
         elif source.name != ".gitkeep" and not target.exists():
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, target)
+            install_file(target, source=source)
 
     for relative, data in forwarder.items():
         target = destination / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(data)
+        install_file(target, data=data, replace=True)
 
     # This function is for our release/test trees. It intentionally updates the
     # boot file; it must never be pointed at an unrelated SD card without a backup.
-    descriptor, temporary = tempfile.mkstemp(prefix=".gloam-stage-", dir=destination)
-    os.close(descriptor)
-    try:
-        shutil.copy2(rom, temporary)
-        os.replace(temporary, boot)
-    finally:
-        Path(temporary).unlink(missing_ok=True)
+    install_file(boot, source=rom, replace=True, prefix=".gloam-stage-")
 
 
 def main() -> None:

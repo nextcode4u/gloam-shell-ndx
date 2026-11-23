@@ -140,6 +140,8 @@ Host suites use sanitizers and synthetic fixtures; they are developer tools,
 not a shipped test environment or a substitute for physical hardware validation.
 `tools/stage_sd.py` can merge the template and built frontend into `dist/sdroot`;
 this lightweight staging command does not download the release backends.
+It finishes each copied file before replacing its destination, so an interrupted
+asset copy can be retried without retaining a partial file.
 
 ## Source layout
 

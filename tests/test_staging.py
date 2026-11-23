@@ -107,6 +107,76 @@ class SdStagingTests(unittest.TestCase):
             for name, data in custom.items():
                 self.assertEqual((sd / name).read_bytes(), data)
 
+    def test_interrupted_new_asset_is_not_preserved_as_an_installed_file(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            template, sd = root / 'template', root / 'sd'
+            template.mkdir()
+            asset = template / 'theme.png'
+            asset.write_bytes(b'complete authored image fixture')
+            sd.mkdir()
+            old_boot = sd / 'BOOT.NDS'
+            old_boot.write_bytes(b'previous boot fixture')
+            rom = root / 'boot.nds'
+            rom.write_bytes(b'new boot fixture')
+            real_copy = shutil.copy2
+
+            def interrupted(source, target, *args, **kwargs):
+                if Path(source) == asset:
+                    Path(target).write_bytes(b'partial')
+                    raise OSError('simulated interrupted asset copy')
+                return real_copy(source, target, *args, **kwargs)
+
+            with patch('tools.stage_sd.SD_TEMPLATE', template):
+                with patch('tools.stage_sd.shutil.copy2', side_effect=interrupted):
+                    with self.assertRaisesRegex(OSError, 'interrupted asset'):
+                        stage_sd(sd, rom)
+                self.assertFalse((sd / 'theme.png').exists())
+                self.assertEqual(old_boot.read_bytes(), b'previous boot fixture')
+                self.assertFalse(list(sd.rglob('.gloam-asset-*')))
+                stage_sd(sd, rom)
+                self.assertEqual((sd / 'theme.png').read_bytes(), asset.read_bytes())
+                self.assertEqual(old_boot.read_bytes(), rom.read_bytes())
+                self.assertFalse(list(sd.rglob('.gloam-asset-*')))
+
+    def test_failed_forwarder_write_keeps_existing_file_and_boot(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            template, sd = root / 'template', root / 'sd'
+            template.mkdir()
+            manifest = root / 'dist/forwarder/manifest.json'
+            manifest.parent.mkdir(parents=True)
+            manifest.write_text('{}')
+            rom = root / 'gloam-shell-ndx.nds'
+            rom.write_bytes(b'new boot fixture')
+            sd.mkdir()
+            boot = sd / 'BOOT.NDS'
+            boot.write_bytes(b'old boot fixture')
+            relative = '_nds/dsi-frontend/install/forwarder.nds'
+            installed = sd / relative
+            installed.parent.mkdir(parents=True)
+            installed.write_bytes(b'old forwarder fixture')
+            real_write = Path.write_bytes
+
+            def interrupted(path, data):
+                if path.name.startswith('.gloam-asset-'):
+                    real_write(path, b'partial')
+                    raise OSError('simulated interrupted forwarder write')
+                return real_write(path, data)
+
+            with patch('tools.stage_sd.PROJECT_ROOT', root), \
+                 patch('tools.stage_sd.SD_TEMPLATE', template), \
+                 patch('tools.build_forwarder.verified_files', return_value={relative: b'new forwarder fixture'}):
+                with patch.object(Path, 'write_bytes', interrupted):
+                    with self.assertRaisesRegex(OSError, 'interrupted forwarder'):
+                        stage_sd(sd, rom)
+                self.assertEqual(installed.read_bytes(), b'old forwarder fixture')
+                self.assertEqual(boot.read_bytes(), b'old boot fixture')
+                self.assertFalse(list(sd.rglob('.gloam-asset-*')))
+                stage_sd(sd, rom)
+                self.assertEqual(installed.read_bytes(), b'new forwarder fixture')
+                self.assertEqual(boot.read_bytes(), rom.read_bytes())
+
     def test_existing_sd_links_are_rejected_before_any_files_are_staged(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
