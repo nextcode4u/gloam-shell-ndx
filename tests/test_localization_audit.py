@@ -39,8 +39,7 @@ class LocalizationAuditTests(unittest.TestCase):
             self.assertFalse(report['unsupported_glyphs'])
             self.assertGreater(report['coverage_percent'], 50)
             self.assertTrue(report['missing_keys'])  # Starters retain English help fallbacks.
-            if id not in ('es', 'ja'):
-                self.assertTrue(all(key.endswith('.help') for key in report['missing_keys']))
+            self.assertTrue(all(key.endswith('.help') for key in report['missing_keys']))
             self.assertFalse(report['unknown_keys'])
             self.assertFalse(report['potential_overflow'])
 

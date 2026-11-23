@@ -52,8 +52,16 @@ int main(int argc, char **argv)
     assert(!restored.language.loaded);
     ui_language_load_selected(&restored.language, argv[2], true, "ja");
     assert(restored.language.loaded && !strcmp(ui_text(&restored.language, UI_HOME), "ホーム"));
+    assert(!strcmp(ui_translate(&restored.language, "dialog.saved", "fallback"),
+                   "設定を保存しました"));
+    assert(!strcmp(ui_translate(&restored.language, "setting.splash_mode.label", "fallback"),
+                   "起動画面"));
     ui_language_load_selected(&restored.language, argv[2], true, "es");
     assert(restored.language.loaded && strcmp(ui_text(&restored.language, UI_HOME), "Home"));
+    assert(!strcmp(ui_translate(&restored.language, "setting.check_updates.label", "fallback"),
+                   "Buscar actualizaciones"));
+    assert(!strcmp(ui_translate(&restored.language, "dialog.game_screen_swap_label", "fallback"),
+                   "Intercambiar pantallas"));
     puts("PASS: external locale discovery, legacy catalog, English override, live labels, invalid "
          "fallback, persistence and recovery");
 }

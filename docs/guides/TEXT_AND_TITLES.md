@@ -132,7 +132,9 @@ Rare characters outside the supplied set still use the fallback question mark.
 The [Japanese catalog](../../config/languages/japanese.ini) translates
 navigation, settings labels, common values and dialog controls. Select
 **START → Appearance → Interface language → Japanese** to enable the shipped
-`languages/ja.ini`; omitted entries retain English. Select **English** to keep
+`languages/ja.ini`; omitted help entries retain English. Japanese and Spanish
+catalogs include the startup-splash controls, update-check labels and game-menu
+language, screen-swap and manual labels. Select **English** to keep
 English menus while still displaying Japanese titles. Title language in settings selects
 which banner field to read; it does not select the interface language.
 
