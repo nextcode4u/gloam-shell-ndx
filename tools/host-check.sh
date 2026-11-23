@@ -158,7 +158,8 @@ mkdir "$fixture/association-dashboard"
 ASAN_OPTIONS=detect_leaks=1 build/host/association-dashboard-test "$fixture/association-dashboard"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" "${ui_objects[@]}" tests/audio_grid_test.c -o build/host/audio-grid-test
+    "${model_objects[@]}" "${ui_objects[@]}" tests/audio_grid_test.c \
+    -Wl,--wrap=fseek,--wrap=fread,--wrap=__fread_chk,--wrap=fclose,--wrap=fstat -o build/host/audio-grid-test
 mkdir -p "$fixture/audio-grid/roms" "$fixture/audio-grid/media/music"
 for number in {1..17}; do touch "$fixture/audio-grid/roms/Entry $number.txt"; done
 "$test_python" - "$fixture/audio-grid/media/music/loop.wav" <<'PYFIXTURE'

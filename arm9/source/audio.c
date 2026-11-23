@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 static uint32_t le32(const unsigned char *p)
 {
@@ -26,19 +27,24 @@ bool audio_read_wav(AudioClip *clip, const char *path, size_t limit)
     if (!file)
         return false;
     unsigned char header[16];
-    bool valid = !fseek(file, 0, SEEK_END);
-    long length = valid ? ftell(file) : -1;
-    valid = length >= 44 && length <= (long)limit + 65536 && !fseek(file, 0, SEEK_SET) &&
-            fread(header, 1, 12, file) == 12 && !memcmp(header, "RIFF", 4) &&
-            !memcmp(header + 8, "WAVE", 4);
-    uint32_t end = valid ? le32(header + 4) + 8 : 0;
-    valid = valid && end >= 12 && end <= (uint32_t)length;
+    /* Seeking to EOF walks FAT cluster chains even for tracks we will reject.
+     * Inspect the already-open file and bound RIFF arithmetic before reading. */
+    if (limit > AUDIO_MUSIC_CAP)
+        limit = AUDIO_MUSIC_CAP;
+    struct stat metadata;
+    bool valid = !fstat(fileno(file), &metadata) && S_ISREG(metadata.st_mode) &&
+                 metadata.st_size >= 44 && (uint64_t)metadata.st_size <= limit + 65536 &&
+                 fread(header, 1, 12, file) == 12 && !memcmp(header, "RIFF", 4) &&
+                 !memcmp(header + 8, "WAVE", 4);
+    uint64_t declared = valid ? (uint64_t)le32(header + 4) + 8 : 0;
+    valid = valid && declared >= 12 && declared <= (uint64_t)metadata.st_size;
+    uint32_t end = valid ? (uint32_t)declared : 0;
     bool format = false;
     unsigned rate = 0, data_size = 0;
     long data_start = 0;
     unsigned chunks = 0;
-    for (uint32_t offset = 12; valid && offset + 8 <= end;) {
-        if (++chunks > 128) {
+    for (uint32_t offset = 12; valid && offset < end;) {
+        if (end - offset < 8 || ++chunks > 128) {
             valid = false;
             break;
         }
@@ -88,7 +94,9 @@ bool audio_read_wav(AudioClip *clip, const char *path, size_t limit)
             candidate.rate = rate;
         }
     }
-    fclose(file);
+    valid = valid && !ferror(file);
+    if (fclose(file))
+        valid = false;
     if (!valid) {
         audio_free_clip(&candidate);
         return false;

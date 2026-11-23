@@ -74,6 +74,10 @@ values are preserved rather than reset.
 per-game options, cheats, item overrides, dashboard records and exports. It stops
 on backup-rotation errors and preserves recovery copies across failed retries.
 
+`audio.c` checks open-file metadata before reading WAVs, avoiding EOF seeks on
+FAT. PCM reads, chunk boundaries and close results must pass before publishing
+a new sample buffer; a failed load preserves the caller's clip.
+
 Configuration import and reset retain rollback data before changing settings.
 Do not replace them with recursive deletion of frontend folders: installed
 assets and game saves are outside the reset scope.

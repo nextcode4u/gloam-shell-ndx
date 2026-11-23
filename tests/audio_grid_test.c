@@ -7,9 +7,118 @@
 #include "preferences.h"
 #include "renderer.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
+/* Observe actual audio I/O, including read/close/metadata failures. */
+static bool watch_audio, short_read, close_failure, metadata_failure;
+static unsigned end_seeks, read_calls;
+int __real_fseek(FILE *, long, int);
+size_t __real_fread(void *, size_t, size_t, FILE *);
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+#endif
+int __real_fclose(FILE *);
+int __real_fstat(int, struct stat *);
+int __wrap_fseek(FILE *file, long offset, int whence)
+{
+    if (watch_audio && whence == SEEK_END)
+        end_seeks++;
+    return __real_fseek(file, offset, whence);
+}
+size_t __wrap_fread(void *data, size_t size, size_t count, FILE *file)
+{
+    if (watch_audio) {
+        read_calls++;
+        if (short_read && count > 16)
+            count--;
+    }
+    return __real_fread(data, size, count, file);
+}
+#ifdef __GLIBC__
+size_t __wrap___fread_chk(void *data, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    if (watch_audio) {
+        read_calls++;
+        if (short_read && count > 16)
+            count--;
+    }
+    return __real___fread_chk(data, capacity, size, count, file);
+}
+#endif
+int __wrap_fclose(FILE *file)
+{
+    int result = __real_fclose(file);
+    if (watch_audio && close_failure) {
+        errno = EIO;
+        return EOF;
+    }
+    return result;
+}
+int __wrap_fstat(int descriptor, struct stat *status)
+{
+    if (watch_audio && metadata_failure) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_fstat(descriptor, status);
+}
+static void put32(unsigned char *p, uint32_t value)
+{
+    for (unsigned i = 0; i < 4; i++)
+        p[i] = (unsigned char)(value >> (8 * i));
+}
+static void audio_boundaries(const char *root, const char *valid_path)
+{
+    AudioClip clip = {0};
+    for (unsigned failure = 0; failure < 3; failure++) {
+        short_read = failure == 0;
+        close_failure = failure == 1;
+        metadata_failure = failure == 2;
+        watch_audio = true;
+        bool loaded = audio_read_wav(&clip, valid_path, AUDIO_MUSIC_CAP);
+        watch_audio = short_read = close_failure = metadata_failure = false;
+        assert(!loaded && !clip.samples && !clip.bytes && !clip.rate);
+    }
+    char path[PATH_CAP];
+    assert(path_join(path, root, "audio-boundary.wav"));
+    unsigned char wave[56] = {0};
+    memcpy(wave, "RIFF", 4);
+    memcpy(wave + 8, "WAVEfmt ", 8);
+    put32(wave + 16, 16);
+    wave[20] = wave[22] = 1;
+    put32(wave + 24, 16000);
+    put32(wave + 28, 32000);
+    wave[32] = 2;
+    wave[34] = 16;
+    memcpy(wave + 36, "data", 4);
+    put32(wave + 40, 4);
+    for (unsigned extra = 0; extra < 8; extra++) {
+        put32(wave + 4, 40 + extra);
+        FILE *file = fopen(path, "wb");
+        assert(file && fwrite(wave, 1, 48 + extra, file) == 48 + extra && !fclose(file));
+        bool loaded = audio_read_wav(&clip, path, AUDIO_MUSIC_CAP);
+        assert(loaded == (extra == 0));
+        audio_free_clip(&clip);
+    }
+    /* A wrapped RIFF size must not conceal trailing bytes. */
+    put32(wave + 4, UINT32_MAX - 7);
+    FILE *file = fopen(path, "wb");
+    assert(file && fwrite(wave, 1, sizeof wave, file) == sizeof wave && !fclose(file));
+    assert(!audio_read_wav(&clip, path, AUDIO_MUSIC_CAP));
+    /* Reject huge tracks without reading or walking their cluster chain. */
+    file = fopen(path, "wb");
+    assert(file && !ftruncate(fileno(file), 8 * 1024 * 1024) && !fclose(file));
+    read_calls = end_seeks = 0;
+    watch_audio = true;
+    bool loaded = audio_read_wav(&clip, path, AUDIO_MUSIC_CAP);
+    watch_audio = false;
+    assert(!loaded && !clip.samples && !read_calls && !end_seeks);
+    assert(!remove(path));
+}
 static App app, restored;
 static struct {
     unsigned before;
@@ -19,8 +128,12 @@ static struct {
 int main(int argc, char **argv)
 {
     assert(argc == 3);
+    audio_boundaries(argv[1], argv[2]);
     AudioClip clip = {0};
+    watch_audio = true;
     assert(audio_read_wav(&clip, argv[2], AUDIO_MUSIC_CAP));
+    watch_audio = false;
+    assert(!end_seeks);
     assert(clip.samples && clip.rate == 16000 && clip.bytes == 128000);
     assert(((uintptr_t)clip.samples & 31) == 0);
     assert(!audio_read_wav(&clip, argv[2], AUDIO_MUSIC_CAP)); /* Never overwrite a live buffer. */
