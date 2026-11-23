@@ -14,11 +14,18 @@
 static App app, restored;
 static unsigned fixture_count = 1000;
 static int fail_after = -1;
-static unsigned read_calls;
+static unsigned read_calls, total_reads, scan_opens;
+void *__real_directory_scan_open(const char *);
+void *__wrap_directory_scan_open(const char *path)
+{
+    scan_opens++;
+    return __real_directory_scan_open(path);
+}
 static bool stale_errno;
 bool __real_directory_scan_read(void *, DirectoryRecord *);
 bool __wrap_directory_scan_read(void *directory, DirectoryRecord *record)
 {
+    total_reads++;
     if (fail_after >= 0 && read_calls++ >= (unsigned)fail_after) {
         errno = EIO;
         return false;
@@ -79,6 +86,83 @@ static void read_failures(void)
     drain();
     assert(!app.directory_error && app.entry_count && location->selected == 7);
     location->batch = 0;
+    browser_scan_begin(&app);
+    drain();
+}
+static void locate_one_pass(const char *roms)
+{
+    char folder[PATH_CAP], path[PATH_CAP], first[PATH_CAP] = "", last[PATH_CAP] = "";
+    assert(path_join(folder, roms, "locate-control") && !mkdir(folder, 0777));
+    const unsigned count = ENTRY_CAP * 3 + 7;
+    for (unsigned i = 0; i < count; i++) {
+        char name[32];
+        snprintf(name, sizeof name, "Locate%04u.txt", i);
+        assert(path_join(path, folder, name));
+        FILE *file = fopen(path, "w");
+        assert(file && !fclose(file));
+    }
+    /* Choose targets by actual directory order, independently of the host FS. */
+    void *directory = directory_scan_open(folder);
+    assert(directory);
+    DirectoryRecord record;
+    while (directory_scan_read(directory, &record))
+        if (record.valid && record.regular) {
+            assert(path_join(last, folder, record.name));
+            if (!*first)
+                path_copy(first, last, PATH_CAP);
+        }
+    directory_scan_close(directory);
+    assert(*first && *last);
+    Location *location = &app.locations[CATEGORY_GAMES];
+    for (unsigned sort = 0; sort < 4; sort++) {
+        app.sort_mode = sort;
+        location->batch = location->selected = location->scroll = 0;
+        path_copy(location->path, folder, PATH_CAP);
+        unsigned opened = scan_opens, reads = total_reads;
+        browser_scan_begin(&app);
+        app.scan_seek_all = true;
+        path_copy(app.scan_restore_path, last, PATH_CAP);
+        drain();
+        assert(!app.directory_error && location->batch == 3 && app.entry_count == 7 &&
+               app_selected(&app) && !strcmp(app_selected(&app)->path, last));
+        assert(scan_opens == opened + 1 && total_reads - reads <= count + 3);
+    }
+    /* An early match stops after its batch, rather than traversing the folder. */
+    location->batch = 0;
+    unsigned opened = scan_opens, reads = total_reads;
+    browser_scan_begin(&app);
+    app.scan_seek_all = true;
+    path_copy(app.scan_restore_path, first, PATH_CAP);
+    drain();
+    assert(location->batch == 0 && app.entry_count == ENTRY_CAP && app.truncated &&
+           !strcmp(app_selected(&app)->path, first));
+    assert(scan_opens == opened + 1 && total_reads - reads <= ENTRY_CAP + 3);
+    /* Missing/filtered results finish once and retain the ordinary message. */
+    location->batch = 0;
+    app.panel = PANEL_NONE;
+    opened = scan_opens;
+    reads = total_reads;
+    browser_scan_begin(&app);
+    app.scan_seek_all = true;
+    assert(path_join(app.scan_restore_path, folder, "Missing.txt"));
+    drain();
+    assert(!app.directory_error && app.panel == PANEL_MESSAGE && !app.scan_seek_all &&
+           strstr(app.message, "not visible"));
+    assert(scan_opens == opened + 1 && total_reads - reads <= count + 3);
+    app.panel = PANEL_NONE;
+    /* A failure after crossing a batch boundary still discards partial work. */
+    location->batch = 0;
+    browser_scan_begin(&app);
+    app.scan_seek_all = true;
+    path_copy(app.scan_restore_path, last, PATH_CAP);
+    fail_after = ENTRY_CAP + 30;
+    read_calls = 0;
+    drain();
+    fail_after = -1;
+    assert(app.directory_error && !app.entry_count && !app.scan_count && !app.scan_seek_all);
+    app.sort_mode = 0;
+    location->batch = 0;
+    path_copy(location->path, roms, PATH_CAP);
     browser_scan_begin(&app);
     drain();
 }
@@ -211,6 +295,8 @@ int main(int argc, char **argv)
     assert(app_save(&app));
     app_init(&restored, argv[1], true, true);
     assert(restored.entry_count == 4 && restored.locations[CATEGORY_GAMES].selected == 2);
+    locate_one_pass(folder);
+    path_copy(app.locations[CATEGORY_GAMES].path, restore_folder, PATH_CAP);
     browser_scan_begin(&app);
     stale_errno = true;
     drain();

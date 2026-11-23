@@ -248,7 +248,8 @@ PY
 ASAN_OPTIONS=detect_leaks=1 build/host/background-test "$fixture/background"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" tests/browser_jobs_test.c -Wl,--wrap=directory_scan_read -o build/host/browser-jobs-test
+    "${model_objects[@]}" tests/browser_jobs_test.c \
+    -Wl,--wrap=directory_scan_read,--wrap=directory_scan_open -o build/host/browser-jobs-test
 mkdir "$fixture/browser-jobs"
 ASAN_OPTIONS=detect_leaks=1 build/host/browser-jobs-test "$fixture/browser-jobs"
 

@@ -58,8 +58,8 @@ System initially search all configured libraries.
 - A or a second tap launches through the existing preflight/backend route. The
   shared-extension chooser and launch errors return to results when cancelled.
   Y locates the selected file in its folder for title options or browsing; it can
-  continue cooperatively through later 512-entry folder batches. Y erases a
-  character while editing.
+  continue cooperatively through later 512-entry folder batches in one directory
+  pass. Y erases a character while editing.
 - B, START or the bottom back area closes search, including while a query runs,
   and returns to the menu that opened it.
 

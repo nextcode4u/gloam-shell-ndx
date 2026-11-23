@@ -141,6 +141,15 @@ void browser_scan_begin(App *app)
     icons_reset(app);
     app_reset_preview(app);
 }
+static int restore_index(const App *app, int count)
+{
+    if (!*app->scan_restore_path)
+        return -1;
+    for (int i = 0; i < count; i++)
+        if (!strcmp(app->entries[i].path, app->scan_restore_path))
+            return i;
+    return -1;
+}
 static void finish_scan(App *app)
 {
     directory_scan_close(app->scan_directory);
@@ -162,24 +171,10 @@ static void finish_scan(App *app)
     int (*comparators[])(const void *, const void *) = {compare_names, compare_names_desc,
                                                         compare_types, compare_modified};
     entry_sort(app->entries, app->entry_count, comparators[app->sort_mode]);
-    bool found = false;
-    if (*app->scan_restore_path)
-        for (int i = 0; i < app->entry_count; i++)
-            if (!strcmp(app->entries[i].path, app->scan_restore_path)) {
-                app->locations[app->category].selected = i;
-                found = true;
-                break;
-            }
-    if (app->scan_seek_all && !found && app->truncated &&
-        app->locations[app->category].batch < 4095) {
-        char target[PATH_CAP];
-        path_copy(target, app->scan_restore_path, PATH_CAP);
-        app->locations[app->category].batch++;
-        browser_scan_begin(app);
-        app->scan_seek_all = true;
-        path_copy(app->scan_restore_path, target, PATH_CAP);
-        return;
-    }
+    int restored = restore_index(app, app->entry_count);
+    bool found = restored >= 0;
+    if (found)
+        location->selected = restored;
     if (app->scan_seek_all && !found) {
         path_copy(app->message, "Indexed file is not visible. Check filters or refresh the index.",
                   sizeof app->message);
@@ -248,9 +243,17 @@ void browser_scan_step(App *app)
         if (app->scan_eligible++ < app->locations[app->category].batch * ENTRY_CAP)
             continue;
         if (app->scan_count >= ENTRY_CAP) {
-            app->truncated = true;
-            finish_scan(app);
-            return;
+            if (app->scan_seek_all && restore_index(app, app->scan_count) < 0 &&
+                app->locations[app->category].batch < 4095) {
+                /* Locate a later indexed result in one pass. Reuse the buffer
+                 * without publishing or sorting batches that lack the target. */
+                app->locations[app->category].batch++;
+                app->scan_count = 0;
+            } else {
+                app->truncated = true;
+                finish_scan(app);
+                return;
+            }
         }
         Entry *entry = &app->entries[app->scan_count++];
         memset(entry, 0, sizeof *entry);
