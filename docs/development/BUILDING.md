@@ -196,6 +196,20 @@ versions. SD packages include both packs. Theme fonts are unchanged. Generate
 and verify packs using `tools/make_japanese_font.py` and `tools/pack_script_fonts.py`;
 font licenses/source notices remain in the combined source and license archives.
 
+## On-console measurements
+
+Cold boot the DSi, wait for the folder to finish loading, then use Advanced
+settings → Maintenance → Export diagnostics. Keep the report with the build,
+console, boot method and SD model. Repeat cold boots to compare like-for-like runs.
+`boot_total_ms` covers Gloam initialization through its first complete browser
+frame, including its splash; it excludes the preceding bootloader and power-on
+sequence. Named `boot_*_ms` fields show measured startup phases.
+
+`heap_in_use`, `heap_reserved` and `heap_free` are export-time allocator snapshots.
+They do not measure peak RAM, stack use or VRAM. Reports from emulators are not
+physical-console timing results. Frame-time and peak-memory claims still need
+separate hardware measurements.
+
 ## Optional cold-path size profile
 
 `make SIZE_OPTIMIZE_COLD=1` applies `-Os` only to the explicit configuration,
