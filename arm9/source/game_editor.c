@@ -18,6 +18,7 @@ void game_editor_open(App *app, bool defaults)
     GameEditor *editor = &app->game_editor;
     memset(editor, 0, sizeof *editor);
     editor->defaults = defaults;
+    editor->text_started_frame = app->frame_count;
     game_options_effective(app->root, "", &editor->inherited);
     if (!defaults)
         path_copy(editor->path, entry->path, PATH_CAP);
@@ -33,6 +34,7 @@ void game_editor_move(App *app, int direction)
 {
     GameEditor *editor = &app->game_editor;
     editor->selected = (editor->selected + direction + GAME_OPTION_COUNT) % GAME_OPTION_COUNT;
+    editor->text_started_frame = app->frame_count;
     if (editor->selected < editor->scroll)
         editor->scroll = editor->selected;
     if (editor->selected >= editor->scroll + 7)
@@ -57,6 +59,8 @@ void game_editor_touch(App *app, int x, int y)
         return;
     if (row == app->game_editor.selected)
         game_editor_adjust(app, x < 128 ? -1 : 1);
-    else
+    else {
         app->game_editor.selected = row;
+        app->game_editor.text_started_frame = app->frame_count;
+    }
 }

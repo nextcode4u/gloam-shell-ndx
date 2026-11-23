@@ -2,6 +2,7 @@
 #include "association_editor.h"
 #include "cheats.h"
 #include "dashboard.h"
+#include "font_pack.h"
 #include "game_options.h"
 #include "paths.h"
 #include "picker.h"
@@ -26,6 +27,95 @@ static void catalog(const char *root, const char *text)
     assert(path_preferences_file(path, root, "language.ini"));
     FILE *file = fopen(path, "wb");
     assert(file && fputs(text, file) >= 0 && !fclose(file));
+}
+static uint16_t start_row[256 * FONT_HEIGHT], moving_row[256 * FONT_HEIGHT];
+static uint16_t unselected_row[256 * FONT_HEIGHT];
+static bool same_region(const uint16_t *a, const uint16_t *b, int x, int width)
+{
+    for (int y = 0; y < FONT_HEIGHT; y++)
+        if (memcmp(a + y * 256 + x, b + y * 256 + x, (size_t)width * sizeof *a))
+            return false;
+    return true;
+}
+static void game_row(uint16_t *row)
+{
+    top.before = top.after = bottom.before = bottom.after = 0xA11CE;
+    game_editor_render(&app, top.pixels, bottom.pixels);
+    assert(top.before == 0xA11CE && top.after == 0xA11CE && bottom.before == 0xA11CE &&
+           bottom.after == 0xA11CE);
+    memcpy(row, bottom.pixels + 152 * 256, sizeof start_row);
+}
+static void title_options_marquee(const char *root)
+{
+    catalog(root, "version=1\ndialog.game_hotkey_label=Button combination for the in-game menu\n");
+    ui_language_load(&app.language, root, true);
+    assert(app.language.loaded);
+    const FontPack *previous = font_current();
+    static FontPack proportional;
+    font_builtin(&proportional);
+    proportional.proportional = true;
+    proportional.width = 9;
+    memset(proportional.advance, 9, sizeof proportional.advance);
+    for (unsigned face = 0; face < 2; face++) {
+        const FontPack *font = face ? &proportional : NULL;
+        font_use(font);
+        app.frame_count = 100;
+        app.reduced_motion = false;
+        game_editor_open(&app, true);
+        app.game_editor.defaults = false;
+        game_options_defaults(&app.game_editor.options, true);
+        game_options_defaults(&app.game_editor.inherited, false);
+        for (int i = 0; i < GAME_HOTKEY; i++) {
+            app.frame_count++;
+            game_editor_move(&app, 1);
+        }
+        assert(app.game_editor.selected == GAME_HOTKEY && app.game_editor.scroll == 2);
+        unsigned selected_at = app.frame_count;
+        game_row(start_row);
+        memcpy(unselected_row, bottom.pixels + 134 * 256, sizeof unselected_row);
+        app.frame_count += 30;
+        game_row(moving_row);
+        assert(!memcmp(unselected_row, bottom.pixels + 134 * 256, sizeof unselected_row));
+        assert(!same_region(start_row, moving_row, 14, 110));
+        assert(!same_region(start_row, moving_row, 132, 112));
+        assert(same_region(start_row, moving_row, 124, 8)); /* Empty column gutter. */
+        assert(same_region(start_row, moving_row, 244, 12));
+        const char *label = ui_translate(&app.language, "dialog.game_hotkey_label", "missing");
+        unsigned cycle = 3 * (font_measure(font, label) + 3 * font_advance(font, ' '));
+        app.frame_count = selected_at + cycle;
+        game_row(moving_row);
+        assert(same_region(start_row, moving_row, 14, 110)); /* Continuous loop repeats. */
+        app.frame_count += 17;
+        game_editor_move(&app, -1);
+        game_editor_move(&app, 1);
+        game_row(moving_row);
+        assert(same_region(start_row, moving_row, 14, 110) &&
+               same_region(start_row, moving_row, 132, 112));
+        app.frame_count += 17;
+        game_editor_touch(&app, 20, 42);
+        game_editor_touch(&app, 20, 150);
+        game_row(moving_row);
+        assert(same_region(start_row, moving_row, 14, 110) &&
+               same_region(start_row, moving_row, 132, 112));
+        app.frame_count = UINT32_MAX - 2;
+        game_editor_move(&app, -1);
+        game_editor_move(&app, 1);
+        game_row(start_row);
+        app.frame_count = 27; /* Thirty elapsed frames across the counter wrap. */
+        game_row(moving_row);
+        assert(!same_region(start_row, moving_row, 14, 110));
+        assert(!same_region(start_row, moving_row, 132, 112));
+        game_editor_adjust(&app, 1);
+        assert(app.game_editor.text_started_frame == app.frame_count);
+        app.reduced_motion = true;
+        game_row(start_row);
+        app.frame_count += 30;
+        game_row(moving_row);
+        assert(!memcmp(start_row, moving_row, sizeof start_row));
+        app.game_editor.open = false;
+    }
+    app.reduced_motion = false;
+    font_use(previous);
 }
 int main(int argc, char **argv)
 {
@@ -179,6 +269,7 @@ int main(int argc, char **argv)
            !fclose(binary));
     ui_language_load(&app.language, argv[1], true);
     assert(!app.language.loaded);
+    title_options_marquee(argv[1]);
     catalog(argv[1], "version=1\ngames=Jeux\n");
     app_init_mode(&app, argv[1], true, true, true);
     assert(!app.language.loaded && !strcmp(tabs_label(&app, CATEGORY_GAMES), "Games"));

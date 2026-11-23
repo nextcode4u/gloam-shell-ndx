@@ -611,8 +611,10 @@ int main(int argc, char **argv)
                 game_editor_adjust(&app, -1);
             if (repeat & KEY_RIGHT || down & KEY_A)
                 game_editor_adjust(&app, 1);
-            if (down & KEY_Y)
+            if (down & KEY_Y) {
                 game_options_defaults(&app.game_editor.options, !app.game_editor.defaults);
+                app.game_editor.text_started_frame = app.frame_count;
+            }
         } else if (app.themes.open) {
             if (repeat & KEY_UP)
                 themes_move(&app, -1);

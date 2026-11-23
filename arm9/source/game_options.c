@@ -287,5 +287,6 @@ void game_editor_adjust(App *app, int direction)
     if (value > maximum[option])
         value = low;
     editor->options.values[option] = value;
+    editor->text_started_frame = app->frame_count;
     editor->status[0] = 0;
 }

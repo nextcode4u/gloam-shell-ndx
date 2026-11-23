@@ -159,6 +159,7 @@ typedef struct {
 typedef struct {
     bool open, defaults;
     int selected, scroll;
+    unsigned text_started_frame;
     char path[PATH_CAP], status[160];
     GameOptions options, inherited;
 } GameEditor;

@@ -87,10 +87,13 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
         if (option == editor->selected) {
             draw_theme_selection(&app->themes.active, bottom, 6, y, 244, 18);
         }
-        draw_text(bottom, 14, y + 3,
-                  ui_translate(&app->language, label_keys[option], game_option_label(option)),
-                  option == editor->selected ? themes_selection_text(&app->themes.active) : p.text,
-                  16);
+        bool selected = option == editor->selected;
+        unsigned elapsed = app->frame_count - editor->text_started_frame;
+        draw_text_scrolling(
+            bottom, 14, y + 3,
+            ui_translate(&app->language, label_keys[option], game_option_label(option)),
+            selected ? themes_selection_text(&app->themes.active) : p.text, 110, elapsed,
+            selected && !app->reduced_motion);
         char value[48];
         game_option_value(&editor->options, option, value);
         if (!editor->defaults && editor->options.values[option] == GAME_INHERIT) {
@@ -98,9 +101,9 @@ void game_editor_render(const App *app, uint16_t *top, uint16_t *bottom)
             game_option_value(&editor->inherited, option, effective);
             snprintf(value, sizeof value, "Default: %.38s", effective);
         }
-        draw_text_clipped(
-            bottom, 132, y + 3, value,
-            option == editor->selected ? themes_selection_text(&app->themes.active) : p.accent, 16);
+        draw_text_scrolling(bottom, 132, y + 3, value,
+                            selected ? themes_selection_text(&app->themes.active) : p.accent, 112,
+                            elapsed, selected && !app->reduced_motion);
     }
     draw_text_clipped(bottom, 10, 170, editor->status, p.muted, 33);
     draw_text(bottom, 10, 182,

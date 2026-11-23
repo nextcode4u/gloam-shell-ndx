@@ -48,9 +48,9 @@ files retain their own names rather than adopting the emulator's banner title.
 
 ## Selected overflow text
 
-Long selected settings labels/values, folder/ROM names, file-picker names,
-browser title details, tab labels and folder paths use the same pixel-clipped
-horizontal loop. Text starts moving on selection, one pixel every three frames
+Long selected settings and title-option labels/values, folder/ROM names,
+file-picker names, browser title details, tab labels and folder paths use the
+same pixel-clipped horizontal loop. Text starts moving on selection, one pixel every three frames
 (first movement within 50 ms at 60 Hz), with no initial delay. Three spaces in the active face separate the end from the next
 beginning. There is no end hold, backwards movement or snap to the start;
 the next beginning moves into view after the tail and keeps going.
@@ -64,9 +64,9 @@ Changing selection or tabs starts the new label at its beginning immediately. Th
 focused tab while navigating and the active tab otherwise.
 
 The helper reads UTF-8 boundaries, clips partial glyphs to the viewport and
-allocates no buffers. Settings and tabs own their selection timestamps; browser
-and picker views reuse their idle counters. Rendering never updates state or
-reads files. Host tests compare both repetitions across the exact loop boundary,
+allocates no buffers. Settings, title options and tabs own their selection
+timestamps; browser and picker views reuse their idle counters. Rendering never
+updates state or reads files. Host tests compare both repetitions across the exact loop boundary,
 verify continued movement after wrapping, and cover UTF-8, reduced motion and
 viewport/framebuffer bounds. Native checks use the ROM grid and long tab names.
 
