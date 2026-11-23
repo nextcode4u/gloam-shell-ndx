@@ -38,10 +38,10 @@ class LocalizationAuditTests(unittest.TestCase):
                                  ROOT / 'sdroot/_nds/dsi-frontend/themes')
             self.assertFalse(report['unsupported_glyphs'])
             self.assertGreater(report['coverage_percent'], 50)
-            self.assertTrue(report['missing_keys'])  # Starters retain English help fallbacks.
-            self.assertTrue(all(key.endswith('.help') for key in report['missing_keys']))
+            self.assertEqual(report['missing_keys'], [])
             self.assertFalse(report['unknown_keys'])
             self.assertFalse(report['potential_overflow'])
+            self.assertFalse(report['help_overflow'])
 
     def test_distributed_catalogs_match_sources_and_packaging(self):
         import json
@@ -68,6 +68,27 @@ class LocalizationAuditTests(unittest.TestCase):
         self.assertEqual(set(audit.catalog(ROOT / 'config/languages/template.ini')),
                          audit.known_keys())
 
+    def test_english_template_matches_runtime_settings(self):
+        import ast
+        import re
+
+        source = (ROOT / 'arm9/source/settings.c').read_text()
+        identifiers = dict(re.findall(r'\[(OPT_[A-Z0-9_]+)\]\s*=\s*"([a-z0-9_]+)"', source))
+        quoted = r'"(?:[^"\\]|\\.)*"'
+        literal = '(?:' + quoted + r'\s*)+'
+        pattern = (r'\{\s*(' + literal + r'),\s*(' + literal +
+                   r'),\s*(?:true|false),\s*(OPT_[A-Z0-9_]+)\s*\}')
+        template = audit.catalog(ROOT / 'config/languages/template.ini')
+        checked = set()
+        for label, help_text, identifier in re.findall(pattern, source):
+            key = 'setting.' + identifiers[identifier]
+            for suffix, text in [('label', label), ('help', help_text)]:
+                value = ''.join(ast.literal_eval(q) for q in re.findall(quoted, text))
+                self.assertEqual(template[key + '.' + suffix], value, key)
+            checked.add(key)
+        self.assertEqual(checked, {key[:-6] for key in template
+                                  if key.startswith('setting.') and key.endswith('.label')})
+
     def test_font_corruption_does_not_produce_false_coverage(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'japanese.gsf'
@@ -91,6 +112,15 @@ class LocalizationAuditTests(unittest.TestCase):
             manifest.write_text('[theme]\nversion=1\n[fonts]\nui=../../outside.dsfont\n')
             with self.assertRaisesRegex(ValueError, 'escapes'):
                 audit.audit(catalog, audit.known_keys(), audit.script_advances(), root / 'themes')
+
+    def test_help_wrapping_uses_pixel_width_and_word_boundaries(self):
+        widths = {ord(c): 7 for c in 'abc '}
+        widths[ord('本')] = 12
+        self.assertEqual(audit.wrapped_lines('abc abc', widths, 21), 2)
+        self.assertEqual(audit.wrapped_lines('本本本', widths, 24), 2)
+        self.assertEqual(audit.wrapped_lines('abc', widths, 1), 3)
+        self.assertEqual(audit.wrapped_lines('a\nb', widths, 21), 2)
+        self.assertEqual(audit.wrapped_lines('', widths), 0)
 
     def test_translation_record_cap_has_room_for_new_controls(self):
         with tempfile.TemporaryDirectory() as folder:

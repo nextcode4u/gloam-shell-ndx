@@ -114,10 +114,39 @@ def body_advances(path, shared):
     return widths, 12
 
 
+def wrapped_lines(value, widths, available=231):
+    """Count lines using the settings renderer's pixel/word-break rules."""
+    if available <= 0:
+        raise ValueError('Text width must be positive')
+    cursor = rows = 0
+    while cursor < len(value):
+        end, used, word_break = cursor, 0, None
+        while end < len(value) and value[end] != '\n':
+            advance = widths.get(ord(value[end]), 7)
+            if used + advance > available:
+                break
+            if value[end] == ' ':
+                word_break = end
+            used += advance
+            end += 1
+        if end < len(value) and value[end] != '\n' and word_break is not None and word_break > cursor:
+            end = word_break
+        if end == cursor and value[end] != '\n':
+            end += 1
+        cursor = end
+        if cursor < len(value) and value[cursor] == '\n':
+            cursor += 1
+        while cursor < len(value) and value[cursor] == ' ':
+            cursor += 1
+        rows += 1
+    return rows
+
+
 def audit(path, keys, shared, themes):
     values = catalog(path)
     unsupported = sorted({ord(c) for value in values.values() for c in value if ord(c) not in shared})
     overflows = []
+    help_overflow = []
     font_warnings = []
     # These controls have bounded widths. Overflow is advisory: some regions loop.
     regions = {'settings': 58, 'browser_hint': 236, 'tab_hint': 154}
@@ -134,6 +163,13 @@ def audit(path, keys, shared, themes):
                 widths, height = body_advances(font, shared)
         if height > 12:
             font_warnings.append({'theme': theme.parent.name, 'message': 'Body face exceeds 12 pixels; inspect fixed footer/dialog regions'})
+        for key, value in values.items():
+            if key.endswith('.help'):
+                available = 7 if key.startswith('dialog.game_') else 6
+                lines = wrapped_lines(value, widths)
+                if lines > available:
+                    help_overflow.append({'theme': theme.parent.name, 'key': key,
+                                          'lines': lines, 'available': available})
         for key, available in regions.items():
             if key in values:
                 pixels = sum(widths.get(ord(c), 7) for c in values[key])
@@ -144,7 +180,7 @@ def audit(path, keys, shared, themes):
             'coverage_percent': round(100 * len(values.keys() & keys) / len(keys), 1),
             'missing_keys': missing, 'unknown_keys': sorted(values.keys() - keys),
             'unsupported_glyphs': [{'codepoint': f'U+{cp:04X}', 'character': chr(cp)} for cp in unsupported],
-            'potential_overflow': overflows, 'font_warnings': font_warnings}
+            'potential_overflow': overflows, 'help_overflow': help_overflow, 'font_warnings': font_warnings}
 
 
 def main():
@@ -153,7 +189,7 @@ def main():
     parser.add_argument('--themes', type=Path, default=ROOT / 'sdroot/_nds/dsi-frontend/themes')
     parser.add_argument('--fonts', type=Path, default=ROOT / 'sdroot/_nds/dsi-frontend/fonts')
     parser.add_argument('--output', type=Path, default=ROOT / 'build/localization-audit.json')
-    parser.add_argument('--strict', action='store_true', help='Also fail for missing keys, unknown keys or unsupported glyphs')
+    parser.add_argument('--strict', action='store_true', help='Also fail for missing/unknown keys, unsupported glyphs or clipped help')
     args = parser.parse_args()
     paths = args.catalogs or sorted((ROOT / 'sdroot/_nds/dsi-frontend/languages').glob('*.ini'))
     if not paths or not args.themes.is_dir() or not args.fonts.is_dir():
@@ -164,12 +200,12 @@ def main():
         try:
             row = audit(path, keys, shared, args.themes)
             report['catalogs'].append(row)
-            print(f"{path.name}: {row['coverage_percent']}% coverage; {len(row['unsupported_glyphs'])} missing glyphs; {len(row['potential_overflow'])} width warnings")
+            print(f"{path.name}: {row['coverage_percent']}% coverage; {len(row['unsupported_glyphs'])} missing glyphs; {len(row['potential_overflow'])} width warnings; {len(row['help_overflow'])} clipped help entries")
         except (OSError, UnicodeError, ValueError) as error:
             report['errors'].append({'catalog': str(path), 'error': str(error)})
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
-    return int(bool(report['errors']) or (args.strict and any(row['missing_keys'] or row['unknown_keys'] or row['unsupported_glyphs'] for row in report['catalogs'])))
+    return int(bool(report['errors']) or (args.strict and any(row['missing_keys'] or row['unknown_keys'] or row['unsupported_glyphs'] or row['help_overflow'] for row in report['catalogs'])))
 
 
 if __name__ == '__main__':

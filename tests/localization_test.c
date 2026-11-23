@@ -62,6 +62,17 @@ int main(int argc, char **argv)
                    "Buscar actualizaciones"));
     assert(!strcmp(ui_translate(&restored.language, "dialog.game_screen_swap_label", "fallback"),
                    "Intercambiar pantallas"));
+    /* Every shipped catalog must fit the real bounded native record/text pools. */
+    static const char *locales[] = {"de", "es", "fr", "it", "ja", "nl", "pt-BR"};
+    for (unsigned i = 0; i < sizeof locales / sizeof *locales; i++) {
+        ui_language_load_selected(&restored.language, argv[2], true, locales[i]);
+        assert(restored.language.loaded && restored.language.extra_count == 386);
+        assert(restored.language.text_used < UI_TEXT_CAP);
+        assert(strcmp(ui_translate(&restored.language, "setting.auto_launch.help", "missing"),
+                      "missing"));
+        assert(strcmp(ui_translate(&restored.language, "dialog.game_manual.help", "missing"),
+                      "missing"));
+    }
     puts("PASS: external locale discovery, legacy catalog, English override, live labels, invalid "
          "fallback, persistence and recovery");
 }

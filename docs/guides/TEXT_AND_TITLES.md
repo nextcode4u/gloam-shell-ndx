@@ -110,7 +110,9 @@ Settings labels and help use stable `setting.<option>.label` and
 values use `section.*`, `dialog.*` and `value.*`. Up to 416 additional entries
 are allowed. Missing entries retain English; language files cannot change any
 setting values or launch behavior. Keep help within six display lines and test
-long labels with scrolling enabled and Reduced motion.
+long labels with scrolling enabled and Reduced motion. Run
+`python3 tools/audit_localization.py --strict` to check registered keys, glyphs
+and help wrapping against the shipped theme fonts.
 
 [The editable English template](../../config/languages/template.ini) lists the
 settings keys. [The Spanish catalog](../../config/languages/spanish.ini) covers
@@ -132,9 +134,9 @@ Rare characters outside the supplied set still use the fallback question mark.
 The [Japanese catalog](../../config/languages/japanese.ini) translates
 navigation, settings labels, common values and dialog controls. Select
 **START → Appearance → Interface language → Japanese** to enable the shipped
-`languages/ja.ini`; omitted help entries retain English. Japanese and Spanish
-catalogs include the startup-splash controls, update-check labels and game-menu
-language, screen-swap and manual labels. Select **English** to keep
+`languages/ja.ini`. All seven shipped catalogs translate the registered controls
+and context help. Custom catalogs may omit entries and retain the English fallback;
+runtime messages outside the catalogs still use English. Select **English** to keep
 English menus while still displaying Japanese titles. Title language in settings selects
 which banner field to read; it does not select the interface language.
 

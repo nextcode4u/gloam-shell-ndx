@@ -217,8 +217,8 @@ static const SettingsOption appearance[] = {
      "Choose 12 or 24 hours. This affects the launcher display, not the console clock.", true,
      OPT_CLOCK},
     {"Theme",
-     "Preview a package and its supported bitmap font. A applies, B cancels. Recovery uses "
-     "built-in assets.",
+     "Choose a package and press X to load its preview. Once ready, A applies and B cancels. "
+     "Recovery uses built-in assets.",
      false, OPT_THEME},
     {"Brightness",
      "Set the console backlight from 1 to 5. On DSi this is a persistent console setting, separate "
@@ -381,8 +381,8 @@ static const SettingsOption system_options[] = {
      "Open the System tab. Its native launch routes still report their availability separately.",
      false, OPT_SYSTEM},
     {"Return to DSi Menu",
-     "Stock-boot Menu return is tested in melonDS. Under Unlaunch, the configured boot target "
-     "may open instead. Explicit Unlaunch routing remains experimental.",
+     "Return through this console's installed DSi Menu. A validated language-patched menu is "
+     "preferred. On patched consoles follow the confirmation notice.",
      false, OPT_SYSTEM_MENU},
     {"Execution mode",
      "Detected DS/DSi execution mode. This alone does not identify the bootloader or prove "
@@ -396,8 +396,8 @@ static const SettingsOption system_options[] = {
      "Raw hardware battery level (0-15) and charger state. This is not a calculated percentage.",
      false, OPT_BATTERY},
     {"Lid sleep",
-     "The SDK's automatic lid sleep service is enabled. Sleep/wake behavior still requires "
-     "real-console testing.",
+     "Automatic lid sleep is enabled. Wake, display, input and theme music have passed DSi "
+     "hardware checks. Other setups still need testing.",
      false, OPT_SLEEP},
 };
 static const SettingsOption maintenance[] = {
@@ -475,12 +475,12 @@ static const SettingsOption routes[] = {
      "A cartridge is still required. Press A to refresh.",
      false, OPT_ROUTE_SLOT1},
     {"System Settings",
-     "Read-only NAND discovery checks this console's installed title. "
-     "A found title does not prove Unlaunch routing. A refreshes discovery.",
+     "Discover installed Settings and launch it through the DSi Menu. Patched menus may need "
+     "another button press after launch. A refreshes discovery.",
      false, OPT_ROUTE_SETTINGS},
     {"Camera",
-     "Read-only NAND discovery. Stock-boot controls work; Unlaunch routes still need "
-     "validation. A refreshes discovery.",
+     "Discover installed Camera and check its native launch route. Camera behavior depends on "
+     "the boot environment. A refreshes discovery.",
      false, OPT_ROUTE_CAMERA},
     {"Sound",
      "Discover installed Sound and check its native route. Playback and recording depend on the "
@@ -491,12 +491,12 @@ static const SettingsOption routes[] = {
      "and peers. A refreshes discovery.",
      false, OPT_ROUTE_PICTO},
     {"Download Play",
-     "Read-only NAND discovery. Stock-boot app startup works; wireless transfer "
-     "and Unlaunch routing are unverified. A refreshes discovery.",
+     "Discover installed Download Play and check its native route. Wireless transfer needs "
+     "compatible peers and separate testing. A refreshes discovery.",
      false, OPT_ROUTE_DOWNLOAD},
     {"System Menu",
-     "Stock-boot return works in the test setup. Unlaunch may select its configured "
-     "boot target instead. This frontend does not change NAND boot settings.",
+     "Checks installed DSi Menu and optional nand:/launcher.dsi. Gloam does not change NAND boot "
+     "settings. Press A to refresh.",
      false, OPT_ROUTE_MENU},
 };
 static const struct {
