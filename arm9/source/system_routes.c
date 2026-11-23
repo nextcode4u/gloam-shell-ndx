@@ -122,7 +122,7 @@ bool system_title_autoload(unsigned char request[0x400], const NativeTitle *titl
 bool system_launcher_autoload(unsigned char request[0x400], const SystemCatalog *catalog)
 {
     memset(request, 0, 0x400);
-    if (!catalog)
+    if (!catalog || catalog->launcher_scan_failed)
         return false;
     if (catalog->patched_launcher_present) {
         if (!catalog->patched_launcher_valid)

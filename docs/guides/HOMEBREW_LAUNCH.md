@@ -89,7 +89,9 @@ read-only metadata checks as other system titles. It also checks for a valid
 `nand:/launcher.dsi`, used by language-patched installations. If present, this
 file takes priority over the stock menu, preserving the patched launch
 environment. A present but invalid patched launcher blocks fallback rather than
-silently switching to the stock menu.
+silently switching to the stock menu. An incomplete NAND root scan also blocks
+menu handoff. Interrupted or oversized title/content scans do not publish partial
+matches.
 
 Return to DSi System Menu supplies the patched file directly to Unlaunch, without
 a second numeric Menu request. Without a patched launcher, it uses the discovered

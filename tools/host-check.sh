@@ -203,7 +203,8 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
 ASAN_OPTIONS=detect_leaks=1 build/host/animated-icon-test "$fixture/animated.nds"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" tests/system_catalog_test.c -o build/host/system-catalog-test
+    "${model_objects[@]}" tests/system_catalog_test.c \
+    -Wl,--wrap=opendir,--wrap=readdir,--wrap=closedir -o build/host/system-catalog-test
 mkdir "$fixture/system-catalog"
 ASAN_OPTIONS=detect_leaks=1 build/host/system-catalog-test "$fixture/system-catalog"
 

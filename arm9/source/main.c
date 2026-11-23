@@ -898,7 +898,9 @@ int main(int argc, char **argv)
                     swiWaitForVBlank();
             } else {
                 snprintf(app.message, sizeof app.message, "%s",
-                         *app.preferences_error
+                         title == 0 && app.system_catalog.launcher_scan_failed
+                             ? app.system_catalog.status
+                         : *app.preferences_error
                              ? app.preferences_error
                              : "System-title request unavailable. No reboot occurred.");
                 app_panel(&app, PANEL_MESSAGE);
@@ -916,7 +918,9 @@ int main(int argc, char **argv)
                 unsigned char autoload[0x400];
                 if (!system_menu_handoff(request, autoload, &app.system_catalog)) {
                     path_copy(app.message,
-                              "DSi Menu is missing or invalid; check any NAND launcher.dsi.",
+                              app.system_catalog.launcher_scan_failed
+                                  ? app.system_catalog.status
+                                  : "DSi Menu is missing or invalid; check any NAND launcher.dsi.",
                               sizeof app.message);
                     app_panel(&app, PANEL_MESSAGE);
                 } else {

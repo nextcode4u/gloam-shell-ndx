@@ -1,9 +1,91 @@
 #include "paths.h"
 #include "system_routes.h"
 #include <assert.h>
+#include <dirent.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/stat.h>
+#include <unistd.h>
+static const char *watched_path, *stop_after_name;
+static DIR *watched_directory;
+static bool deny_open, deny_read, deny_close, stop_next, stale_errno;
+DIR *__real_opendir(const char *);
+struct dirent *__real_readdir(DIR *);
+int __real_closedir(DIR *);
+DIR *__wrap_opendir(const char *path)
+{
+    bool watched = watched_path && !strcmp(path, watched_path);
+    if (watched && deny_open) {
+        errno = EIO;
+        return NULL;
+    }
+    DIR *folder = __real_opendir(path);
+    if (watched) {
+        watched_directory = folder;
+        stop_next = false;
+    }
+    return folder;
+}
+struct dirent *__wrap_readdir(DIR *folder)
+{
+    if (folder == watched_directory && (deny_read || stop_next)) {
+        errno = EIO;
+        return NULL;
+    }
+    struct dirent *entry = __real_readdir(folder);
+    if (folder == watched_directory && entry && stop_after_name &&
+        !strcasecmp(entry->d_name, stop_after_name))
+        stop_next = true;
+    if (folder == watched_directory && entry && stale_errno)
+        errno = EIO;
+    return entry;
+}
+int __wrap_closedir(DIR *folder)
+{
+    bool fail = folder == watched_directory && deny_close;
+    if (folder == watched_directory)
+        watched_directory = NULL;
+    int result = __real_closedir(folder);
+    if (fail) {
+        errno = EIO;
+        return -1;
+    }
+    return result;
+}
+static void root_scan_failures(const char *root, bool patched)
+{
+    SystemCatalog catalog;
+    NativeTitle settings = {0x30015, 0x484E424A, true, 1};
+    unsigned char autoload[0x400];
+    uint32_t warmboot[8];
+    watched_path = root;
+    for (unsigned failure = 0; failure < (patched ? 4u : 3u); failure++) {
+        deny_open = failure == 0;
+        deny_read = failure == 1;
+        deny_close = failure == 2;
+        stop_after_name = failure == 3 ? "Launcher.dsi" : NULL;
+        system_catalog_scan(&catalog, root);
+        assert(
+            catalog.launcher.available); /* Installed metadata is still independently readable. */
+        assert(!system_menu_handoff(warmboot, autoload, &catalog));
+        assert(!system_title_handoff(warmboot, autoload, &settings, &catalog));
+        for (unsigned i = 0; i < sizeof autoload; i++)
+            assert(!autoload[i]);
+        for (unsigned i = 0; i < 8; i++)
+            assert(!warmboot[i]);
+    }
+    deny_open = deny_read = deny_close = false;
+    stop_after_name = NULL;
+    stale_errno = true;
+    system_catalog_scan(&catalog, root);
+    stale_errno = false;
+    watched_path = NULL;
+    assert(!catalog.launcher_scan_failed);
+    assert(system_menu_handoff(warmboot, autoload, &catalog));
+    assert(catalog.patched_launcher_present == patched);
+}
 static void be32(unsigned char *p, uint32_t value)
 {
     for (int i = 0; i < 4; i++)
@@ -90,6 +172,25 @@ static void put_le32(unsigned char *p, uint32_t value)
     for (unsigned i = 0; i < 4; i++)
         p[i] = value >> (8 * i);
 }
+static void content_scan_failures(const char *root)
+{
+    char content[PATH_CAP];
+    assert(path_join(content, root, "title/00030017/484e414a/content"));
+    watched_path = content;
+    SystemCatalog catalog;
+    for (unsigned failure = 0; failure < 4; failure++) {
+        deny_open = failure == 0;
+        deny_read = failure == 1;
+        deny_close = failure == 2;
+        stop_after_name = failure == 3 ? "00000002.app" : NULL;
+        system_catalog_scan(&catalog, root);
+        assert(!catalog.launcher.available && !catalog.launcher_scan_failed);
+    }
+    deny_open = deny_read = deny_close = false;
+    watched_path = stop_after_name = NULL;
+    system_catalog_scan(&catalog, root);
+    assert(catalog.launcher.available);
+}
 static void launcher_without_tmd(const char *root)
 {
     char nand[PATH_CAP], path[PATH_CAP], second[PATH_CAP];
@@ -115,6 +216,7 @@ static void launcher_without_tmd(const char *root)
     system_catalog_scan(&catalog, nand);
     assert(catalog.launcher.available && catalog.launcher.low == 0x484E414A &&
            catalog.launcher.boot_content == 2);
+    content_scan_failures(nand);
     /* An unusable TMD must not hide the validated executable. */
     assert(path_join(second, nand, "title/00030017/484e414a/content/title.tmd"));
     f = fopen(second, "wb");
@@ -129,6 +231,7 @@ static void launcher_without_tmd(const char *root)
     assert(f && fwrite(app, 1, sizeof app, f) == sizeof app && !fclose(f));
     system_catalog_scan(&catalog, nand);
     assert(catalog.patched_launcher_present && catalog.patched_launcher_valid);
+    root_scan_failures(nand, true);
     unsigned char autoload[0x400];
     assert(system_launcher_autoload(autoload, &catalog));
     const char *route = "nand:/launcher.dsi";
@@ -165,6 +268,7 @@ static void launcher_without_tmd(const char *root)
     assert(!remove(patched));
     system_catalog_scan(&catalog, nand);
     assert(!catalog.patched_launcher_present && system_launcher_autoload(autoload, &catalog));
+    root_scan_failures(nand, false);
     assert(system_menu_handoff(warmboot, autoload, &catalog));
     system_menu_request(expected);
     assert(!memcmp(warmboot, expected, sizeof expected));
@@ -233,6 +337,48 @@ static void launch_notice_test(void)
     assert(system_launch_notice_ready(&app));
 }
 
+static void group_scan_failures(const char *root)
+{
+    const char *groups[] = {"title/00030015", "title/00030017"};
+    const char *titles[] = {"484e4245", "484e4145"};
+    char folder[PATH_CAP];
+    SystemCatalog catalog;
+    for (unsigned group = 0; group < 2; group++) {
+        assert(path_join(folder, root, groups[group]));
+        watched_path = folder;
+        for (unsigned failure = 0; failure < 4; failure++) {
+            deny_open = failure == 0;
+            deny_read = failure == 1;
+            deny_close = failure == 2;
+            stop_after_name = failure == 3 ? titles[group] : NULL;
+            system_catalog_scan(&catalog, root);
+            assert(!catalog.launcher_scan_failed && catalog.ready);
+            assert(catalog.titles[0].available == (group == 1));
+            assert(catalog.launcher.available == (group == 0));
+            if (!group)
+                assert(!*catalog.content_paths[0]);
+        }
+        deny_open = deny_read = deny_close = false;
+        watched_path = stop_after_name = NULL;
+        system_catalog_scan(&catalog, root);
+        assert(catalog.titles[0].available && catalog.launcher.available);
+    }
+    /* Hitting a scan bound must not turn an incomplete group into a unique match. */
+    char name[80], path[PATH_CAP];
+    for (unsigned i = 0; i < 129; i++) {
+        snprintf(name, sizeof name, "title/00030015/%08x", i);
+        directory(root, name);
+    }
+    system_catalog_scan(&catalog, root);
+    assert(!catalog.titles[0].available && !*catalog.content_paths[0] &&
+           catalog.launcher.available);
+    for (unsigned i = 0; i < 129; i++) {
+        snprintf(name, sizeof name, "title/00030015/%08x", i);
+        assert(path_join(path, root, name) && !rmdir(path));
+    }
+    system_catalog_scan(&catalog, root);
+    assert(catalog.titles[0].available && catalog.launcher.available);
+}
 int main(int argc, char **argv)
 {
     launch_notice_test();
@@ -249,6 +395,7 @@ int main(int argc, char **argv)
     system_catalog_scan(&catalog, root);
     assert(catalog.attempted && catalog.ready && catalog.titles[0].available &&
            !catalog.titles[1].available);
+    group_scan_failures(root);
     assert(catalog.titles[0].boot_content == 7);
     char expected_content[PATH_CAP];
     assert(path_join(expected_content, root, "title/00030015/484e4245/content/00000007.app"));

@@ -105,7 +105,7 @@ typedef struct {
 typedef struct {
     NativeTitle titles[5];
     NativeTitle launcher;
-    bool patched_launcher_present, patched_launcher_valid;
+    bool patched_launcher_present, patched_launcher_valid, launcher_scan_failed;
     char content_paths[5][PATH_CAP];
     bool attempted, ready;
     int mount_error;

@@ -111,6 +111,7 @@ bool diagnostics_export(const App *app)
             app->audio.effects_volume, app->system_catalog.attempted, app->system_catalog.ready,
             app->system_catalog.mount_error, app->launch.route, app->launch.arguments.count,
             (unsigned long)sizeof *app);
+    fprintf(file, "nand_launcher_scan_failed=%d\n", app->system_catalog.launcher_scan_failed);
     report_line(file, "frontend_version", GLOAM_VERSION);
     report_line(file, "interface_language", app->interface_language);
     fprintf(file, "cold_size_profile=%d\n", FRONTEND_COLD_SIZE);

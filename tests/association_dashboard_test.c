@@ -496,6 +496,7 @@ int main(int argc, char **argv)
     assert(dashboard_relink(&restored, "system:settings", NULL));
     assert(!app_is_favorite(&restored, "system:settings"));
     assert(system_destination("system:menu") == 5 && system_destination("system:unknown") < 0);
+    app.system_catalog.launcher_scan_failed = true;
     assert(diagnostics_export(&app));
     char report[PATH_CAP];
     assert(path_preferences_file(report, root, "diagnostics.txt"));
@@ -504,6 +505,7 @@ int main(int argc, char **argv)
     assert(report_file && fread(report_text, 1, sizeof report_text - 1, report_file) > 0);
     fclose(report_file);
     assert(strstr(report_text, "build=host-validation") && strstr(report_text, "sizeof_app="));
+    assert(strstr(report_text, "nand_launcher_scan_failed=1\n"));
     assert(!strstr(report_text, root));
     app.storage_ready = false;
     assert(!diagnostics_export(&app));

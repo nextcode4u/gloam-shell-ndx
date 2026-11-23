@@ -3,11 +3,22 @@
 #include "paths.h"
 #include "system_routes.h"
 #include <dirent.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include <sys/stat.h>
+
+/* Only a complete enumeration can establish uniqueness or a missing patched menu. */
+static struct dirent *read_directory(DIR *folder, bool *complete)
+{
+    errno = 0;
+    struct dirent *entry = readdir(folder);
+    if (!entry && errno)
+        *complete = false;
+    return entry;
+}
 
 static uint32_t be32(const unsigned char *p)
 {
@@ -96,9 +107,10 @@ static bool launcher_content(const char *directory, uint32_t low, uint32_t *boot
         return false;
     struct dirent *entry;
     unsigned scanned = 0, matches = 0;
-    while ((entry = readdir(folder))) {
+    bool complete = true;
+    while ((entry = read_directory(folder, &complete))) {
         if (++scanned > 128) {
-            matches = 0; /* Never choose from an incomplete scan. */
+            complete = false;
             break;
         }
         if (strlen(entry->d_name) != 12 || strcmp(entry->d_name + 8, ".app") ||
@@ -111,8 +123,9 @@ static bool launcher_content(const char *directory, uint32_t low, uint32_t *boot
         if (++matches > 1)
             break;
     }
-    closedir(folder);
-    return matches == 1;
+    if (closedir(folder))
+        complete = false;
+    return complete && matches == 1;
 }
 /* The language patcher stores its menu outside the installed title tree.
  * Presence with invalid contents must block stock-menu fallback: switching
@@ -120,14 +133,16 @@ static bool launcher_content(const char *directory, uint32_t low, uint32_t *boot
 static void patched_launcher_scan(SystemCatalog *catalog, const char *root)
 {
     DIR *folder = opendir(root);
-    if (!folder)
+    if (!folder) {
+        catalog->launcher_scan_failed = true;
         return;
+    }
     struct dirent *entry;
     unsigned scanned = 0;
-    while ((entry = readdir(folder))) {
+    bool complete = true;
+    while ((entry = read_directory(folder, &complete))) {
         if (++scanned > 256) {
-            catalog->patched_launcher_present = true;
-            catalog->patched_launcher_valid = false;
+            complete = false;
             break;
         }
         if (strcasecmp(entry->d_name, "launcher.dsi"))
@@ -141,7 +156,11 @@ static void patched_launcher_scan(SystemCatalog *catalog, const char *root)
         catalog->patched_launcher_valid =
             path_join(path, root, entry->d_name) && launcher_app(path, 0);
     }
-    closedir(folder);
+    if (closedir(folder))
+        complete = false;
+    catalog->launcher_scan_failed = !complete;
+    if (!complete)
+        catalog->patched_launcher_valid = false;
 }
 void system_catalog_scan(SystemCatalog *catalog, const char *nand_root)
 {
@@ -163,10 +182,14 @@ void system_catalog_scan(SystemCatalog *catalog, const char *nand_root)
         DIR *folder = opendir(directory);
         if (!folder)
             continue;
-        readable++;
         struct dirent *entry;
         unsigned scanned = 0;
-        while ((entry = readdir(folder)) && scanned++ < 128) {
+        bool complete = true;
+        while ((entry = read_directory(folder, &complete))) {
+            if (scanned++ >= 128) {
+                complete = false;
+                break;
+            }
             if (strlen(entry->d_name) != 8)
                 continue;
             char *end;
@@ -196,7 +219,14 @@ void system_catalog_scan(SystemCatalog *catalog, const char *nand_root)
                     path_join(catalog->content_paths[i], title, content);
             }
         }
-        closedir(folder);
+        if (closedir(folder))
+            complete = false;
+        if (complete)
+            readable++;
+        else
+            for (unsigned i = 0; i < 6; i++)
+                if (categories[i] == groups[group])
+                    ambiguous[i] = true;
     }
     for (int i = 0; i < 5; i++)
         if (ambiguous[i]) {
@@ -207,9 +237,13 @@ void system_catalog_scan(SystemCatalog *catalog, const char *nand_root)
         catalog->launcher.available = false;
     catalog->ready = readable != 0;
     path_copy(catalog->status,
-              readable ? "Title is missing, ambiguous or has unsupported metadata. Detected-title "
-                         "warmboot is experimental; exit behavior depends on the boot environment."
-                       : "NAND title directories are unavailable. Native system apps cannot be "
-                         "launched from this environment.",
+              catalog->launcher_scan_failed
+                  ? "NAND root could not be fully checked. System-menu handoff is unavailable; "
+                    "check NAND access and retry."
+              : readable
+                  ? "Title is missing, ambiguous or has unsupported metadata. Detected-title "
+                    "warmboot is experimental; exit behavior depends on the boot environment."
+                  : "NAND title directories are unavailable. Native system apps cannot be "
+                    "launched from this environment.",
               sizeof catalog->status);
 }
