@@ -1,9 +1,8 @@
 # Current support
 
-This source tree includes the browser, settings and launch adapters described
-below. Check the [latest release notes](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest)
-for the features available in the published binary. Physical DSi validation covers one reported setup; broader checks continue. A listed route is not
-a guarantee for every title, boot method or application build.
+See [the latest release notes](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest)
+for published features. Hardware results below are user-reported. A listed route
+does not guarantee compatibility with every title, boot method or application build.
 
 | Area | Support and limits |
 | --- | --- |
@@ -30,6 +29,14 @@ display and audio afterward. Settings and menu return passed with the new notice
 and button-press workaround. The repeated-update-request crash was reported
 resolved. Exact game, cartridge and emulator names were not recorded, so these
 results apply to the tested samples rather than every supported application.
+
+Additional development-emulator checks cover Mario Kart DS (Europe, AMCP) and
+Tetris DS (Europe, ATRP): gameplay, cold readback of changed profile/options,
+and Quit back to Gloam. They exercised 256 KiB and 8 KiB saves respectively,
+using the official pinned nds-bootstrap build. Littlest Pet Shop (USA, KLPE)
+also passes launch, room interaction and cold reload of its private-only 16 KiB
+save volume. Its warm return stayed white in this setup, including with the
+published 1.2.0 control. These are not new hardware results.
 
 A subsequent user test on a separate Japanese DSi without the English language
 patch passed Return to DSi Menu, System Settings and installed Flipnote Studio
