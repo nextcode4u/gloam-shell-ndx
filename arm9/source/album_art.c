@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 static bool syncsafe(const unsigned char *p, uint32_t *value)
 {
@@ -60,9 +61,16 @@ bool embedded_album_art(Artwork *artwork, const char *path)
     bool valid = fread(header, 1, 10, file) == 10 && !memcmp(header, "ID3", 3) &&
                  (header[3] == 3 || header[3] == 4) && !(header[5] & 0x80) &&
                  syncsafe(header + 6, &size) && size >= 10 && size <= 1024 * 1024 + 65536;
+    /* A tag's declared length must fit the open file before allocating it.
+     * Large audio payloads remain valid and never require an EOF seek/read. */
+    struct stat metadata;
+    valid = valid && !fstat(fileno(file), &metadata) && S_ISREG(metadata.st_mode) &&
+            metadata.st_size >= (off_t)sizeof header &&
+            size <= (uint64_t)metadata.st_size - sizeof header;
     unsigned char *tag = valid ? malloc(size) : NULL;
-    valid = valid && tag && image_read_exact(file, tag, size);
-    fclose(file);
+    valid = valid && tag && image_read_exact(file, tag, size) && !ferror(file);
+    if (fclose(file))
+        valid = false;
     if (!valid) {
         free(tag);
         return false;

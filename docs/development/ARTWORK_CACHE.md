@@ -61,6 +61,10 @@ untrusted cache record. Maintenance exports decode and disk-hit counters.
 
 ## First-time decoding
 
+Embedded ID3 artwork checks the tag's declared size against open-file metadata
+before allocating. Short reads or close errors discard the tag before decoding.
+Audio payloads stay unread, including for music files larger than the tag limit.
+
 The native frame loop now resumes a single cooperative decoder context.
 Source reads are in 4 KiB chunks; switching occurs after a filesystem call
 returns, never inside libc/FatFs. PNG/JPEG decoder loops and final thumbnail

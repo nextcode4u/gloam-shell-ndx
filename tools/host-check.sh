@@ -175,7 +175,8 @@ PYFIXTURE
 ASAN_OPTIONS=detect_leaks=1 build/host/audio-grid-test "$fixture/audio-grid" "$fixture/audio-grid/media/music/loop.wav"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" tests/album_art_test.c -o build/host/album-art-test
+    "${model_objects[@]}" tests/album_art_test.c \
+    -Wl,--wrap=fopen,--wrap=fclose,--wrap=fstat,--wrap=fseek,--wrap=malloc,--wrap=fread,--wrap=__fread_chk -o build/host/album-art-test
 "$test_python" tools/make_artwork_test_fixtures.py "$fixture/album-art"
 ASAN_OPTIONS=detect_leaks=1 build/host/album-art-test "$fixture/album-art"
 
