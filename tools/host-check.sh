@@ -191,7 +191,8 @@ mkdir "$fixture/storage-state"
 ASAN_OPTIONS=detect_leaks=1 build/host/storage-state-test "$fixture/storage-state"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" "${ui_objects[@]}" tests/cheats_test.c -o build/host/cheats-test
+    "${model_objects[@]}" "${ui_objects[@]}" tests/cheats_test.c \
+    -Wl,--wrap=fopen,--wrap=fclose,--wrap=fread,--wrap=__fread_chk,--wrap=stat -o build/host/cheats-test
 "$test_python" tools/make_cheat_test_fixture.py "$fixture/cheats"
 ASAN_OPTIONS=detect_leaks=1 build/host/cheats-test "$fixture/cheats"
 

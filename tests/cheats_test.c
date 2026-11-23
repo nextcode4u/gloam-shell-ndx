@@ -4,9 +4,72 @@
 #include "paths.h"
 #include "renderer.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+static const char *watched_paths[2];
+static FILE *watched_streams[2];
+static size_t read_limit = (size_t)-1;
+static bool fail_presence, nonregular_presence, fail_close;
+FILE *__real_fopen(const char *, const char *);
+int __real_fclose(FILE *);
+int __real_stat(const char *, struct stat *);
+size_t __real_fread(void *, size_t, size_t, FILE *);
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+#endif
+FILE *__wrap_fopen(const char *path, const char *mode)
+{
+    FILE *file = __real_fopen(path, mode);
+    for (unsigned i = 0; i < 2; i++)
+        if (watched_paths[i] && !strcmp(path, watched_paths[i]) && *mode == 'r')
+            watched_streams[i] = file;
+    return file;
+}
+static bool watched(FILE *file)
+{
+    return file && (file == watched_streams[0] || file == watched_streams[1]);
+}
+size_t __wrap_fread(void *buffer, size_t size, size_t count, FILE *file)
+{
+    if (watched(file) && count > read_limit)
+        count = read_limit;
+    return __real_fread(buffer, size, count, file);
+}
+#ifdef __GLIBC__
+size_t __wrap___fread_chk(void *buffer, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    if (watched(file) && count > read_limit)
+        count = read_limit;
+    return __real___fread_chk(buffer, capacity, size, count, file);
+}
+#endif
+int __wrap_fclose(FILE *file)
+{
+    bool deny = watched(file) && fail_close;
+    for (unsigned i = 0; i < 2; i++)
+        if (file == watched_streams[i])
+            watched_streams[i] = NULL;
+    int result = __real_fclose(file);
+    if (deny) {
+        errno = EIO;
+        return EOF;
+    }
+    return result;
+}
+int __wrap_stat(const char *path, struct stat *status)
+{
+    if (fail_presence && watched_paths[0] && !strcmp(path, watched_paths[0])) {
+        errno = EIO;
+        return -1;
+    }
+    int result = __real_stat(path, status);
+    if (!result && nonregular_presence && watched_paths[0] && !strcmp(path, watched_paths[0]))
+        status->st_mode = (status->st_mode & ~S_IFMT) | S_IFDIR;
+    return result;
+}
 static CheatState state, restored;
 static App app;
 static uint16_t top[256 * 192], bottom[256 * 192];
@@ -22,6 +85,57 @@ static void write_file(const char *path, const void *data, size_t bytes)
 {
     FILE *f = fopen(path, "wb");
     assert(f && fwrite(data, 1, bytes, f) == bytes && !fclose(f));
+}
+static void ownership_failures(const char *root, const char *game, const char *shared,
+                               const unsigned char *payload, size_t bytes)
+{
+    char snapshot[PATH_CAP], wide[PATH_CAP], error[160];
+    assert(path_preferences_file(snapshot, root, "last-cheatData.bin"));
+    assert(path_join(wide, root, "_nds/nds-bootstrap/wideCheatData.bin"));
+    unsigned char foreign[4096], actual[4096];
+    size_t actual_bytes;
+    assert(bytes > 12 && bytes <= sizeof foreign);
+    memcpy(foreign, payload, bytes);
+    foreign[12] ^= 0xff; /* The first eight bytes still match our ownership snapshot. */
+    write_file(shared, foreign, bytes);
+    watched_paths[0] = shared;
+    watched_paths[1] = snapshot;
+    read_limit = 8;
+    assert(!cheats_backend_available(root, error));
+    assert(!cheats_backend_commit(root, game, error));
+    read_limit = (size_t)-1;
+    read_database(shared, actual, &actual_bytes);
+    assert(actual_bytes == bytes && !memcmp(actual, foreign, bytes));
+    read_database(snapshot, actual, &actual_bytes);
+    assert(actual_bytes == bytes && !memcmp(actual, payload, bytes));
+    write_file(shared, payload, bytes);
+    read_limit = 8;
+    assert(!cheats_backend_available(root, error)); /* Even our own prefix proves no ownership. */
+    read_limit = (size_t)-1;
+    fail_close = true;
+    assert(!cheats_backend_available(root, error));
+    fail_close = false;
+    assert(cheats_backend_available(root, error));
+    watched_paths[0] = wide;
+    watched_paths[1] = NULL;
+    const unsigned char empty[4] = {0, 0, 0, 0xcf};
+    for (unsigned i = 0; i < 3; i++) {
+        write_file(wide, i == 2 ? (const void *)"foreign wide" : empty, i == 2 ? 12 : i * 4);
+        if (i < 2)
+            assert(cheats_backend_available(root, error));
+        if (i) {
+            read_limit = 0;
+            assert(!cheats_backend_available(root, error));
+            assert(!cheats_backend_commit(root, game, error));
+            read_limit = (size_t)-1;
+            read_database(wide, actual, &actual_bytes);
+            assert(actual_bytes == (i == 2 ? 12 : 4));
+            assert(!memcmp(actual, i == 2 ? (const void *)"foreign wide" : empty, actual_bytes));
+        }
+    }
+    assert(!remove(wide));
+    watched_paths[0] = watched_paths[1] = NULL;
+    assert(cheats_backend_available(root, error));
 }
 int main(int argc, char **argv)
 {
@@ -53,6 +167,7 @@ int main(int argc, char **argv)
     assert(path_join(shared, root, "_nds/nds-bootstrap/cheatData.bin"));
     read_database(shared, after, &after_bytes);
     assert(after_bytes == bytes && !memcmp(payload, after, bytes));
+    ownership_failures(root, game, shared, payload, bytes);
     /* A payload changed by another owner is preserved and blocks this adapter. */
     write_file(shared, "foreign", 7);
     assert(!cheats_backend_available(root, error));
@@ -65,7 +180,18 @@ int main(int argc, char **argv)
      * Relaunching must not inherit codes from the preceding enabled launch. */
     cheats_toggle(&state, 2);
     cheats_toggle(&state, 3);
-    assert(cheats_save(&state, root) && cheats_backend_commit(root, game, error));
+    assert(cheats_save(&state, root));
+    watched_paths[0] = shared;
+    fail_presence = true;
+    assert(!cheats_backend_commit(root, game, error));
+    fail_presence = false;
+    nonregular_presence = true;
+    assert(!cheats_backend_commit(root, game, error));
+    nonregular_presence = false;
+    watched_paths[0] = NULL;
+    read_database(shared, after, &after_bytes);
+    assert(after_bytes == bytes && !memcmp(after, payload, bytes));
+    assert(cheats_backend_commit(root, game, error));
     read_database(shared, after, &after_bytes);
     assert(after_bytes == 4 && !memcmp(after, "\0\0\0\xCF", 4));
     assert(cheats_backend_available(root, error));

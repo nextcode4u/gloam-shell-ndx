@@ -36,7 +36,9 @@ The nds-bootstrap adapter prepares the selected action-replay words followed by
 the backend terminator, bounded to 16 KiB. It checks shared payload ownership
 before changing anything. Existing active foreign `cheatData.bin` or widescreen
 payloads stop this route with an explanation; they are not deleted. Our own
-previous payload is replaced only when it matches our exact ownership snapshot.
+previous payload is replaced only when its complete contents match our ownership
+snapshot. Uncertain file metadata or ownership stops the handoff; unreadable
+files are not treated as empty or absent.
 Previous and latest snapshots remain in the frontend's private directory.
 An empty selection clears only our own active codes to the terminator.
 

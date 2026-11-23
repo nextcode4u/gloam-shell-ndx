@@ -7,28 +7,28 @@
 #include <string.h>
 #include <sys/stat.h>
 
+/* Matching prefixes after short reads do not prove payload ownership. */
 static bool file_equal(const char *left, const char *right)
 {
     FILE *a = fopen(left, "rb"), *b = fopen(right, "rb");
-    bool equal = a && b;
-    size_t total = 0;
+    struct stat first_info, second_info;
+    bool equal = a && b && !fstat(fileno(a), &first_info) && !fstat(fileno(b), &second_info) &&
+                 S_ISREG(first_info.st_mode) && S_ISREG(second_info.st_mode) &&
+                 first_info.st_size >= 0 && first_info.st_size <= CHEAT_PAYLOAD_CAP &&
+                 first_info.st_size == second_info.st_size;
+    size_t remaining = equal ? (size_t)first_info.st_size : 0;
     unsigned char first[1024], second[1024];
-    while (equal) {
-        size_t x = fread(first, 1, sizeof first, a), y = fread(second, 1, sizeof second, b);
-        total += x;
-        if (total > CHEAT_PAYLOAD_CAP || x != y || memcmp(first, second, x)) {
-            equal = false;
-            break;
-        }
-        if (x < sizeof first) {
-            equal = !ferror(a) && !ferror(b);
-            break;
-        }
+    while (equal && remaining) {
+        size_t count = remaining < sizeof first ? remaining : sizeof first;
+        equal = fread(first, 1, count, a) == count && fread(second, 1, count, b) == count &&
+                !memcmp(first, second, count);
+        remaining -= count;
     }
-    if (a)
-        fclose(a);
-    if (b)
-        fclose(b);
+    equal = equal && fgetc(a) == EOF && fgetc(b) == EOF && !ferror(a) && !ferror(b);
+    if (a && fclose(a))
+        equal = false;
+    if (b && fclose(b))
+        equal = false;
     return equal;
 }
 static bool empty_payload(const char *path)
@@ -36,20 +36,28 @@ static bool empty_payload(const char *path)
     FILE *file = fopen(path, "rb");
     if (!file)
         return errno == ENOENT;
+    struct stat info;
+    bool valid = !fstat(fileno(file), &info) && S_ISREG(info.st_mode) &&
+                 (info.st_size == 0 || info.st_size == 4);
     unsigned char bytes[5];
-    size_t count = fread(bytes, 1, sizeof bytes, file);
-    bool valid = !ferror(file) && (count == 0 || (count == 4 && !memcmp(bytes, "\0\0\0\xCF", 4)));
-    fclose(file);
+    if (valid) {
+        size_t count = fread(bytes, 1, sizeof bytes, file);
+        valid = count == (size_t)info.st_size && !ferror(file) &&
+                (!count || !memcmp(bytes, "\0\0\0\xCF", 4));
+    }
+    if (fclose(file))
+        valid = false;
     return valid;
 }
+
 bool cheats_backend_available(const char *root, char error[160])
 {
     char shared[PATH_CAP], snapshot[PATH_CAP];
     if (!path_join(shared, root, "_nds/nds-bootstrap/wideCheatData.bin") ||
         !empty_payload(shared)) {
         snprintf(error, 160,
-                 "A foreign widescreen cheat payload is active. Disable it in its owning launcher; "
-                 "no shared payload was changed.");
+                 "Cannot verify the widescreen cheat payload. Check SD access or disable it in "
+                 "its owning launcher; no shared payload was changed.");
         return false;
     }
     if (!path_join(shared, root, "_nds/nds-bootstrap/cheatData.bin") ||
@@ -57,8 +65,8 @@ bool cheats_backend_available(const char *root, char error[160])
         return false;
     if (!empty_payload(shared) && !file_equal(shared, snapshot)) {
         snprintf(error, 160,
-                 "A foreign cheat payload is active. Disable it in its owning launcher; no shared "
-                 "payload was changed.");
+                 "Cannot verify the active cheat payload. Check SD access or disable it in its "
+                 "owning launcher; no shared payload was changed.");
         return false;
     }
     return true;
@@ -107,7 +115,12 @@ bool cheats_backend_commit(const char *root, const char *content, char error[160
             path_preferences_file(snapshot_next, root, "next-cheatData.bin") &&
             path_preferences_file(previous, root, "previous-cheatData.bin");
     struct stat status;
-    bool had_current = valid && !stat(shared, &status);
+    bool had_current = false;
+    if (valid) {
+        had_current = !stat(shared, &status);
+        if ((!had_current && errno != ENOENT) || (had_current && !S_ISREG(status.st_mode)))
+            valid = false;
+    }
     /* No selected codes and no active shared payload needs no work directory. */
     if (valid && bytes == 4 && !had_current) {
         free(payload);
