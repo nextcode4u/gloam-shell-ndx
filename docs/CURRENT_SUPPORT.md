@@ -12,7 +12,7 @@ does not guarantee compatibility with every title, boot method or application bu
 | Homebrew | Native DSi-SD handoff and argv; return requires a compatible application. Direct ROM associations, saves and supported return routes were reported working for the tested homebrew/emulators on the hardware setup below. Flashcart/DLDI and DS-mode behavior are not general compatibility claims. |
 | Retail DS | nds-bootstrap adapter, options, saves and cheats. The unmodified official backend has reached retail gameplay, its menu, Quit, warm relaunch and cold save readback in a development emulator composition. Retail launch, gameplay, save, cold save reload and Quit/return were also reported working on the hardware setup below; broader title and console compatibility remain unverified. The packaged official binary contains no private experimental patches. |
 | Title cheats | Revision-matched R4 database selection, exclusive groups and owned nds-bootstrap payloads. Super Mario 64 DS (USA) passes live effects, cold selection persistence and disable/relaunch controls in development emulation. Physical-device cheat effects and broader code/title coverage remain unverified; see [title cheats](guides/CHEATS.md). |
-| SD DSiWare | Separate nds-bootstrap adapter with public/private save preparation and short aliases. Broad title, private-save and return compatibility remain open. Tested public-save and private-only samples pass cold readback. In-game menu/return remains timing-sensitive; Littlest Pet Shop Quit still needs hardware confirmation. |
+| SD DSiWare | Separate nds-bootstrap adapter with public/private save preparation and short aliases. Broad title, private-save and return compatibility remain open. Tested public-save and private-only samples pass cold readback. In-game menu/return remains title-dependent. Littlest Pet Shop Quit fails in the tested emulator and hardware setups; investigation is deferred. |
 | Installed DSiWare | Read-only NAND discovery, localized banners and native title requests; needs an appropriate boot environment. Launch and save persistence across restart were reported working for the tested installed title on the hardware setup below. No installation or NAND save manipulation. |
 | System apps | Native Settings, Camera, Sound, PictoChat and Download Play requests, plus system-menu return. Settings carries its discovered title request through the installed DSi Menu; the other apps retain direct Unlaunch title boot. Menu discovery can fall back to one structurally valid, title-ID-matched Launcher executable when its TMD is unavailable or modified. Both Settings and system-menu return prefer a validated `nand:/launcher.dsi` when present (DSi Language Patcher); an invalid patched menu blocks stock fallback. Settings and patched-menu return have worked on a Japanese DSi LL with Unlaunch and a language-patched menu. Both can show a blank white screen until a button is pressed; this matches the reported Unlaunch launcher-patch error wait described below. Patched-menu return uses only the explicit Unlaunch path, without a second numeric menu request. Available titles, warm launches and wireless behavior depend on the environment. |
 | Slot-1 | Cartridge banner/title discovery and external helper launch. The tested physical cartridge passed icon/title display, launch and save-load checks on the hardware setup below. Boot-chain SCFG/key availability can limit icons; broader cartridge compatibility remains unverified. |
@@ -40,8 +40,10 @@ published 1.2.0 control. These are not new hardware results.
 
 After the 2026-11-23 SD update (`4fc28ce`), the user reported the suggested
 language/help, retail save/reload/return and private-save checks working on hardware.
-Littlest Pet Shop Quit was explicitly not tested. Console/boot details and numeric
-performance measurements were not supplied for this run.
+A follow-up confirmed Littlest Pet Shop Quit also fails on hardware, while launch
+and private-save reload work. Return investigation is deferred; the exact cause
+is not established. Console/boot details and numeric performance measurements
+were not supplied for this run.
 
 A subsequent user test on a separate Japanese DSi without the English language
 patch passed Return to DSi Menu, System Settings and installed Flipnote Studio
