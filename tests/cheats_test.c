@@ -15,6 +15,15 @@ static FILE *watched_streams[2];
 static size_t read_limit = (size_t)-1;
 static int lines_left = -1;
 static bool fail_presence, nonregular_presence, fail_close, fail_open, fail_metadata;
+static bool measure_database_seeks;
+static unsigned database_end_seeks;
+int __real_fseek(FILE *, long, int);
+int __wrap_fseek(FILE *file, long offset, int whence)
+{
+    if (measure_database_seeks && whence == SEEK_END)
+        database_end_seeks++;
+    return __real_fseek(file, offset, whence);
+}
 int __real_fstat(int, struct stat *);
 FILE *__real_fopen(const char *, const char *);
 int __real_fclose(FILE *);
@@ -284,7 +293,19 @@ int main(int argc, char **argv)
     unsigned char original[4096], after[4096], payload[CHEAT_PAYLOAD_CAP];
     size_t db_bytes, after_bytes, bytes;
     read_database(db, original, &db_bytes);
+    measure_database_seeks = true;
     assert(cheats_load(&state, root, game) && state.count == 4);
+    measure_database_seeks = false;
+    assert(!database_end_seeks);
+    /* A metadata or close failure must not publish a parsed cheat record. */
+    watched_paths[0] = db;
+    fail_metadata = true;
+    assert(!cheats_load(&restored, root, game) && !restored.record && !restored.count);
+    fail_metadata = false;
+    fail_close = true;
+    assert(!cheats_load(&restored, root, game) && !restored.record && !restored.count);
+    fail_close = false;
+    watched_paths[0] = NULL;
     assert(state.entries[0].folder && state.entries[0].exclusive);
     assert(state.entries[1].group == 0 && !state.entries[3].selected);
     cheats_toggle(&state, 1);

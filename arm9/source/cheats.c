@@ -6,6 +6,7 @@
 #include "paths.h"
 #include <errno.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -239,9 +240,11 @@ bool cheats_load(CheatState *state, const char *root, const char *content)
         return false;
     }
     unsigned char signature[12], index[16], next[16];
+    struct stat metadata;
     bool valid = fread(signature, 1, 12, db) == 12 && !memcmp(signature, "R4 CheatCode", 12) &&
-                 !fseek(db, 0, SEEK_END);
-    long file_bytes = valid ? ftell(db) : -1;
+                 !fstat(fileno(db), &metadata) && S_ISREG(metadata.st_mode) &&
+                 metadata.st_size >= 0x120 && (uint64_t)metadata.st_size <= LONG_MAX;
+    long file_bytes = valid ? (long)metadata.st_size : -1;
     valid = valid && file_bytes >= 0x120 && !fseek(db, 0x100, SEEK_SET) &&
             fread(index, 1, 16, db) == 16;
     uint64_t start = 0, bytes = 0;
@@ -270,7 +273,8 @@ bool cheats_load(CheatState *state, const char *root, const char *content)
         valid = state->record && !fseek(db, (long)start, SEEK_SET) &&
                 fread(state->record, 1, (size_t)bytes, db) == bytes && parse_record(state);
     }
-    fclose(db);
+    if (fclose(db))
+        valid = false;
     if (!valid) {
         free(state->record);
         state->record = NULL;
