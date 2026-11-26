@@ -31,23 +31,32 @@ static bool file_equal(const char *left, const char *right)
         equal = false;
     return equal;
 }
-static bool empty_payload(const char *path)
+/* Separate an empty payload from a failed inspection before skipping a write. */
+static bool inspect_payload(const char *path, bool *empty)
 {
+    *empty = false;
     FILE *file = fopen(path, "rb");
-    if (!file)
-        return errno == ENOENT;
+    if (!file) {
+        *empty = errno == ENOENT;
+        return *empty;
+    }
     struct stat info;
-    bool valid = !fstat(fileno(file), &info) && S_ISREG(info.st_mode) &&
-                 (info.st_size == 0 || info.st_size == 4);
+    bool valid = !fstat(fileno(file), &info) && S_ISREG(info.st_mode) && info.st_size >= 0 &&
+                 info.st_size <= CHEAT_PAYLOAD_CAP;
     unsigned char bytes[5];
-    if (valid) {
+    if (valid && (info.st_size == 0 || info.st_size == 4)) {
         size_t count = fread(bytes, 1, sizeof bytes, file);
-        valid = count == (size_t)info.st_size && !ferror(file) &&
-                (!count || !memcmp(bytes, "\0\0\0\xCF", 4));
+        valid = count == (size_t)info.st_size && !ferror(file);
+        *empty = valid && (!count || !memcmp(bytes, "\0\0\0\xCF", 4));
     }
     if (fclose(file))
         valid = false;
     return valid;
+}
+static bool empty_payload(const char *path)
+{
+    bool empty;
+    return inspect_payload(path, &empty) && empty;
 }
 
 bool cheats_backend_available(const char *root, char error[160])
@@ -121,10 +130,20 @@ bool cheats_backend_commit(const char *root, const char *content, char error[160
         if ((!had_current && errno != ENOENT) || (had_current && !S_ISREG(status.st_mode)))
             valid = false;
     }
-    /* No selected codes and no active shared payload needs no work directory. */
-    if (valid && bytes == 4 && !had_current) {
-        free(payload);
-        return true;
+    /* An already empty payload needs no SD writes or ownership rotation. */
+    if (valid && bytes == 4) {
+        bool empty = !had_current;
+        if (had_current)
+            valid = inspect_payload(shared, &empty);
+        if (valid && empty) {
+            bool snapshot_empty;
+            valid = inspect_payload(snapshot, &snapshot_empty);
+            if (valid && snapshot_empty) {
+                free(payload);
+                return true;
+            }
+            /* Clear a stale active ownership record once, using the normal transaction. */
+        }
     }
     if (valid && mkdir(directory, 0777) && (stat(directory, &status) || !S_ISDIR(status.st_mode)))
         valid = false;

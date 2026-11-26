@@ -17,6 +17,16 @@ static int lines_left = -1;
 static bool fail_presence, nonregular_presence, fail_close, fail_open, fail_metadata;
 static bool measure_database_seeks;
 static unsigned database_end_seeks;
+static bool measure_payload_writes;
+static unsigned payload_writes, payload_renames;
+static int reads_before_open_failure = -1;
+int __real_rename(const char *, const char *);
+int __wrap_rename(const char *from, const char *to)
+{
+    if (measure_payload_writes)
+        payload_renames++;
+    return __real_rename(from, to);
+}
 int __real_fseek(FILE *, long, int);
 int __wrap_fseek(FILE *file, long offset, int whence)
 {
@@ -34,6 +44,15 @@ size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
 #endif
 FILE *__wrap_fopen(const char *path, const char *mode)
 {
+    if (measure_payload_writes && *mode != 'r')
+        payload_writes++;
+    if (watched_paths[0] && !strcmp(path, watched_paths[0]) && *mode == 'r' &&
+        reads_before_open_failure >= 0) {
+        if (!reads_before_open_failure--) {
+            errno = EIO;
+            return NULL;
+        }
+    }
     if (fail_open && watched_paths[0] && !strcmp(path, watched_paths[0]) && *mode == 'r') {
         errno = EIO;
         return NULL;
@@ -354,6 +373,35 @@ int main(int argc, char **argv)
     read_database(shared, after, &after_bytes);
     assert(after_bytes == 4 && !memcmp(after, "\0\0\0\xCF", 4));
     assert(cheats_backend_available(root, error));
+    /* Disabled cheats must not rewrite the same empty payload on each launch. */
+    measure_payload_writes = true;
+    assert(cheats_backend_commit(root, game, error));
+    measure_payload_writes = false;
+    assert(!payload_writes && !payload_renames);
+    watched_paths[0] = shared;
+    reads_before_open_failure = 1; /* Initial ownership check succeeds; recheck fails. */
+    measure_payload_writes = true;
+    assert(!cheats_backend_commit(root, game, error));
+    measure_payload_writes = false;
+    reads_before_open_failure = -1;
+    watched_paths[0] = NULL;
+    assert(!payload_writes && !payload_renames);
+    write_file(shared, "", 0);
+    measure_payload_writes = true;
+    assert(cheats_backend_commit(root, game, error));
+    measure_payload_writes = false;
+    assert(!payload_writes && !payload_renames);
+    /* An externally cleared payload must not leave old active ownership behind. */
+    char snapshot[PATH_CAP];
+    assert(path_preferences_file(snapshot, root, "last-cheatData.bin"));
+    write_file(snapshot, payload, bytes);
+    assert(cheats_backend_commit(root, game, error));
+    read_database(snapshot, after, &after_bytes);
+    assert(after_bytes == 4 && !memcmp(after, "\0\0\0\xCF", 4));
+    measure_payload_writes = true;
+    assert(cheats_backend_commit(root, game, error));
+    measure_payload_writes = false;
+    assert(!payload_writes && !payload_renames);
     cheats_toggle(&state, 2);
     cheats_toggle(&state, 3);
     assert(cheats_save(&state, root) && cheats_backend_commit(root, game, error));
