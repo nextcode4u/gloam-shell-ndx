@@ -33,11 +33,13 @@ static bool validate_binary(const char *path, bool identified_homebrew, char err
         return false;
     }
     unsigned char header[0x200];
-    bool valid =
-        fread(header, 1, sizeof header, file) == sizeof header && !fseek(file, 0, SEEK_END);
-    long size = valid ? ftell(file) : -1;
+    struct stat info;
+    bool valid = fread(header, 1, sizeof header, file) == sizeof header &&
+                 !fstat(fileno(file), &info) && S_ISREG(info.st_mode) && info.st_size >= 0 &&
+                 (uint64_t)info.st_size <= UINT32_MAX;
+    uint32_t size = valid ? (uint32_t)info.st_size : 0;
     fclose(file);
-    if (!valid || size < 0) {
+    if (!valid) {
         snprintf(error, 160, "Application has a truncated NDS header.");
         return false;
     }

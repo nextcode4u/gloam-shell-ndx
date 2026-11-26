@@ -28,6 +28,10 @@ Except where a path is stated, filenames in the table are under `arm9/source/`
 or `arm9/include/`. Rendering consumes state: it does not access the filesystem,
 change settings or perform hardware calls. The frame loop owns those operations.
 
+Launch preflight also takes binary sizes from open-file metadata. Unknown-ID
+homebrew detection reads ARM9 sequentially, retaining overlap bytes in memory
+so DLDI records spanning blocks remain detectable without backwards seeks.
+
 Banner icons read size metadata from the open file, without seeking to EOF.
 `icons.c` loads static and animated banner data in one bounded pass; corrupt or
 truncated animation retains the static icon. Title names and installed-title

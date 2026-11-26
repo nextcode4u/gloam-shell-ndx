@@ -94,7 +94,10 @@ int main(int argc, char **argv)
     const char *root = argv[1];
     app_init(&app, root, true, true);
     binary(root, "####", 0x02000000, false);
+    count_shortcut_seeks = true;
     assert(launch_prepare(&app, path, &plan, error));
+    count_shortcut_seeks = false;
+    assert(!shortcut_seeks); /* Binary size validation uses open-file metadata. */
     assert(plan.arguments.count == 1);
     shortcut(root, "# A comment\n/probe.nds --flag \"two words\" ';literal'\n");
     assert(launch_prepare(&app, path, &plan, error));

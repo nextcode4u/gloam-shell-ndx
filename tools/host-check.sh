@@ -314,7 +314,8 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
 ASAN_OPTIONS=detect_leaks=1 build/host/entry-sort-test
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" tests/homebrew_test.c -o build/host/homebrew-test
+    "${model_objects[@]}" tests/homebrew_test.c \
+    -Wl,--wrap=fseek,--wrap=fread,--wrap=__fread_chk -o build/host/homebrew-test
 mkdir "$fixture/custom-homebrew"
 ASAN_OPTIONS=detect_leaks=1 build/host/homebrew-test "$fixture/custom-homebrew"
 

@@ -13,6 +13,37 @@ static LaunchPlan plan;
 static unsigned char binary[0x2400];
 static char path[PATH_CAP];
 static const unsigned dldi = 0x200 + 0x3FC; /* Cross a scan-chunk boundary. */
+static bool measure_scan;
+static unsigned scan_seeks, end_seeks, backward_seeks;
+static size_t scan_bytes;
+int __real_fseek(FILE *, long, int);
+int __wrap_fseek(FILE *file, long offset, int whence)
+{
+    if (measure_scan) {
+        scan_seeks++;
+        end_seeks += whence == SEEK_END;
+        backward_seeks += whence == SEEK_SET && offset < ftell(file);
+    }
+    return __real_fseek(file, offset, whence);
+}
+size_t __real_fread(void *, size_t, size_t, FILE *);
+size_t __wrap_fread(void *data, size_t size, size_t count, FILE *file)
+{
+    size_t result = __real_fread(data, size, count, file);
+    if (measure_scan)
+        scan_bytes += result * size;
+    return result;
+}
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+size_t __wrap___fread_chk(void *data, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    size_t result = __real___fread_chk(data, capacity, size, count, file);
+    if (measure_scan)
+        scan_bytes += result * size;
+    return result;
+}
+#endif
 static void word(unsigned offset, uint32_t value)
 {
     for (unsigned i = 0; i < 4; i++)
@@ -51,6 +82,47 @@ static void directory(const char *root, const char *relative)
     char name[PATH_CAP];
     assert(path_join(name, root, relative));
     assert(!mkdir(name, 0777) || errno == EEXIST);
+}
+static void forward_scan_tests(void)
+{
+    /* A sparse 32 MiB container keeps trailing content outside the ARM9 scan.
+     * Include a partial last chunk and drivers crossing two chunk boundaries. */
+    const unsigned length = 0x300080;
+    const unsigned positions[] = {0x3FC, 0x7FC, length - 256};
+    for (unsigned variant = 0; variant <= sizeof positions / sizeof *positions; variant++) {
+        fixture();
+        unsigned char driver[128];
+        memcpy(driver, binary + dldi, sizeof driver);
+        memset(binary + dldi, 0, sizeof driver);
+        word(0x2C, length);
+        word(0x30, 0x200 + length);
+        write_binary();
+        FILE *file = fopen(path, "r+b");
+        assert(file && !fseek(file, 32 * 1024 * 1024 - 1, SEEK_SET));
+        assert(fputc(0, file) == 0);
+        bool has_driver = variant < sizeof positions / sizeof *positions;
+        if (has_driver) {
+            uint32_t address = 0x02000000 + positions[variant];
+            memcpy(binary + dldi, driver, sizeof driver);
+            word(dldi + 0x40, address);
+            word(dldi + 0x44, address + 0x88);
+            for (unsigned i = 0x68; i < 0x80; i += 4)
+                word(dldi + i, address + 0x80);
+            assert(!fseek(file, 0x200 + positions[variant], SEEK_SET));
+            assert(fwrite(binary + dldi, 1, sizeof driver, file) == sizeof driver);
+        }
+        assert(!fclose(file));
+        scan_seeks = end_seeks = backward_seeks = 0;
+        scan_bytes = 0;
+        measure_scan = true;
+        bool found = launch_is_homebrew_file(path);
+        measure_scan = false;
+        assert(found == has_driver);
+        assert(scan_seeks == 1 && !end_seeks && !backward_seeks);
+        assert(scan_bytes <= 0x200 + length);
+        if (!has_driver)
+            assert(scan_bytes == 0x200 + length);
+    }
 }
 static void slot1_tests(const char *root)
 {
@@ -114,6 +186,8 @@ int main(int argc, char **argv)
     char error[160];
     assert(launch_prepare(&app, path, &plan, error));
     assert(plan.route == LAUNCH_DIRECT && !strcmp(plan.application, path));
+    forward_scan_tests();
+    fixture();
     binary[dldi + 12] = 2;
     write_binary();
     assert(!launch_is_homebrew_file(path));
@@ -167,6 +241,7 @@ int main(int argc, char **argv)
     slot1_tests(argv[1]);
     puts("PASS: Slot-1 helper discovery/precedence, system selection, missing/invalid helper "
          "rejection; custom-ID homebrew, linked DLDI chunk overlap, "
+         "forward-only bounded ARM9 reads without EOF/backward seeks; "
          "version/allocation/pointer/binary "
          "bounds and known retail routing");
 }
