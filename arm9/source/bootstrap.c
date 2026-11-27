@@ -323,7 +323,7 @@ static bool valid_ini_text(FILE *file)
             if (block[i] < 0x20 && block[i] != '\t' && block[i] != '\r' && block[i] != '\n')
                 return false;
     }
-    return !ferror(file) && fseek(file, 0, SEEK_SET) == 0;
+    return feof(file) && !ferror(file) && fseek(file, 0, SEEK_SET) == 0;
 }
 static bool owned_key(const char *key, const LaunchPlan *plan)
 {
@@ -456,8 +456,9 @@ bool bootstrap_commit(const char *root, const LaunchPlan *plan, char error[160])
         line_ended = line[strlen(line) - 1] == '\n';
     }
     if (original) {
-        valid = valid && !ferror(original);
-        fclose(original);
+        valid = valid && feof(original) && !ferror(original);
+        if (fclose(original))
+            valid = false;
     }
     /* Reuse the final backend section when possible. Empty managed sections
      * are omitted above so repeated launches do not grow the shared INI. */
@@ -515,6 +516,11 @@ bool bootstrap_commit(const char *root, const LaunchPlan *plan, char error[160])
     }
     struct stat status;
     bool had_current = !stat(current, &status);
+    /* An access failure is not evidence that the shared INI disappeared. */
+    if ((!had_current && errno != ENOENT) || (had_current && !S_ISREG(status.st_mode))) {
+        remove(temporary);
+        goto failure;
+    }
     if (had_current) {
         if (remove(backup) && errno != ENOENT)
             goto failure;

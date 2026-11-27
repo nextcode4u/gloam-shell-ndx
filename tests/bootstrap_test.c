@@ -12,16 +12,69 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-static const char *probe_save;
+static const char *probe_path;
 static unsigned probe_checks, fail_check;
+static bool probe_nonregular;
+static const char *watched_ini;
+static FILE *ini_stream;
+static bool deny_ini_close, deny_ini_read, deny_ini_line;
+FILE *__real_fopen(const char *, const char *);
+int __real_fclose(FILE *);
+size_t __real_fread(void *, size_t, size_t, FILE *);
+char *__real_fgets(char *, int, FILE *);
+FILE *__wrap_fopen(const char *path, const char *mode)
+{
+    FILE *file = __real_fopen(path, mode);
+    if (watched_ini && !strcmp(path, watched_ini) && *mode == 'r')
+        ini_stream = file;
+    return file;
+}
+int __wrap_fclose(FILE *file)
+{
+    bool deny = file == ini_stream && deny_ini_close;
+    if (file == ini_stream)
+        ini_stream = NULL;
+    int result = __real_fclose(file);
+    if (deny) {
+        errno = EIO;
+        return EOF;
+    }
+    return result;
+}
+size_t __wrap_fread(void *buffer, size_t size, size_t count, FILE *file)
+{
+    return file == ini_stream && deny_ini_read ? 0 : __real_fread(buffer, size, count, file);
+}
+char *__wrap_fgets(char *text, int capacity, FILE *file)
+{
+    return file == ini_stream && deny_ini_line ? NULL : __real_fgets(text, capacity, file);
+}
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+size_t __wrap___fread_chk(void *buffer, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    return file == ini_stream && deny_ini_read
+               ? 0
+               : __real___fread_chk(buffer, capacity, size, count, file);
+}
+char *__real___fgets_chk(char *, size_t, int, FILE *);
+char *__wrap___fgets_chk(char *text, size_t capacity, int count, FILE *file)
+{
+    return file == ini_stream && deny_ini_line ? NULL
+                                               : __real___fgets_chk(text, capacity, count, file);
+}
+#endif
 int __real_stat(const char *, struct stat *);
 int __wrap_stat(const char *path, struct stat *status)
 {
-    if (probe_save && !strcmp(path, probe_save) && ++probe_checks == fail_check) {
+    if (probe_path && !strcmp(path, probe_path) && ++probe_checks == fail_check) {
         errno = EIO;
         return -1;
     }
-    return __real_stat(path, status);
+    int result = __real_stat(path, status);
+    if (!result && probe_path && !strcmp(path, probe_path) && probe_nonregular)
+        status->st_mode = (status->st_mode & ~S_IFMT) | S_IFDIR;
+    return result;
 }
 static App app;
 static LaunchPlan plan;
@@ -55,6 +108,36 @@ static void read_text(const char *path, char output[4096])
     assert(!ferror(f));
     fclose(f);
 }
+static void ini_publish_failures(const char *root, const char *ini, const LaunchPlan *launch)
+{
+    char previous[PATH_CAP], expected[4096], actual[4096], error[160];
+    assert(path_preferences_file(previous, root, "bootstrap-previous.ini"));
+    read_text(ini, expected);
+    const char *saved_backup = "Keep the previous backend configuration\n";
+    write_file(previous, saved_backup, strlen(saved_backup));
+    for (unsigned failure = 0; failure < 5; failure++) {
+        watched_ini = ini;
+        deny_ini_close = failure == 0;
+        deny_ini_read = failure == 1;
+        deny_ini_line = failure == 2;
+        probe_path = failure >= 3 ? ini : NULL;
+        probe_checks = 0;
+        fail_check = failure == 3 ? 1 : 0;
+        probe_nonregular = failure == 4;
+        assert(!bootstrap_commit(root, launch, error));
+        assert(*error);
+        watched_ini = probe_path = NULL;
+        deny_ini_close = deny_ini_read = deny_ini_line = probe_nonregular = false;
+        fail_check = 0;
+        read_text(ini, actual);
+        assert(!strcmp(expected, actual));
+        read_text(previous, actual);
+        assert(!strcmp(saved_backup, actual));
+    }
+    assert(bootstrap_commit(root, launch, error));
+    read_text(previous, actual);
+    assert(!strcmp(expected, actual));
+}
 static void save_preflight_failures(const char *root, const char *game)
 {
     const char *names[] = {"roms/Game with spaces.sav", "roms/Game with spaces.nds.sav",
@@ -65,22 +148,22 @@ static void save_preflight_failures(const char *root, const char *game)
         assert(path_join(paths[i], root, names[i]));
     for (unsigned variant = 0; variant < 3; variant++) {
         /* Every recognized location must be inspected, even if it usually does not exist. */
-        probe_save = paths[variant];
+        probe_path = paths[variant];
         probe_checks = 0;
         fail_check = 1;
         error[0] = 0;
         assert(!launch_prepare(&app, game, &plan, error) && strstr(error, "inspect"));
-        probe_save = NULL;
+        probe_path = NULL;
         FILE *file = fopen(paths[variant], "wb");
         assert(file && fputc(0x37, file) == 0x37 && !fseek(file, 8191, SEEK_SET));
         assert(fputc(0xA5, file) == 0xA5 && !fclose(file));
         for (unsigned failure = 1; failure <= 2; failure++) {
-            probe_save = paths[variant];
+            probe_path = paths[variant];
             probe_checks = 0;
             fail_check = failure;
             error[0] = 0;
             assert(!launch_prepare(&app, game, &plan, error) && strstr(error, "inspect"));
-            probe_save = NULL;
+            probe_path = NULL;
             file = fopen(paths[variant], "rb");
             assert(file && fgetc(file) == 0x37 && !fseek(file, 8191, SEEK_SET));
             assert(fgetc(file) == 0xA5 && !fclose(file));
@@ -93,12 +176,12 @@ static void save_preflight_failures(const char *root, const char *game)
     options.values[GAME_SLOT] = 1;
     assert(game_options_write(root, game, &options));
     assert(path_join(directory, root, "roms/saves/Game with spaces.sav1"));
-    probe_save = directory;
+    probe_path = directory;
     probe_checks = 0;
     fail_check = 1;
     error[0] = 0;
     assert(!launch_prepare(&app, game, &plan, error) && strstr(error, "inspect"));
-    probe_save = NULL;
+    probe_path = NULL;
     assert(!mkdir(directory, 0777));
     error[0] = 0;
     assert(!launch_prepare(&app, game, &plan, error) && strstr(error, "directory"));
@@ -155,11 +238,11 @@ int main(int argc, char **argv)
     write_file(ini, old, strlen(old));
     /* Neither the initial nor final absence check may treat I/O errors as ENOENT. */
     for (unsigned failure = 2; failure <= 3; failure++) {
-        probe_save = plan.save;
+        probe_path = plan.save;
         probe_checks = 0;
         fail_check = failure;
         assert(!bootstrap_commit(root, &plan, error));
-        probe_save = NULL;
+        probe_path = NULL;
         assert(stat(plan.save, &status) && errno == ENOENT);
     }
     assert(bootstrap_commit(root, &plan, error));
@@ -175,6 +258,7 @@ int main(int argc, char **argv)
     assert(strstr(text, "[OTHER]\nNDS_PATH=other") &&
            strstr(text, "NDS_PATH=sd:/roms/Game with spaces.nds") &&
            strstr(text, "QUIT_PATH=sd:/BOOT.NDS") && !strstr(text, "stale.app"));
+    ini_publish_failures(root, ini, &plan);
     /* Relaunching must not accumulate empty sections or blank lines. */
     char stable_ini[sizeof text];
     strcpy(stable_ini, text);
@@ -232,11 +316,11 @@ int main(int argc, char **argv)
     assert(strstr(text, "MANUAL_PATH=sd:/roms/Game with spaces.txt\n"));
     char before_manual_failure[sizeof text];
     strcpy(before_manual_failure, text);
-    probe_save = manual;
+    probe_path = manual;
     probe_checks = 0;
     fail_check = 1;
     assert(!bootstrap_commit(root, &plan, error) && strstr(error, "manual"));
-    probe_save = NULL;
+    probe_path = NULL;
     read_text(ini, text);
     assert(!strcmp(text, before_manual_failure));
     write_file(manual, "", 0);

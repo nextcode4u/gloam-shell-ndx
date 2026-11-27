@@ -87,6 +87,10 @@ ScummVM's optional startup config is read completely before adding discovery
 arguments. Missing configs permit ordinary startup; unreadable, truncated or
 invalid configs stop preparation without changing the launch plan.
 
+`bootstrap.c` preserves shared INI settings only after both input passes reach
+EOF and close successfully. Replacement requires a regular current file or
+confirmed absence; inspection failures preserve the current INI and its backup.
+
 `audio.c` checks open-file metadata before reading WAVs, avoiding EOF seeks on
 FAT. PCM reads, chunk boundaries and close results must pass before publishing
 a new sample buffer; a failed load preserves the caller's clip.

@@ -181,7 +181,8 @@ cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
 ASAN_OPTIONS=detect_leaks=1 build/host/album-art-test "$fixture/album-art"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" "${ui_objects[@]}" tests/bootstrap_test.c -Wl,--wrap=stat -o build/host/bootstrap-test
+    "${model_objects[@]}" "${ui_objects[@]}" tests/bootstrap_test.c \
+    -Wl,--wrap=stat,--wrap=fopen,--wrap=fclose,--wrap=fread,--wrap=__fread_chk,--wrap=fgets,--wrap=__fgets_chk -o build/host/bootstrap-test
 mkdir "$fixture/bootstrap"
 ASAN_OPTIONS=detect_leaks=1 build/host/bootstrap-test "$fixture/bootstrap"
 
