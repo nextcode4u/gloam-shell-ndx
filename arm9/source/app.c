@@ -529,6 +529,8 @@ void app_open(App *app)
 
 void app_launch_file(App *app, const char *path)
 {
+    /* A new request replaces an older one, even if validation fails or opens a chooser. */
+    app->launch_requested = app->startup_due = false;
     if (!path_is_within_root(path, app->root)) {
         app_show_message(app, "Launch target is outside the SD card.");
         return;

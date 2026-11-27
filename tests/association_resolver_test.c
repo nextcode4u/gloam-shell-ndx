@@ -240,6 +240,43 @@ static void assignment_read_failures(const char *root)
         assert(!remove(content));
     }
 }
+static void pending_launch_replacement(const char *root)
+{
+    char reader[PATH_CAP], missing[PATH_CAP], content[PATH_CAP];
+    assert(path_join(reader, root, "apps/Reader.nds"));
+    assert(path_join(missing, root, "misc/Missing.nds"));
+    assert(path_join(content, root, "misc/Choice.pending"));
+    text(root, "misc/Choice.pending", "Pending launch fixture");
+    profile(root, "pending-reader.ini", "Reader pending", "pending", "", "/apps/Reader.nds", true);
+    profile(root, "pending-genesis.ini", "Genesis pending", "pending", "", "/apps/Genesis.nds",
+            true);
+    associations_load(&app);
+    app_panel(&app, PANEL_NONE);
+    app.launch_requested = false;
+    app_launch_file(&app, reader);
+    assert(app.launch_requested);
+    app.startup_due = true;
+    app_launch_file(&app, missing);
+    assert(!app.launch_requested && !app.startup_due && app.panel == PANEL_MESSAGE);
+    app_back(&app);
+    app_launch_file(&app, reader);
+    assert(app.launch_requested);
+    app_launch_file(&app, "/outside/the/sd.nds");
+    assert(!app.launch_requested && app.panel == PANEL_MESSAGE);
+    app_back(&app);
+    app_launch_file(&app, reader);
+    assert(app.launch_requested);
+    app_launch_file(&app, content);
+    assert(app.picker.open && app.picker.kind == PICKER_HANDLER && !app.launch_requested);
+    picker_back(&app);
+    assert(!app.picker.open && !app.launch_requested);
+    app_launch_file(&app, content);
+    assert(app.picker.open && !app.launch_requested);
+    picker_activate(&app);
+    assert(app.launch_requested && !app.picker.open);
+    assert(!strcmp(app.launch.content, content) && app.launch.arguments.count == 2);
+    app.launch_requested = false;
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -511,6 +548,7 @@ int main(int argc, char **argv)
     assert(!strcmp(app.inspection->backend, "nds-bootstrap / homebrew"));
     inspection_close(&app);
 
+    pending_launch_replacement(root);
     puts(
         "PASS: folder/descendant/boundary rules, shared suffix chooser, route flags, cancellation, "
         "missing apps, supported filter, and personal/per-file precedence");
