@@ -23,24 +23,29 @@ static uint32_t le32(const unsigned char *data)
     return data[0] | ((uint32_t)data[1] << 8) | ((uint32_t)data[2] << 16) |
            ((uint32_t)data[3] << 24);
 }
-static bool validate_binary(const char *path, bool identified_homebrew, char error[160])
+bool launch_read_header(const char *path, void *header, size_t bytes, uint32_t *file_bytes)
 {
     FILE *file = fopen(path, "rb");
-    if (!file) {
-        snprintf(error, 160,
-                 "Application is missing or unreadable. Install it with desktop Add-ons, or "
-                 "correct its path in the file handler.");
+    if (!file)
         return false;
-    }
-    unsigned char header[0x200];
     struct stat info;
-    bool valid = fread(header, 1, sizeof header, file) == sizeof header &&
-                 !fstat(fileno(file), &info) && S_ISREG(info.st_mode) && info.st_size >= 0 &&
-                 (uint64_t)info.st_size <= UINT32_MAX;
-    uint32_t size = valid ? (uint32_t)info.st_size : 0;
-    fclose(file);
-    if (!valid) {
-        snprintf(error, 160, "Application has a truncated NDS header.");
+    bool valid = !fstat(fileno(file), &info) && S_ISREG(info.st_mode) && info.st_size >= 0 &&
+                 (uint64_t)info.st_size <= UINT32_MAX && (uint64_t)info.st_size >= bytes &&
+                 fread(header, 1, bytes, file) == bytes && !ferror(file);
+    if (fclose(file))
+        valid = false;
+    if (valid && file_bytes)
+        *file_bytes = (uint32_t)info.st_size;
+    return valid;
+}
+static bool validate_binary(const char *path, bool identified_homebrew, char error[160])
+{
+    unsigned char header[0x200];
+    uint32_t size;
+    if (!launch_read_header(path, header, sizeof header, &size)) {
+        snprintf(error, 160,
+                 "Application header is incomplete or unreadable. Check SD access and its file "
+                 "handler path.");
         return false;
     }
     if (!identified_homebrew && !launch_is_homebrew_header(header) &&
@@ -173,14 +178,17 @@ static bool prepare(const App *app, const char *path, const Association *selecte
     }
     if (!custom && !profile && icon_is_ds_title(plan->application)) {
         unsigned char header[16];
-        FILE *file = fopen(plan->application, "rb");
-        bool read = file && fread(header, 1, sizeof header, file) == sizeof header;
-        if (file)
-            fclose(file);
-        bool homebrew = read && (launch_is_homebrew_header(header) ||
-                                 launch_is_homebrew_file(plan->application));
+        if (!launch_read_header(plan->application, header, sizeof header, NULL)) {
+            snprintf(error, 160, "Title header is incomplete or unreadable. Check SD access.");
+            return false;
+        }
+        bool homebrew = launch_is_homebrew_header(header);
+        if (!homebrew && !launch_probe_homebrew(plan->application, &homebrew)) {
+            snprintf(error, 160, "Could not finish identifying this title. Check SD access.");
+            return false;
+        }
         identified_homebrew = homebrew;
-        if (read && !homebrew) {
+        if (!homebrew) {
             path_copy(target, plan->application, PATH_CAP);
             if (shortcut.count > 1) {
                 snprintf(error, 160,

@@ -123,19 +123,11 @@ bool bootstrap_prepare(const App *app, const char *target, LaunchPlan *plan, cha
     if (!path_is_within_root(target, app->root) || strchr(target, '\n') || strchr(target, '\r'))
         return false;
     unsigned char header[0x240];
-    FILE *file = fopen(target, "rb");
-    if (!file) {
-        snprintf(error, 160,
-                 "Game is missing or unreadable. Check the SD card and file path, then refresh "
-                 "this folder.");
-        return false;
-    }
     uint32_t size;
-    bool valid =
-        fread(header, 1, sizeof header, file) == sizeof header && regular_size(target, &size);
-    fclose(file);
-    if (!valid) {
-        snprintf(error, 160, "Game has a truncated header.");
+    if (!launch_read_header(target, header, sizeof header, &size)) {
+        snprintf(error, 160,
+                 "Game header is incomplete or unreadable. Check the SD card and file, then "
+                 "refresh this folder.");
         return false;
     }
     if (header_crc(header, 0x15E) != (uint16_t)(header[0x15E] | header[0x15F] << 8)) {
@@ -209,13 +201,9 @@ bool bootstrap_prepare_homebrew(const App *app, const char *target, const char *
             "The homebrew backend requires SD application/content paths shorter than 256 bytes.");
         return false;
     }
-    FILE *file = fopen(target, "rb");
     unsigned char header[0x200];
     uint32_t bytes;
-    bool valid = file && fread(header, 1, sizeof header, file) == sizeof header &&
-                 regular_size(target, &bytes);
-    if (file)
-        fclose(file);
+    bool valid = launch_read_header(target, header, sizeof header, &bytes);
     valid = valid && memcmp(header + 12, "KBSE", 4) && launch_is_homebrew_file(target);
     for (int cpu = 0; valid && cpu < 2; cpu++) {
         uint32_t offset = le32(header + 0x20 + cpu * 16), length = le32(header + 0x2C + cpu * 16);

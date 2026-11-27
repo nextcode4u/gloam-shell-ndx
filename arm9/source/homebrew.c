@@ -28,44 +28,41 @@ static bool linked_dldi(const unsigned char *header, uint32_t address, uint32_t 
     }
     return true;
 }
-bool launch_is_homebrew_file(const char *path)
+bool launch_probe_homebrew(const char *path, bool *homebrew)
 {
+    *homebrew = false;
     FILE *file = fopen(path, "rb");
     if (!file)
         return false;
     unsigned char header[0x200];
-    bool valid = fread(header, 1, sizeof header, file) == sizeof header;
-    if (valid && launch_is_homebrew_header(header)) {
-        fclose(file);
-        return true;
-    }
+    struct stat info;
+    bool valid = !fstat(fileno(file), &info) && S_ISREG(info.st_mode) &&
+                 info.st_size >= (off_t)sizeof header && (uint64_t)info.st_size <= UINT32_MAX &&
+                 fread(header, 1, sizeof header, file) == sizeof header;
+    bool found = valid && launch_is_homebrew_header(header);
+    if (!valid || found)
+        goto finished;
     bool retail = false;
-    if (valid)
-        game_save_size(word(header + 12), &retail);
-    if (!valid || retail) {
-        fclose(file);
-        return false;
-    }
+    game_save_size(word(header + 12), &retail);
+    if (retail)
+        goto finished;
     /* Small applications may not need a filesystem driver. Accept the exact
      * SDK default title with an unset maker, after excluding known retail IDs.
      * Normal binary-range validation still runs before any direct handoff. */
     static const char default_title[12] = "HOMEBREW";
     if (!memcmp(header, default_title, sizeof default_title) && !header[0x10] && !header[0x11]) {
-        fclose(file);
-        return true;
+        found = true;
+        goto finished;
     }
-    struct stat info;
-    valid = !fstat(fileno(file), &info) && S_ISREG(info.st_mode) && info.st_size >= 0 &&
-            (uint64_t)info.st_size <= UINT32_MAX;
-    uint32_t bytes = valid ? (uint32_t)info.st_size : 0;
+    uint32_t bytes = (uint32_t)info.st_size;
     uint32_t offset = word(header + 0x20), destination = word(header + 0x28),
              length = word(header + 0x2C);
-    valid = valid && offset >= 0x200 && !(offset & 3) && length >= 128 && length <= 0x380000 &&
-            offset <= bytes && length <= bytes - offset && destination >= 0x02000000 &&
-            destination < 0x02FF4000 && length <= 0x02FF4000 - destination;
-    if (valid)
-        valid = !fseek(file, offset, SEEK_SET);
-    bool found = false;
+    bool scan = offset >= 0x200 && !(offset & 3) && length >= 128 && length <= 0x380000 &&
+                offset <= bytes && length <= bytes - offset && destination >= 0x02000000 &&
+                destination < 0x02FF4000 && length <= 0x02FF4000 - destination;
+    if (!scan)
+        goto finished;
+    valid = !fseek(file, offset, SEEK_SET);
     unsigned char block[1024 + 128];
     size_t retained = 0;
     /* Keep the look-ahead bytes instead of seeking backwards each KiB. On FAT,
@@ -75,8 +72,10 @@ bool launch_is_homebrew_file(const char *path)
         if (count > sizeof block)
             count = sizeof block;
         size_t next = count - retained;
-        if (next && fread(block + retained, 1, next, file) != next)
+        if (next && fread(block + retained, 1, next, file) != next) {
+            valid = false;
             break;
+        }
         for (unsigned i = 0; i < 1024 && i + 128 <= count; i += 4) {
             if (linked_dldi(block + i, destination + position + i, length - position - i)) {
                 found = true;
@@ -87,6 +86,15 @@ bool launch_is_homebrew_file(const char *path)
         if (retained)
             memmove(block, block + 1024, retained);
     }
-    fclose(file);
-    return found;
+finished:
+    valid = valid && !ferror(file);
+    if (fclose(file))
+        valid = false;
+    *homebrew = valid && found;
+    return valid;
+}
+bool launch_is_homebrew_file(const char *path)
+{
+    bool homebrew;
+    return launch_probe_homebrew(path, &homebrew) && homebrew;
 }

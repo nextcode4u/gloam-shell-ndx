@@ -16,6 +16,56 @@ static const unsigned dldi = 0x200 + 0x3FC; /* Cross a scan-chunk boundary. */
 static bool measure_scan;
 static unsigned scan_seeks, end_seeks, backward_seeks;
 static size_t scan_bytes;
+static const char *watched_binary;
+static FILE *failed_stream;
+static unsigned binary_opens, failed_open;
+static bool fail_metadata, fail_read, fail_stream, fail_close;
+static unsigned reads_before_failure;
+FILE *__real_fopen(const char *, const char *);
+int __real_fclose(FILE *);
+int __real_fstat(int, struct stat *);
+int __real_ferror(FILE *);
+FILE *__wrap_fopen(const char *name, const char *mode)
+{
+    FILE *file = __real_fopen(name, mode);
+    if (watched_binary && !strcmp(name, watched_binary) && *mode == 'r' &&
+        ++binary_opens == failed_open)
+        failed_stream = file;
+    return file;
+}
+int __wrap_fclose(FILE *file)
+{
+    bool deny = file == failed_stream && fail_close;
+    if (file == failed_stream)
+        failed_stream = NULL;
+    int result = __real_fclose(file);
+    if (deny) {
+        errno = EIO;
+        return EOF;
+    }
+    return result;
+}
+int __wrap_fstat(int descriptor, struct stat *info)
+{
+    if (failed_stream && fileno(failed_stream) == descriptor && fail_metadata) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_fstat(descriptor, info);
+}
+int __wrap_ferror(FILE *file)
+{
+    return (file == failed_stream && fail_stream) || __real_ferror(file);
+}
+static bool reject_read(FILE *file)
+{
+    if (file != failed_stream || !fail_read)
+        return false;
+    if (!reads_before_failure)
+        return true;
+    reads_before_failure--;
+    return false;
+}
 int __real_fseek(FILE *, long, int);
 int __wrap_fseek(FILE *file, long offset, int whence)
 {
@@ -29,6 +79,8 @@ int __wrap_fseek(FILE *file, long offset, int whence)
 size_t __real_fread(void *, size_t, size_t, FILE *);
 size_t __wrap_fread(void *data, size_t size, size_t count, FILE *file)
 {
+    if (reject_read(file))
+        return 0;
     size_t result = __real_fread(data, size, count, file);
     if (measure_scan)
         scan_bytes += result * size;
@@ -38,6 +90,8 @@ size_t __wrap_fread(void *data, size_t size, size_t count, FILE *file)
 size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
 size_t __wrap___fread_chk(void *data, size_t capacity, size_t size, size_t count, FILE *file)
 {
+    if (reject_read(file))
+        return 0;
     size_t result = __real___fread_chk(data, capacity, size, count, file);
     if (measure_scan)
         scan_bytes += result * size;
@@ -76,6 +130,60 @@ static void fixture(void)
     word(dldi + 0x44, 0x02000484);
     for (unsigned i = 0x68; i < 0x80; i += 4)
         word(dldi + i, 0x0200047C);
+}
+static void preflight_read_failures(void)
+{
+    char error[160];
+    for (unsigned kind = 0; kind < 3; kind++) {
+        fixture();
+        if (kind == 1)
+            memcpy(binary + 12, "####", 4);
+        if (kind == 2) {
+            memcpy(binary, "HOMEBREW", 8);
+            memset(binary + 8, 0, 4);
+            memset(binary + dldi, 0, 128);
+        }
+        write_binary();
+        for (unsigned stage = 1; stage <= (kind == 1 ? 2u : 3u); stage++) {
+            for (unsigned failure = 0; failure < 4; failure++) {
+                watched_binary = path;
+                failed_open = stage;
+                binary_opens = 0;
+                fail_metadata = failure == 0;
+                fail_read = failure == 1;
+                fail_stream = failure == 2;
+                fail_close = failure == 3;
+                assert(!launch_prepare(&app, path, &plan, error));
+                assert(*error && binary_opens == stage);
+                if (stage == 1) {
+                    unsigned char header[0x200];
+                    uint32_t bytes = 0xDEADBEEF;
+                    binary_opens = 0;
+                    assert(!launch_read_header(path, header, sizeof header, &bytes));
+                    assert(bytes == 0xDEADBEEF);
+                    bool homebrew = true;
+                    binary_opens = 0;
+                    assert(!launch_probe_homebrew(path, &homebrew) && !homebrew);
+                }
+                watched_binary = NULL;
+                fail_metadata = fail_read = fail_stream = fail_close = false;
+                assert(launch_prepare(&app, path, &plan, error) && plan.route == LAUNCH_DIRECT);
+            }
+        }
+    }
+    /* A failed DLDI body read must stop classification before any retail fallback. */
+    fixture();
+    write_binary();
+    watched_binary = path;
+    binary_opens = 0;
+    failed_open = 2;
+    fail_read = true;
+    reads_before_failure = 1;
+    assert(!launch_prepare(&app, path, &plan, error) && binary_opens == 2);
+    watched_binary = NULL;
+    fail_read = false;
+    reads_before_failure = 0;
+    assert(launch_prepare(&app, path, &plan, error) && plan.route == LAUNCH_DIRECT);
 }
 static void directory(const char *root, const char *relative)
 {
@@ -186,6 +294,7 @@ int main(int argc, char **argv)
     char error[160];
     assert(launch_prepare(&app, path, &plan, error));
     assert(plan.route == LAUNCH_DIRECT && !strcmp(plan.application, path));
+    preflight_read_failures();
     forward_scan_tests();
     fixture();
     binary[dldi + 12] = 2;
@@ -211,6 +320,8 @@ int main(int argc, char **argv)
     memcpy(binary + 12, "ASME", 4); /* Known retail IDs keep the retail route. */
     write_binary();
     assert(!launch_is_homebrew_file(path));
+    bool homebrew = true;
+    assert(launch_probe_homebrew(path, &homebrew) && !homebrew);
     fixture();
     memcpy(binary + 0x2200, binary + dldi, 128);
     memset(binary + dldi, 0, 128);

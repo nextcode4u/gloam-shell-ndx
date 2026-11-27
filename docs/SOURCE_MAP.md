@@ -31,6 +31,9 @@ change settings or perform hardware calls. The frame loop owns those operations.
 Launch preflight also takes binary sizes from open-file metadata. Unknown-ID
 homebrew detection reads ARM9 sequentially, retaining overlap bytes in memory
 so DLDI records spanning blocks remain detectable without backwards seeks.
+Header reads verify open-file metadata, read status and close results through
+`launch_read_header`. Homebrew probing distinguishes an inspection failure from
+a valid non-homebrew result; an I/O failure never selects a different backend.
 
 Banner icons read size metadata from the open file, without seeking to EOF.
 `icons.c` loads static and animated banner data in one bounded pass; corrupt or
