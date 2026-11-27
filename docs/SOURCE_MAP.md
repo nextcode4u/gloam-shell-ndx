@@ -105,6 +105,7 @@ NUL bytes reject the record; presets and cheats may use a valid recovery copy.
 `game_options_resolve` checks both defaults and title overrides before launch.
 Missing records may inherit; unreadable or damaged layers require a valid backup.
 Failed resolution leaves the caller's options unchanged.
+`game_options_load` provides a verified sparse snapshot for editing.
 
 `item_preferences_resolve` applies the same missing/error distinction to launch,
 handler selection, inspection and assignment edits. Display-only artwork/icon

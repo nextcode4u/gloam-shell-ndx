@@ -15,17 +15,31 @@ void game_editor_open(App *app, bool defaults)
         app_panel(app, PANEL_MESSAGE);
         return;
     }
+    GameOptions inherited, options;
+    if (!game_options_load(app->root, defaults ? "" : entry->path, &options) ||
+        (!defaults && !game_options_resolve(app->root, "", &inherited))) {
+        path_copy(app->message,
+                  "Could not read saved title options. Check SD access or restore the record "
+                  "before editing.",
+                  sizeof app->message);
+        app_panel(app, PANEL_MESSAGE);
+        return;
+    }
+    if (defaults) {
+        game_options_defaults(&inherited, false);
+        for (int i = 0; i < GAME_OPTION_COUNT; i++)
+            if (options.values[i] != GAME_INHERIT)
+                inherited.values[i] = options.values[i];
+        options = inherited;
+    }
     GameEditor *editor = &app->game_editor;
     memset(editor, 0, sizeof *editor);
     editor->defaults = defaults;
     editor->text_started_frame = app->frame_count;
-    game_options_effective(app->root, "", &editor->inherited);
+    editor->inherited = inherited;
     if (!defaults)
         path_copy(editor->path, entry->path, PATH_CAP);
-    if (defaults)
-        game_options_effective(app->root, "", &editor->options);
-    else
-        game_options_read(app->root, editor->path, &editor->options);
+    editor->options = options;
     editor->open = true;
     if (app->panel != PANEL_ACTIONS)
         app->panel = PANEL_NONE;

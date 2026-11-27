@@ -19,6 +19,8 @@ static bool probe_nonregular;
 static const char *watched_ini, *watched_backup;
 static FILE *ini_stream;
 static bool deny_ini_open, deny_ini_close, deny_ini_read, deny_ini_line;
+static bool limit_record_failures;
+static unsigned record_reads, failed_record_reads;
 FILE *__real_fopen(const char *, const char *);
 int __real_fclose(FILE *);
 size_t __real_fread(void *, size_t, size_t, FILE *);
@@ -27,6 +29,8 @@ FILE *__wrap_fopen(const char *path, const char *mode)
 {
     bool watched = (watched_ini && !strcmp(path, watched_ini)) ||
                    (watched_backup && !strcmp(path, watched_backup));
+    if (watched && *mode == 'r' && limit_record_failures && ++record_reads > failed_record_reads)
+        watched = false;
     if (watched && *mode == 'r' && deny_ini_open) {
         errno = EIO;
         return NULL;
@@ -232,6 +236,90 @@ static void options_read_failures(const char *root, const char *game, const Game
         assert(!rename(held_current, current) && !rename(held_backup, backup));
     }
     assert(launch_prepare(&app, game, &plan, error) && plan.options.values[GAME_SLOT] == 2);
+}
+static void editor_read_failures(const char *root, const char *game)
+{
+    app_panel(&app, PANEL_NONE);
+    for (unsigned defaults = 0; defaults < 2; defaults++) {
+        const char *target = defaults ? "" : game;
+        GameOptions stored, expected;
+        assert(game_options_read(root, target, &stored));
+        assert(game_options_write(root, target, &stored));
+        assert(game_options_write(root, target, &stored));
+        if (defaults)
+            game_options_effective(root, "", &expected);
+        else
+            expected = stored;
+        char key[PATH_CAP], name[80], current[PATH_CAP], backup[PATH_CAP];
+        if (defaults)
+            strcpy(key, "defaults");
+        else {
+            const char *relative = game + strlen(root);
+            while (*relative == '/')
+                relative++;
+            assert(path_resolve_sd(key, "sd:/", relative));
+        }
+        uint64_t hash = UINT64_C(14695981039346656037);
+        for (const unsigned char *p = (const unsigned char *)key; *p; p++) {
+            hash ^= *p;
+            hash *= UINT64_C(1099511628211);
+        }
+        snprintf(name, sizeof name, "games/%016" PRIx64 ".ini", hash);
+        assert(path_preferences_file(current, root, name));
+        strcpy(name + strlen(name) - 3, "bak");
+        assert(path_preferences_file(backup, root, name));
+        char original[4096], recovery[4096], actual[4096];
+        read_text(current, original);
+        read_text(backup, recovery);
+        for (unsigned failure = 0; failure < 4; failure++) {
+            watched_ini = current;
+            watched_backup = failure == 3 ? NULL : backup;
+            limit_record_failures = true;
+            record_reads = 0;
+            failed_record_reads = failure == 3 ? 1 : defaults ? 4 : 2;
+            deny_ini_open = failure == 0 || failure == 3;
+            deny_ini_read = failure == 1;
+            deny_ini_close = failure == 2;
+            game_editor_open(&app, defaults != 0);
+            assert(!app.game_editor.open && app.panel == PANEL_MESSAGE);
+            assert(strstr(app.message, "options"));
+            record_reads = 0;
+            GameOptions unchanged = stored;
+            assert(!game_options_load(root, target, &unchanged));
+            assert(!memcmp(&unchanged, &stored, sizeof stored));
+            watched_ini = watched_backup = NULL;
+            limit_record_failures = deny_ini_open = deny_ini_read = deny_ini_close = false;
+            read_text(current, actual);
+            assert(!strcmp(original, actual));
+            read_text(backup, actual);
+            assert(!strcmp(recovery, actual));
+            app_back(&app);
+            game_editor_open(&app, defaults != 0);
+            assert(app.game_editor.open);
+            assert(!memcmp(&app.game_editor.options, &expected, sizeof expected));
+            assert(game_editor_close(&app));
+        }
+        const char *damaged = "version=1\nslot=invalid\n";
+        write_file(current, damaged, strlen(damaged));
+        game_editor_open(&app, defaults != 0);
+        assert(app.game_editor.open);
+        assert(!memcmp(&app.game_editor.options, &expected, sizeof expected));
+        assert(game_editor_close(&app));
+        char held_current[PATH_CAP], held_backup[PATH_CAP];
+        assert(snprintf(held_current, sizeof held_current, "%s.held", current) <
+               (int)sizeof held_current);
+        assert(snprintf(held_backup, sizeof held_backup, "%s.held", backup) <
+               (int)sizeof held_backup);
+        assert(!rename(current, held_current) && !rename(backup, held_backup));
+        game_editor_open(&app, defaults != 0);
+        assert(app.game_editor.open);
+        GameOptions missing;
+        game_options_defaults(&missing, !defaults);
+        assert(!memcmp(&app.game_editor.options, &missing, sizeof missing));
+        assert(game_editor_close(&app));
+        assert(!remove(current));
+        assert(!rename(held_current, current) && !rename(held_backup, backup));
+    }
 }
 static void save_preflight_failures(const char *root, const char *game)
 {
@@ -476,6 +564,7 @@ int main(int argc, char **argv)
     for (int i = 0; i < app.entry_count; i++)
         if (!strcmp(app.entries[i].path, game))
             app.locations[1].selected = i;
+    editor_read_failures(root, game);
     game_editor_open(&app, false);
     assert(app.game_editor.open);
     for (int i = 0; i < 40; i++) {

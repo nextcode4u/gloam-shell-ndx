@@ -4,6 +4,9 @@
 #define GAME_INHERIT (-2)
 void game_options_defaults(GameOptions *options, bool inherit);
 bool game_options_read(const char *root, const char *path, GameOptions *options);
+/* Edit snapshot: missing records inherit; an unreadable primary stops editing.
+ * A fully read damaged record may recover; failure leaves output unchanged. */
+bool game_options_load(const char *root, const char *path, GameOptions *options);
 bool game_options_write(const char *root, const char *path, const GameOptions *options);
 void game_options_effective(const char *root, const char *path, GameOptions *options);
 /* Launch requires readable settings or genuinely absent optional records.

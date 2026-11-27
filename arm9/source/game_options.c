@@ -122,7 +122,8 @@ static RecordStatus read_record(const char *file_path, const char *key, GameOpti
     return valid && version && identity ? RECORD_VALID : RECORD_INVALID;
 }
 
-static RecordStatus load_options(const char *root, const char *path, GameOptions *options)
+static RecordStatus load_options(const char *root, const char *path, GameOptions *options,
+                                 bool for_edit)
 {
     game_options_defaults(options, true);
     char key[PATH_CAP], record[PATH_CAP];
@@ -135,6 +136,9 @@ static RecordStatus load_options(const char *root, const char *path, GameOptions
         RecordStatus status = record_path(record, root, key, backup ? "bak" : "ini")
                                   ? read_record(record, key, &candidate)
                                   : RECORD_UNREADABLE;
+        /* An older backup cannot prove which fields an unreadable primary contains. */
+        if (for_edit && !backup && (status == RECORD_UNREADABLE || status == RECORD_PROTECTED))
+            return status;
         if (status == RECORD_VALID) {
             *options = candidate;
             return RECORD_VALID;
@@ -146,7 +150,16 @@ static RecordStatus load_options(const char *root, const char *path, GameOptions
 }
 bool game_options_read(const char *root, const char *path, GameOptions *options)
 {
-    return load_options(root, path, options) == RECORD_VALID;
+    return load_options(root, path, options, false) == RECORD_VALID;
+}
+bool game_options_load(const char *root, const char *path, GameOptions *options)
+{
+    GameOptions candidate;
+    RecordStatus status = load_options(root, path, &candidate, true);
+    if (status != RECORD_VALID && status != RECORD_MISSING)
+        return false;
+    *options = candidate;
+    return true;
 }
 bool game_options_write(const char *root, const char *path, const GameOptions *options)
 {
@@ -205,7 +218,7 @@ static bool effective_options(const char *root, const char *path, GameOptions *o
     game_options_defaults(&effective, false);
     for (unsigned layer = 0; layer < (*path ? 2u : 1u); layer++) {
         GameOptions record;
-        RecordStatus status = load_options(root, layer ? path : "", &record);
+        RecordStatus status = load_options(root, layer ? path : "", &record, false);
         if (status != RECORD_VALID && status != RECORD_MISSING && require_readable)
             return false;
         if (status == RECORD_VALID)

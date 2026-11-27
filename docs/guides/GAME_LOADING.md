@@ -20,9 +20,11 @@ open. Per-title `Use default` resolves through global defaults, then built-in
 Auto values. Effective options are captured during launch preflight.
 
 Missing option records use defaults. Saved records can recover from a valid
-matching backup. If neither copy can be loaded, launch stops instead of silently
-applying defaults. Check SD access or restore the affected record under
-`/_nds/dsi-frontend/games/`; saves are separate.
+matching backup. If neither copy can be loaded, launch and editing stop instead
+of silently applying defaults. Check SD access or restore the affected record under
+`/_nds/dsi-frontend/games/`; saves are separate. Editing also stops if the current
+record cannot be inspected, even when an older backup is readable. A fully read,
+damaged record can still recover from a matching backup.
 
 Options are mode, CPU/VRAM boosts, DMA/asynchronous reads, language, save slot,
 save size, the nds-bootstrap in-game menu hotkey, menu language, screen-swap hotkey and sidecar manuals. These options apply to the
