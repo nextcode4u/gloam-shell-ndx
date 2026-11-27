@@ -44,12 +44,18 @@ static bool record_path(char output[PATH_CAP], const char *root, const char *key
     return path_preferences_file(output, root, relative);
 }
 /* Only completely inspected damaged records may be replaced using a matching backup. */
-typedef enum { RECORD_UNREADABLE, RECORD_INVALID, RECORD_PROTECTED, RECORD_VALID } RecordStatus;
+typedef enum {
+    RECORD_MISSING,
+    RECORD_UNREADABLE,
+    RECORD_INVALID,
+    RECORD_PROTECTED,
+    RECORD_VALID
+} RecordStatus;
 static RecordStatus read_record(const char *file_path, const char *key, GameOptions *options)
 {
     FILE *file = fopen(file_path, "rb");
     if (!file)
-        return RECORD_UNREADABLE;
+        return errno == ENOENT ? RECORD_MISSING : RECORD_UNREADABLE;
     struct stat info;
     bool valid = !fstat(fileno(file), &info) && S_ISREG(info.st_mode) && info.st_size >= 0 &&
                  info.st_size <= 4096;
@@ -116,22 +122,31 @@ static RecordStatus read_record(const char *file_path, const char *key, GameOpti
     return valid && version && identity ? RECORD_VALID : RECORD_INVALID;
 }
 
-bool game_options_read(const char *root, const char *path, GameOptions *options)
+static RecordStatus load_options(const char *root, const char *path, GameOptions *options)
 {
     game_options_defaults(options, true);
     char key[PATH_CAP], record[PATH_CAP];
     if (!record_identity(root, path, key))
-        return false;
+        return RECORD_UNREADABLE;
+    RecordStatus result = RECORD_MISSING;
     for (int backup = 0; backup < 2; backup++) {
         GameOptions candidate;
         game_options_defaults(&candidate, true);
-        if (record_path(record, root, key, backup ? "bak" : "ini") &&
-            read_record(record, key, &candidate) == RECORD_VALID) {
+        RecordStatus status = record_path(record, root, key, backup ? "bak" : "ini")
+                                  ? read_record(record, key, &candidate)
+                                  : RECORD_UNREADABLE;
+        if (status == RECORD_VALID) {
             *options = candidate;
-            return true;
+            return RECORD_VALID;
         }
+        if (status != RECORD_MISSING)
+            result = status;
     }
-    return false;
+    return result;
+}
+bool game_options_read(const char *root, const char *path, GameOptions *options)
+{
+    return load_options(root, path, options) == RECORD_VALID;
 }
 bool game_options_write(const char *root, const char *path, const GameOptions *options)
 {
@@ -183,20 +198,31 @@ bool game_options_write(const char *root, const char *path, const GameOptions *o
         return false;
     return true;
 }
+static bool effective_options(const char *root, const char *path, GameOptions *options,
+                              bool require_readable)
+{
+    GameOptions effective;
+    game_options_defaults(&effective, false);
+    for (unsigned layer = 0; layer < (*path ? 2u : 1u); layer++) {
+        GameOptions record;
+        RecordStatus status = load_options(root, layer ? path : "", &record);
+        if (status != RECORD_VALID && status != RECORD_MISSING && require_readable)
+            return false;
+        if (status == RECORD_VALID)
+            for (int i = 0; i < GAME_OPTION_COUNT; i++)
+                if (record.values[i] != GAME_INHERIT)
+                    effective.values[i] = record.values[i];
+    }
+    *options = effective;
+    return true;
+}
 void game_options_effective(const char *root, const char *path, GameOptions *options)
 {
-    game_options_defaults(options, false);
-    GameOptions record;
-    game_options_read(root, "", &record);
-    for (int i = 0; i < GAME_OPTION_COUNT; i++)
-        if (record.values[i] != GAME_INHERIT)
-            options->values[i] = record.values[i];
-    if (!*path)
-        return;
-    game_options_read(root, path, &record);
-    for (int i = 0; i < GAME_OPTION_COUNT; i++)
-        if (record.values[i] != GAME_INHERIT)
-            options->values[i] = record.values[i];
+    effective_options(root, path, options, false);
+}
+bool game_options_resolve(const char *root, const char *path, GameOptions *options)
+{
+    return effective_options(root, path, options, true);
 }
 unsigned game_option_hotkey(int choice)
 {

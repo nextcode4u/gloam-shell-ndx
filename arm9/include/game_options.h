@@ -6,6 +6,9 @@ void game_options_defaults(GameOptions *options, bool inherit);
 bool game_options_read(const char *root, const char *path, GameOptions *options);
 bool game_options_write(const char *root, const char *path, const GameOptions *options);
 void game_options_effective(const char *root, const char *path, GameOptions *options);
+/* Launch requires readable settings or genuinely absent optional records.
+ * A valid recovery copy is accepted; failure leaves the output unchanged. */
+bool game_options_resolve(const char *root, const char *path, GameOptions *options);
 uint32_t game_save_size(uint32_t code, bool *known);
 void game_editor_open(App *app, bool defaults);
 void game_editor_move(App *app, int direction);

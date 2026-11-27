@@ -8,6 +8,7 @@
 #include "renderer.h"
 #include <assert.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -15,17 +16,23 @@
 static const char *probe_path;
 static unsigned probe_checks, fail_check;
 static bool probe_nonregular;
-static const char *watched_ini;
+static const char *watched_ini, *watched_backup;
 static FILE *ini_stream;
-static bool deny_ini_close, deny_ini_read, deny_ini_line;
+static bool deny_ini_open, deny_ini_close, deny_ini_read, deny_ini_line;
 FILE *__real_fopen(const char *, const char *);
 int __real_fclose(FILE *);
 size_t __real_fread(void *, size_t, size_t, FILE *);
 char *__real_fgets(char *, int, FILE *);
 FILE *__wrap_fopen(const char *path, const char *mode)
 {
+    bool watched = (watched_ini && !strcmp(path, watched_ini)) ||
+                   (watched_backup && !strcmp(path, watched_backup));
+    if (watched && *mode == 'r' && deny_ini_open) {
+        errno = EIO;
+        return NULL;
+    }
     FILE *file = __real_fopen(path, mode);
-    if (watched_ini && !strcmp(path, watched_ini) && *mode == 'r')
+    if (watched && *mode == 'r')
         ini_stream = file;
     return file;
 }
@@ -137,6 +144,94 @@ static void ini_publish_failures(const char *root, const char *ini, const Launch
     assert(bootstrap_commit(root, launch, error));
     read_text(previous, actual);
     assert(!strcmp(expected, actual));
+}
+static void options_read_failures(const char *root, const char *game, const GameOptions *defaults,
+                                  const GameOptions *title)
+{
+    char error[160];
+    char homebrew[PATH_CAP], backend[PATH_CAP];
+    unsigned char data[1024];
+    FILE *file = fopen(game, "rb");
+    assert(file && fread(data, 1, sizeof data, file) == sizeof data && !fclose(file));
+    assert(path_join(backend, root, "_nds/nds-bootstrap-hb-release.nds"));
+    memcpy(data + 12, "KBSE", 4);
+    write_file(backend, data, sizeof data);
+    assert(path_join(homebrew, root, "roms/Options homebrew.nds"));
+    memcpy(data + 12, "####", 4);
+    write_file(homebrew, data, sizeof data);
+    LaunchPlan hb = {0};
+    assert(bootstrap_prepare_homebrew(&app, homebrew, "", &hb, error));
+    /* Both recovery copies must retain the same slot before injecting failures. */
+    assert(game_options_write(root, "", defaults));
+    assert(game_options_write(root, game, title));
+    for (unsigned layer = 0; layer < 2; layer++) {
+        char key[PATH_CAP], name[80], current[PATH_CAP], backup[PATH_CAP];
+        if (layer)
+            strcpy(key, "defaults");
+        else {
+            const char *relative = game + strlen(root);
+            while (*relative == '/')
+                relative++;
+            assert(path_resolve_sd(key, "sd:/", relative));
+        }
+        uint64_t hash = UINT64_C(14695981039346656037);
+        for (const unsigned char *p = (const unsigned char *)key; *p; p++) {
+            hash ^= *p;
+            hash *= UINT64_C(1099511628211);
+        }
+        snprintf(name, sizeof name, "games/%016" PRIx64 ".ini", hash);
+        assert(path_preferences_file(current, root, name));
+        strcpy(name + strlen(name) - 3, "bak");
+        assert(path_preferences_file(backup, root, name));
+        char original[4096], recovered[4096], actual[4096];
+        read_text(current, original);
+        read_text(backup, recovered);
+        for (unsigned failure = 0; failure < 3; failure++) {
+            watched_ini = current;
+            deny_ini_open = failure == 0;
+            deny_ini_read = failure == 1;
+            deny_ini_close = failure == 2;
+            assert(launch_prepare(&app, game, &plan, error));
+            assert(plan.options.values[GAME_SLOT] == 2 && strstr(plan.save, ".sav2"));
+            watched_backup = backup;
+            assert(!launch_prepare(&app, game, &plan, error) && strstr(error, "options"));
+            if (layer)
+                assert(!bootstrap_prepare_homebrew(&app, homebrew, "", &hb, error) &&
+                       strstr(error, "options"));
+            else
+                assert(bootstrap_prepare_homebrew(&app, homebrew, "", &hb, error));
+            GameOptions unchanged = *title;
+            assert(!game_options_resolve(root, game, &unchanged));
+            assert(!memcmp(&unchanged, title, sizeof unchanged));
+            watched_ini = watched_backup = NULL;
+            deny_ini_open = deny_ini_read = deny_ini_close = false;
+            read_text(current, actual);
+            assert(!strcmp(original, actual));
+            read_text(backup, actual);
+            assert(!strcmp(recovered, actual));
+        }
+        const char *broken = "version=1\nslot=not-a-number\n";
+        write_file(current, broken, strlen(broken));
+        assert(launch_prepare(&app, game, &plan, error) && plan.options.values[GAME_SLOT] == 2);
+        write_file(backup, broken, strlen(broken));
+        assert(!launch_prepare(&app, game, &plan, error) && strstr(error, "options"));
+        write_file(current, original, strlen(original));
+        write_file(backup, recovered, strlen(recovered));
+        /* Truly absent optional settings still use defaults, without creating a record. */
+        char held_current[PATH_CAP], held_backup[PATH_CAP];
+        assert(snprintf(held_current, sizeof held_current, "%s.held", current) <
+               (int)sizeof held_current);
+        assert(snprintf(held_backup, sizeof held_backup, "%s.held", backup) <
+               (int)sizeof held_backup);
+        assert(!rename(current, held_current) && !rename(backup, held_backup));
+        assert(launch_prepare(&app, game, &plan, error));
+        assert(plan.options.values[GAME_SLOT] == (layer ? 2 : 0));
+        struct stat info;
+        assert(stat(current, &info) && errno == ENOENT);
+        assert(stat(backup, &info) && errno == ENOENT);
+        assert(!rename(held_current, current) && !rename(held_backup, backup));
+    }
+    assert(launch_prepare(&app, game, &plan, error) && plan.options.values[GAME_SLOT] == 2);
 }
 static void save_preflight_failures(const char *root, const char *game)
 {
@@ -353,6 +448,7 @@ int main(int argc, char **argv)
     assert(effective.values[GAME_CPU] == 0 && effective.values[GAME_LANGUAGE] == 2 &&
            effective.values[GAME_SLOT] == 2 && effective.values[GAME_OVERLAY_LANGUAGE] == 30 &&
            effective.values[GAME_SCREEN_SWAP] == 2 && effective.values[GAME_MANUAL] == 1);
+    options_read_failures(root, game, &defaults, &item);
     assert(launch_prepare(&app, game, &plan, error) && strstr(plan.save, ".sav2"));
     assert(bootstrap_commit(root, &plan, error));
     assert(!stat(plan.save, &status) && status.st_size == 8192);

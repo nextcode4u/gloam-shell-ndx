@@ -102,6 +102,10 @@ Appearance presets, named collections and cheat selections verify the complete
 opened record and close result before applying it. Incomplete reads and embedded
 NUL bytes reject the record; presets and cheats may use a valid recovery copy.
 
+`game_options_resolve` checks both defaults and title overrides before launch.
+Missing records may inherit; unreadable or damaged layers require a valid backup.
+Failed resolution leaves the caller's options unchanged.
+
 Configuration import and reset retain rollback data before changing settings.
 Do not replace them with recursive deletion of frontend folders: installed
 assets and game saves are outside the reset scope.

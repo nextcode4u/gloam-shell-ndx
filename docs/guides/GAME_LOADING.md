@@ -19,6 +19,11 @@ the editor. A failed save keeps the editor
 open. Per-title `Use default` resolves through global defaults, then built-in
 Auto values. Effective options are captured during launch preflight.
 
+Missing option records use defaults. Saved records can recover from a valid
+matching backup. If neither copy can be loaded, launch stops instead of silently
+applying defaults. Check SD access or restore the affected record under
+`/_nds/dsi-frontend/games/`; saves are separate.
+
 Options are mode, CPU/VRAM boosts, DMA/asynchronous reads, language, save slot,
 save size, the nds-bootstrap in-game menu hotkey, menu language, screen-swap hotkey and sidecar manuals. These options apply to the
 backend route, not arbitrary applications launched directly. Auto mode uses

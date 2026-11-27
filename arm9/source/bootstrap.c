@@ -146,7 +146,12 @@ bool bootstrap_prepare(const App *app, const char *target, LaunchPlan *plan, cha
     bool ware = header[0x12] == 3 || (header[0x12] && (header[0x1BF] & 0x10));
     plan->route = LAUNCH_BOOTSTRAP;
     path_copy(plan->target, target, PATH_CAP);
-    game_options_effective(app->root, target, &plan->options);
+    if (!game_options_resolve(app->root, target, &plan->options)) {
+        snprintf(error, 160,
+                 "Could not read title options or their backup. Check SD access or restore the "
+                 "affected options before launching.");
+        return false;
+    }
     if (ware) {
         uint32_t extended_size = le32(header + 0x210);
         if ((extended_size && extended_size > size) ||
@@ -229,7 +234,12 @@ bool bootstrap_prepare_homebrew(const App *app, const char *target, const char *
     plan->route = LAUNCH_BOOTSTRAP_HB;
     path_copy(plan->target, target, PATH_CAP);
     path_copy(plan->homebrew_argument, argument, PATH_CAP);
-    game_options_effective(app->root, target, &plan->options);
+    if (!game_options_resolve(app->root, target, &plan->options)) {
+        snprintf(error, 160,
+                 "Could not read title options or their backup. Check SD access or restore the "
+                 "affected options before launching.");
+        return false;
+    }
     return true;
 }
 static bool make_save(const LaunchPlan *plan, char error[160])
