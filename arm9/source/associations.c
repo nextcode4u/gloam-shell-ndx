@@ -27,7 +27,7 @@ static bool load_profile(const App *app, const char *path, const char *filename,
                          Association *profile)
 {
     profile->use_argv = true;
-    FILE *file = fopen(path, "r");
+    FILE *file = fopen(path, "rb");
     if (!file)
         return false;
     /* Size validation must not walk a large FAT chain during startup. */
@@ -37,15 +37,31 @@ static bool load_profile(const App *app, const char *path, const char *filename,
         fclose(file);
         return false;
     }
+    size_t size = (size_t)metadata.st_size;
+    char *contents = malloc(size + 1);
+    bool complete = contents && fread(contents, 1, size, file) == size && !ferror(file);
+    if (fclose(file))
+        complete = false;
+    if (!complete || memchr(contents, 0, size)) {
+        free(contents);
+        return false;
+    }
+    contents[size] = 0;
+    char *cursor = contents;
     char line[1024], fallback[PATH_CAP] = "", mode[PATH_CAP] = "";
     bool section = false, valid = true;
     snprintf(profile->extensions, sizeof profile->extensions, "%.*s", (int)strlen(filename) - 4,
              filename);
-    while (fgets(line, sizeof line, file)) {
-        if (!strchr(line, '\n') && !feof(file)) {
+    while (*cursor) {
+        char *next = strchr(cursor, '\n');
+        size_t length = next ? (size_t)(next - cursor) : strlen(cursor);
+        if (length >= sizeof line) {
             valid = false;
             break;
         }
+        memcpy(line, cursor, length);
+        line[length] = 0;
+        cursor += length + (next != NULL);
         char *key = trim(line);
         if (!*key || *key == ';' || *key == '#')
             continue;
@@ -107,9 +123,7 @@ static bool load_profile(const App *app, const char *path, const char *filename,
             path_copy(mode, value, sizeof mode);
         }
     }
-    if (ferror(file))
-        valid = false;
-    fclose(file);
+    free(contents);
     return valid && (profile->disabled ||
                      (path_resolve_sd(profile->application, app->root, *mode ? mode : fallback) &&
                       icon_is_ds_title(profile->application)));

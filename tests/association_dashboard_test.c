@@ -13,10 +13,78 @@
 #include "settings.h"
 #include "system_routes.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+static const char *watched_profile;
+static FILE *failed_profile;
+static unsigned profile_failure, profile_lines;
+FILE *__real_fopen(const char *, const char *);
+int __real_fclose(FILE *);
+int __real_fstat(int, struct stat *);
+size_t __real_fread(void *, size_t, size_t, FILE *);
+FILE *__wrap_fopen(const char *path, const char *mode)
+{
+    FILE *file = __real_fopen(path, mode);
+    if (watched_profile && *mode == 'r' && !strcmp(path, watched_profile)) {
+        failed_profile = file;
+        profile_lines = 0;
+    }
+    return file;
+}
+char *__real_fgets(char *, int, FILE *);
+char *__wrap_fgets(char *data, int size, FILE *file)
+{
+    if (file == failed_profile && profile_failure == 1 && profile_lines++ >= 4)
+        return NULL;
+    return __real_fgets(data, size, file);
+}
+#ifdef __GLIBC__
+char *__real___fgets_chk(char *, size_t, int, FILE *);
+char *__wrap___fgets_chk(char *data, size_t capacity, int size, FILE *file)
+{
+    if (file == failed_profile && profile_failure == 1 && profile_lines++ >= 4)
+        return NULL;
+    return __real___fgets_chk(data, capacity, size, file);
+}
+#endif
+int __wrap_fclose(FILE *file)
+{
+    bool fail = file == failed_profile && profile_failure == 2;
+    if (file == failed_profile)
+        failed_profile = NULL;
+    int result = __real_fclose(file);
+    if (fail) {
+        errno = EIO;
+        return EOF;
+    }
+    return result;
+}
+int __wrap_fstat(int descriptor, struct stat *status)
+{
+    if (failed_profile && descriptor == fileno(failed_profile) && profile_failure == 0) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_fstat(descriptor, status);
+}
+size_t __wrap_fread(void *data, size_t size, size_t count, FILE *file)
+{
+    return file == failed_profile && profile_failure == 1 ? 0
+                                                          : __real_fread(data, size, count, file);
+}
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+size_t __wrap___fread_chk(void *data, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    return file == failed_profile && profile_failure == 1
+               ? 0
+               : __real___fread_chk(data, capacity, size, count, file);
+}
+#endif
 
 static App app, restored;
 static uint16_t top[256 * 192], bottom[256 * 192];
@@ -31,6 +99,41 @@ static void text(const char *root, const char *name, const char *value)
     assert(path_join(path, root, name));
     FILE *file = fopen(path, "w");
     assert(file && fputs(value, file) >= 0 && !fclose(file));
+}
+static void check_profile_reads(const char *root)
+{
+    char user[PATH_CAP];
+    assert(path_preferences_file(user, root, "plugins/user"));
+    assert(!mkdir(user, 0777) || errno == EEXIST);
+    for (unsigned personal = 0; personal < 2; personal++) {
+        const char *name = personal ? "_nds/dsi-frontend/plugins/user/zzz.ini"
+                                    : "_nds/dsi-frontend/plugins/zzz.ini";
+        const char *profile = "[plugin]\nversion=1\nextensions=zzz\n"
+                              "application=/apps/Probe.nds\nargv=0\nbootstrap=1\nhbargv=1\n";
+        text(root, name, profile);
+        char path[PATH_CAP];
+        assert(path_join(path, root, name));
+        for (profile_failure = 0; profile_failure < 3; profile_failure++) {
+            watched_profile = path;
+            associations_load(&app);
+            assert(!association_find(&app, "sd:/roms/Example.zzz"));
+            watched_profile = NULL;
+            associations_load(&app);
+            const Association *loaded = association_find(&app, "sd:/roms/Example.zzz");
+            assert(loaded && !loaded->use_argv && loaded->bootstrap && loaded->hbargv);
+        }
+        const char binary_profile[] = "[plugin]\napplication=/apps/Probe.nds\n"
+                                      "extensions=zzz\nargv=1\0bootstrap=1\n";
+        FILE *file = fopen(path, "wb");
+        assert(file &&
+               fwrite(binary_profile, 1, sizeof binary_profile - 1, file) ==
+                   sizeof binary_profile - 1 &&
+               !fclose(file));
+        associations_load(&app);
+        assert(!association_find(&app, "sd:/roms/Example.zzz"));
+        assert(!remove(path));
+    }
+    associations_load(&app);
 }
 static void binary(const char *root)
 {
@@ -283,6 +386,7 @@ int main(int argc, char **argv)
     text(root, "_nds/dsi-frontend/plugins/books.ini",
          "[plugin]\nversion=1\nextensions=fb2.zip,epub\napplication=/apps/Probe.nds\nargv=1\n");
     app_init(&app, root, true, true);
+    check_profile_reads(root);
     char application[PATH_CAP], content[PATH_CAP];
     assert(path_join(application, root, "apps/Probe.nds"));
     assert(path_join(content, root, "roms/Content.xyz"));

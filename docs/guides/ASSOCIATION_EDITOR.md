@@ -29,6 +29,9 @@ plugin profiles; this editor does not change those flags. Supplied profile files
 rewritten. Writes use temporary/current/backup replacement; failed writes are
 reported. This is not a FAT power-loss atomicity guarantee.
 
+Profiles must be completely read and closed successfully before use. Truncated
+reads, embedded NUL bytes and files larger than 4 KiB are rejected.
+
 The view preserves the underlying browser and supports buttons and touch. When
 opened from a content item, its extension is selected automatically. Missing
 applications remain visible in the effective path and fail usefully at launch;

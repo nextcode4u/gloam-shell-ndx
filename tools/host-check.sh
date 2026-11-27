@@ -159,7 +159,8 @@ cp -r sdroot/. "$fixture/theme-samples/"
 ASAN_OPTIONS=detect_leaks=1 build/host/theme-samples-test "$fixture/theme-samples"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" "${ui_objects[@]}" tests/association_dashboard_test.c -o build/host/association-dashboard-test
+    "${model_objects[@]}" "${ui_objects[@]}" tests/association_dashboard_test.c \
+    -Wl,--wrap=fopen,--wrap=fclose,--wrap=fstat,--wrap=fread,--wrap=__fread_chk,--wrap=fgets,--wrap=__fgets_chk -o build/host/association-dashboard-test
 mkdir "$fixture/association-dashboard"
 ASAN_OPTIONS=detect_leaks=1 build/host/association-dashboard-test "$fixture/association-dashboard"
 
