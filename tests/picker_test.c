@@ -18,7 +18,7 @@
 static App app;
 static const char *watched_current, *watched_backup;
 static FILE *failed_stream;
-static unsigned record_opens;
+static unsigned record_opens, failed_record_opens;
 static bool inject_failure;
 static unsigned failure_mode;
 FILE *__real_fopen(const char *, const char *);
@@ -30,7 +30,7 @@ FILE *__wrap_fopen(const char *path, const char *mode)
     bool watched = inject_failure && *mode == 'r' &&
                    ((watched_current && !strcmp(path, watched_current)) ||
                     (watched_backup && !strcmp(path, watched_backup))) &&
-                   ++record_opens <= 2;
+                   ++record_opens <= failed_record_opens;
     if (watched && failure_mode == 0) {
         errno = EIO;
         return NULL;
@@ -176,58 +176,75 @@ static void assignment_edit_failures(const char *root)
     watched_current = current;
     watched_backup = backup;
     app_panel(&app, PANEL_NONE);
-    for (unsigned action = 0; action < 6; action++) {
-        for (failure_mode = 0; failure_mode < 4; failure_mode++) {
-            assert(item_preferences_save(root, entry->path, &original));
-            assert(item_preferences_save(root, entry->path, &original));
-            if (action >= 3) {
-                PickerKind kind = action == 3   ? PICKER_COVER
-                                  : action == 4 ? PICKER_ICON
-                                                : PICKER_APPLICATION;
-                assert(picker_open(&app, kind));
-                if (action == 3) {
-                    choose("images");
-                    picker_move(&app, find_picker("Good.png") - app.picker.selected);
-                } else if (action == 4) {
-                    picker_back(&app);
-                    picker_move(&app, find_picker("Custom.png") - app.picker.selected);
-                } else
-                    picker_move(&app, find_picker("Probe.nds") - app.picker.selected);
+    for (unsigned variant = 0; variant < 2; variant++) {
+        for (unsigned action = 0; action < 6; action++) {
+            for (failure_mode = 0; failure_mode < 4; failure_mode++) {
+                ItemPreferences older = {0};
+                assert(item_preferences_save(root, entry->path, variant ? &older : &original));
+                assert(item_preferences_save(root, entry->path, &original));
+                if (action >= 3) {
+                    PickerKind kind = action == 3   ? PICKER_COVER
+                                      : action == 4 ? PICKER_ICON
+                                                    : PICKER_APPLICATION;
+                    assert(picker_open(&app, kind));
+                    if (action == 3) {
+                        choose("images");
+                        picker_move(&app, find_picker("Good.png") - app.picker.selected);
+                    } else if (action == 4) {
+                        picker_back(&app);
+                        picker_move(&app, find_picker("Custom.png") - app.picker.selected);
+                    } else
+                        picker_move(&app, find_picker("Probe.nds") - app.picker.selected);
+                }
+                record_opens = 0;
+                failed_record_opens = variant ? 1 : 2;
+                inject_failure = true;
+                if (action == 0)
+                    assert(!picker_clear_assignment(&app, true));
+                else if (action == 1)
+                    assert(!picker_clear_assignment(&app, false));
+                else if (action == 2)
+                    assert(!picker_clear_icon(&app));
+                else {
+                    picker_activate(&app);
+                    assert(app.picker.open && strstr(app.picker.status, "read"));
+                }
+                inject_failure = false;
+                assert(record_opens > 0 && record_opens <= failed_record_opens);
+                assert(item_preferences_load(root, entry->path, &actual));
+                assert(!strcmp(actual.cover, original.cover) &&
+                       !strcmp(actual.icon, original.icon) &&
+                       !strcmp(actual.application, original.application));
+                if (action == 0)
+                    assert(picker_clear_assignment(&app, true));
+                else if (action == 1)
+                    assert(picker_clear_assignment(&app, false));
+                else if (action == 2)
+                    assert(picker_clear_icon(&app));
+                else {
+                    picker_activate(&app);
+                    assert(!app.picker.open);
+                    app_back(&app);
+                }
+                assert(item_preferences_load(root, entry->path, &actual));
+                assert(!strcmp(actual.application, action == 0 ? "" : original.application));
+                assert(!strcmp(actual.cover, action == 1 ? "" : original.cover));
+                assert(!strcmp(actual.icon, action == 2 ? "" : original.icon));
             }
-            record_opens = 0;
-            inject_failure = true;
-            if (action == 0)
-                assert(!picker_clear_assignment(&app, true));
-            else if (action == 1)
-                assert(!picker_clear_assignment(&app, false));
-            else if (action == 2)
-                assert(!picker_clear_icon(&app));
-            else {
-                picker_activate(&app);
-                assert(app.picker.open && strstr(app.picker.status, "read"));
-            }
-            inject_failure = false;
-            assert(record_opens == 2);
-            assert(item_preferences_load(root, entry->path, &actual));
-            assert(!strcmp(actual.cover, original.cover) && !strcmp(actual.icon, original.icon) &&
-                   !strcmp(actual.application, original.application));
-            if (action == 0)
-                assert(picker_clear_assignment(&app, true));
-            else if (action == 1)
-                assert(picker_clear_assignment(&app, false));
-            else if (action == 2)
-                assert(picker_clear_icon(&app));
-            else {
-                picker_activate(&app);
-                assert(!app.picker.open);
-                app_back(&app);
-            }
-            assert(item_preferences_load(root, entry->path, &actual));
-            assert(!strcmp(actual.application, action == 0 ? "" : original.application));
-            assert(!strcmp(actual.cover, action == 1 ? "" : original.cover));
-            assert(!strcmp(actual.icon, action == 2 ? "" : original.icon));
         }
     }
+    /* Completely inspected damage can still recover without clearing other fields. */
+    assert(item_preferences_save(root, entry->path, &original));
+    assert(item_preferences_save(root, entry->path, &original));
+    FILE *damaged = fopen(current, "w");
+    assert(damaged && fputs("version=1\ncover=invalid\n", damaged) >= 0 && !fclose(damaged));
+    assert(item_preferences_read_for_edit(root, entry->path, &actual));
+    assert(!strcmp(actual.cover, original.cover) && !strcmp(actual.icon, original.icon) &&
+           !strcmp(actual.application, original.application));
+    assert(picker_clear_assignment(&app, false));
+    assert(item_preferences_load(root, entry->path, &actual));
+    assert(!*actual.cover && !strcmp(actual.icon, original.icon) &&
+           !strcmp(actual.application, original.application));
     watched_current = watched_backup = NULL;
 }
 int main(int argc, char **argv)

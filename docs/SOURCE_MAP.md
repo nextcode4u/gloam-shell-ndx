@@ -108,7 +108,8 @@ Failed resolution leaves the caller's options unchanged.
 `game_options_load` provides a verified sparse snapshot for editing.
 
 `item_preferences_resolve` applies the same missing/error distinction to launch,
-handler selection, inspection and assignment edits. Display-only artwork/icon
+handler selection and inspection. `item_preferences_read_for_edit` additionally
+requires inspecting the primary before assignment changes. Display-only artwork/icon
 lookups retain their ordinary fallbacks through `item_preferences_load`.
 
 Configuration import and reset retain rollback data before changing settings.

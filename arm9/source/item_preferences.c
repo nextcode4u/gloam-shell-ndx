@@ -105,7 +105,8 @@ static RecordStatus read_record(const char *path, const char *root, const char *
     return valid && version && matched ? RECORD_VALID : RECORD_INVALID;
 }
 
-static RecordStatus load_item(const char *root, const char *content, ItemPreferences *item)
+static RecordStatus load_item(const char *root, const char *content, ItemPreferences *item,
+                              bool for_edit)
 {
     char key[PATH_CAP], path[PATH_CAP];
     if (!identity(key, root, content))
@@ -116,6 +117,9 @@ static RecordStatus load_item(const char *root, const char *content, ItemPrefere
         RecordStatus status = record_path(path, root, key, backup ? "bak" : "ini")
                                   ? read_record(path, root, key, &candidate)
                                   : RECORD_UNREADABLE;
+        /* A readable older backup cannot establish an unreadable primary's fields. */
+        if (for_edit && !backup && (status == RECORD_UNREADABLE || status == RECORD_PROTECTED))
+            return status;
         if (status == RECORD_VALID) {
             *item = candidate;
             return RECORD_VALID;
@@ -128,11 +132,18 @@ static RecordStatus load_item(const char *root, const char *content, ItemPrefere
 bool item_preferences_load(const char *root, const char *content, ItemPreferences *item)
 {
     memset(item, 0, sizeof *item);
-    return load_item(root, content, item) == RECORD_VALID;
+    return load_item(root, content, item, false) == RECORD_VALID;
 }
 bool item_preferences_resolve(const char *root, const char *content, ItemPreferences *item)
 {
-    RecordStatus status = load_item(root, content, item);
+    RecordStatus status = load_item(root, content, item, false);
+    if (status == RECORD_MISSING)
+        memset(item, 0, sizeof *item);
+    return status == RECORD_VALID || status == RECORD_MISSING;
+}
+bool item_preferences_read_for_edit(const char *root, const char *content, ItemPreferences *item)
+{
+    RecordStatus status = load_item(root, content, item, true);
     if (status == RECORD_MISSING)
         memset(item, 0, sizeof *item);
     return status == RECORD_VALID || status == RECORD_MISSING;

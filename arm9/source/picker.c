@@ -492,7 +492,7 @@ void picker_activate(App *app)
     }
     ItemPreferences item = {0};
     if (picker->kind != PICKER_EXTENSION_APPLICATION &&
-        !item_preferences_resolve(app->root, picker->target, &item)) {
+        !item_preferences_read_for_edit(app->root, picker->target, &item)) {
         path_copy(picker->status,
                   "Could not read saved assignments. Check SD access or restore a backup.",
                   sizeof picker->status);
@@ -560,7 +560,7 @@ bool picker_clear_assignment(App *app, bool application)
     if (!entry || !*entry->path || (entry->kind != ITEM_FILE && entry->kind != ITEM_DIRECTORY))
         return false;
     ItemPreferences item;
-    if (!item_preferences_resolve(app->root, entry->path, &item))
+    if (!item_preferences_read_for_edit(app->root, entry->path, &item))
         return false;
     if (application)
         item.application[0] = 0;
@@ -579,7 +579,7 @@ bool picker_clear_icon(App *app)
     if (!app->storage_ready || !entry || !*entry->path)
         return false;
     ItemPreferences item;
-    if (!item_preferences_resolve(app->root, entry->path, &item))
+    if (!item_preferences_read_for_edit(app->root, entry->path, &item))
         return false;
     item.icon[0] = 0;
     if (!item_preferences_save(app->root, entry->path, &item))
