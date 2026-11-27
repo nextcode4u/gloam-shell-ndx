@@ -490,8 +490,14 @@ void picker_activate(App *app)
         message(app, "Custom launcher music selected");
         return;
     }
-    ItemPreferences item;
-    item_preferences_load(app->root, picker->target, &item);
+    ItemPreferences item = {0};
+    if (picker->kind != PICKER_EXTENSION_APPLICATION &&
+        !item_preferences_resolve(app->root, picker->target, &item)) {
+        path_copy(picker->status,
+                  "Could not read saved assignments. Check SD access or restore a backup.",
+                  sizeof picker->status);
+        return;
+    }
     if (picker->kind == PICKER_ICON) {
         if (!icon_load_png(entry->path, picker->preview.pixels)) {
             path_copy(picker->status, "Use a 32x32 PNG icon, at most 64 KiB",
@@ -554,7 +560,8 @@ bool picker_clear_assignment(App *app, bool application)
     if (!entry || !*entry->path || (entry->kind != ITEM_FILE && entry->kind != ITEM_DIRECTORY))
         return false;
     ItemPreferences item;
-    item_preferences_load(app->root, entry->path, &item);
+    if (!item_preferences_resolve(app->root, entry->path, &item))
+        return false;
     if (application)
         item.application[0] = 0;
     else
@@ -572,7 +579,8 @@ bool picker_clear_icon(App *app)
     if (!app->storage_ready || !entry || !*entry->path)
         return false;
     ItemPreferences item;
-    item_preferences_load(app->root, entry->path, &item);
+    if (!item_preferences_resolve(app->root, entry->path, &item))
+        return false;
     item.icon[0] = 0;
     if (!item_preferences_save(app->root, entry->path, &item))
         return false;

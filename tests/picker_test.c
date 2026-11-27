@@ -9,11 +9,70 @@
 #include "picker.h"
 #include "renderer.h"
 #include <assert.h>
+#include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 
 static App app;
+static const char *watched_current, *watched_backup;
+static FILE *failed_stream;
+static unsigned record_opens;
+static bool inject_failure;
+static unsigned failure_mode;
+FILE *__real_fopen(const char *, const char *);
+int __real_fclose(FILE *);
+int __real_fstat(int, struct stat *);
+size_t __real_fread(void *, size_t, size_t, FILE *);
+FILE *__wrap_fopen(const char *path, const char *mode)
+{
+    bool watched = inject_failure && *mode == 'r' &&
+                   ((watched_current && !strcmp(path, watched_current)) ||
+                    (watched_backup && !strcmp(path, watched_backup))) &&
+                   ++record_opens <= 2;
+    if (watched && failure_mode == 0) {
+        errno = EIO;
+        return NULL;
+    }
+    FILE *file = __real_fopen(path, mode);
+    if (watched)
+        failed_stream = file;
+    return file;
+}
+int __wrap_fclose(FILE *file)
+{
+    bool deny = file == failed_stream && failure_mode == 3;
+    if (file == failed_stream)
+        failed_stream = NULL;
+    int result = __real_fclose(file);
+    if (deny) {
+        errno = EIO;
+        return EOF;
+    }
+    return result;
+}
+int __wrap_fstat(int descriptor, struct stat *info)
+{
+    if (failed_stream && fileno(failed_stream) == descriptor && failure_mode == 1) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_fstat(descriptor, info);
+}
+size_t __wrap_fread(void *data, size_t size, size_t count, FILE *file)
+{
+    return file == failed_stream && failure_mode == 2 ? 0 : __real_fread(data, size, count, file);
+}
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+size_t __wrap___fread_chk(void *data, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    return file == failed_stream && failure_mode == 2
+               ? 0
+               : __real___fread_chk(data, capacity, size, count, file);
+}
+#endif
 static struct {
     unsigned before;
     uint16_t pixels[256 * 192];
@@ -91,6 +150,85 @@ static void check_menu_cursor(void)
     }
     app.themes.active.palette = original;
     app.themes.active.selection_text = selection_text;
+}
+static void assignment_edit_failures(const char *root)
+{
+    const Entry *entry = app_selected(&app);
+    assert(entry && entry->kind == ITEM_FILE);
+    ItemPreferences original = {0}, actual;
+    assert(path_join(original.cover, root, "roms/images/Good.png"));
+    assert(path_join(original.icon, root, "Custom.png"));
+    assert(path_join(original.application, root, "apps/Probe.nds"));
+    char key[PATH_CAP], name[80], current[PATH_CAP], backup[PATH_CAP];
+    const char *relative = entry->path + strlen(root);
+    while (*relative == '/')
+        relative++;
+    assert(path_resolve_sd(key, "sd:/", relative));
+    uint64_t hash = UINT64_C(14695981039346656037);
+    for (const unsigned char *p = (const unsigned char *)key; *p; p++) {
+        hash ^= *p;
+        hash *= UINT64_C(1099511628211);
+    }
+    snprintf(name, sizeof name, "items/%016" PRIx64 ".ini", hash);
+    assert(path_preferences_file(current, root, name));
+    strcpy(name + strlen(name) - 3, "bak");
+    assert(path_preferences_file(backup, root, name));
+    watched_current = current;
+    watched_backup = backup;
+    app_panel(&app, PANEL_NONE);
+    for (unsigned action = 0; action < 6; action++) {
+        for (failure_mode = 0; failure_mode < 4; failure_mode++) {
+            assert(item_preferences_save(root, entry->path, &original));
+            assert(item_preferences_save(root, entry->path, &original));
+            if (action >= 3) {
+                PickerKind kind = action == 3   ? PICKER_COVER
+                                  : action == 4 ? PICKER_ICON
+                                                : PICKER_APPLICATION;
+                assert(picker_open(&app, kind));
+                if (action == 3) {
+                    choose("images");
+                    picker_move(&app, find_picker("Good.png") - app.picker.selected);
+                } else if (action == 4) {
+                    picker_back(&app);
+                    picker_move(&app, find_picker("Custom.png") - app.picker.selected);
+                } else
+                    picker_move(&app, find_picker("Probe.nds") - app.picker.selected);
+            }
+            record_opens = 0;
+            inject_failure = true;
+            if (action == 0)
+                assert(!picker_clear_assignment(&app, true));
+            else if (action == 1)
+                assert(!picker_clear_assignment(&app, false));
+            else if (action == 2)
+                assert(!picker_clear_icon(&app));
+            else {
+                picker_activate(&app);
+                assert(app.picker.open && strstr(app.picker.status, "read"));
+            }
+            inject_failure = false;
+            assert(record_opens == 2);
+            assert(item_preferences_load(root, entry->path, &actual));
+            assert(!strcmp(actual.cover, original.cover) && !strcmp(actual.icon, original.icon) &&
+                   !strcmp(actual.application, original.application));
+            if (action == 0)
+                assert(picker_clear_assignment(&app, true));
+            else if (action == 1)
+                assert(picker_clear_assignment(&app, false));
+            else if (action == 2)
+                assert(picker_clear_icon(&app));
+            else {
+                picker_activate(&app);
+                assert(!app.picker.open);
+                app_back(&app);
+            }
+            assert(item_preferences_load(root, entry->path, &actual));
+            assert(!strcmp(actual.application, action == 0 ? "" : original.application));
+            assert(!strcmp(actual.cover, action == 1 ? "" : original.cover));
+            assert(!strcmp(actual.icon, action == 2 ? "" : original.icon));
+        }
+    }
+    watched_current = watched_backup = NULL;
 }
 int main(int argc, char **argv)
 {
@@ -257,6 +395,7 @@ int main(int argc, char **argv)
     assert(!app.picker.entries && !strcmp(content.path, app_selected(&app)->path));
     path_copy(item.cover, "/outside/root.png", sizeof item.cover);
     assert(!item_preferences_save(root, content.path, &item));
+    assignment_edit_failures(root);
     puts("PASS: independent picker, cover preview/assignment, per-file application, clearing and "
          "navigation");
 }

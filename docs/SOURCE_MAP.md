@@ -107,8 +107,8 @@ Missing records may inherit; unreadable or damaged layers require a valid backup
 Failed resolution leaves the caller's options unchanged.
 
 `item_preferences_resolve` applies the same missing/error distinction to launch,
-handler selection and inspection. Display-only artwork/icon lookups retain their
-ordinary fallbacks through `item_preferences_load`.
+handler selection, inspection and assignment edits. Display-only artwork/icon
+lookups retain their ordinary fallbacks through `item_preferences_load`.
 
 Configuration import and reset retain rollback data before changing settings.
 Do not replace them with recursive deletion of frontend folders: installed

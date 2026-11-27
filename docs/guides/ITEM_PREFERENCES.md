@@ -59,6 +59,9 @@ Writers use temporary/current/backup replacement. A matching valid backup can
 recover a damaged current record and allow later edits without discarding that
 backup. Unreadable records, different content identities and unsupported versions
 remain protected. This is recoverable replacement, not FAT power-loss atomicity.
+
+Changing or clearing an assignment requires a complete read first. If reading
+fails, the picker stays open for retry and existing assignments remain intact.
 Clearing a field preserves other fields. Clearing all assignments leaves a valid
 empty record; no artwork, application, ROM or save is removed. Moving content
 does not currently relocate its assignment automatically.

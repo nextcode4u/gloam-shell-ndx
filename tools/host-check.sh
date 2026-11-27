@@ -128,9 +128,11 @@ mkdir "$fixture/scummvm"
 ASAN_OPTIONS=detect_leaks=1 build/host/scummvm-test "$fixture/scummvm"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
-    "${model_objects[@]}" "${ui_objects[@]}" tests/picker_test.c -o build/host/picker-test
+    "${model_objects[@]}" "${ui_objects[@]}" tests/picker_test.c \
+    -Wl,--wrap=fopen,--wrap=fclose,--wrap=fstat,--wrap=fread,--wrap=__fread_chk -o build/host/picker-test
 mkdir -p "$fixture/picker/roms/images"
 cp "tests/fixtures/cover-example.png" "$fixture/picker/roms/images/Good.png"
+cp "forwarder/icon.png" "$fixture/picker/Custom.png"
 ASAN_OPTIONS=detect_leaks=1 build/host/picker-test "$fixture/picker"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
