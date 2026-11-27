@@ -49,10 +49,13 @@ static bool app_identity(const char *path, const NativeTitle *title, uint32_t *s
         valid = start >= 0x200 && !(start & 3) && length >= 4 && start <= (uint32_t)bytes &&
                 length <= (uint32_t)bytes - start;
     }
+    if (file) {
+        valid = valid && !ferror(file);
+        if (fclose(file))
+            valid = false;
+    }
     if (valid)
         *size = (uint32_t)bytes;
-    if (file)
-        fclose(file);
     return valid;
 }
 bool installed_title_revalidate(const InstalledCatalog *catalog, unsigned index)

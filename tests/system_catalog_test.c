@@ -11,6 +11,68 @@
 static const char *watched_path, *stop_after_name;
 static DIR *watched_directory;
 static bool deny_open, deny_read, deny_close, stop_next, stale_errno;
+static const char *watched_file_path;
+static FILE *watched_file;
+static bool file_metadata_error, file_read_error, file_close_error;
+static size_t file_read_limit = (size_t)-1;
+FILE *__real_fopen(const char *, const char *);
+int __real_fclose(FILE *);
+int __real_fstat(int, struct stat *);
+int __real_ferror(FILE *);
+size_t __real_fread(void *, size_t, size_t, FILE *);
+FILE *__wrap_fopen(const char *path, const char *mode)
+{
+    FILE *file = __real_fopen(path, mode);
+    if (watched_file_path && !strcmp(path, watched_file_path) && *mode == 'r')
+        watched_file = file;
+    return file;
+}
+int __wrap_fclose(FILE *file)
+{
+    bool fail = file == watched_file && file_close_error;
+    if (file == watched_file)
+        watched_file = NULL;
+    int result = __real_fclose(file);
+    if (fail) {
+        errno = EIO;
+        return EOF;
+    }
+    return result;
+}
+int __wrap_fstat(int descriptor, struct stat *metadata)
+{
+    if (watched_file && descriptor == fileno(watched_file) && file_metadata_error) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_fstat(descriptor, metadata);
+}
+int __wrap_ferror(FILE *file)
+{
+    return (file == watched_file && file_read_error) || __real_ferror(file);
+}
+size_t __wrap_fread(void *buffer, size_t size, size_t count, FILE *file)
+{
+    if (file == watched_file && count > file_read_limit)
+        count = file_read_limit;
+    return __real_fread(buffer, size, count, file);
+}
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+size_t __wrap___fread_chk(void *buffer, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    if (file == watched_file && count > file_read_limit)
+        count = file_read_limit;
+    return __real___fread_chk(buffer, capacity, size, count, file);
+}
+#endif
+static void file_fault(unsigned failure)
+{
+    file_metadata_error = failure == 0;
+    file_read_limit = failure == 1 ? 1 : (size_t)-1;
+    file_read_error = failure == 2;
+    file_close_error = failure == 3;
+}
 DIR *__real_opendir(const char *);
 struct dirent *__real_readdir(DIR *);
 int __real_closedir(DIR *);
@@ -167,6 +229,28 @@ static void regional_settings_handoff(const char *root)
     }
 }
 
+static void metadata_read_failures(const char *root)
+{
+    char directory[PATH_CAP], path[PATH_CAP];
+    assert(path_join(directory, root, "title/00030015/484e4245"));
+    assert(path_join(path, directory, "content/title.tmd"));
+    watched_file_path = path;
+    for (unsigned failure = 0; failure < 4; failure++) {
+        file_fault(failure);
+        uint32_t boot = 0xDEADBEEF;
+        assert(!native_title_content(directory, 0x30015, 0x484E4245, &boot, false));
+        assert(boot == 0xDEADBEEF);
+        SystemCatalog catalog;
+        system_catalog_scan(&catalog, root);
+        assert(!catalog.titles[0].available && !*catalog.content_paths[0]);
+        assert(catalog.launcher.available);
+    }
+    file_fault(4);
+    watched_file_path = NULL;
+    uint32_t boot = 0;
+    assert(native_title_content(directory, 0x30015, 0x484E4245, &boot, false) && boot == 7);
+}
+
 static void put_le32(unsigned char *p, uint32_t value)
 {
     for (unsigned i = 0; i < 4; i++)
@@ -216,6 +300,14 @@ static void launcher_without_tmd(const char *root)
     system_catalog_scan(&catalog, nand);
     assert(catalog.launcher.available && catalog.launcher.low == 0x484E414A &&
            catalog.launcher.boot_content == 2);
+    watched_file_path = path;
+    for (unsigned failure = 0; failure < 4; failure++) {
+        file_fault(failure);
+        system_catalog_scan(&catalog, nand);
+        assert(!catalog.launcher.available);
+    }
+    file_fault(4);
+    watched_file_path = NULL;
     content_scan_failures(nand);
     /* An unusable TMD must not hide the validated executable. */
     assert(path_join(second, nand, "title/00030017/484e414a/content/title.tmd"));
@@ -231,6 +323,18 @@ static void launcher_without_tmd(const char *root)
     assert(f && fwrite(app, 1, sizeof app, f) == sizeof app && !fclose(f));
     system_catalog_scan(&catalog, nand);
     assert(catalog.patched_launcher_present && catalog.patched_launcher_valid);
+    watched_file_path = patched;
+    for (unsigned failure = 0; failure < 4; failure++) {
+        file_fault(failure);
+        system_catalog_scan(&catalog, nand);
+        assert(catalog.patched_launcher_present && !catalog.patched_launcher_valid);
+        assert(catalog.launcher.available);
+        unsigned char rejected[0x400];
+        assert(!system_launcher_autoload(rejected, &catalog));
+    }
+    file_fault(4);
+    watched_file_path = NULL;
+    system_catalog_scan(&catalog, nand);
     root_scan_failures(nand, true);
     unsigned char autoload[0x400];
     assert(system_launcher_autoload(autoload, &catalog));
@@ -396,6 +500,7 @@ int main(int argc, char **argv)
     assert(catalog.attempted && catalog.ready && catalog.titles[0].available &&
            !catalog.titles[1].available);
     group_scan_failures(root);
+    metadata_read_failures(root);
     assert(catalog.titles[0].boot_content == 7);
     char expected_content[PATH_CAP];
     assert(path_join(expected_content, root, "title/00030015/484e4245/content/00000007.app"));
@@ -459,6 +564,11 @@ int main(int argc, char **argv)
     assert(!fseek(f, 0x1DF, SEEK_SET) && fputc(2, f) != EOF && !fclose(f));
     system_catalog_scan(&catalog, root);
     assert(!catalog.titles[0].available && !*catalog.content_paths[0]);
+    char invalid_directory[PATH_CAP];
+    assert(path_join(invalid_directory, root, "title/00030015/484e4245"));
+    uint32_t uncommitted = 0xDEADBEEF;
+    assert(!native_title_content(invalid_directory, 0x30015, 0x484E4245, &uncommitted, false));
+    assert(uncommitted == 0xDEADBEEF);
     system_card_request(request);
     assert(request[2] == 0x43415254 && request[4] == 0x43415254 && request[6] == 0x13 &&
            (request[1] >> 16));

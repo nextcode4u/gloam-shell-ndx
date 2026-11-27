@@ -38,6 +38,10 @@ truncated animation retains the static icon. Title names and installed-title
 identity checks also avoid EOF seeks, keeping FAT cluster-chain traversal out of
 size validation while visible icons begin playing.
 
+Native title discovery publishes boot-content IDs only after complete metadata
+reads and a successful close. Patched-menu and installed-title header checks use
+open-file metadata and reject read/close errors before accepting a launch target.
+
 `theme_assets.c` accepts legacy sprite bundles and prepared screen/material
 records. `theme_prepared_surfaces.py` reproduces native integer blending at
 authoring time; mismatched personal overrides and invalid bundles retain PNG

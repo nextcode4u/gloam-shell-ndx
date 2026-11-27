@@ -32,7 +32,10 @@ bool native_title_content(const char *directory, uint32_t high, uint32_t low,
         return false;
     FILE *file = fopen(path, "rb");
     unsigned char header[0x1E4], content[36];
-    bool valid = file && fread(header, 1, sizeof header, file) == sizeof header;
+    struct stat metadata;
+    bool valid = file && !fstat(fileno(file), &metadata) && S_ISREG(metadata.st_mode) &&
+                 metadata.st_size >= (off_t)sizeof header &&
+                 fread(header, 1, sizeof header, file) == sizeof header;
     /* The supported DSi metadata layout has an RSA-2048 signature prefix.
      * This is an identity/size check, not Nintendo signature verification. */
     valid = valid && (be32(header) == 0x00010001 || (allow_unsigned && !be32(header))) &&
@@ -40,6 +43,7 @@ bool native_title_content(const char *directory, uint32_t high, uint32_t low,
     unsigned count = valid ? header[0x1DE] << 8 | header[0x1DF] : 0;
     unsigned boot_index = valid ? header[0x1E0] << 8 | header[0x1E1] : 0;
     bool found_boot = false;
+    uint32_t selected_content = 0;
     valid = valid && count > 0 && count <= 16;
     for (unsigned i = 0; valid && i < count; i++) {
         valid = fread(content, 1, sizeof content, file) == sizeof content;
@@ -57,12 +61,17 @@ bool native_title_content(const char *directory, uint32_t high, uint32_t low,
                 valid = false;
                 break;
             }
-            *boot_content = be32(content);
+            selected_content = be32(content);
             found_boot = true;
         }
     }
-    if (file)
-        fclose(file);
+    if (file) {
+        valid = valid && !ferror(file);
+        if (fclose(file))
+            valid = false;
+    }
+    if (valid && found_boot)
+        *boot_content = selected_content;
     return valid && found_boot;
 }
 /* Unlaunch/language-patched installations may not retain usable Launcher TMD
@@ -74,15 +83,12 @@ static uint32_t le32(const unsigned char *p)
 }
 static bool launcher_app(const char *path, uint32_t low)
 {
-    struct stat status;
-    if (stat(path, &status) || !S_ISREG(status.st_mode) || status.st_size < 0x1000 ||
-        (uint64_t)status.st_size > UINT32_MAX)
-        return false;
     FILE *file = fopen(path, "rb");
+    struct stat status;
     unsigned char header[0x240];
-    bool valid = file && fread(header, 1, sizeof header, file) == sizeof header;
-    if (file)
-        fclose(file);
+    bool valid = file && !fstat(fileno(file), &status) && S_ISREG(status.st_mode) &&
+                 status.st_size >= 0x1000 && (uint64_t)status.st_size <= UINT32_MAX &&
+                 fread(header, 1, sizeof header, file) == sizeof header;
     valid =
         valid && (header[0x12] == 2 || header[0x12] == 3) &&
         (low ? le32(header + 0x230) == low : (le32(header + 0x230) & 0xFFFFFF00) == 0x484E4100) &&
@@ -94,6 +100,11 @@ static bool launcher_app(const char *path, uint32_t low)
         uint32_t bytes = le32(header + offsets[i] + 12);
         valid = start >= 0x1000 && !(start & 3) && bytes >= 4 &&
                 start <= (uint64_t)status.st_size && bytes <= (uint64_t)status.st_size - start;
+    }
+    if (file) {
+        valid = valid && !ferror(file);
+        if (fclose(file))
+            valid = false;
     }
     return valid;
 }

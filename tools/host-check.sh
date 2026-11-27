@@ -209,7 +209,7 @@ ASAN_OPTIONS=detect_leaks=1 build/host/animated-icon-test "$fixture/animated.nds
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" tests/system_catalog_test.c \
-    -Wl,--wrap=opendir,--wrap=readdir,--wrap=closedir -o build/host/system-catalog-test
+    -Wl,--wrap=opendir,--wrap=readdir,--wrap=closedir,--wrap=fopen,--wrap=fclose,--wrap=fstat,--wrap=ferror,--wrap=fread,--wrap=__fread_chk -o build/host/system-catalog-test
 mkdir "$fixture/system-catalog"
 ASAN_OPTIONS=detect_leaks=1 build/host/system-catalog-test "$fixture/system-catalog"
 
@@ -346,7 +346,7 @@ ASAN_OPTIONS=detect_leaks=1 build/host/file-types-test
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/installed_titles_test.c \
-    -Wl,--wrap=opendir,--wrap=readdir,--wrap=closedir -o build/host/installed-titles-test
+    -Wl,--wrap=opendir,--wrap=readdir,--wrap=closedir,--wrap=fopen,--wrap=fclose,--wrap=fstat,--wrap=ferror,--wrap=fread,--wrap=__fread_chk -o build/host/installed-titles-test
 mkdir "$fixture/installed-titles"
 ASAN_OPTIONS=detect_leaks=1 build/host/installed-titles-test "$fixture/installed-titles"
 

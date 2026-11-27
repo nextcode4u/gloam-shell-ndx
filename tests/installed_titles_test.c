@@ -18,6 +18,61 @@ static const char *watched_path;
 static DIR *watched_directory;
 static const InstalledCatalog *watched_catalog;
 static bool fail_read, fail_after_title, fail_close, stale_errno;
+static const char *watched_file_path;
+static FILE *watched_file;
+static bool file_metadata_error, file_read_error, file_close_error;
+static size_t file_read_limit = (size_t)-1;
+FILE *__real_fopen(const char *, const char *);
+int __real_fclose(FILE *);
+int __real_fstat(int, struct stat *);
+int __real_ferror(FILE *);
+size_t __real_fread(void *, size_t, size_t, FILE *);
+FILE *__wrap_fopen(const char *path, const char *mode)
+{
+    FILE *file = __real_fopen(path, mode);
+    if (watched_file_path && !strcmp(path, watched_file_path) && *mode == 'r')
+        watched_file = file;
+    return file;
+}
+int __wrap_fclose(FILE *file)
+{
+    bool fail = file == watched_file && file_close_error;
+    if (file == watched_file)
+        watched_file = NULL;
+    int result = __real_fclose(file);
+    if (fail) {
+        errno = EIO;
+        return EOF;
+    }
+    return result;
+}
+int __wrap_fstat(int descriptor, struct stat *metadata)
+{
+    if (watched_file && descriptor == fileno(watched_file) && file_metadata_error) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_fstat(descriptor, metadata);
+}
+int __wrap_ferror(FILE *file)
+{
+    return (file == watched_file && file_read_error) || __real_ferror(file);
+}
+size_t __wrap_fread(void *buffer, size_t size, size_t count, FILE *file)
+{
+    if (file == watched_file && count > file_read_limit)
+        count = file_read_limit;
+    return __real_fread(buffer, size, count, file);
+}
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+size_t __wrap___fread_chk(void *buffer, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    if (file == watched_file && count > file_read_limit)
+        count = file_read_limit;
+    return __real___fread_chk(buffer, capacity, size, count, file);
+}
+#endif
 DIR *__real_opendir(const char *);
 struct dirent *__real_readdir(DIR *);
 int __real_closedir(DIR *);
@@ -118,6 +173,33 @@ static void scan(InstalledCatalog *catalog, const char *root)
         assert(++steps < 4098);
     }
 }
+static void file_read_failures(const char *root)
+{
+    char path[PATH_CAP];
+    const char *files[] = {"title/00030004/474c4458/content/title.tmd",
+                           "title/00030004/474c4458/content/00000007.app"};
+    for (unsigned i = 0; i < 2; i++) {
+        assert(path_join(path, root, files[i]));
+        for (unsigned failure = 0; failure < 4; failure++) {
+            watched_file_path = path;
+            file_metadata_error = failure == 0;
+            file_read_limit = failure == 1 ? 1 : (size_t)-1;
+            file_read_error = failure == 2;
+            file_close_error = failure == 3;
+            assert(!installed_title_revalidate(&app.installed_catalog, 0));
+            scan(&restored.installed_catalog, root);
+            assert(restored.installed_catalog.ready && restored.installed_catalog.count == 1);
+            assert(restored.installed_catalog.titles[0].title.low == 0x4B414245);
+            assert(restored.installed_catalog.skipped == 2);
+            watched_file_path = NULL;
+            file_metadata_error = file_read_error = file_close_error = false;
+            file_read_limit = (size_t)-1;
+            assert(installed_title_revalidate(&app.installed_catalog, 0));
+        }
+    }
+    scan(&restored.installed_catalog, root);
+    assert(restored.installed_catalog.ready && restored.installed_catalog.count == 2);
+}
 static void scan_failures(const char *root)
 {
     char folder[PATH_CAP];
@@ -199,6 +281,7 @@ int main(int argc, char **argv)
     assert(app.installed_catalog.ready && app.installed_catalog.count == 2 &&
            app.installed_catalog.skipped == 1);
     assert(!strcmp(app.installed_catalog.titles[0].name, "Alpha"));
+    file_read_failures(root);
     scan_failures(root);
     assert(app.installed_catalog.titles[0].title.boot_content == 7);
     assert(installed_title_revalidate(&app.installed_catalog, 0));
