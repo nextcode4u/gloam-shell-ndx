@@ -28,6 +28,24 @@ static bool valid_size(uint32_t bytes)
 {
     return bytes >= 4096 && bytes <= 32 * 1024 * 1024 && !(bytes & (bytes - 1));
 }
+/* Write sector-aligned batches; only the first sector of a FAT has reserved entries. */
+static bool write_empty_sectors(FILE *file, unsigned sectors, bool fat_header)
+{
+    unsigned char block[4096] = {0};
+    if (fat_header) {
+        block[0] = 0xF8;
+        block[1] = block[2] = 0xFF;
+    }
+    while (sectors) {
+        unsigned count = sectors < sizeof block / 512 ? sectors : sizeof block / 512;
+        size_t bytes = count * 512;
+        if (fwrite(block, 1, bytes, file) != bytes)
+            return false;
+        block[0] = block[1] = block[2] = 0;
+        sectors -= count;
+    }
+    return true;
+}
 static bool choose_save(const char *target, const char *extension, int slot, uint32_t bytes,
                         char output[PATH_CAP], char error[160])
 {
@@ -213,16 +231,10 @@ bool dsiware_create_save(const char *path, uint32_t bytes, char error[160])
     memcpy(sector + 43, "NO NAME    FAT12   ", 19);
     sector[510] = 0x55;
     sector[511] = 0xAA;
-    bool valid = fwrite(sector, 1, sizeof sector, file) == sizeof sector;
-    memset(sector, 0, sizeof sector);
-    for (unsigned index = 1; valid && index < sectors; index++) {
-        if (index == 1 || index == 1 + fat_sectors) {
-            sector[0] = 0xF8;
-            sector[1] = sector[2] = 0xFF;
-        }
-        valid = fwrite(sector, 1, sizeof sector, file) == sizeof sector;
-        sector[0] = sector[1] = sector[2] = 0;
-    }
+    bool valid = fwrite(sector, 1, sizeof sector, file) == sizeof sector &&
+                 write_empty_sectors(file, fat_sectors, true) &&
+                 write_empty_sectors(file, fat_sectors, true) &&
+                 write_empty_sectors(file, sectors - 1 - 2 * fat_sectors, false);
     if (fclose(file))
         valid = false;
     /* A failed access check must not become permission to replace a save. */

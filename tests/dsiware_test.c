@@ -12,6 +12,15 @@
 static App app;
 static const char *probe_save;
 static unsigned fail_check, probe_checks;
+static bool measure_save_writes;
+static unsigned save_writes, fail_write;
+size_t __real_fwrite(const void *, size_t, size_t, FILE *);
+size_t __wrap_fwrite(const void *data, size_t size, size_t count, FILE *file)
+{
+    if (measure_save_writes && ++save_writes == fail_write && count)
+        count--;
+    return __real_fwrite(data, size, count, file);
+}
 int __real_stat(const char *, struct stat *);
 int __wrap_stat(const char *path, struct stat *status)
 {
@@ -69,16 +78,56 @@ static void verify_volume(const char *path, unsigned bytes)
     assert(!fseek(file, (1 + 2 * fat) * 512, SEEK_SET));
     for (unsigned i = 0; i < roots * 512; i++)
         assert(fgetc(file) == 0);
+    /* No reserved FAT entries may leak into the blank data area across batches. */
+    unsigned char blank[4096];
+    size_t remaining = bytes - data_start * 512;
+    while (remaining) {
+        size_t count = remaining < sizeof blank ? remaining : sizeof blank;
+        assert(fread(blank, 1, count, file) == count);
+        for (size_t i = 0; i < count; i++)
+            assert(!blank[i]);
+        remaining -= count;
+    }
     assert(!fclose(file));
     /* Data at both ends of a private volume survives a repeated prepare. */
     file = fopen(path, "r+b");
     assert(file && !fseek(file, data_start * 512, SEEK_SET) && fputc(0xA7, file) == 0xA7);
     assert(!fseek(file, bytes - 1, SEEK_SET) && fputc(0x42, file) == 0x42 && !fclose(file));
     char error[160] = "";
+    save_writes = 0;
+    measure_save_writes = true;
     assert(dsiware_create_save(path, bytes, error));
+    measure_save_writes = false;
+    assert(!save_writes);
     file = fopen(path, "rb");
     assert(file && !fseek(file, data_start * 512, SEEK_SET) && fgetc(file) == 0xA7);
     assert(!fseek(file, bytes - 1, SEEK_SET) && fgetc(file) == 0x42 && !fclose(file));
+}
+static void save_write_failures(const char *root)
+{
+    char path[PATH_CAP], temporary[PATH_CAP], error[160];
+    assert(path_join(path, root, "failed-volume.prv"));
+    assert(snprintf(temporary, sizeof temporary, "%s.frontend-new", path) < (int)sizeof temporary);
+    save_writes = 0;
+    measure_save_writes = true;
+    assert(dsiware_create_save(path, 65536, error));
+    measure_save_writes = false;
+    unsigned complete_writes = save_writes;
+    assert(complete_writes && !remove(path));
+    for (unsigned failure = 1; failure <= complete_writes; failure++) {
+        save_writes = 0;
+        fail_write = failure;
+        measure_save_writes = true;
+        assert(!dsiware_create_save(path, 65536, error));
+        measure_save_writes = false;
+        assert(save_writes == failure && *error);
+        struct stat metadata;
+        assert(stat(path, &metadata) && errno == ENOENT);
+        assert(stat(temporary, &metadata) && errno == ENOENT);
+    }
+    fail_write = 0;
+    assert(dsiware_create_save(path, 65536, error));
+    verify_volume(path, 65536);
 }
 static void save_preflight_failures(const char *root, const char *target,
                                     const unsigned char *header, LaunchPlan *plan)
@@ -209,11 +258,16 @@ int main(int argc, char **argv)
     plan.options.values[GAME_MODE] = 1;
     put32(binary + 0x238, 12345);
     assert(!dsiware_prepare(&app, target, binary, &plan, error));
+    save_write_failures(root);
     for (unsigned bytes = 4096; bytes <= 33554432; bytes *= 2) {
         char name[32];
         snprintf(name, sizeof name, "volume-%u.prv", bytes);
         assert(path_join(path, root, name));
+        save_writes = 0;
+        measure_save_writes = true;
         assert(dsiware_create_save(path, bytes, error));
+        measure_save_writes = false;
+        assert(save_writes <= bytes / 4096 + 3);
         struct stat status;
         assert(!stat(path, &status) && (uint64_t)status.st_size == bytes);
         verify_volume(path, bytes);
