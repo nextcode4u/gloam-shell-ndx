@@ -132,7 +132,13 @@ static bool prepare(const App *app, const char *path, const Association *selecte
     ArgumentList shortcut = {0};
     char target[PATH_CAP];
     ItemPreferences item;
-    bool custom = item_preferences_load(app->root, path, &item) && *item.application;
+    if (!item_preferences_resolve(app->root, path, &item)) {
+        snprintf(error, 160,
+                 "Could not read this file's saved settings or backup. Check SD access or "
+                 "restore the record before launching.");
+        return false;
+    }
+    bool custom = *item.application;
     if (!custom && !strcasecmp(path_extension(path), "argv")) {
         if (!arguments_read(path, &shortcut, error))
             return false;

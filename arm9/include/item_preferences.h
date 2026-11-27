@@ -7,5 +7,8 @@ typedef struct {
     char application[PATH_CAP];
 } ItemPreferences;
 bool item_preferences_load(const char *root, const char *content, ItemPreferences *item);
+/* Launch/handler checks allow missing records, but reject unrecovered read errors.
+ * Failure leaves the caller's record unchanged. Display fallbacks use load(). */
+bool item_preferences_resolve(const char *root, const char *content, ItemPreferences *item);
 bool item_preferences_save(const char *root, const char *content, const ItemPreferences *item);
 #endif

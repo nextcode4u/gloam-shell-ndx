@@ -37,7 +37,19 @@ void inspection_prepare(App *app, const char *path)
         return;
     }
     ItemPreferences item;
-    bool personal = item_preferences_load(app->root, path, &item) && *item.application;
+    if (!item_preferences_resolve(app->root, path, &item)) {
+        path_copy(details->reason, "Per-file settings unavailable", sizeof details->reason);
+        path_copy(details->backend, "Unavailable", sizeof details->backend);
+        path_copy(details->save, "Not resolved until saved settings can be read",
+                  sizeof details->save);
+        path_copy(details->private_save, "Not resolved", sizeof details->private_save);
+        path_copy(details->status,
+                  "Could not read this file's saved settings or backup. Check SD access or "
+                  "restore the record before launching.",
+                  sizeof details->status);
+        goto finished;
+    }
+    bool personal = *item.application;
     /* The launcher handles native titles and shortcuts before extension rules. */
     bool built_in = icon_is_ds_title(path) || !strcasecmp(path_extension(path), "argv");
     const Association *profile = personal || built_in ? NULL : association_find(app, path);
@@ -100,6 +112,7 @@ void inspection_prepare(App *app, const char *path)
                   sizeof details->status);
     else if (!*details->status)
         path_copy(details->status, "Launch could not be prepared.", sizeof details->status);
+finished:
     free(plan);
     script_fonts_prepare_text(details->application);
     script_fonts_prepare_text(details->rule);

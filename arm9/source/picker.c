@@ -204,7 +204,7 @@ bool picker_open_handlers(App *app, const char *path)
         !strcasecmp(path_extension(path), "argv"))
         return false;
     ItemPreferences item;
-    if (item_preferences_load(app->root, path, &item) && *item.application)
+    if (!item_preferences_resolve(app->root, path, &item) || *item.application)
         return false;
     const Association *choices[ASSOCIATION_CAP];
     int count = association_choices(app, path, choices);

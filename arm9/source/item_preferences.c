@@ -30,13 +30,19 @@ static bool record_path(char path[PATH_CAP], const char *root, const char *key, 
     return path_preferences_file(path, root, name);
 }
 /* Only completely inspected damaged records may be replaced using a matching backup. */
-typedef enum { RECORD_UNREADABLE, RECORD_INVALID, RECORD_PROTECTED, RECORD_VALID } RecordStatus;
+typedef enum {
+    RECORD_MISSING,
+    RECORD_UNREADABLE,
+    RECORD_INVALID,
+    RECORD_PROTECTED,
+    RECORD_VALID
+} RecordStatus;
 static RecordStatus read_record(const char *path, const char *root, const char *key,
                                 ItemPreferences *item)
 {
     FILE *file = fopen(path, "rb");
     if (!file)
-        return RECORD_UNREADABLE;
+        return errno == ENOENT ? RECORD_MISSING : RECORD_UNREADABLE;
     struct stat info;
     bool valid = !fstat(fileno(file), &info) && S_ISREG(info.st_mode) && info.st_size >= 0 &&
                  info.st_size <= 4096;
@@ -99,21 +105,37 @@ static RecordStatus read_record(const char *path, const char *root, const char *
     return valid && version && matched ? RECORD_VALID : RECORD_INVALID;
 }
 
+static RecordStatus load_item(const char *root, const char *content, ItemPreferences *item)
+{
+    char key[PATH_CAP], path[PATH_CAP];
+    if (!identity(key, root, content))
+        return RECORD_UNREADABLE;
+    RecordStatus result = RECORD_MISSING;
+    for (unsigned backup = 0; backup < 2; backup++) {
+        ItemPreferences candidate = {0};
+        RecordStatus status = record_path(path, root, key, backup ? "bak" : "ini")
+                                  ? read_record(path, root, key, &candidate)
+                                  : RECORD_UNREADABLE;
+        if (status == RECORD_VALID) {
+            *item = candidate;
+            return RECORD_VALID;
+        }
+        if (status != RECORD_MISSING)
+            result = status;
+    }
+    return result;
+}
 bool item_preferences_load(const char *root, const char *content, ItemPreferences *item)
 {
     memset(item, 0, sizeof *item);
-    char key[PATH_CAP], path[PATH_CAP];
-    if (!identity(key, root, content) || !record_path(path, root, key, "ini"))
-        return false;
-    ItemPreferences candidate = {0};
-    if (read_record(path, root, key, &candidate) != RECORD_VALID) {
-        memset(&candidate, 0, sizeof candidate);
-        if (!record_path(path, root, key, "bak") ||
-            read_record(path, root, key, &candidate) != RECORD_VALID)
-            return false;
-    }
-    *item = candidate;
-    return true;
+    return load_item(root, content, item) == RECORD_VALID;
+}
+bool item_preferences_resolve(const char *root, const char *content, ItemPreferences *item)
+{
+    RecordStatus status = load_item(root, content, item);
+    if (status == RECORD_MISSING)
+        memset(item, 0, sizeof *item);
+    return status == RECORD_VALID || status == RECORD_MISSING;
 }
 bool item_preferences_save(const char *root, const char *content, const ItemPreferences *item)
 {

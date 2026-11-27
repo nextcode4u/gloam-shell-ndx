@@ -11,21 +11,72 @@
 #include "startup.h"
 #include "top_content.h"
 #include <assert.h>
+#include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 static App app;
 static uint16_t top[256 * 192], bottom[256 * 192];
 static bool inspecting;
 static unsigned write_attempts;
+static const char *watched_current, *watched_backup;
+static FILE *watched_stream;
+static bool fail_open, fail_metadata, fail_read, fail_close;
 FILE *__real_fopen(const char *, const char *);
+int __real_fclose(FILE *);
+int __real_fstat(int, struct stat *);
+size_t __real_fread(void *, size_t, size_t, FILE *);
 FILE *__wrap_fopen(const char *path, const char *mode)
 {
     if (inspecting && strpbrk(mode, "wa+"))
         write_attempts++;
-    return __real_fopen(path, mode);
+    bool watched = (watched_current && !strcmp(path, watched_current)) ||
+                   (watched_backup && !strcmp(path, watched_backup));
+    if (watched && *mode == 'r' && fail_open) {
+        errno = EIO;
+        return NULL;
+    }
+    FILE *file = __real_fopen(path, mode);
+    if (watched && *mode == 'r')
+        watched_stream = file;
+    return file;
 }
+int __wrap_fclose(FILE *file)
+{
+    bool deny = file == watched_stream && fail_close;
+    if (file == watched_stream)
+        watched_stream = NULL;
+    int result = __real_fclose(file);
+    if (deny) {
+        errno = EIO;
+        return EOF;
+    }
+    return result;
+}
+int __wrap_fstat(int descriptor, struct stat *info)
+{
+    if (watched_stream && fileno(watched_stream) == descriptor && fail_metadata) {
+        errno = EIO;
+        return -1;
+    }
+    return __real_fstat(descriptor, info);
+}
+size_t __wrap_fread(void *buffer, size_t size, size_t count, FILE *file)
+{
+    return file == watched_stream && fail_read ? 0 : __real_fread(buffer, size, count, file);
+}
+#ifdef __GLIBC__
+size_t __real___fread_chk(void *, size_t, size_t, size_t, FILE *);
+size_t __wrap___fread_chk(void *buffer, size_t capacity, size_t size, size_t count, FILE *file)
+{
+    return file == watched_stream && fail_read
+               ? 0
+               : __real___fread_chk(buffer, capacity, size, count, file);
+}
+#endif
 static void inspect_checked(const char *path)
 {
     bool dirty = app.preferences_dirty;
@@ -96,6 +147,99 @@ static void select_file(const char *root, const char *relative)
         }
     assert(!"File absent from browser");
 }
+static void record_text(const char *path, const char *value)
+{
+    FILE *file = fopen(path, "w");
+    assert(file && fputs(value, file) >= 0 && !fclose(file));
+}
+static void read_record_text(const char *path, char value[4096])
+{
+    FILE *file = fopen(path, "rb");
+    assert(file);
+    size_t count = fread(value, 1, 4095, file);
+    assert(!ferror(file) && !fclose(file));
+    value[count] = 0;
+}
+static void assignment_read_failures(const char *root)
+{
+    const char *locations[] = {"roms/Genesis/Assigned.md", "misc/Assigned.md"};
+    for (unsigned location = 0; location < 2; location++) {
+        char content[PATH_CAP], current[PATH_CAP], backup[PATH_CAP], name[80], key[PATH_CAP];
+        text(root, locations[location], "Assigned application fixture");
+        assert(path_join(content, root, locations[location]));
+        ItemPreferences item = {0};
+        assert(path_join(item.application, root, "apps/Reader.nds"));
+        assert(item_preferences_save(root, content, &item));
+        assert(item_preferences_save(root, content, &item));
+        assert(path_resolve_sd(key, "sd:/", locations[location]));
+        uint64_t hash = UINT64_C(14695981039346656037);
+        for (const unsigned char *p = (const unsigned char *)key; *p; p++) {
+            hash ^= *p;
+            hash *= UINT64_C(1099511628211);
+        }
+        snprintf(name, sizeof name, "items/%016" PRIx64 ".ini", hash);
+        assert(path_preferences_file(current, root, name));
+        strcpy(name + strlen(name) - 3, "bak");
+        assert(path_preferences_file(backup, root, name));
+        char original[4096], recovery[4096], actual[4096], error[160];
+        read_record_text(current, original);
+        read_record_text(backup, recovery);
+        LaunchPlan plan;
+        for (unsigned failure = 0; failure < 4; failure++) {
+            watched_current = current;
+            fail_open = failure == 0;
+            fail_metadata = failure == 1;
+            fail_read = failure == 2;
+            fail_close = failure == 3;
+            assert(launch_prepare(&app, content, &plan, error));
+            assert(!strcmp(plan.application, item.application));
+            watched_backup = backup;
+            assert(!launch_prepare(&app, content, &plan, error) && strstr(error, "saved settings"));
+            ItemPreferences unchanged = item;
+            assert(!item_preferences_resolve(root, content, &unchanged));
+            assert(!memcmp(&unchanged, &item, sizeof item));
+            assert(!picker_open_handlers(&app, content) && !app.picker.open);
+            inspect_checked(content);
+            assert(!*app.inspection->application &&
+                   strstr(app.inspection->status, "saved settings"));
+            assert(strstr(app.inspection->save, "Not resolved"));
+            inspection_close(&app);
+            watched_current = watched_backup = NULL;
+            fail_open = fail_metadata = fail_read = fail_close = false;
+            read_record_text(current, actual);
+            assert(!strcmp(actual, original));
+            read_record_text(backup, actual);
+            assert(!strcmp(actual, recovery));
+        }
+        record_text(current, "broken record\n");
+        assert(launch_prepare(&app, content, &plan, error));
+        assert(!strcmp(plan.application, item.application));
+        record_text(backup, "broken recovery\n");
+        assert(!launch_prepare(&app, content, &plan, error) && strstr(error, "saved settings"));
+        record_text(current, original);
+        record_text(backup, recovery);
+        item.application[0] = 0;
+        assert(item_preferences_save(root, content, &item));
+        assert(item_preferences_load(root, content, &item) && !*item.application);
+        if (!location) {
+            assert(launch_prepare(&app, content, &plan, error));
+            assert(strstr(plan.application, "Genesis.nds"));
+        } else {
+            assert(picker_open_handlers(&app, content) && app.picker.count == 2);
+            picker_back(&app);
+        }
+        assert(!remove(current) && !remove(backup));
+        if (!location)
+            assert(launch_prepare(&app, content, &plan, error));
+        else {
+            assert(picker_open_handlers(&app, content));
+            picker_back(&app);
+        }
+        assert(access(current, F_OK) && errno == ENOENT);
+        assert(access(backup, F_OK) && errno == ENOENT);
+        assert(!remove(content));
+    }
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -125,6 +269,7 @@ int main(int argc, char **argv)
     text(root, "misc/Other.zip", "Not a book association");
     app_init(&app, root, true, true);
     assert(app.association_count == 2);
+    assignment_read_failures(root);
     const Association *reader = resolve(root, "media/books/deep/Notes.md");
     assert(reader && !strcmp(reader->name, "Reader"));
     assert(resolve(root, "MEDIA/BOOKS/Notes.MD") == reader);

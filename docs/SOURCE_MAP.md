@@ -106,6 +106,10 @@ NUL bytes reject the record; presets and cheats may use a valid recovery copy.
 Missing records may inherit; unreadable or damaged layers require a valid backup.
 Failed resolution leaves the caller's options unchanged.
 
+`item_preferences_resolve` applies the same missing/error distinction to launch,
+handler selection and inspection. Display-only artwork/icon lookups retain their
+ordinary fallbacks through `item_preferences_load`.
+
 Configuration import and reset retain rollback data before changing settings.
 Do not replace them with recursive deletion of frontend folders: installed
 assets and game saves are outside the reset scope.

@@ -29,6 +29,10 @@ spaces. The application icon is used in the browser. This overrides automatic
 extension profiles for this file only. **Clear application choice** restores
 the extension/native/shortcut route. See [launch limits](HOMEBREW_LAUNCH.md).
 
+If the saved assignment record and its backup cannot be loaded, launch stops
+instead of choosing a different app. Missing assignment records use the normal
+resolver. Missing or invalid image files still use automatic artwork fallbacks.
+
 An explicit application choice on an `.argv` file treats that shortcut as content
 for the chosen application. Without such a choice, normal shortcut parsing still
 applies. Nothing in this UI promises that every application understands every
