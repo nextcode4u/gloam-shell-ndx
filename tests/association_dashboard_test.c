@@ -257,6 +257,49 @@ static void check_recent_recovery(const char *root)
     assert(!restored.dashboard.recent[0].timestamp);
     assert(restored.dashboard.recent[RECENT_CAP - 1].timestamp == RECENT_CAP - 1);
 }
+static void read_dashboard(const char *path, char output[256])
+{
+    FILE *file = fopen(path, "rb");
+    assert(file);
+    size_t size = fread(output, 1, 255, file);
+    assert(!ferror(file) && feof(file) && !fclose(file));
+    output[size] = 0;
+}
+static void check_dashboard_failed_edits(const char *root)
+{
+    char temporary[PATH_CAP], current[PATH_CAP], before[256], after[256];
+    assert(path_preferences_file(temporary, root, "dashboard.tmp"));
+    assert(path_preferences_file(current, root, "dashboard.ini"));
+    DashboardConfig original = app.dashboard.config;
+    for (int direction = -1; direction <= 1; direction += 2) {
+        app.dashboard.selected = 1;
+        DashboardSection section = original.order[1];
+        read_dashboard(current, before);
+        /* A directory at the temporary-file path reproduces an unwritable SD target. */
+        assert(!mkdir(temporary, 0777));
+        dashboard_edit(&app, direction);
+        assert(!memcmp(&app.dashboard.config, &original, sizeof original));
+        assert(app.dashboard.selected == 1);
+        assert(strstr(app.dashboard.status, "Save failed"));
+        dashboard_toggle(&app);
+        assert(!memcmp(&app.dashboard.config, &original, sizeof original));
+        dashboard_limit(&app, 1);
+        assert(!memcmp(&app.dashboard.config, &original, sizeof original));
+        read_dashboard(current, after);
+        assert(!strcmp(before, after));
+        assert(!rmdir(temporary));
+        dashboard_edit(&app, direction);
+        assert(app.dashboard.selected == 1 + direction);
+        assert(app.dashboard.config.order[app.dashboard.selected] == section);
+        assert(strstr(app.dashboard.status, "saved"));
+        dashboard_toggle(&app);
+        assert(app.dashboard.config.enabled[section] != original.enabled[section]);
+        dashboard_toggle(&app);
+        dashboard_edit(&app, -direction);
+        assert(app.dashboard.selected == 1);
+        assert(!memcmp(&app.dashboard.config, &original, sizeof original));
+    }
+}
 static void check_shortcut_merge(const char *root)
 {
     app_init(&restored, root, true, true);
@@ -463,6 +506,7 @@ int main(int argc, char **argv)
     assert(restored.dashboard.config.limit[DASH_RECENT] == 1);
     dashboard_limit(&app, -1);
     assert(app.dashboard.config.limit[DASH_RECENT] == 0 && app.entry_count == 7);
+    check_dashboard_failed_edits(root);
     render_app(&app, top, bottom, "12:00");
     app_init(&restored, root, true, true);
     assert(restored.dashboard.config.order[2] == DASH_RECENT);

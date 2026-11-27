@@ -3,7 +3,7 @@
 Open **Settings → Browser & Home → Dashboard**. Up/Down selects a section, A
 shows/hides it, and Left/Right changes its position. Touch selects a row and
 activates it on a second selection. L/R changes the selected section's visible item count; All restores its full bounded list. Limits hide excess entries without removing pins, tabs or history. Changes save immediately; failures retain
-the previous configuration. B/START returns to the previous view.
+the previous configuration and selected section. B/START returns to the previous view.
 
 The four sections are Browse links, Folder tabs, Pinned items and Recent
 requests. Pinned items use the existing Favorites collection. Press START to open frontend settings, including when every section is hidden.

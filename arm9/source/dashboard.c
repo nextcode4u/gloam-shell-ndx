@@ -328,16 +328,17 @@ void dashboard_move(App *app, int direction)
 {
     app->dashboard.selected = (app->dashboard.selected + direction + 4) % 4;
 }
-static void finish_edit(App *app, DashboardConfig previous)
+static bool finish_edit(App *app, DashboardConfig previous)
 {
     if (!save_config(app)) {
         app->dashboard.config = previous;
         path_copy(app->dashboard.status, "Save failed; previous layout retained",
                   sizeof app->dashboard.status);
-    } else {
-        browser_refresh(app);
-        path_copy(app->dashboard.status, "Dashboard saved", sizeof app->dashboard.status);
+        return false;
     }
+    browser_refresh(app);
+    path_copy(app->dashboard.status, "Dashboard saved", sizeof app->dashboard.status);
+    return true;
 }
 void dashboard_edit(App *app, int direction)
 {
@@ -349,7 +350,8 @@ void dashboard_edit(App *app, int direction)
     app->dashboard.config.order[to] = app->dashboard.config.order[from];
     app->dashboard.config.order[from] = value;
     app->dashboard.selected = to;
-    finish_edit(app, previous);
+    if (!finish_edit(app, previous))
+        app->dashboard.selected = from;
 }
 void dashboard_toggle(App *app)
 {
