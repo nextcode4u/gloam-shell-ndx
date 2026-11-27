@@ -3,12 +3,13 @@
 A customizable launcher for your **Nintendo DSi SD card**. Browse games,
 homebrew and media, and open system apps from one place.
 
-“Gloam” means twilight—a nod to the DSi's **TWL** codename.
+## [Click here to install Gloam →](https://nextcode4u.github.io/gloam-shell-ndx/INSTALL/)
 
-**[Website & SD Setup](https://nextcode4u.github.io/gloam-shell-ndx/)**
-· [Download Gloam](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest)
-· [Setup guide](docs/INSTALL.md)
+Set up your SD card with the **Windows setup tool**, or follow the manual install steps.
+
+[Visit the website](https://nextcode4u.github.io/gloam-shell-ndx/)
 · [Community themes](https://nextcode4u.github.io/gloam-shell-theme-directory/)
+· [Manual downloads](https://github.com/nextcode4u/gloam-shell-ndx/releases/latest)
 
 <p align="center">
   <img src="docs/images/theme-variants.png" width="768" alt="Phosphor, Eclipse and Prism themes showing Gloam's two-screen browser">
@@ -102,6 +103,8 @@ when more than `BOOT.NDS` is needed.
 - [Report a problem](https://github.com/nextcode4u/gloam-shell-ndx/issues)
 
 ## Credits
+
+“Gloam” means twilight, a nod to the DSi's **TWL** codename.
 
 Thanks to the DS homebrew community, including the developers of AKMenu Next,
 TWiLight Menu++, Pico Launcher and HBMenu. Gloam's two-screen organization also
