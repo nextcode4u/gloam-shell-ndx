@@ -32,8 +32,41 @@ static void write_text(const char *root, const char *relative, const char *text)
     FILE *file = fopen(path, "w");
     assert(file && fputs(text, file) >= 0 && !fclose(file));
 }
+static void check_icon_scaling(void)
+{
+    static struct {
+        uint32_t before;
+        uint16_t pixels[256 * 192];
+        uint32_t after;
+    } screen;
+    static uint16_t expected[256 * 192], image[32 * 32];
+    const int sizes[] = {1, 8, 16, 24, 32, 40, 48, 64, 80, 96};
+    const int positions[][2] = {{0, 0}, {-7, -9}, {240, 180}, {-96, 10}, {256, 0}, {0, 192}};
+    for (unsigned i = 0; i < 32 * 32; i++)
+        image[i] = i % 5 ? (uint16_t)(0x8000 | i) : 0;
+    for (unsigned i = 0; i < sizeof sizes / sizeof *sizes; i++)
+        for (unsigned p = 0; p < sizeof positions / sizeof *positions; p++) {
+            int size = sizes[i], x = positions[p][0], y = positions[p][1];
+            screen.before = screen.after = 0x12345678;
+            for (unsigned n = 0; n < 256 * 192; n++)
+                screen.pixels[n] = expected[n] = 0xAAAA;
+            /* Preserve the previous nearest-neighbor result, including holes
+             * and clipped edges, while changing how samples are calculated. */
+            for (int row = 0; row < size; row++)
+                for (int column = 0; column < size; column++) {
+                    uint16_t pixel = image[(row * 32 / size) * 32 + column * 32 / size];
+                    if ((pixel & 0x8000) && x + column >= 0 && x + column < 256 && y + row >= 0 &&
+                        y + row < 192)
+                        expected[(y + row) * 256 + x + column] = pixel;
+                }
+            draw_icon_bitmap(screen.pixels, image, x, y, size);
+            assert(!memcmp(screen.pixels, expected, sizeof expected));
+            assert(screen.before == 0x12345678 && screen.after == 0x12345678);
+        }
+}
 int main(int argc, char **argv)
 {
+    check_icon_scaling();
     assert(argc == 2);
     const char *root = argv[1];
     assert(themes_battery_component(-1, false) == THEME_BATTERY_UNKNOWN);

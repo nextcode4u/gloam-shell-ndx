@@ -847,14 +847,7 @@ static void draw_icon_image(const App *app, uint16_t *pixels, int index, int x, 
             if (themed)
                 image = themed;
         }
-        for (int row = 0; row < size; row++) {
-            for (int column = 0; column < size; column++) {
-                uint16_t pixel = image[(row * 32 / size) * 32 + column * 32 / size];
-                if ((pixel & 0x8000) && x + column >= 0 && x + column < 256 && y + row >= 0 &&
-                    y + row < 192)
-                    pixels[(y + row) * 256 + x + column] = pixel;
-            }
-        }
+        draw_icon_bitmap(pixels, image, x, y, size);
         return;
     }
     const Entry *entry = index >= 0 && index < app->entry_count ? &app->entries[index] : NULL;

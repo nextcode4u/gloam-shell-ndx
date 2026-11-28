@@ -55,7 +55,30 @@ void draw_placeholder_icon(uint16_t *pixels, int x, int y, int size, Placeholder
     }
 }
 
-/* Nearest-neighbour scaling keeps small pixel art crisp; clip every destination. */
+/* Precompute horizontal samples once: software division in the inner pixel
+ * loop makes enlarged previews expensive on ARM9, even before a cover is ready. */
+void draw_icon_bitmap(uint16_t *pixels, const uint16_t *image, int x, int y, int size)
+{
+    if (!image || size <= 0 || size > 96 || x >= 256 || y >= 192 || x <= -size || y <= -size)
+        return;
+    int left = x < 0 ? -x : 0, top = y < 0 ? -y : 0;
+    int right = size < 256 - x ? size : 256 - x;
+    int bottom = size < 192 - y ? size : 192 - y;
+    uint8_t columns[96];
+    for (int column = left; column < right; column++)
+        columns[column] = column * 32 / size;
+    for (int row = top; row < bottom; row++) {
+        const uint16_t *source = image + (row * 32 / size) * 32;
+        uint16_t *destination = pixels + (y + row) * 256 + x + left;
+        for (int column = left; column < right; column++) {
+            uint16_t pixel = source[columns[column]];
+            if (pixel & 0x8000)
+                *destination = pixel;
+            destination++;
+        }
+    }
+}
+
 bool draw_theme_icon_asset(const ThemePackage *package, uint16_t *pixels, int x, int y, int size,
                            int icon)
 {
@@ -64,17 +87,7 @@ bool draw_theme_icon_asset(const ThemePackage *package, uint16_t *pixels, int x,
     const uint16_t *image = themes_icon(package, icon);
     if (!image)
         return false;
-    for (int row = 0; row < size; row++) {
-        if (y + row < 0 || y + row >= 192)
-            continue;
-        for (int column = 0; column < size; column++) {
-            if (x + column < 0 || x + column >= 256)
-                continue;
-            uint16_t pixel = image[(row * 32 / size) * 32 + column * 32 / size];
-            if (pixel & 0x8000)
-                pixels[(y + row) * 256 + x + column] = pixel;
-        }
-    }
+    draw_icon_bitmap(pixels, image, x, y, size);
     return true;
 }
 
