@@ -147,9 +147,7 @@ int main(int argc, char **argv)
     assert(app.artwork.ready && app.artwork.width > 0 && app.artwork.width <= 96);
     app_reset_preview(&app);
     app.preferences_dirty = false;
-    for (int i = 0; i < 6; i++)
-        app_tick(&app);
-    assert(!app.artwork.ready);
+    assert(!app.artwork.ready); /* Reset stays read-free; cover work starts on ticks. */
     for (int i = 0; i < 12 && !app.artwork.ready; i++)
         app_tick(&app);
     assert(app.artwork.ready);

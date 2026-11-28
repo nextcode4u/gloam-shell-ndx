@@ -11,6 +11,7 @@
 #include "text.h"
 #include "top_content.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -84,10 +85,14 @@ static bool load_nds_banner(App *app, const Entry *entry, Artwork *artwork, bool
     snprintf(artwork->source, sizeof artwork->source, "NDS banner");
     return true;
 }
-static bool prepare_artwork(Artwork *artwork, bool *resolved, const char *path, bool embedded)
+static bool prepare_artwork(Artwork *artwork, bool *resolved, const char *path, bool embedded,
+                            bool *hint_safe)
 {
+    errno = 0;
     if (artwork_cached_read(artwork, path, embedded))
         return true;
+    if (hint_safe && errno && errno != ENOENT && errno != ENOTDIR)
+        *hint_safe = false;
     if (artwork_cache_pending()) {
         *resolved = false;
         return true;
@@ -102,10 +107,15 @@ static bool artwork_candidate(App *app, const Entry *entry, Artwork *artwork, bo
 {
     char path[PATH_CAP];
     const char *suffixes[] = {".png", ".jpg", ".jpeg"};
+    bool *hint_safe = metadata ? &app->artwork_hint_safe : NULL;
     if (!stage) {
         ItemPreferences preferences;
-        if (item_preferences_display(app->root, entry->path, &preferences) && *preferences.cover &&
-            prepare_artwork(artwork, resolved, preferences.cover, false)) {
+        errno = 0;
+        bool assigned = item_preferences_display(app->root, entry->path, &preferences);
+        if (!assigned && hint_safe && errno && errno != ENOENT && errno != ENOTDIR)
+            *hint_safe = false;
+        if (assigned && *preferences.cover &&
+            prepare_artwork(artwork, resolved, preferences.cover, false, hint_safe)) {
             snprintf(artwork->source, sizeof artwork->source, "Assigned image");
             return true;
         }
@@ -113,14 +123,14 @@ static bool artwork_candidate(App *app, const Entry *entry, Artwork *artwork, bo
         unsigned suffix = stage - 1;
         if (entry->kind == ITEM_FILE &&
             snprintf(path, sizeof path, "%s%s", entry->path, suffixes[suffix]) < (int)sizeof path &&
-            prepare_artwork(artwork, resolved, path, false)) {
+            prepare_artwork(artwork, resolved, path, false, hint_safe)) {
             snprintf(artwork->source, sizeof artwork->source,
                      suffix ? "Sidecar JPEG" : "Sidecar PNG");
             return true;
         }
     } else if (stage == 4) {
         if (entry->kind == ITEM_FILE && !strcasecmp(path_extension(entry->path), "mp3") &&
-            prepare_artwork(artwork, resolved, entry->path, true)) {
+            prepare_artwork(artwork, resolved, entry->path, true, hint_safe)) {
             snprintf(artwork->source, sizeof artwork->source, "Embedded album art");
             return true;
         }
@@ -134,13 +144,13 @@ static bool artwork_candidate(App *app, const Entry *entry, Artwork *artwork, bo
         }
         if (snprintf(path, sizeof path, "%s/cover%s", folder, suffixes[stage - 5]) <
                 (int)sizeof path &&
-            prepare_artwork(artwork, resolved, path, false)) {
+            prepare_artwork(artwork, resolved, path, false, hint_safe)) {
             snprintf(artwork->source, sizeof artwork->source, "Folder cover");
             return true;
         }
     } else if (stage == 8) {
         const char *cover = entry->kind == ITEM_FILE ? association_cover(app, entry->path) : NULL;
-        if (cover && prepare_artwork(artwork, resolved, cover, false)) {
+        if (cover && prepare_artwork(artwork, resolved, cover, false, hint_safe)) {
             snprintf(artwork->source, sizeof artwork->source, "Association cover");
             return true;
         }
@@ -185,10 +195,37 @@ void artwork_load(App *app)
     artwork_load_entry(app, app_selected(app), &app->artwork, &app->artwork_resolved, true);
 }
 
+unsigned artwork_source_hint(App *app)
+{
+    unsigned generation = item_preferences_display_generation();
+    if (generation != app->artwork_source_generation) {
+        for (int i = 0; i < app->entry_count; i++)
+            app->entries[i].artwork_hint = 0;
+        app->artwork_source_generation = generation;
+    }
+    const Entry *entry = app_selected(app);
+    return entry && entry->artwork_hint ? entry->artwork_hint - 1 : 0;
+}
+
 void artwork_step(App *app)
 {
-    artwork_entry_step(app, app_selected(app), &app->artwork, &app->artwork_resolved, true,
+    const Entry *entry = app_selected(app);
+    unsigned char before = app->artwork_stage;
+    artwork_entry_step(app, entry, &app->artwork, &app->artwork_resolved, true,
                        &app->artwork_stage);
+    if (!entry)
+        return;
+    Entry *selected = &app->entries[app->locations[app->category].selected];
+    if (app->artwork.ready && app->artwork_hint_safe && app->artwork_stage <= 8) {
+        artwork_source_hint(app); /* An edit may have invalidated older source hints. */
+        selected->artwork_hint = app->artwork_stage + 1;
+    } else if (selected->artwork_hint && before == selected->artwork_hint - 1 &&
+               app->artwork_stage != before) {
+        /* A removed or unreadable remembered image must retry the normal
+         * precedence chain, including newly assigned or sidecar images. */
+        selected->artwork_hint = 0;
+        app->artwork_stage = 0;
+    }
 }
 
 /* Three path-keyed slots survive selection changes. Explicit refreshes still

@@ -8,6 +8,7 @@
 #define UI_PANEL_VISIBLE_ROWS 7
 #define UI_LIST_BOTTOM 169
 #define UI_BROWSE_IDLE_FRAMES 12
+#define UI_ARTWORK_IDLE_FRAMES 2
 #define UI_ICON_IDLE_FRAMES 1
 
 static inline bool layout_has_path(int category)

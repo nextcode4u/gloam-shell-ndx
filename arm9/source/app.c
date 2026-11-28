@@ -67,7 +67,8 @@ static void reset_selection_preview(App *app)
     app->selection_idle_frames = 0;
     app->artwork.ready = false;
     app->artwork_resolved = false;
-    app->artwork_stage = 0;
+    app->artwork_hint_safe = true;
+    app->artwork_stage = artwork_source_hint(app);
     app->title[0] = app->code[0] = 0;
     app->info_title[0] = app->info_code[0] = 0;
     app->info_loaded = app->info_header_valid = false;
@@ -901,10 +902,14 @@ void app_tick(App *app)
                     !app->game_editor.open && !app->themes.open && !app->dashboard.open &&
                     !app->association_editor.open && !app->picker.open && !app->settings.open;
     bool icon_work = browsing && icons_tick(app);
+    const Entry *artwork_entry = app_selected(app);
+    unsigned artwork_idle =
+        artwork_entry && artwork_entry->artwork_hint ? 1 : UI_ARTWORK_IDLE_FRAMES;
+    if (!icon_work && !app->navigation_held && app->selection_idle_frames >= (int)artwork_idle)
+        artwork_cache_update();
     if (!icon_work && !app->navigation_held &&
         app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES) {
         prepare_script_fonts(app);
-        artwork_cache_update();
     }
     themes_tick(app);
     startup_tick(app);
@@ -969,7 +974,7 @@ void app_tick(App *app)
     bool preparing_artwork =
         (app->browser_style != BROWSER_INDEX || top_content_mode(app) != TOP_CONTENT_THEME) &&
         !app->settings.open && app->show_covers && !app->artwork.ready && !app->artwork_resolved &&
-        !icon_work && !app->navigation_held && app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES;
+        !icon_work && !app->navigation_held && app->selection_idle_frames >= (int)artwork_idle;
     if (preparing_artwork)
         artwork_step(app);
     else if (!icon_work && !app->settings.open && app->panel == PANEL_NONE)

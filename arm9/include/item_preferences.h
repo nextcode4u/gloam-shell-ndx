@@ -10,6 +10,7 @@ bool item_preferences_load(const char *root, const char *content, ItemPreference
 /* Small presentation-only cache; launch/edit checks always read current records. */
 bool item_preferences_display(const char *root, const char *content, ItemPreferences *item);
 void item_preferences_display_clear(void);
+unsigned item_preferences_display_generation(void);
 /* Launch checks allow missing records, but reject unrecovered read errors.
  * Failure leaves the caller's record unchanged. Display fallbacks use load(). */
 bool item_preferences_resolve(const char *root, const char *content, ItemPreferences *item);

@@ -190,10 +190,16 @@ typedef struct {
 } DisplayRecord;
 static DisplayRecord display_records[4];
 static char display_root[PATH_CAP];
-static unsigned display_next;
+static unsigned display_next, display_generation;
+
+unsigned item_preferences_display_generation(void)
+{
+    return display_generation;
+}
 
 void item_preferences_display_clear(void)
 {
+    display_generation++;
     memset(display_records, 0, sizeof display_records);
     display_root[0] = 0;
     display_next = 0;

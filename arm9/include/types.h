@@ -65,6 +65,7 @@ typedef struct {
     int target;
     char internal_title[128];
     bool title_loaded;
+    unsigned char artwork_hint; /* Successful browser source stage + 1, until refresh/edit. */
 } Entry;
 typedef struct {
     char path[PATH_CAP];
@@ -475,7 +476,7 @@ typedef struct {
     unsigned char artwork_stage, shelf_stage[3];
     char shelf_paths[3][PATH_CAP];
     int shelf_offset_fixed; /* Horizontal shelf motion in 24.8 pixels. */
-    bool artwork_resolved;
-    unsigned artwork_reads;
+    bool artwork_resolved, artwork_hint_safe;
+    unsigned artwork_reads, artwork_source_generation;
 } App;
 #endif

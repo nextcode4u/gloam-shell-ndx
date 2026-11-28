@@ -36,6 +36,111 @@ int __wrap_stat(const char *path, struct stat *info)
     return __real_stat(path, info);
 }
 static App app;
+static App fast;
+static void copy_image(const char *from, const char *to)
+{
+    FILE *in = fopen(from, "rb"), *out = fopen(to, "wb");
+    assert(in && out);
+    unsigned char data[4096];
+    size_t bytes;
+    while ((bytes = fread(data, 1, sizeof data, in)))
+        assert(fwrite(data, 1, bytes, out) == bytes);
+    assert(!ferror(in) && !fclose(in) && !fclose(out));
+}
+static void check_fast_covers(const char *root)
+{
+    char local[PATH_CAP], roms[PATH_CAP], first[PATH_CAP], second[PATH_CAP], sidecar[PATH_CAP];
+    assert(path_join(local, root, "fast-art") && !mkdir(local, 0777));
+    assert(path_join(roms, local, "roms") && !mkdir(roms, 0777));
+    assert(path_join(first, roms, "One.demo") && path_join(second, roms, "Two.demo"));
+    FILE *file = fopen(first, "w");
+    assert(file && !fclose(file));
+    file = fopen(second, "w");
+    assert(file && !fclose(file));
+    assert(snprintf(sidecar, sizeof sidecar, "%s.jpg", first) < (int)sizeof sidecar);
+    copy_image("tests/fixtures/cover.jpg", sidecar);
+    app_init(&fast, local, true, true);
+    app_category(&fast, CATEGORY_GAMES);
+    fast.entry_count = 2;
+    memset(fast.entries, 0, 2 * sizeof fast.entries[0]);
+    fast.entries[0].kind = fast.entries[1].kind = ITEM_FILE;
+    path_copy(fast.entries[0].path, first, PATH_CAP);
+    path_copy(fast.entries[1].path, second, PATH_CAP);
+    fast.locations[fast.category].selected = fast.locations[fast.category].scroll = 0;
+    fast.show_covers = true;
+    fast.browser_style = BROWSER_CLASSIC;
+    app_reset_preview(&fast);
+    icons_reset(&fast);
+    unsigned frames = 0;
+    while (!fast.artwork.ready && frames++ < 10)
+        app_tick(&fast);
+    assert(fast.artwork.ready && frames < 12 && fast.entries[0].artwork_hint == 3);
+    assert(!strcmp(fast.artwork.source, "Sidecar JPEG"));
+    unsigned decodes = artwork_cache_decodes();
+    fast.navigation_held = true;
+    app_move(&fast, 1);
+    app_move(&fast, -1);
+    assert(fast.artwork_stage == 2);
+    all_opens = all_stats = 0;
+    for (unsigned i = 0; i < 30; i++)
+        app_tick(&fast);
+    assert(!all_opens && !all_stats && !fast.artwork.ready);
+    fast.navigation_held = false;
+    app_tick(&fast);
+    assert(fast.artwork.ready && !all_opens && all_stats == 1);
+    assert(artwork_cache_decodes() == decodes);
+    const BrowserStyle views[] = {BROWSER_GRID, BROWSER_SHELF, BROWSER_LIST, BROWSER_EXTENDED};
+    for (unsigned i = 0; i < sizeof views / sizeof *views; i++) {
+        fast.browser_style = views[i];
+        app_move(&fast, 1);
+        app_move(&fast, -1);
+        assert(fast.artwork_stage == 2);
+        all_opens = all_stats = 0;
+        app_tick(&fast);
+        assert(fast.artwork.ready && !all_opens && all_stats == 1);
+        assert(artwork_cache_decodes() == decodes);
+    }
+    fast.browser_style = BROWSER_CLASSIC;
+    /* Changes through the normal assignment API invalidate remembered sources. */
+    ItemPreferences assigned = {0};
+    assert(path_join(assigned.cover, local, "assigned.png"));
+    copy_image("tests/fixtures/cover-example.png", assigned.cover);
+    assert(item_preferences_save(local, first, &assigned));
+    fail_records = true;
+    app_move(&fast, 1);
+    app_move(&fast, -1);
+    assert(!fast.artwork_stage && !fast.entries[0].artwork_hint);
+    for (unsigned i = 0; i < 10 && !fast.artwork.ready; i++)
+        app_tick(&fast);
+    assert(fast.artwork.ready && !strcmp(fast.artwork.source, "Sidecar JPEG"));
+    assert(!fast.entries[0].artwork_hint); /* Transient I/O cannot pin a fallback source. */
+    fail_records = false;
+    app_move(&fast, 1);
+    app_move(&fast, -1);
+    assert(!fast.artwork_stage && !fast.entries[0].artwork_hint);
+    for (unsigned i = 0; i < 10 && !fast.artwork.ready; i++)
+        app_tick(&fast);
+    assert(fast.artwork.ready && !strcmp(fast.artwork.source, "Assigned image"));
+    /* A vanished hinted source returns to the complete precedence chain. */
+    assert(!unlink(assigned.cover));
+    app_move(&fast, 1);
+    app_move(&fast, -1);
+    for (unsigned i = 0; i < 12 && !fast.artwork.ready; i++)
+        app_tick(&fast);
+    assert(fast.artwork.ready && !strcmp(fast.artwork.source, "Sidecar JPEG"));
+    char higher_priority[PATH_CAP];
+    assert(snprintf(higher_priority, sizeof higher_priority, "%s.png", first) <
+           (int)sizeof higher_priority);
+    copy_image("tests/fixtures/cover-example.png", higher_priority);
+    browser_refresh(&fast);
+    while (fast.scan_directory)
+        browser_scan_step(&fast);
+    for (int i = 0; i < fast.entry_count; i++)
+        assert(!fast.entries[i].artwork_hint);
+    for (unsigned i = 0; i < 12 && !fast.artwork.ready; i++)
+        app_tick(&fast);
+    assert(fast.artwork.ready && !strcmp(fast.artwork.source, "Sidecar PNG"));
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -153,7 +258,7 @@ int main(int argc, char **argv)
     app.navigation_held = false;
     for (unsigned i = 0; i < 10; i++)
         app_tick(&app);
-    assert(!all_opens && !all_stats);
+    assert(!all_opens && all_stats == 1 && app.artwork.ready);
     for (unsigned i = 0; i < 30; i++)
         app_tick(&app);
     assert(all_opens && !app.preferences_dirty);
@@ -197,6 +302,7 @@ int main(int argc, char **argv)
     assert(!item_preferences_save(root, content, &item));
     assert(!unlink(marker));
     assert(item_preferences_load(root, content, &loaded));
+    check_fast_covers(root);
     puts("PASS: 3000-record display cache, held-navigation I/O isolation, grouped storage, fresh "
          "launch checks and staged artwork probes");
 }
