@@ -42,6 +42,11 @@ language/help, retail save/reload/return and private-save checks working on hard
 Console/boot details and numeric performance measurements were not supplied
 for this run.
 
+A 2026-11-27 hardware pass on a large SD library reported much faster browsing,
+nearly instant DS cover previews, and fresh embedded MP3 artwork around three
+seconds after the decoding/redraw changes. These are approximate user timings,
+not guarantees for every image or card. Diagnostics export also completed.
+
 A subsequent user test on a separate Japanese DSi without the English language
 patch passed Return to DSi Menu, System Settings and installed Flipnote Studio
 launches from Gloam. Together with the stock-menu comparisons on the original
@@ -50,7 +55,7 @@ failures. The patched-menu workaround remains applicable to affected consoles.
 
 Still pending on that setup: extended browsing/theme switching, completion of an
 uninterrupted update check and one while browsing, an unavailable-access-point
-check, and diagnostics export. The crash fix alone does not establish successful
+check. The crash fix alone does not establish successful
 release retrieval or offline handling.
 
 On language-patched consoles, a blank screen that continues after input can be
