@@ -1,4 +1,5 @@
 #include "icons.h"
+#include "layout.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -28,6 +29,80 @@ size_t __wrap_fread(void *data, size_t size, size_t count, FILE *file)
         read_bytes += size * count;
     return __real_fread(data, size, count, file);
 }
+static App browser;
+static void check_visible_static_priority(const char *path)
+{
+    memset(&browser, 0, sizeof browser);
+    browser.storage_ready = true;
+    browser.browser_style = BROWSER_CLASSIC;
+    browser.entry_count = 2;
+    browser.entries[0].kind = browser.entries[1].kind = ITEM_INSTALLED_TITLE;
+    snprintf(browser.entries[0].path, sizeof browser.entries[0].path, "%s", path);
+    const char *name = strrchr(path, '/');
+    assert(name);
+    snprintf(browser.entries[1].path, sizeof browser.entries[1].path, "%.*s/.%s",
+             (int)(name - path), path, name);
+    icons_reset(&browser);
+    for (int i = 0; i < 2 * UI_ICON_IDLE_FRAMES; i++)
+        icons_tick(&browser);
+    const BrowserIcon *first = icons_for_entry(&browser, 0);
+    const BrowserIcon *second = icons_for_entry(&browser, 1);
+    assert(first && second && first != second);
+    assert(!first->animation_count && !second->animation_count);
+    assert(first->animation_pending && second->animation_pending);
+    for (int i = 0; i < UI_ICON_IDLE_FRAMES; i++)
+        icons_tick(&browser);
+    assert(first->animation_count == 2 && !second->animation_count);
+    icons_tick(&browser);
+    assert(second->animation_count == 2);
+}
+static void check_browser_staging(const char *path)
+{
+    memset(&browser, 0, sizeof browser);
+    browser.storage_ready = true;
+    browser.browser_style = BROWSER_LIST;
+    browser.entry_count = 1;
+    browser.entries[0].kind = ITEM_INSTALLED_TITLE;
+    snprintf(browser.entries[0].path, sizeof browser.entries[0].path, "%s", path);
+    icons_reset(&browser);
+    unsigned before_opens = opens;
+    size_t before_bytes = read_bytes;
+    measure = true;
+    for (int i = 0; i < UI_ICON_IDLE_FRAMES; i++)
+        icons_tick(&browser);
+    const BrowserIcon *shown = icons_for_entry(&browser, 0);
+    assert(shown && shown->ready && shown->animation_pending && !shown->animation_count);
+    assert(opens == before_opens + 1 && read_bytes - before_bytes < 1024);
+    browser.navigation_held = true;
+    for (int i = 0; i < 30; i++)
+        icons_tick(&browser);
+    assert(opens == before_opens + 1);
+    browser.navigation_held = false;
+    browser.reduced_motion = true;
+    for (int i = 0; i < 30; i++)
+        icons_tick(&browser);
+    assert(opens == before_opens + 1 && shown->animation_pending);
+    browser.reduced_motion = false;
+    for (int i = 0; i < UI_ICON_IDLE_FRAMES; i++)
+        icons_tick(&browser);
+    assert(opens == before_opens + 2 && shown->animation_count == 2 && !shown->animation_pending);
+    assert(read_bytes - before_bytes < 6 * 1024 && !end_seeks);
+    measure = false;
+
+    /* The source changing between static and animation reads retains the icon,
+     * drops the stale animation and does not retry it every idle frame. */
+    icons_reset(&browser);
+    for (int i = 0; i < UI_ICON_IDLE_FRAMES; i++)
+        icons_tick(&browser);
+    assert(icons_for_entry(&browser, 0)->animation_pending);
+    assert(!truncate(path, 64 * 1024 * 1024 - 1));
+    unsigned before_reads = browser.icon_reads;
+    for (int i = 0; i < 30; i++)
+        icons_tick(&browser);
+    shown = icons_for_entry(&browser, 0);
+    assert(shown && !shown->animation_pending && !shown->animation_count);
+    assert(browser.icon_reads == before_reads + 1);
+}
 int main(int argc, char **argv)
 {
     assert(argc == 2);
@@ -56,6 +131,8 @@ int main(int argc, char **argv)
     for (int i = 0; i < 200; i++)
         icon_animate(&icon, true);
     assert(icon.animation_index == 0);
+    check_visible_static_priority(argv[1]);
+    check_browser_staging(argv[1]);
     FILE *f = fopen(argv[1], "r+b");
     assert(f && !fseek(f, 0x200 + 8, SEEK_SET));
     fputc(0, f);

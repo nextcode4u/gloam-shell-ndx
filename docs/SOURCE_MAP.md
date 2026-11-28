@@ -36,14 +36,17 @@ Header reads verify open-file metadata, read status and close results through
 a valid non-homebrew result; an I/O failure never selects a different backend.
 
 Banner icons read size metadata from the open file, without seeking to EOF.
-`icons.c` loads static and animated banner data in one bounded pass; corrupt or
-truncated animation retains the static icon. Title names and installed-title
-identity checks also avoid EOF seeks, keeping FAT cluster-chain traversal out of
-size validation while visible icons begin playing.
+The browser publishes static icons first, then loads animation in a later idle
+turn after visible static icons are ready. Corrupt or truncated animation retains
+the static image. A bounded packed-banner cache retains visited native entries
+in the current folder, using about 300 KiB instead of retaining every decoded
+animation. Title names and installed-title identity checks also avoid EOF seeks,
+keeping FAT cluster-chain traversal out of size validation.
 Navigation reconnects known icon assignments from the bounded banner cache
-without reads; refresh and SD removal clear it. New banners wait two released
-frames and take priority over other optional reads. Covers, metadata and autosaves
-wait 12 frames, and yield their I/O slot while visible icons are being resolved.
+without reads; refresh and SD removal clear it. New banners start on the first
+released frame and take priority over other optional reads. Covers, metadata and
+autosaves wait 12 frames and yield their I/O slot while visible icons are being
+resolved.
 Fast held scrolling repeats every frame after a six-frame hold; Normal and Slow
 retain their existing timings. `navigation.h` keeps value editors, tabs and
 letter jumps at Normal repeat. Held navigation starts no optional reads.

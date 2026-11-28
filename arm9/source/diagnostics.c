@@ -123,6 +123,11 @@ bool diagnostics_export(const App *app)
                     (unsigned long)boot->milliseconds[i]);
     fprintf(file, "script_font_glyphs=%u\nscript_font_bytes=%lu\nscript_font_attempts=%u\n",
             script_fonts_count(), (unsigned long)script_fonts_bytes(), script_fonts_attempted());
+    fprintf(file,
+            "icon_source_reads=%u\nicon_snapshot_hits=%u\nicon_animation_reads=%u\n"
+            "icon_snapshot_bytes=%lu\n",
+            app->icon_reads, app->icon_snapshot_hits, app->icon_animation_reads,
+            (unsigned long)sizeof app->banner_snapshots);
     fprintf(file, "artwork_decodes=%u\nartwork_disk_hits=%u\n", artwork_cache_decodes(),
             artwork_cache_disk_hits());
     fprintf(file, "artwork_decoder_yields=%u\n", image_job_yields());

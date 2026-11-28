@@ -82,6 +82,13 @@ typedef struct {
     bool ready;
     char source[36];
 } Artwork;
+/* Packed native tiles/palette, retained only for the current browser snapshot. */
+typedef struct {
+    unsigned char banner[0x240];
+    uint64_t file_size;
+    uint32_t offset;
+    bool ready;
+} BannerSnapshot;
 typedef struct {
     char path[PATH_CAP];
     char content_path[PATH_CAP]; /* Last resolved owner, for read-free row rebinding. */
@@ -92,6 +99,10 @@ typedef struct {
     uint16_t animation_palettes[8][16], animation_sequence[64];
     unsigned char animation_count, animation_index;
     unsigned short animation_remaining;
+    uint64_t source_size;
+    uint32_t banner_offset;
+    uint16_t animation_crc;
+    bool animation_pending;
 } BrowserIcon;
 typedef struct {
     BrowserIcon icon;
@@ -433,6 +444,7 @@ typedef struct {
     BrowserStyle browser_style;
     BrowserIcon icons[ICON_CACHE_CAP];
     int entry_icons[ENTRY_CAP];
+    BannerSnapshot banner_snapshots[ENTRY_CAP];
     Association associations[ASSOCIATION_CAP];
     int association_count;
     Association user_associations[USER_ASSOCIATION_CAP];
@@ -444,7 +456,7 @@ typedef struct {
     AudioState audio;
     int battery_level, brightness, requested_brightness;
     bool battery_charging;
-    unsigned icon_reads, icons_idle_frames;
+    unsigned icon_reads, icons_idle_frames, icon_snapshot_hits, icon_animation_reads;
     int panel_age, selection_idle_frames, preferences_idle_frames;
     bool navigation_held;
     int selection_y_fixed; /* Selection offset in 24.8 fixed-point pixels. */

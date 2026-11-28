@@ -165,9 +165,8 @@ static void check_banner_priority(const char *root)
         app_tick(&restored);
     assert(restored.icon_reads == reads && !icons_for_entry(&restored, selected));
     restored.navigation_held = false;
-    app_tick(&restored);
-    assert(restored.icon_reads == reads);
-    app_tick(&restored);
+    for (int i = 0; i < UI_ICON_IDLE_FRAMES; i++)
+        app_tick(&restored);
     assert(restored.icon_reads == reads + 1 && icons_for_entry(&restored, selected));
     assert(!restored.artwork_reads); /* Banner appears before the cover delay. */
     app_category(&restored, CATEGORY_MEDIA);
@@ -426,6 +425,18 @@ int main(int argc, char **argv)
         select_entry(name);
         assert(icons_for_entry(&app, find_entry(name))->pixels[1] == (0x8000 | (i + 1)));
     }
+    reads = app.icon_reads;
+    for (int i = ICON_CACHE_CAP + 3; i >= 0; i--) {
+        char name[64];
+        snprintf(name, sizeof name, "Title %02d.nds", i);
+        select_entry(name);
+        assert(icons_for_entry(&app, find_entry(name))->pixels[1] == (0x8000 | (i + 1)));
+    }
+    assert(app.icon_reads == reads && app.icon_snapshot_hits > 0);
+    /* Explicit refresh must discard the folder snapshot as well as decoded icons. */
+    icons_reset(&app);
+    select_entry("Title 00.nds");
+    assert(app.icon_reads > reads);
     assert(path_join(app.themes.active.icon_directory, root, "icons"));
     themes_icons_load(&app.themes.active, false);
     assert(themes_icon(&app.themes.active, PLACEHOLDER_COUNT + 1));

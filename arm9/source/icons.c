@@ -60,8 +60,10 @@ static bool read_banner(FILE *file, unsigned char banner[0x240], uint32_t *offse
 }
 static bool load_title_data(const char *path, uint16_t pixels[32 * 32], BrowserIcon *animation)
 {
-    if (animation)
+    if (animation) {
         animation->animation_count = 0;
+        animation->animation_pending = false;
+    }
     FILE *file = fopen(path, "rb");
     if (!file)
         return false;
@@ -124,8 +126,10 @@ void icons_reset(App *app)
 void icons_rebind(App *app)
 {
     item_preferences_display_clear();
-    for (int index = 0; index < ENTRY_CAP; index++)
+    for (int index = 0; index < ENTRY_CAP; index++) {
         app->entry_icons[index] = -1;
+        app->banner_snapshots[index].ready = false;
+    }
     app->icons_idle_frames = 0;
     /* An explicit refresh clears occupied flags. Ordinary tab/folder changes
      * can reconnect known assignments without reopening their INI or banner. */
@@ -154,6 +158,79 @@ const BrowserIcon *icons_for_entry(const App *app, int entry_index)
     return slot >= 0 && slot < ICON_CACHE_CAP && app->icons[slot].ready ? &app->icons[slot] : NULL;
 }
 
+static BannerSnapshot *entry_snapshot(App *app, int index, const char *path)
+{
+    const Entry *entry = &app->entries[index];
+    bool direct = (entry->kind == ITEM_FILE || entry->kind == ITEM_INSTALLED_TITLE) &&
+                  !strcmp(path, entry->path);
+    bool system = entry->kind == ITEM_SYSTEM && entry->target >= 0 && entry->target < 5;
+    return direct || system ? &app->banner_snapshots[index] : NULL;
+}
+
+/* Show the small static image first. Animation data gets a later idle turn,
+ * rather than holding every visible icon behind its larger payload and CRC. */
+static bool load_browser_title(App *app, int index, const char *path, BrowserIcon *icon)
+{
+    BannerSnapshot *snapshot = entry_snapshot(app, index, path);
+    unsigned char banner[0x240];
+    uint32_t offset;
+    uint64_t size;
+    if (snapshot && snapshot->ready) {
+        memcpy(banner, snapshot->banner, sizeof banner);
+        offset = snapshot->offset;
+        size = snapshot->file_size;
+        app->icon_snapshot_hits++;
+    } else {
+        app->icon_reads++;
+        FILE *file = fopen(path, "rb");
+        if (!file)
+            return false;
+        uint64_t available = 0;
+        bool valid = read_banner(file, banner, &offset, &available);
+        if (fclose(file))
+            valid = false;
+        if (!valid)
+            return false;
+        size = (uint64_t)offset + available;
+    }
+    if (!icon_decode_banner(banner, sizeof banner, icon->pixels))
+        return false;
+    if (snapshot && !snapshot->ready) {
+        memcpy(snapshot->banner, banner, sizeof banner);
+        snapshot->offset = offset;
+        snapshot->file_size = size;
+        snapshot->ready = true;
+    }
+    icon->banner_offset = offset;
+    icon->source_size = size;
+    icon->animation_crc = banner[8] | (uint16_t)banner[9] << 8;
+    icon->animation_pending = banner[0] == 3 && banner[1] == 1 && size - offset >= 0x23c0 &&
+                              (uint64_t)offset + 0x1240 <= LONG_MAX;
+    return true;
+}
+
+static void load_browser_animation(App *app, BrowserIcon *icon)
+{
+    icon->animation_pending = false; /* A damaged/missing animation is not retried each frame. */
+    app->icon_reads++;
+    app->icon_animation_reads++;
+    FILE *file = fopen(icon->path, "rb");
+    if (!file)
+        return;
+    struct stat status;
+    unsigned char data[0x1180], header[16] = {3, 1};
+    bool valid = !fstat(fileno(file), &status) && S_ISREG(status.st_mode) && status.st_size >= 0 &&
+                 (uint64_t)status.st_size == icon->source_size &&
+                 !fseek(file, (long)icon->banner_offset + 0x1240, SEEK_SET) &&
+                 fread(data, 1, sizeof data, file) == sizeof data && !ferror(file);
+    if (fclose(file))
+        valid = false;
+    header[8] = icon->animation_crc & 255;
+    header[9] = icon->animation_crc >> 8;
+    if (valid)
+        icon_decode_animation(header, data, sizeof data, icon);
+}
+
 static bool load_path(App *app, int index, const char *path, bool png, int system_target)
 {
     int slot = 0;
@@ -177,11 +254,16 @@ static bool load_path(App *app, int index, const char *path, bool png, int syste
     icon->occupied = true;
     icon->last_used = app->frame_count;
     icon->animation_count = 0;
+    icon->animation_pending = false;
     icon->ready = false;
     icon->system_fallback = false;
     if (strncmp(path, "system:", 7)) {
-        app->icon_reads++;
-        icon->ready = png ? icon_load_png(path, icon->pixels) : icon_load_title(path, icon);
+        if (png) {
+            app->icon_reads++;
+            icon->ready = icon_load_png(path, icon->pixels);
+        } else {
+            icon->ready = load_browser_title(app, index, path, icon);
+        }
     }
     if (!icon->ready && system_target >= 0) {
         icon->ready = icon_system_fallback(system_target, icon->pixels);
@@ -194,6 +276,11 @@ static void load_entry_icon(App *app, int index)
 {
     const Entry *entry = &app->entries[index];
     char path[PATH_CAP];
+    if (app->banner_snapshots[index].ready &&
+        (entry->kind == ITEM_FILE || entry->kind == ITEM_INSTALLED_TITLE)) {
+        load_path(app, index, entry->path, false, -1);
+        return;
+    }
     if (entry->kind == ITEM_INSTALLED_TITLE) {
         load_path(app, index, entry->path, false, -1);
         return;
@@ -277,6 +364,18 @@ bool icons_tick(App *app)
             continue;
         load_entry_icon(app, index);
         return true;
+    }
+    if (!app->reduced_motion) {
+        for (int pass = -1; pass < last - first; pass++) {
+            int index = pass < 0 ? location->selected : first + pass;
+            if (index < first || index >= last)
+                continue;
+            int slot = app->entry_icons[index];
+            if (slot >= 0 && app->icons[slot].ready && app->icons[slot].animation_pending) {
+                load_browser_animation(app, &app->icons[slot]);
+                return true;
+            }
+        }
     }
     return false;
 }
