@@ -44,8 +44,10 @@ Navigation reconnects known icon assignments from the bounded banner cache
 without reads; refresh and SD removal clear it. New banners wait two released
 frames and take priority over other optional reads. Covers, metadata and autosaves
 wait 12 frames, and yield their I/O slot while visible icons are being resolved.
-Held navigation starts no optional reads. Display-only item assignments share a
-four-entry cache; launch/edit checks stay uncached.
+Fast held scrolling repeats every frame after a six-frame hold; Normal and Slow
+retain their existing timings. `navigation.h` keeps value editors, tabs and
+letter jumps at Normal repeat. Held navigation starts no optional reads.
+Display-only item assignments share a four-entry cache; launch/edit checks stay uncached.
 
 Native title discovery publishes boot-content IDs only after complete metadata
 reads and a successful close. Patched-menu and installed-title header checks use

@@ -73,6 +73,21 @@ int main(int argc, char **argv)
            navigation_scroll_timing(SCROLL_FAST).interval_frames);
     assert(navigation_scroll_timing(SCROLL_FAST).delay_frames <
            navigation_scroll_timing(SCROLL_SLOW).delay_frames);
+    /* Fast uses every frame after a short hold; dialogs retain precise edits. */
+    assert(navigation_scroll_timing(SCROLL_FAST).interval_frames == 1);
+    assert(navigation_scroll_timing(SCROLL_FAST).delay_frames <= 8);
+    restored.scroll_speed = SCROLL_FAST;
+    assert(navigation_scroll_speed(&restored, false) == SCROLL_FAST);
+    assert(navigation_scroll_speed(&restored, true) == SCROLL_NORMAL);
+    restored.settings.open = true;
+    assert(navigation_scroll_speed(&restored, false) == SCROLL_NORMAL);
+    restored.settings.open = false;
+    restored.game_editor.open = true;
+    assert(navigation_scroll_speed(&restored, false) == SCROLL_NORMAL);
+    restored.game_editor.open = false;
+    restored.panel = PANEL_ACTIONS;
+    assert(navigation_scroll_speed(&restored, false) == SCROLL_NORMAL);
+    restored.panel = PANEL_NONE;
     /* Left/right must not invoke navigation, system-return or save actions. */
     app.preferences_dirty = false;
     for (int row = QUICK_HOME; row < QUICK_CONTROL_COUNT; row++) {

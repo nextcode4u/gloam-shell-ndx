@@ -491,9 +491,8 @@ int main(int argc, char **argv)
     bool library_jump_used = false, details_pending = false;
     bool boot_finished = false;
     while (1) {
-        /* Keep settings adjustment predictable even when browser scrolling is Fast. */
-        int speed =
-            app.panel == PANEL_NONE && !app.settings.open ? app.scroll_speed : SCROLL_NORMAL;
+        /* L/R and Y-modified letter jumps use Normal repeat, as do value editors. */
+        int speed = navigation_scroll_speed(&app, (keysHeld() & (KEY_L | KEY_R | KEY_Y)) != 0);
         if (speed != applied_scroll_speed) {
             ScrollTiming timing = navigation_scroll_timing(speed);
             keysSetRepeat(timing.delay_frames, timing.interval_frames);
