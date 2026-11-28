@@ -894,9 +894,13 @@ static void prepare_script_fonts(const App *app)
 }
 void app_tick(App *app)
 {
-    prepare_script_fonts(app);
+    if (app->navigation_held)
+        app->selection_idle_frames = 0;
+    else if (app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES)
+        prepare_script_fonts(app);
     app->frame_count++;
-    artwork_cache_update();
+    if (!app->navigation_held && app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES)
+        artwork_cache_update();
     themes_tick(app);
     startup_tick(app);
     themes_motion_tick(app);
@@ -925,10 +929,12 @@ void app_tick(App *app)
     }
     if (!app->settings.open) {
         icons_tick(app);
-        title_metadata_tick(app);
-        if (app->panel == PANEL_NONE)
-            top_content_tick(app);
-        prepare_script_fonts(app);
+        if (!app->navigation_held && app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES) {
+            title_metadata_tick(app);
+            if (app->panel == PANEL_NONE)
+                top_content_tick(app);
+            prepare_script_fonts(app);
+        }
     }
     if (app->browser_style == BROWSER_INDEX && app->library_index_dirty)
         browser_index_rebuild(app);
@@ -939,7 +945,8 @@ void app_tick(App *app)
         if (abs(app->shelf_offset_fixed) < 256)
             app->shelf_offset_fixed = 0;
     }
-    app->selection_idle_frames++;
+    if (!app->navigation_held)
+        app->selection_idle_frames++;
     if (app->panel_age < 24)
         app->panel_age++;
     Location *location = &app->locations[app->category];
@@ -957,7 +964,7 @@ void app_tick(App *app)
     bool preparing_artwork =
         (app->browser_style != BROWSER_INDEX || top_content_mode(app) != TOP_CONTENT_THEME) &&
         !app->settings.open && app->show_covers && !app->artwork.ready && !app->artwork_resolved &&
-        app->selection_idle_frames >= 7;
+        !app->navigation_held && app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES;
     if (preparing_artwork)
         artwork_step(app);
     else if (!app->settings.open && app->panel == PANEL_NONE)
@@ -965,7 +972,8 @@ void app_tick(App *app)
     const Entry *selected_entry = app_selected(app);
     if (app->internal_titles && selected_entry && *selected_entry->internal_title)
         path_copy(app->title, selected_entry->internal_title, sizeof app->title);
-    if (app->preferences_dirty && ++app->preferences_idle_frames > 90) {
+    if (!app->navigation_held && app->preferences_dirty && ++app->preferences_idle_frames > 90 &&
+        app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES) {
         app_save(app);
         app->preferences_idle_frames = 0;
     }

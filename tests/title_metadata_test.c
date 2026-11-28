@@ -1,6 +1,7 @@
 #include "app.h"
 #include "artwork.h"
 #include "browser.h"
+#include "layout.h"
 #include "paths.h"
 #include "preferences.h"
 #include "title_metadata.h"
@@ -52,7 +53,7 @@ int main(int argc, char **argv)
     app.internal_titles = true;
     app.title_language = 2;
     app.browser_style = BROWSER_LIST;
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < UI_BROWSE_IDLE_FRAMES + 2; i++)
         app_tick(&app);
     /* List stays text-only below, but prepares one selected banner above. */
     assert(app.icon_reads == 1 && app.entries[0].title_loaded);

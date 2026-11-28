@@ -3,6 +3,7 @@
 #include "browser.h"
 #include "icons.h"
 #include "item_preferences.h"
+#include "layout.h"
 #include "paths.h"
 #include "picker.h"
 #include <assert.h>
@@ -60,7 +61,7 @@ int main(int argc, char **argv)
     assert(!app.picker.open);
     ItemPreferences item;
     assert(item_preferences_load(root, target, &item) && !strcmp(item.icon, image));
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < UI_BROWSE_IDLE_FRAMES + 4; i++)
         icons_tick(&app);
     const BrowserIcon *icon = icons_for_entry(&app, app.locations[CATEGORY_GAMES].selected);
     assert(icon && !icon->animation_count && icon->pixels[0] == 0 && icon->pixels[1] == 0x801F);
@@ -72,7 +73,7 @@ int main(int argc, char **argv)
     path_copy(item.icon, broken, sizeof item.icon);
     assert(item_preferences_save(root, target, &item));
     icons_reset(&app);
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < UI_BROWSE_IDLE_FRAMES + 4; i++)
         icons_tick(&app);
     icon = icons_for_entry(&app, app.locations[CATEGORY_GAMES].selected);
     assert(icon && icon->pixels[1] == 0xFC00);
@@ -81,7 +82,7 @@ int main(int argc, char **argv)
     assert(item_preferences_save(root, folder, &item));
     app.locations[CATEGORY_GAMES].selected = find_entry("Folder");
     icons_reset(&app);
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < UI_BROWSE_IDLE_FRAMES + 4; i++)
         icons_tick(&app);
     icon = icons_for_entry(&app, app.locations[CATEGORY_GAMES].selected);
     assert(icon && icon->pixels[0] == 0 && icon->pixels[1] == 0x801F);
@@ -101,7 +102,7 @@ int main(int argc, char **argv)
     associations_load(&app);
     browser_refresh(&app);
     app.locations[CATEGORY_GAMES].selected = find_entry("Paper.demo");
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < UI_BROWSE_IDLE_FRAMES + 4; i++)
         icons_tick(&app);
     icon = icons_for_entry(&app, app.locations[CATEGORY_GAMES].selected);
     assert(icon && icon->pixels[1] == 0x801F);
@@ -117,7 +118,7 @@ int main(int argc, char **argv)
            !fclose(file));
     associations_load(&app);
     icons_reset(&app);
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < UI_BROWSE_IDLE_FRAMES + 4; i++)
         icons_tick(&app);
     icon = icons_for_entry(&app, app.locations[CATEGORY_GAMES].selected);
     assert(icon && icon->pixels[1] == 0xFC00); /* Invalid profile icon -> app banner. */

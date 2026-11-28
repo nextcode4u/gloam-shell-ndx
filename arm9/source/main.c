@@ -501,6 +501,9 @@ int main(int argc, char **argv)
         }
         scanKeys();
         unsigned down = keysDown(), repeat = keysDownRepeat();
+        app.navigation_held =
+            (keysHeld() & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT | KEY_L | KEY_R | KEY_TOUCH)) !=
+            0;
         if (down & KEY_Y) {
             library_jump_used = false;
             details_pending = false;

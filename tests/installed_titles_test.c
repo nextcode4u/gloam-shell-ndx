@@ -3,6 +3,7 @@
 #include "browser.h"
 #include "icons.h"
 #include "installed_titles.h"
+#include "layout.h"
 #include "paths.h"
 #include "preferences.h"
 #include "system_routes.h"
@@ -300,7 +301,7 @@ int main(int argc, char **argv)
     assert(app.installed_open && app.entry_count == 2 &&
            app.entries[0].kind == ITEM_INSTALLED_TITLE);
     app.browser_style = BROWSER_LIST;
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < UI_BROWSE_IDLE_FRAMES + 2; i++)
         app_tick(&app);
     assert(icons_for_entry(&app, 0) && icons_for_entry(&app, 0)->pixels[0] == 0x801F);
     app_panel(&app, PANEL_ACTIONS);

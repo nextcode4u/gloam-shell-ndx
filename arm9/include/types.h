@@ -445,6 +445,7 @@ typedef struct {
     bool battery_charging;
     unsigned icon_reads, icons_idle_frames;
     int panel_age, selection_idle_frames, preferences_idle_frames;
+    bool navigation_held;
     int selection_y_fixed; /* Selection offset in 24.8 fixed-point pixels. */
     unsigned frame_count, panel_text_started_frame;
     char message[160], title[128], code[8];

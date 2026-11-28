@@ -10,11 +10,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
-static unsigned record_opens, cover_stats;
+static unsigned record_opens, cover_stats, all_opens, all_stats;
 static bool fail_records;
 FILE *__real_fopen(const char *, const char *);
 FILE *__wrap_fopen(const char *path, const char *mode)
 {
+    all_opens++;
     if (strstr(path, "/items/") && !strcmp(mode, "rb")) {
         record_opens++;
         if (fail_records) {
@@ -27,6 +28,7 @@ FILE *__wrap_fopen(const char *path, const char *mode)
 int __real_stat(const char *, struct stat *);
 int __wrap_stat(const char *path, struct stat *info)
 {
+    all_stats++;
     if (strstr(path, ".png") || strstr(path, ".jpg") || strstr(path, ".jpeg"))
         cover_stats++;
     return __real_stat(path, info);
@@ -127,17 +129,35 @@ int main(int argc, char **argv)
     app.top_content = TOP_CONTENT_NEIGHBORS;
     app.show_covers = true;
     app_reset_preview(&app);
-    app.selection_idle_frames = 6;
+    app.selection_idle_frames = 11;
     cover_stats = 0;
     app_tick(&app);
     assert(app.artwork.ready && cover_stats == 1);
     for (unsigned i = 0; i < 3; i++)
         assert(!*app.shelf_paths[i]);
+    /* A held direction cannot start optional reads or an overdue autosave. */
+    app.navigation_held = true;
+    app.preferences_dirty = true;
+    app.preferences_idle_frames = 100;
+    app.selection_idle_frames = 100;
+    app_reset_preview(&app);
+    all_opens = all_stats = 0;
+    for (unsigned i = 0; i < 500; i++)
+        app_tick(&app);
+    assert(!all_opens && !all_stats && app.preferences_dirty);
+    assert(!app.selection_idle_frames);
+    app.navigation_held = false;
+    for (unsigned i = 0; i < 10; i++)
+        app_tick(&app);
+    assert(!all_opens && !all_stats);
+    for (unsigned i = 0; i < 30; i++)
+        app_tick(&app);
+    assert(all_opens && !app.preferences_dirty);
     /* A missing launch target can still have deliberately assigned artwork. */
     app.entries[1].kind = ITEM_MISSING;
     app_reset_preview(&app);
     artwork_load(&app);
     assert(app.artwork.ready && !strcmp(app.artwork.source, "Assigned image"));
-    puts("PASS: 3000-record display cache, fresh launch checks, recovery, invalidation and staged "
-         "artwork probes");
+    puts("PASS: 3000-record display cache, held-navigation I/O isolation, fresh "
+         "launch checks and staged artwork probes");
 }

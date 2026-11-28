@@ -7,6 +7,7 @@
 /* Shared by rendering, scrolling and touch input so their row bounds agree. */
 #define UI_PANEL_VISIBLE_ROWS 7
 #define UI_LIST_BOTTOM 169
+#define UI_BROWSE_IDLE_FRAMES 12
 
 static inline bool layout_has_path(int category)
 {

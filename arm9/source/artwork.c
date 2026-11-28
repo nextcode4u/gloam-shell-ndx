@@ -6,6 +6,7 @@
 #include "image_decode.h"
 #include "image_input.h"
 #include "item_preferences.h"
+#include "layout.h"
 #include "paths.h"
 #include "text.h"
 #include "top_content.h"
@@ -214,7 +215,8 @@ void artwork_shelf_tick(App *app)
     bool supplemental =
         mode == TOP_CONTENT_NEIGHBORS || mode == TOP_CONTENT_FOLDER || mode == TOP_CONTENT_ACTIVITY;
     if ((app->browser_style != BROWSER_SHELF && !supplemental) || !app->show_covers ||
-        app->selection_idle_frames < 7 || (!app->artwork.ready && !app->artwork_resolved))
+        app->navigation_held || app->selection_idle_frames < UI_BROWSE_IDLE_FRAMES ||
+        (!app->artwork.ready && !app->artwork_resolved))
         return;
     int indexes[3];
     /* The bottom Shelf keeps its visible neighbors. Other top-screen cards

@@ -214,8 +214,7 @@ void icons_tick(App *app)
         selected && selected->kind == ITEM_FILE && icon_is_ds_title(selected->path);
     if ((!app->storage_ready && !system_selected) ||
         (!layout_has_icons(app) && !system_selected && !title_preview && !app->detail_tab &&
-         app->show_covers) ||
-        ++app->icons_idle_frames < 2)
+         app->show_covers))
         return;
     const Location *location = &app->locations[app->category];
     int first = location->scroll, last = first + layout_visible_rows(app);
@@ -239,6 +238,12 @@ void icons_tick(App *app)
             animated[slot] = true;
         }
     }
+    if (app->navigation_held) {
+        app->icons_idle_frames = 0;
+        return;
+    }
+    if (++app->icons_idle_frames < UI_BROWSE_IDLE_FRAMES)
+        return;
     /* Prioritize the selection, then fill the remaining visible rows. */
     for (int pass = -1; pass < last - first; pass++) {
         int index = pass < 0 ? location->selected : first + pass;

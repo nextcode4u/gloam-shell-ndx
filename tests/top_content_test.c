@@ -106,7 +106,7 @@ static void write_text(const char *name, const char *value)
 static void prepare(void)
 {
     app_reset_preview(&app);
-    app.selection_idle_frames = 7;
+    app.selection_idle_frames = 12;
     for (int i = 0; i < 4; i++)
         top_content_tick(&app);
     assert(app.top.stage == 4);
@@ -322,7 +322,7 @@ int main(int argc, char **argv)
         app.top_content = mode;
         app.detail_tab = 0;
         app_reset_preview(&app);
-        app.selection_idle_frames = 7;
+        app.selection_idle_frames = 12;
         for (unsigned frame = 0; frame < 4; frame++)
             top_content_tick(&app);
         assert(app.top.stage == 2 && !*app.top.handler && !*app.top.options);
@@ -377,7 +377,7 @@ int main(int argc, char **argv)
     app.browser_style = BROWSER_SHELF;
     app.show_covers = true;
     app.artwork_resolved = true;
-    app.selection_idle_frames = 7;
+    app.selection_idle_frames = 12;
     app.entry_count = 5;
     app.locations[app.category].selected = 3;
     app.top.stage = 1;

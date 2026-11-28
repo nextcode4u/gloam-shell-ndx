@@ -174,7 +174,7 @@ int main(int argc, char **argv)
         copy_file("tests/fixtures/cover.jpg", path);
     }
     app_reset_preview(&app);
-    app.selection_idle_frames = 8;
+    app.selection_idle_frames = 12;
     artwork_load(&app);
     strcpy(app.title, "Selected title");
     for (int i = 0; i < 30; i++)
