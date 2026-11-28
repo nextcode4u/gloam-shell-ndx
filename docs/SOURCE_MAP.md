@@ -51,6 +51,8 @@ Fast held scrolling repeats every frame after a six-frame hold; Normal and Slow
 retain their existing timings. `navigation.h` keeps value editors, tabs and
 letter jumps at Normal repeat. Held navigation starts no optional reads.
 Display-only item assignments share a four-entry cache; launch/edit checks stay uncached.
+Pending artwork polls perform no source metadata reads; completion validates the
+source before publishing the decoded cover.
 
 Native title discovery publishes boot-content IDs only after complete metadata
 reads and a successful close. Patched-menu and installed-title header checks use

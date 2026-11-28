@@ -331,7 +331,7 @@ mkdir "$fixture/custom-homebrew"
 ASAN_OPTIONS=detect_leaks=1 build/host/homebrew-test "$fixture/custom-homebrew"
 
 cc "${common_flags[@]}" -DFRONTEND_ASYNC_TEST -O2 "${model_sources[@]}" \
-    tests/artwork_async_test.c -o build/host/artwork-async-test
+    tests/artwork_async_test.c -Wl,--wrap=stat -o build/host/artwork-async-test
 build/host/artwork-async-test tests/fixtures/async.png tests/fixtures/async-progressive.jpg
 
 cc "${common_flags[@]}" -DFRONTEND_ASYNC_TEST -O2 "${model_sources[@]}" \

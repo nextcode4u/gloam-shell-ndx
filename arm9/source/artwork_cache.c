@@ -81,6 +81,17 @@ unsigned artwork_cache_disk_hits(void)
 }
 bool artwork_cached_read(Artwork *artwork, const char *path, bool embedded)
 {
+    /* The decoder owns this source until completion. Rechecking it on every
+     * slice adds SD directory work without advancing the image; completion
+     * already validates size, timestamp and identity before publishing it. */
+    if (image_job_busy()) {
+        for (unsigned i = 0; i < sizeof cache / sizeof cache[0]; i++) {
+            const CachedArtwork *entry = &cache[i];
+            if (entry->occupied && entry->pending && entry->embedded == embedded &&
+                !strcmp(entry->path, path))
+                return false;
+        }
+    }
     struct stat status;
     if (stat(path, &status) || !S_ISREG(status.st_mode))
         return false;
