@@ -16,10 +16,11 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 
 OWNER = Path("_nds/dsi-frontend")
-MAX_FILES = 1024
+MAX_FILES = 4096
 MAX_FILE_BYTES = 65536
 MAX_TOTAL_BYTES = 4 * 1024 * 1024
 ROOT_RECORDS = {
+    "item-storage.ini",
     "state.ini",
     "tabs.ini",
     "dashboard.ini",
@@ -43,6 +44,9 @@ def allowed_record(name: str) -> bool:
         return name in ROOT_RECORDS
     if len(parts) == 2 and parts[0] in {"games", "items"}:
         return bool(HASH_RECORD.fullmatch(parts[1]))
+    if len(parts) == 3 and parts[0] == "items":
+        return bool(re.fullmatch(r"[0-9a-f]{2}", parts[1]) and
+                    re.fullmatch(r"[0-9a-f]{16}\.ini", parts[2]) and parts[2].startswith(parts[1]))
     return (
         len(parts) == 3
         and parts[:2] == ("plugins", "user")
@@ -109,6 +113,13 @@ def export_configuration(sd: Path, output: Path) -> int:
             raise ValueError(f"Refusing redirected configuration folder: {directory}")
         if directory.exists():
             candidates.extend(directory.glob("*.ini"))
+            if directory.name == "items":
+                for bucket in directory.iterdir():
+                    if re.fullmatch(r"[0-9a-f]{2}", bucket.name):
+                        if bucket.is_symlink():
+                            raise ValueError("Redirected item bucket")
+                        if bucket.is_dir():
+                            candidates.extend(bucket.glob("*.ini"))
     records: dict[str, bytes] = {}
     total = 0
     for candidate in sorted(candidates):

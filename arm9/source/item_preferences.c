@@ -18,7 +18,8 @@ static bool identity(char output[PATH_CAP], const char *root, const char *conten
         relative++;
     return *relative && path_resolve_sd(output, "sd:/", relative);
 }
-static bool record_path(char path[PATH_CAP], const char *root, const char *key, const char *suffix)
+static bool record_path(char path[PATH_CAP], const char *root, const char *key, const char *suffix,
+                        bool bucketed)
 {
     uint64_t hash = UINT64_C(14695981039346656037);
     for (const unsigned char *p = (const unsigned char *)key; *p; p++) {
@@ -26,9 +27,44 @@ static bool record_path(char path[PATH_CAP], const char *root, const char *key, 
         hash *= UINT64_C(1099511628211);
     }
     char name[48];
-    snprintf(name, sizeof name, "items/%016" PRIx64 ".%s", hash, suffix);
+    if (bucketed)
+        snprintf(name, sizeof name, "items/%02x/%016" PRIx64 ".%s", (unsigned)(hash >> 56), hash,
+                 suffix);
+    else
+        snprintf(name, sizeof name, "items/%016" PRIx64 ".%s", hash, suffix);
     return path_preferences_file(path, root, name);
 }
+/* Opt-in layout marker lives outside the large items directory. Old cards
+ * remain flat; optimized cards can still contain readable legacy records. */
+static int storage_layout(const char *root)
+{
+    char path[PATH_CAP], data[65], normalized[65];
+    if (!path_preferences_file(path, root, "item-storage.ini"))
+        return -1;
+    FILE *file = fopen(path, "rb");
+    if (!file)
+        return errno == ENOENT ? 0 : -1;
+    struct stat info;
+    bool valid = !fstat(fileno(file), &info) && S_ISREG(info.st_mode) && info.st_size > 0 &&
+                 info.st_size <= 64;
+    size_t size = valid ? (size_t)info.st_size : 0;
+    valid = valid && fread(data, 1, size, file) == size && !ferror(file) && !memchr(data, 0, size);
+    if (fclose(file))
+        valid = false;
+    if (!valid)
+        return -1;
+    size_t out = 0;
+    for (size_t i = 0; i < size; i++)
+        if (data[i] != '\r')
+            normalized[out++] = data[i];
+    if (out && normalized[out - 1] == '\n')
+        out--;
+    normalized[out] = 0;
+    if (!strcmp(normalized, "version=1\nbuckets=1"))
+        return 1;
+    return !strcmp(normalized, "version=1\nbuckets=0") ? 0 : -1;
+}
+
 /* Only completely inspected damaged records may be replaced using a matching backup. */
 typedef enum {
     RECORD_MISSING,
@@ -105,16 +141,14 @@ static RecordStatus read_record(const char *path, const char *root, const char *
     return valid && version && matched ? RECORD_VALID : RECORD_INVALID;
 }
 
-static RecordStatus load_item(const char *root, const char *content, ItemPreferences *item,
-                              bool for_edit)
+static RecordStatus load_family(const char *root, const char *key, ItemPreferences *item,
+                                bool for_edit, bool bucketed)
 {
-    char key[PATH_CAP], path[PATH_CAP];
-    if (!identity(key, root, content))
-        return RECORD_UNREADABLE;
+    char path[PATH_CAP];
     RecordStatus result = RECORD_MISSING;
     for (unsigned backup = 0; backup < 2; backup++) {
         ItemPreferences candidate = {0};
-        RecordStatus status = record_path(path, root, key, backup ? "bak" : "ini")
+        RecordStatus status = record_path(path, root, key, backup ? "bak" : "ini", bucketed)
                                   ? read_record(path, root, key, &candidate)
                                   : RECORD_UNREADABLE;
         /* A readable older backup cannot establish an unreadable primary's fields. */
@@ -129,6 +163,21 @@ static RecordStatus load_item(const char *root, const char *content, ItemPrefere
     }
     return result;
 }
+static RecordStatus load_item(const char *root, const char *content, ItemPreferences *item,
+                              bool for_edit)
+{
+    char key[PATH_CAP];
+    int bucketed = storage_layout(root);
+    if (bucketed < 0 || !identity(key, root, content))
+        return RECORD_UNREADABLE;
+    if (bucketed) {
+        RecordStatus status = load_family(root, key, item, for_edit, true);
+        if (status != RECORD_MISSING)
+            return status;
+    }
+    return load_family(root, key, item, for_edit, false);
+}
+
 bool item_preferences_load(const char *root, const char *content, ItemPreferences *item)
 {
     memset(item, 0, sizeof *item);
@@ -194,6 +243,11 @@ bool item_preferences_read_for_edit(const char *root, const char *content, ItemP
 bool item_preferences_save(const char *root, const char *content, const ItemPreferences *item)
 {
     item_preferences_display_clear();
+    int bucketed = storage_layout(root);
+    ItemPreferences previous;
+    RecordStatus inspected = load_item(root, content, &previous, true);
+    if (bucketed < 0 || (inspected != RECORD_VALID && inspected != RECORD_MISSING))
+        return false;
     char key[PATH_CAP], cover[PATH_CAP] = "", application[PATH_CAP] = "", icon[PATH_CAP] = "";
     char path[PATH_CAP], temporary[PATH_CAP], backup[PATH_CAP], directory[PATH_CAP];
     if (!identity(key, root, content) || (*item->cover && !identity(cover, root, item->cover)) ||
@@ -206,9 +260,20 @@ bool item_preferences_save(const char *root, const char *content, const ItemPref
     if (mkdir(directory, 0777) &&
         (errno != EEXIST || stat(directory, &status) || !S_ISDIR(status.st_mode)))
         return false;
-    if (!record_path(path, root, key, "ini") || !record_path(temporary, root, key, "tmp") ||
-        !record_path(backup, root, key, "bak"))
+    if (!record_path(path, root, key, "ini", bucketed != 0) ||
+        !record_path(temporary, root, key, "tmp", bucketed != 0) ||
+        !record_path(backup, root, key, "bak", bucketed != 0))
         return false;
+    if (bucketed) {
+        path_copy(directory, path, sizeof directory);
+        char *slash = strrchr(directory, '/');
+        if (!slash)
+            return false;
+        *slash = 0;
+        if (mkdir(directory, 0777) &&
+            (errno != EEXIST || stat(directory, &status) || !S_ISDIR(status.st_mode)))
+            return false;
+    }
     /* An existing different identity must not be overwritten, even on a hash collision. */
     ItemPreferences existing = {0};
     bool exists = !stat(path, &status), recovered = false;

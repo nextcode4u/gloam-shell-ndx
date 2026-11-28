@@ -34,7 +34,7 @@ excluded. Copy referenced assets/applications separately at the same SD paths.
 
 Importers validate the whole archive before replacing records. Unknown
 paths, traversal, duplicate names, non-text/oversized records, unsupported flags
-and failed checksums stop the operation. Limits are 1,024 records, 64 KiB per
+and failed checksums stop the operation. Limits are 4,096 records, 64 KiB per
 record and 4 MiB total record data. Imports merge listed records; extra existing
 records are retained. Individual settings modules still apply their ordinary
 value/path/version checks when reloading these files.

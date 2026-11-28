@@ -55,6 +55,18 @@ The full normalized content identity must match on reading, so a hash collision 
 apply another item's data. The location is independent of the host drive used
 for testing. Parent traversal and foreign-device paths are rejected.
 
+Large libraries can opt into smaller directories using `item-storage.ini` beside
+`state.ini`, containing `version=1` and `buckets=1` on separate lines. Records then
+live at `items/<first-two-hash-digits>/<identity-hash>.ini`. Missing grouped records
+fall back to the original flat location; damaged grouped records never fall back
+to stale flat data. Artwork paths can reference similarly grouped cover folders.
+SD Setup's artwork editor, organizer and configuration tools support both layouts.
+
+Back up records and images before moving an existing library. Publish the marker
+only after all grouped records and their image paths are ready. Older builds do
+not understand the marker: restore the original flat records and image paths
+before rolling back to one. A missing marker keeps the original storage layout.
+
 Writers use temporary/current/backup replacement. A matching valid backup can
 recover a damaged current record and allow later edits without discarding that
 backup. Unreadable records, different content identities and unsupported versions

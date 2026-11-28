@@ -36,6 +36,20 @@ class ConfigurationTests(unittest.TestCase):
         self.archive = self.root / "configuration.zip"
         self.assertEqual(config.export_configuration(self.source, self.archive), 2)
 
+    def test_bucketed_item_round_trip(self):
+        bucket = self.private / "items/01"
+        bucket.mkdir(parents=True)
+        record = "items/01/0123456789abcdef.ini"
+        (self.private / record).write_text("version=1\ncontent=sd:/roms/Moon.nds\n")
+        (self.private / "item-storage.ini").write_text("version=1\nbuckets=1\n")
+        archive = self.root / "grouped.dsconfig"
+        self.assertEqual(config.export_configuration(self.source, archive), 4)
+        config.import_configuration(self.target, archive)
+        target = config.private_directory(self.target)
+        self.assertEqual((target / record).read_bytes(), (self.private / record).read_bytes())
+        for name in ["items/ff/0123456789abcdef.ini", "items/01/../state.ini", "items/01/01/0123456789abcdef.ini"]:
+            self.assertFalse(config.allowed_record(name))
+
     def test_round_trip_and_verified_original_backup(self):
         target = config.private_directory(self.target)
         original = b"version=1\nicon_size=0\n"

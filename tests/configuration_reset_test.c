@@ -115,7 +115,7 @@ static const char current_layout[] =
     "04=dashboard.ini\n05=dashboard.bak\n06=recent.ini\n07=language.ini\n"
     "08=collections.ini\n09=recent.bak\n10=appearance-1.ini\n11=appearance-1.bak\n"
     "12=appearance-2.ini\n13=appearance-2.bak\n14=appearance-3.ini\n15=appearance-3.bak\n"
-    "16=games\n17=items\n18=plugins/user\n";
+    "16=games\n17=items\n18=plugins/user\n19=item-storage.ini\n";
 static const char older_layout[] =
     "Gloam reset layout 1\n"
     "00=state.ini\n01=state.bak\n02=tabs.ini\n03=tabs.bak\n"
@@ -298,6 +298,8 @@ int main(int argc, char **argv)
     assert(!mkdir(path, 0777));
     assert(path_join(other, path, "0123456789abcdef.ini"));
     write_text(other, "content=sd:/game.nds\n");
+    assert(path_preferences_file(path, argv[1], "item-storage.ini"));
+    write_text(path, "version=1\nbuckets=1\n");
     assert(path_preferences_file(path, argv[1], "save.sav"));
     write_text(path, "A save must survive");
     assert(configuration_reset(argv[1], error));
@@ -307,6 +309,8 @@ int main(int argc, char **argv)
     check_text(old, "version=1\nshow_hidden=1\n");
     assert(path_preferences_file(old, argv[1], "configuration/reset-backup-000/layout.txt"));
     check_text(old, current_layout);
+    assert(path_preferences_file(old, argv[1], "configuration/reset-backup-000/19"));
+    check_text(old, "version=1\nbuckets=1\n");
     assert(access(other, F_OK));
     app_init(&app, argv[1], true, true);
     assert(!app.show_hidden && app.favorite_count == 0);

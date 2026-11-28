@@ -7,9 +7,11 @@
 #include "paths.h"
 #include <assert.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 static unsigned record_opens, cover_stats, all_opens, all_stats;
 static bool fail_records;
 FILE *__real_fopen(const char *, const char *);
@@ -158,6 +160,41 @@ int main(int argc, char **argv)
     app_reset_preview(&app);
     artwork_load(&app);
     assert(app.artwork.ready && !strcmp(app.artwork.source, "Assigned image"));
-    puts("PASS: 3000-record display cache, held-navigation I/O isolation, fresh "
+    /* Grouped records are opt-in; legacy data stays readable, but cannot
+     * override a damaged authoritative grouped record. */
+    char marker[PATH_CAP], bucket[PATH_CAP], grouped[PATH_CAP];
+    assert(path_preferences_file(marker, root, "item-storage.ini"));
+    output = fopen(marker, "wb");
+    assert(output && fputs("version=1\nbuckets=1\n", output) >= 0 && !fclose(output));
+    assert(item_preferences_load(root, content, &loaded)); /* Legacy fallback. */
+    assert(item_preferences_save(root, content, &item));
+    char key[PATH_CAP];
+    assert(path_resolve_sd(key, "sd:/", "roms/One.demo"));
+    uint64_t hash = UINT64_C(14695981039346656037);
+    for (const unsigned char *p = (const unsigned char *)key; *p; p++) {
+        hash ^= *p;
+        hash *= UINT64_C(1099511628211);
+    }
+    char relative[64];
+    snprintf(relative, sizeof relative, "items/%02x", (unsigned)(hash >> 56));
+    assert(path_preferences_file(bucket, root, relative));
+    snprintf(relative, sizeof relative, "items/%02x/%016" PRIx64 ".ini", (unsigned)(hash >> 56),
+             hash);
+    assert(path_preferences_file(grouped, root, relative));
+    assert(!access(grouped, F_OK));
+    assert(item_preferences_load(root, content, &loaded));
+    output = fopen(grouped, "wb");
+    assert(output && fputs("version=99\n", output) >= 0 && !fclose(output));
+    assert(!item_preferences_load(root, content, &loaded));
+    assert(!item_preferences_save(root, content, &item));
+    assert(!unlink(grouped));
+    assert(item_preferences_load(root, content, &loaded));
+    output = fopen(marker, "wb");
+    assert(output && fputs("version=2\nbuckets=1\n", output) >= 0 && !fclose(output));
+    assert(!item_preferences_read_for_edit(root, content, &loaded));
+    assert(!item_preferences_save(root, content, &item));
+    assert(!unlink(marker));
+    assert(item_preferences_load(root, content, &loaded));
+    puts("PASS: 3000-record display cache, held-navigation I/O isolation, grouped storage, fresh "
          "launch checks and staged artwork probes");
 }

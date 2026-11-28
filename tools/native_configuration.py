@@ -7,7 +7,7 @@ import zlib
 
 MAGIC = b"DSCFG001"
 HEADER = struct.Struct("<HHII")
-MAX_FILES = 1024
+MAX_FILES = 4096
 MAX_BYTES = 4 * 1024 * 1024
 MAX_RECORD = 65536
 

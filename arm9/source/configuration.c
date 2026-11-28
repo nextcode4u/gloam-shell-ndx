@@ -10,7 +10,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#define RECORD_LIMIT 1024
+#define RECORD_LIMIT 4096
 #define RECORD_BYTES 65536u
 #define ARCHIVE_BYTES (4u * 1024u * 1024u)
 #define NAME_CAP 96
@@ -44,10 +44,10 @@ static void put_number(unsigned char *p, uint32_t value)
 }
 static bool allowed(const char *name)
 {
-    static const char *root_records[] = {
-        "state.ini",        "tabs.ini",         "dashboard.ini",
-        "recent.ini",       "language.ini",     "collections.ini",
-        "appearance-1.ini", "appearance-2.ini", "appearance-3.ini"};
+    static const char *root_records[] = {"state.ini",        "tabs.ini",         "dashboard.ini",
+                                         "recent.ini",       "language.ini",     "collections.ini",
+                                         "appearance-1.ini", "appearance-2.ini", "appearance-3.ini",
+                                         "item-storage.ini"};
     for (unsigned i = 0; i < sizeof root_records / sizeof *root_records; i++)
         if (!strcmp(name, root_records[i]))
             return true;
@@ -57,6 +57,12 @@ static bool allowed(const char *name)
     else if (!strncmp(name, "items/", 6))
         file = name + 6;
     if (file) {
+        if (!strncmp(name, "items/", 6) && strlen(file) >= 3 && file[2] == '/') {
+            if (!strchr("0123456789abcdef", file[0]) || !strchr("0123456789abcdef", file[1]) ||
+                strncmp(file, file + 3, 2))
+                return false;
+            file += 3;
+        }
         for (int i = 0; i < 16; i++)
             if (!file[i] || !strchr("0123456789abcdef", file[i]))
                 return false;
@@ -160,45 +166,53 @@ static bool add_record(RecordList *list, const char *base, const char *name)
     list->count++;
     return true;
 }
+static bool collect_directory(RecordList *list, const char *base, const char *relative,
+                              unsigned *scanned)
+{
+    char path[PATH_CAP];
+    if (!path_join(path, base, relative))
+        return false;
+    struct stat status;
+    if (!lstat(path, &status) && S_ISLNK(status.st_mode))
+        return false;
+    DIR *directory = opendir(path);
+    if (!directory)
+        return errno == ENOENT;
+    bool valid = true;
+    struct dirent *entry;
+    while ((entry = readdir(directory))) {
+        if (++*scanned > 16384) {
+            valid = false;
+            break;
+        }
+        char name[NAME_CAP];
+        if (snprintf(name, sizeof name, "%s%s%s", relative, *relative ? "/" : "", entry->d_name) >=
+            (int)sizeof name)
+            continue;
+        bool bucket = !strcmp(relative, "items") && strlen(entry->d_name) == 2 &&
+                      strspn(entry->d_name, "0123456789abcdef") == 2;
+        if (bucket) {
+            if (!collect_directory(list, base, name, scanned)) {
+                valid = false;
+                break;
+            }
+        } else if (!add_record(list, base, name)) {
+            valid = false;
+            break;
+        }
+    }
+    if (closedir(directory))
+        valid = false;
+    return valid;
+}
 static bool collect(RecordList *list, const char *base)
 {
     static const char *directories[] = {"", "games", "items", "plugins/user"};
     memset(list, 0, sizeof *list);
     unsigned scanned = 0;
-    for (unsigned i = 0; i < sizeof directories / sizeof *directories; i++) {
-        char path[PATH_CAP];
-        if (!path_join(path, base, directories[i]))
+    for (unsigned i = 0; i < sizeof directories / sizeof *directories; i++)
+        if (!collect_directory(list, base, directories[i], &scanned))
             return false;
-        struct stat status;
-        if (!lstat(path, &status) && S_ISLNK(status.st_mode))
-            return false;
-        DIR *directory = opendir(path);
-        if (!directory) {
-            if (errno == ENOENT)
-                continue;
-            return false;
-        }
-        bool valid = true;
-        struct dirent *entry;
-        while ((entry = readdir(directory))) {
-            if (++scanned > 8192) {
-                valid = false;
-                break;
-            }
-            char name[NAME_CAP];
-            int length = snprintf(name, sizeof name, "%s%s%s", directories[i],
-                                  *directories[i] ? "/" : "", entry->d_name);
-            if (length >= (int)sizeof name)
-                continue;
-            if (!add_record(list, base, name)) {
-                valid = false;
-                break;
-            }
-        }
-        closedir(directory);
-        if (!valid)
-            return false;
-    }
     return true;
 }
 static bool read_archive(const char *path, RecordList *list)

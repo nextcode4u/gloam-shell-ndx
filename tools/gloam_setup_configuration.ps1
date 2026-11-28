@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # The same DSCFG001 record layout and whitelist used by the launcher and Python tool.
 function Test-GloamConfigurationName([string]$Name) {
-    if ($Name -cin @('state.ini','tabs.ini','dashboard.ini','recent.ini', 'language.ini', 'collections.ini','appearance-1.ini','appearance-2.ini','appearance-3.ini')) { return $true }
+    if ($Name -cin @('state.ini','tabs.ini','dashboard.ini','recent.ini', 'language.ini', 'collections.ini','appearance-1.ini','appearance-2.ini','appearance-3.ini','item-storage.ini')) { return $true }
+    if ($Name -cmatch '^items/([0-9a-f]{2})/([0-9a-f]{16})\.ini$') { return $Matches[1] -ceq $Matches[2].Substring(0,2) }
     return $Name -cmatch '^(games|items)/[0-9a-f]{16}(\.cheats)?\.ini$' -or $Name -cmatch '^plugins/user/[a-z0-9_-]{1,15}\.ini$'
 }
 
@@ -33,12 +34,12 @@ public static class GloamConfigurationCrc32 {
 }
 
 function Read-GloamConfigurationArchive([string]$Path) {
-    if ((Get-Item -LiteralPath $Path).Length -gt (4MB + 1024 * 108)) { throw 'Configuration archive exceeds its size limit.' }
+    if ((Get-Item -LiteralPath $Path).Length -gt (4MB + 4096 * 108)) { throw 'Configuration archive exceeds its size limit.' }
     $stream = [IO.File]::OpenRead($Path); $reader = [IO.BinaryReader]::new($stream)
     try {
         if ([Text.Encoding]::ASCII.GetString($reader.ReadBytes(8)) -cne 'DSCFG001') { throw 'Choose a native .dsconfig archive.' }
         $count = $reader.ReadUInt32()
-        if ($count -gt 1024) { throw 'Too many configuration records.' }
+        if ($count -gt 4096) { throw 'Too many configuration records.' }
         $records = [ordered]@{}; $total = 0L
         for ($i = 0; $i -lt $count; $i++) {
             $length = $reader.ReadUInt16(); $flags = $reader.ReadUInt16()
@@ -61,10 +62,19 @@ function Export-GloamConfiguration([string]$Root, [string]$Path) {
     $root = Get-GloamRoot $Root
     if ([IO.Path]::GetExtension($Path) -ne '.dsconfig') { throw 'Save configuration as .dsconfig.' }
     $base = '_nds/dsi-frontend/'
-    $names = @('state.ini','tabs.ini','dashboard.ini','recent.ini', 'language.ini', 'collections.ini','appearance-1.ini','appearance-2.ini','appearance-3.ini')
+    $names = @('state.ini','tabs.ini','dashboard.ini','recent.ini', 'language.ini', 'collections.ini','appearance-1.ini','appearance-2.ini','appearance-3.ini','item-storage.ini')
     foreach ($folder in @('games','items','plugins/user')) {
         $directory = Get-GloamPath $root ($base + $folder)
         if (Test-Path -LiteralPath $directory -PathType Container) {
+            if ($folder -eq 'items') {
+                foreach ($bucket in Get-ChildItem -LiteralPath $directory -Directory -Force | Where-Object { $_.Name -cmatch '^[0-9a-f]{2}$' }) {
+                    $bucketPath = Get-GloamPath $root ($base + 'items/' + $bucket.Name)
+                    foreach ($file in Get-ChildItem -LiteralPath $bucketPath -Filter '*.ini' -File -Force) {
+                        $name = 'items/' + $bucket.Name + '/' + $file.Name
+                        if (Test-GloamConfigurationName $name) { $names += $name }
+                    }
+                }
+            }
             foreach ($file in Get-ChildItem -LiteralPath $directory -Filter '*.ini' -File) {
                 $name = $folder + '/' + $file.Name
                 if (Test-GloamConfigurationName $name) { $names += $name }
@@ -77,7 +87,7 @@ function Export-GloamConfiguration([string]$Root, [string]$Path) {
         if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { continue }
         if ((Get-Item -LiteralPath $source).Length -gt 65536) { throw 'A configuration record exceeds 64 KiB.' }
         $data = [IO.File]::ReadAllBytes($source); $total += $data.Length
-        if ($data -contains 0 -or $total -gt 4MB -or $records.Count -ge 1024) { throw 'Configuration exceeds its portable limits.' }
+        if ($data -contains 0 -or $total -gt 4MB -or $records.Count -ge 4096) { throw 'Configuration exceeds its portable limits.' }
         $records[$name] = $data
     }
     $bytes = ConvertTo-GloamConfigurationBytes $records
@@ -146,7 +156,7 @@ function Import-GloamConfiguration([string]$Root, [string]$Path, [string]$Expect
 }
 
 function ConvertTo-GloamConfigurationBytes($Records) {
-    if ($Records.Count -gt 1024) { throw 'Too many configuration records.' }
+    if ($Records.Count -gt 4096) { throw 'Too many configuration records.' }
     $memory = [IO.MemoryStream]::new(); $writer = [IO.BinaryWriter]::new($memory)
     try {
         $writer.Write([Text.Encoding]::ASCII.GetBytes('DSCFG001')); $writer.Write([uint32]$Records.Count)

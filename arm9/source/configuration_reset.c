@@ -29,7 +29,8 @@ static const char *const records[] = {"state.ini",
                                       "appearance-3.bak",
                                       "games",
                                       "items",
-                                      "plugins/user"};
+                                      "plugins/user",
+                                      "item-storage.ini"};
 enum { RESET_RECORD_COUNT = sizeof records / sizeof *records, RESET_LAYOUT_BYTES = 1024 };
 typedef struct {
     const char *names[RESET_RECORD_COUNT];

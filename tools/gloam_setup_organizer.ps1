@@ -72,6 +72,15 @@ function Get-GloamOrganizerEdits([string]$Root, $Map) {
     foreach ($directory in @('items','games','plugins','plugins/startup')) {
         $folder = Get-GloamPath $Root ($base + $directory)
         if (-not (Test-Path -LiteralPath $folder -PathType Container)) { continue }
+        if ($directory -eq 'items') {
+            foreach ($bucket in Get-ChildItem -LiteralPath $folder -Directory -Force | Where-Object { $_.Name -cmatch '^[0-9a-f]{2}$' }) {
+                $bucketPath = Get-GloamPath $Root ($base + 'items/' + $bucket.Name)
+                foreach ($file in Get-ChildItem -LiteralPath $bucketPath -File -Force | Where-Object { $_.Extension -in @('.ini','.bak') }) {
+                    if ($paths.Count -ge 20000) { throw 'Too many frontend records; organize a smaller library first.' }
+                    $paths.Add($base + 'items/' + $bucket.Name + '/' + $file.Name)
+                }
+            }
+        }
         foreach ($file in Get-ChildItem -LiteralPath $folder -File -Force | Where-Object { $_.Extension -in @('.ini','.bak') }) {
             if ($paths.Count -ge 20000) { throw 'Too many frontend records; organize a smaller library first.' }
             $paths.Add($base + $directory + '/' + $file.Name)
@@ -104,10 +113,13 @@ function Get-GloamOrganizerEdits([string]$Root, $Map) {
         }
         if (-not $changed) { continue }
         $destination = $relative
-        if ($newIdentity -and $relative -cmatch '^_nds/dsi-frontend/(items|games)/([0-9a-f]{16})(\.cheats)?\.(ini|bak)$') {
-            $directory = $Matches[1]; $oldHash = $Matches[2]; $extra = $Matches[3]; $suffix = $Matches[4]
+        if ($newIdentity -and $relative -cmatch '^_nds/dsi-frontend/(items|games)/([0-9a-f]{2}/)?([0-9a-f]{16})(\.cheats)?\.(ini|bak)$') {
+            $directory = $Matches[1]; $bucket = $Matches[2]; $oldHash = $Matches[3]; $extra = $Matches[4]; $suffix = $Matches[5]
+            if ($bucket -and ($directory -ne 'items' -or $bucket -cne ($oldHash.Substring(0,2) + '/'))) { throw 'Invalid item bucket. No files were moved.' }
             if ((Get-GloamContentHash $identity) -cne $oldHash) { throw 'A per-title record has a mismatched identity. Repair it before organizing.' }
-            $destination = $base + $directory + '/' + (Get-GloamContentHash $newIdentity) + $extra + '.' + $suffix
+            $newHash = Get-GloamContentHash $newIdentity
+            $prefix = if ($bucket) { $newHash.Substring(0,2) + '/' } else { '' }
+            $destination = $base + $directory + '/' + $prefix + $newHash + $extra + '.' + $suffix
             if ($destination -cne $relative -and (Test-Path -LiteralPath (Get-GloamPath $Root $destination))) { throw 'A new per-title identity already exists. No files were moved.' }
         }
         $after = [Text.UTF8Encoding]::new($false).GetBytes($lines -join "`n")
@@ -212,6 +224,7 @@ function Assert-GloamOrganizerJournal($Plan) {
         foreach ($path in @($edit.Source,$edit.Destination)) {
             if ($path -cnotin @('_nds/dsi-frontend/state.ini','_nds/dsi-frontend/state.bak','_nds/dsi-frontend/recent.ini','_nds/dsi-frontend/recent.bak') -and
                 $path -cnotmatch '^_nds/dsi-frontend/(items|games)/[0-9a-f]{16}(\.cheats)?\.(ini|bak)$' -and
+                $path -cnotmatch '^_nds/dsi-frontend/items/([0-9a-f]{2})/\1[0-9a-f]{14}\.(ini|bak)$' -and
                 $path -cnotmatch '^_nds/dsi-frontend/plugins/(startup/)?[a-zA-Z0-9_-]{1,127}\.(ini|bak)$') { throw 'Unsupported organizer configuration path.' }
         }
         foreach ($text in @($edit.Before,$edit.After)) { if ([Convert]::FromBase64String($text).Length -gt 128KB) { throw 'Oversized organizer configuration.' } }

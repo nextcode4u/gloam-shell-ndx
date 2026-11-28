@@ -16,10 +16,28 @@ $GloamArtworkSystems = [ordered]@{
     'Atari - 8-bit Family'='8-bit'; 'Watara - Supervision'='Watara Supervision'
 }
 
+function Get-GloamItemStorageLayout([string]$Root) {
+    $path = Get-GloamPath $Root '_nds/dsi-frontend/item-storage.ini'
+    if (-not (Test-Path -LiteralPath $path)) { return $false }
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Item -LiteralPath $path).Length -gt 64) { throw 'Invalid item storage layout; original records kept.' }
+    $text = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes($path)).Replace("`r",'')
+    if ($text.EndsWith("`n")) { $text = $text.Substring(0,$text.Length-1) }
+    if ($text -ceq "version=1`nbuckets=1") { return $true }
+    if ($text -ceq "version=1`nbuckets=0") { return $false }
+    throw 'Unsupported item storage layout; original records kept.'
+}
+
 function Read-GloamArtworkRecord([string]$Root, [string]$Content) {
     $identity = 'sd:/' + (ConvertTo-GloamRelative $Root $Content)
     $hash = Get-GloamContentHash $identity
     $relative = '_nds/dsi-frontend/items/' + $hash + '.ini'
+    $bucketed = Get-GloamItemStorageLayout $Root
+    if ($bucketed) {
+        $grouped = '_nds/dsi-frontend/items/' + $hash.Substring(0,2) + '/' + $hash + '.ini'
+        $hasGrouped = (Test-Path -LiteralPath (Get-GloamPath $Root $grouped)) -or (Test-Path -LiteralPath (Get-GloamPath $Root ($grouped -replace '\.ini$', '.bak')))
+        $hasFlat = (Test-Path -LiteralPath (Get-GloamPath $Root $relative)) -or (Test-Path -LiteralPath (Get-GloamPath $Root ($relative -replace '\.ini$', '.bak')))
+        if ($hasGrouped -or -not $hasFlat) { $relative = $grouped }
+    }
     $path = Get-GloamPath $Root $relative
     if (-not (Test-Path -LiteralPath $path) -and (Test-Path -LiteralPath (Get-GloamPath $Root ($relative -replace '\.ini$', '.bak')))) {
         $path = Get-GloamPath $Root ($relative -replace '\.ini$', '.bak')
@@ -39,7 +57,7 @@ function Read-GloamArtworkRecord([string]$Root, [string]$Content) {
             if ($values[$field]) { ConvertTo-GloamRelative $Root $values[$field] | Out-Null }
         }
     }
-    return [pscustomobject]@{ Values=$values; Relative=$relative; Hash=$hash }
+    return [pscustomobject]@{ Values=$values; Relative=$relative; Hash=$hash; Bucketed=$bucketed }
 }
 
 function ConvertTo-GloamArtworkPng([byte[]]$Bytes) {
@@ -264,7 +282,8 @@ function Set-GloamArtwork([string]$Root, [string]$Content, [string]$Candidate, [
     $record = Read-GloamArtworkRecord $Root $Content
     $digest = [Security.Cryptography.SHA256]::Create()
     try { $imageHash = ([BitConverter]::ToString($digest.ComputeHash($bytes))).Replace('-','').ToLowerInvariant() } finally { $digest.Dispose() }
-    $image = '_nds/dsi-frontend/covers/' + $record.Hash + '-' + $imageHash.Substring(0,12) + '.png'
+    $prefix = if ($record.Bucketed) { $record.Hash.Substring(0,2) + '/' } else { '' }
+    $image = '_nds/dsi-frontend/covers/' + $prefix + $record.Hash + '-' + $imageHash.Substring(0,12) + '.png'
     # Store immutable prepared images first; a failed record write leaves the old
     # assignment intact. Old images remain available for manual recovery.
     $imagePath = Get-GloamPath $Root $image

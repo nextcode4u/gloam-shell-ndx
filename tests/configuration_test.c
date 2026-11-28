@@ -44,11 +44,15 @@ int main(int argc, char **argv)
     write_text(base, "state.ini", "version=1\ntheme=0\n");
     write_text(base, "appearance-1.ini", "version=1\n");
     write_text(base, "never-export.sav", "Save content stays private");
+    assert(path_join(path, base, "items") && !mkdir(path, 0777));
+    assert(path_join(path, base, "items/01") && !mkdir(path, 0777));
+    write_text(base, "item-storage.ini", "version=1\nbuckets=1\n");
+    write_text(base, "items/01/0123456789abcdef.ini", "version=1\ncontent=sd:/roms/Moon.nds\n");
     assert(configuration_export(root, error));
     assert(
         configuration_export(root, error)); /* Existing exports retain their previous revision. */
     assert(path_preferences_file(exported, root, "configuration/export.dsconfig"));
-    assert(configuration_inspect(exported, &count, error) && count == 2);
+    assert(configuration_inspect(exported, &count, error) && count == 4);
     assert(path_join(source, root, "Import.dsconfig"));
     copy(exported, source);
     assert(path_preferences_file(path, root, "appearance-1.ini") && !remove(path));
@@ -57,6 +61,7 @@ int main(int argc, char **argv)
     assert(configuration_import(root, source, error));
     check_text(base, "state.ini", "version=1\ntheme=0\n");
     check_text(base, "appearance-1.ini", "version=1\n");
+    check_text(base, "items/01/0123456789abcdef.ini", "version=1\ncontent=sd:/roms/Moon.nds\n");
     check_text(base, "recent.ini", "version=1\n");
     check_text(base, "never-export.sav", "Save content stays private");
     /* Simulate power loss after part/all of a prepared import. The rollback

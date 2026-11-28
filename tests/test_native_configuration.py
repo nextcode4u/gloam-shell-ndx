@@ -14,7 +14,7 @@ class NativeConfigurationTests(unittest.TestCase):
         records = {"state.ini": b"version=1\n", "appearance-1.ini": b"version=1\n"}
         archive = encode_records(records)
         self.assertEqual(decode_records(archive), records)
-        for damaged in [archive[:-1], archive + b"x", archive[:8] + struct.pack("<I", 1025)]:
+        for damaged in [archive[:-1], archive + b"x", archive[:8] + struct.pack("<I", 4097)]:
             with self.assertRaises(ValueError):
                 decode_records(damaged)
         damaged = bytearray(archive)
@@ -24,6 +24,16 @@ class NativeConfigurationTests(unittest.TestCase):
         for records in [{"../escape.ini": b"a"}, {"state.ini": b"\0"}]:
             with self.assertRaises(ValueError):
                 encode_records(records)
+
+    def test_large_grouped_library_round_trip(self):
+        records = {"item-storage.ini": b"version=1\nbuckets=1\n"}
+        for number in range(3000):
+            name = f"{number:016x}"
+            records[f"items/{name[:2]}/{name}.ini"] = f"version=1\ncontent=sd:/roms/{number}.nds\n".encode()
+        self.assertEqual(decode_records(encode_records(records)), records)
+        for name in ["items/ff/0000000000000000.ini", "items/00/../../state.ini"]:
+            with self.assertRaises(ValueError):
+                encode_records({name: b"version=1\n"})
 
     def test_computer_tool_native_export_import(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -654,6 +654,27 @@ if ($result.Name -ne 'Unknown' -or $result.Identification -notlike 'Filename*') 
             self.assertEqual((self.sd / name).read_bytes(), data)
         self.assertFalse((self.sd / ('_nds/dsi-frontend/games/' + identity_hash(new) + '.ini')).exists())
 
+    def test_bucketed_artwork_export_and_organizer(self):
+        old = 'sd:/roms/Nintendo DS/Moon.nds'
+        self.organizer_file('roms/Nintendo DS/Moon.nds')
+        self.organizer_file('_nds/dsi-frontend/item-storage.ini', b'version=1\nbuckets=1\n')
+        code = ("$record = Read-GloamArtworkRecord $root 'roms/Nintendo DS/Moon.nds'; "
+                "Save-GloamArtworkRecord $root $record; "
+                "$record.Relative | ConvertTo-Json -Compress")
+        relative = json.loads(self.run_ps(code).splitlines()[0])
+        self.assertRegex(relative, r'/items/([0-9a-f]{2})/\1[0-9a-f]{14}\.ini$')
+        before = (self.sd / relative).read_bytes()
+        self.run_ps("Export-GloamConfiguration $root (Join-Path $root 'grouped.dsconfig')")
+        plan = self.organize()
+        edit = next(e for e in plan['Edits'] if e['Source'] == relative)
+        self.assertNotEqual(edit['Destination'], relative)
+        self.assertRegex(edit['Destination'], r'/items/([0-9a-f]{2})/\1[0-9a-f]{14}\.ini$')
+        self.assertIn('sd:/roms/Nintendo DS/M/Moon.nds', (self.sd / edit['Destination']).read_text())
+        journal = next((self.sd / '_nds/dsi-frontend/organizer').iterdir()).name
+        self.run_ps('Undo-GloamOrganization $root ' + literal(journal))
+        self.assertEqual((self.sd / relative).read_bytes(), before)
+        self.run_ps("$r = Read-GloamConfigurationArchive (Join-Path $root 'grouped.dsconfig'); if (-not $r.Contains('item-storage.ini')) { throw 'Missing layout' }")
+
     def test_organizer_skips_collisions_shared_saves_and_multifile_folders(self):
         for name in ['Moon.nds', 'Moon.sav', 'M/Moon.nds', 'Dual.nds', 'Dual.dsi', 'Dual.sav',
                      'Game Folder/data.nds', 'README.md', 'BIOS.nds', '.hidden.nds', '2 Games.nds']:
