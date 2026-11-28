@@ -15,6 +15,46 @@
 #include <malloc.h>
 #endif
 
+static struct {
+    uint32_t control, data_regions, instruction_regions, scfg_clock;
+    unsigned previous_vblank, previous_frame, started_vblank, started_frame;
+    unsigned image_vblanks, image_frames;
+    bool available, pending, measured;
+} runtime;
+
+void diagnostics_observe_hardware(uint32_t control, uint32_t data_regions,
+                                  uint32_t instruction_regions, uint32_t scfg_clock)
+{
+    runtime.control = control;
+    runtime.data_regions = data_regions;
+    runtime.instruction_regions = instruction_regions;
+    runtime.scfg_clock = scfg_clock;
+    runtime.available = true;
+}
+void diagnostics_observe_frame(unsigned vblanks, unsigned frames, bool image_pending)
+{
+    /* Configuration reloads can restart the app frame counter while the
+     * hardware clock continues. Discard that span; natural unsigned wrap stays valid. */
+    if (frames - runtime.previous_frame > 0x7FFFFFFFu &&
+        vblanks - runtime.previous_vblank < 0x80000000u) {
+        runtime.pending = runtime.measured = false;
+        runtime.image_vblanks = runtime.image_frames = 0;
+        runtime.previous_vblank = vblanks;
+        runtime.previous_frame = frames;
+    }
+    if (image_pending && !runtime.pending) {
+        runtime.started_vblank = runtime.previous_vblank;
+        runtime.started_frame = runtime.previous_frame;
+    } else if (!image_pending && runtime.pending) {
+        runtime.image_vblanks = vblanks - runtime.started_vblank;
+        runtime.image_frames = frames - runtime.started_frame;
+        runtime.measured = true;
+    }
+    runtime.pending = image_pending;
+    runtime.previous_vblank = vblanks;
+    runtime.previous_frame = frames;
+}
+
 static void report_line(FILE *file, const char *key, const char *value)
 {
     fprintf(file, "%s=", key);
@@ -114,6 +154,14 @@ bool diagnostics_export(const App *app)
     fprintf(file, "nand_launcher_scan_failed=%d\n", app->system_catalog.launcher_scan_failed);
     report_line(file, "frontend_version", GLOAM_VERSION);
     report_line(file, "interface_language", app->interface_language);
+    fprintf(file,
+            "hardware_observed=%d\narm9_cp15_control=%08lX\n"
+            "arm9_data_cache_regions=%08lX\narm9_instruction_cache_regions=%08lX\n"
+            "dsi_scfg_clock=%04lX\nimage_pending=%d\nimage_timing_measured=%d\n"
+            "last_image_pending_vblanks=%u\nlast_image_pending_frames=%u\n",
+            runtime.available, (unsigned long)runtime.control, (unsigned long)runtime.data_regions,
+            (unsigned long)runtime.instruction_regions, (unsigned long)runtime.scfg_clock,
+            runtime.pending, runtime.measured, runtime.image_vblanks, runtime.image_frames);
     fprintf(file, "cold_size_profile=%d\n", FRONTEND_COLD_SIZE);
     fprintf(file, "boot_complete=%d\nboot_total_ms=%lu\n", boot->complete,
             (unsigned long)boot->total_ms);

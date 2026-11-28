@@ -42,6 +42,7 @@
 #endif
 #include "hardware_protocol.h"
 #include <nds.h>
+#include <nds/arm9/cp15.h>
 #include <nds/arm9/dldi.h>
 #include <nds/arm9/sdmmc.h>
 #include <stdio.h>
@@ -489,6 +490,8 @@ int main(int argc, char **argv)
      * slices spread expensive album JPEGs over too many complete UI redraws. */
     image_job_set_clock(artwork_clock, 263, 128); /* Target about 8 ms per slice. */
     artwork_cache_enable_async(true);
+    diagnostics_observe_hardware(CP15_GetControl(), CP15_GetDataCachable(),
+                                 CP15_GetInstructionCachable(), app.dsi_mode ? REG_SCFG_CLK : 0);
     int applied_scroll_speed = -1;
     bool library_jump_used = false, details_pending = false;
     bool boot_finished = false;
@@ -995,6 +998,7 @@ int main(int argc, char **argv)
         swiWaitForVBlank();
         dmaCopy(top, bgGetGfxPtr(mainbg), sizeof top);
         dmaCopy(bottom, bgGetGfxPtr(subbg), sizeof bottom);
+        diagnostics_observe_frame(splash_clock, app.frame_count, artwork_cache_pending());
         if (!boot_finished && !app.scan_directory) {
             if (boot_timer_active) {
                 /* The 32-bit bus-clock counter wraps after about 128 seconds. */

@@ -44,9 +44,9 @@ animation. Title names and installed-title identity checks also avoid EOF seeks,
 keeping FAT cluster-chain traversal out of size validation.
 Navigation reconnects known icon assignments from the bounded banner cache
 without reads; refresh and SD removal clear it. New banners start on the first
-released frame and take priority over other optional reads. Covers, metadata and
-autosaves wait 12 frames and yield their I/O slot while visible icons are being
-resolved.
+released frame and take priority over other optional reads. Selected covers wait
+only two released frames (one for a remembered source); metadata, neighboring
+covers and autosaves retain their 12-frame delay. Held navigation starts no reads.
 Fast held scrolling repeats every frame after a six-frame hold; Normal and Slow
 retain their existing timings. `navigation.h` keeps value editors, tabs and
 letter jumps at Normal repeat. Held navigation starts no optional reads.
@@ -54,6 +54,10 @@ Display-only item assignments share a four-entry cache; launch/edit checks stay 
 Pending artwork polls perform no source metadata reads; completion validates the
 source before publishing the decoded cover. Icon scaling reuses a bounded
 horizontal coordinate map instead of dividing in every pixel.
+Per-entry artwork hints retain source precedence within the current folder
+snapshot. Refreshes and assignment edits discard them; source pixels still get
+metadata validation, and missing hinted images restart the full lookup chain.
+Transient metadata read errors do not create hints.
 
 Native title discovery publishes boot-content IDs only after complete metadata
 reads and a successful close. Patched-menu and installed-title header checks use
@@ -299,6 +303,8 @@ joins that work before releasing its trust data and discards any pending result.
 This keeps updater I/O from overlapping SD/NAND operations on SDKs with shared
 disk-cache scratch storage. Image jobs use the main context's cooperative decoder
 and yield between complete filesystem operations.
+Diagnostics record read-only ARM9 cache/clock observations and the VBlank/browser
+frame span of the last pending-image period, including cancelled work.
 
 `boot_profile.c` collects bounded startup regions against a clock supplied by
 `main.c`. ARM9 timers 0/1 are released after the first completed browser scan and
