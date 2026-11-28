@@ -4,6 +4,7 @@
 #include "browser.h"
 #include "grid.h"
 #include "icons.h"
+#include "item_preferences.h"
 #include "layout.h"
 #include "paths.h"
 #include "preferences.h"
@@ -143,6 +144,49 @@ static void check_tab_row_fit(void)
     probe->browser_style = BROWSER_LIST;
     assert(layout_row_height(probe) >= 18);
     font_use(previous);
+}
+
+static void check_banner_priority(const char *root)
+{
+    app_init(&restored, root, true, true);
+    app_category(&restored, CATEGORY_GAMES);
+    restored.browser_style = BROWSER_LIST;
+    int selected = -1;
+    for (int i = 0; i < restored.entry_count; i++)
+        if (!strcmp(restored.entries[i].name, "Native.dsi"))
+            selected = i;
+    assert(selected >= 0);
+    restored.locations[CATEGORY_GAMES].selected = selected;
+    restored.locations[CATEGORY_GAMES].scroll = selected;
+    icons_reset(&restored);
+    restored.navigation_held = true;
+    unsigned reads = restored.icon_reads;
+    for (int i = 0; i < 100; i++)
+        app_tick(&restored);
+    assert(restored.icon_reads == reads && !icons_for_entry(&restored, selected));
+    restored.navigation_held = false;
+    app_tick(&restored);
+    assert(restored.icon_reads == reads);
+    app_tick(&restored);
+    assert(restored.icon_reads == reads + 1 && icons_for_entry(&restored, selected));
+    assert(!restored.artwork_reads); /* Banner appears before the cover delay. */
+    app_category(&restored, CATEGORY_MEDIA);
+    app_category(&restored, CATEGORY_GAMES);
+    assert(icons_for_entry(&restored, selected)); /* Ready without an idle tick. */
+    assert(restored.icon_reads == reads + 1);
+
+    ItemPreferences item = {0};
+    assert(path_join(item.cover, root, "icons/file.png"));
+    assert(item_preferences_save(root, restored.entries[selected].path, &item));
+    app_reset_preview(&restored);
+    icons_reset(&restored);
+    restored.selection_idle_frames = UI_BROWSE_IDLE_FRAMES;
+    restored.icons_idle_frames = UI_ICON_IDLE_FRAMES - 1;
+    reads = restored.icon_reads;
+    app_tick(&restored);
+    assert(restored.icon_reads == reads + 1 && !restored.artwork_reads);
+    app_tick(&restored);
+    assert(restored.artwork_reads == 1 && restored.artwork.ready);
 }
 
 int main(int argc, char **argv)
@@ -440,6 +484,7 @@ int main(int argc, char **argv)
     reads = app.icon_reads;
     settle();
     assert(app.icon_reads == reads); /* A missing/corrupt banner is not retried every frame. */
+    check_banner_priority(root);
     puts("PASS: native icons, associations, argv metadata, cache reuse/eviction, layouts and "
          "persistence");
     return 0;

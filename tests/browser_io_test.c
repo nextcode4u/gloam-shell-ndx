@@ -130,6 +130,8 @@ int main(int argc, char **argv)
     app.locations[app.category].selected = 1;
     app.top_content = TOP_CONTENT_NEIGHBORS;
     app.show_covers = true;
+    for (unsigned frame = 0; frame < 8; frame++)
+        icons_tick(&app);
     app_reset_preview(&app);
     app.selection_idle_frames = 11;
     cover_stats = 0;

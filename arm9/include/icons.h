@@ -18,7 +18,8 @@ void icons_reset(App *app);
 void icons_rebind(App *app);
 bool icon_load_animation(const char *path, BrowserIcon *icon);
 void icon_animate(BrowserIcon *icon, bool reduced_motion);
-/* Resolve one uncached visible entry per call; invalid custom PNG may fall back to its banner. */
-void icons_tick(App *app);
+/* Resolve one uncached visible entry per call; true reserves this frame's
+ * optional I/O budget. Cached rows still animate while navigation is held. */
+bool icons_tick(App *app);
 const BrowserIcon *icons_for_entry(const App *app, int entry_index);
 #endif

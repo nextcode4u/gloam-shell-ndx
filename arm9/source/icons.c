@@ -127,6 +127,20 @@ void icons_rebind(App *app)
     for (int index = 0; index < ENTRY_CAP; index++)
         app->entry_icons[index] = -1;
     app->icons_idle_frames = 0;
+    /* An explicit refresh clears occupied flags. Ordinary tab/folder changes
+     * can reconnect known assignments without reopening their INI or banner. */
+    for (int entry = 0; entry < app->entry_count; entry++) {
+        if (!*app->entries[entry].path)
+            continue;
+        for (int slot = 0; slot < ICON_CACHE_CAP; slot++) {
+            BrowserIcon *icon = &app->icons[slot];
+            if (icon->occupied && icon->ready &&
+                !strcmp(icon->content_path, app->entries[entry].path)) {
+                app->entry_icons[entry] = slot;
+                break;
+            }
+        }
+    }
 }
 
 const BrowserIcon *icons_for_entry(const App *app, int entry_index)
@@ -146,6 +160,7 @@ static bool load_path(App *app, int index, const char *path, bool png, int syste
     for (int i = 0; i < ICON_CACHE_CAP; i++) {
         if (app->icons[i].occupied && !strcmp(app->icons[i].path, path)) {
             app->entry_icons[index] = i;
+            path_copy(app->icons[i].content_path, app->entries[index].path, PATH_CAP);
             app->icons[i].last_used = app->frame_count;
             return app->icons[i].ready;
         }
@@ -158,6 +173,7 @@ static bool load_path(App *app, int index, const char *path, bool png, int syste
             app->entry_icons[i] = -1;
     BrowserIcon *icon = &app->icons[slot];
     path_copy(icon->path, path, sizeof icon->path);
+    path_copy(icon->content_path, app->entries[index].path, PATH_CAP);
     icon->occupied = true;
     icon->last_used = app->frame_count;
     icon->animation_count = 0;
@@ -202,7 +218,7 @@ static void load_entry_icon(App *app, int index)
         load_path(app, index, path, false, -1);
 }
 
-void icons_tick(App *app)
+bool icons_tick(App *app)
 {
     int selection = app->locations[app->category].selected;
     const Entry *selected =
@@ -215,7 +231,7 @@ void icons_tick(App *app)
     if ((!app->storage_ready && !system_selected) ||
         (!layout_has_icons(app) && !system_selected && !title_preview && !app->detail_tab &&
          app->show_covers))
-        return;
+        return false;
     const Location *location = &app->locations[app->category];
     int first = location->scroll, last = first + layout_visible_rows(app);
     if (!layout_has_icons(app)) {
@@ -234,16 +250,17 @@ void icons_tick(App *app)
     for (int i = first; i < last; i++) {
         int slot = app->entry_icons[i];
         if (slot >= 0 && !animated[slot]) {
+            app->icons[slot].last_used = app->frame_count;
             icon_animate(&app->icons[slot], app->reduced_motion);
             animated[slot] = true;
         }
     }
     if (app->navigation_held) {
         app->icons_idle_frames = 0;
-        return;
+        return false;
     }
-    if (++app->icons_idle_frames < UI_BROWSE_IDLE_FRAMES)
-        return;
+    if (++app->icons_idle_frames < UI_ICON_IDLE_FRAMES)
+        return false;
     /* Prioritize the selection, then fill the remaining visible rows. */
     for (int pass = -1; pass < last - first; pass++) {
         int index = pass < 0 ? location->selected : first + pass;
@@ -259,6 +276,7 @@ void icons_tick(App *app)
              app->entries[index].kind != ITEM_INSTALLED_TITLE))
             continue;
         load_entry_icon(app, index);
-        return;
+        return true;
     }
+    return false;
 }

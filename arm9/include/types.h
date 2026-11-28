@@ -84,6 +84,7 @@ typedef struct {
 } Artwork;
 typedef struct {
     char path[PATH_CAP];
+    char content_path[PATH_CAP]; /* Last resolved owner, for read-free row rebinding. */
     uint16_t pixels[32 * 32];
     bool occupied, ready, system_fallback;
     unsigned last_used;

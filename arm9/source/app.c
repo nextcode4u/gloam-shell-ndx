@@ -896,11 +896,16 @@ void app_tick(App *app)
 {
     if (app->navigation_held)
         app->selection_idle_frames = 0;
-    else if (app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES)
-        prepare_script_fonts(app);
     app->frame_count++;
-    if (!app->navigation_held && app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES)
+    bool browsing = !app->search && !app->storage_lost && !app->scan_directory && !app->cheats &&
+                    !app->game_editor.open && !app->themes.open && !app->dashboard.open &&
+                    !app->association_editor.open && !app->picker.open && !app->settings.open;
+    bool icon_work = browsing && icons_tick(app);
+    if (!icon_work && !app->navigation_held &&
+        app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES) {
+        prepare_script_fonts(app);
         artwork_cache_update();
+    }
     themes_tick(app);
     startup_tick(app);
     themes_motion_tick(app);
@@ -928,8 +933,8 @@ void app_tick(App *app)
         return;
     }
     if (!app->settings.open) {
-        icons_tick(app);
-        if (!app->navigation_held && app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES) {
+        if (!icon_work && !app->navigation_held &&
+            app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES) {
             title_metadata_tick(app);
             if (app->panel == PANEL_NONE)
                 top_content_tick(app);
@@ -964,15 +969,16 @@ void app_tick(App *app)
     bool preparing_artwork =
         (app->browser_style != BROWSER_INDEX || top_content_mode(app) != TOP_CONTENT_THEME) &&
         !app->settings.open && app->show_covers && !app->artwork.ready && !app->artwork_resolved &&
-        !app->navigation_held && app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES;
+        !icon_work && !app->navigation_held && app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES;
     if (preparing_artwork)
         artwork_step(app);
-    else if (!app->settings.open && app->panel == PANEL_NONE)
+    else if (!icon_work && !app->settings.open && app->panel == PANEL_NONE)
         artwork_shelf_tick(app);
     const Entry *selected_entry = app_selected(app);
     if (app->internal_titles && selected_entry && *selected_entry->internal_title)
         path_copy(app->title, selected_entry->internal_title, sizeof app->title);
-    if (!app->navigation_held && app->preferences_dirty && ++app->preferences_idle_frames > 90 &&
+    if (!icon_work && !app->navigation_held && app->preferences_dirty &&
+        ++app->preferences_idle_frames > 90 &&
         app->selection_idle_frames >= UI_BROWSE_IDLE_FRAMES) {
         app_save(app);
         app->preferences_idle_frames = 0;

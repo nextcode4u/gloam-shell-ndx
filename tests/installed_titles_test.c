@@ -301,9 +301,14 @@ int main(int argc, char **argv)
     assert(app.installed_open && app.entry_count == 2 &&
            app.entries[0].kind == ITEM_INSTALLED_TITLE);
     app.browser_style = BROWSER_LIST;
-    for (int i = 0; i < UI_BROWSE_IDLE_FRAMES + 2; i++)
+    for (int i = 0; i < UI_ICON_IDLE_FRAMES; i++)
         app_tick(&app);
     assert(icons_for_entry(&app, 0) && icons_for_entry(&app, 0)->pixels[0] == 0x801F);
+    unsigned reads = app.icon_reads;
+    app.navigation_held = true;
+    app_scan(&app);
+    assert(icons_for_entry(&app, 0) && app.icon_reads == reads);
+    app.navigation_held = false;
     app_panel(&app, PANEL_ACTIONS);
     assert(app.action_enabled[0] && app.action_enabled[2]);
     assert(!app.action_enabled[1] && !app.action_enabled[3] && !app.action_enabled[8]);
