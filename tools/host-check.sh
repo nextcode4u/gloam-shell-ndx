@@ -14,6 +14,9 @@ model_sources=(
     arm9/source/preferences.c arm9/source/artwork.c arm9/source/artwork_cache.c arm9/source/artwork_disk_cache.c arm9/source/image_decode.c arm9/source/image_job.c arm9/source/image_input.c arm9/source/album_art.c arm9/source/icons.c arm9/source/slot1.c arm9/source/system_icons.c arm9/source/animated_icon.c arm9/source/associations.c third_party/lodepng/lodepng.c
 )
 ui_sources=(arm9/source/ui/top_content_view.c arm9/source/ui/library_search_view.c arm9/source/ui/inspection_view.c arm9/source/ui/theme_components.c arm9/source/ui/item_icons.c arm9/source/ui/cheat_view.c arm9/source/ui/storage_view.c arm9/source/ui/game_view.c arm9/source/ui/renderer.c arm9/source/ui/drawing.c arm9/source/ui/settings_view.c arm9/source/ui/picker_view.c arm9/source/ui/theme_view.c arm9/source/ui/association_view.c arm9/source/ui/dashboard_view.c)
+cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined tests/frame_pacing_test.c \
+    -o build/host/frame-pacing-test
+ASAN_OPTIONS=detect_leaks=1 build/host/frame-pacing-test
 cc "${common_flags[@]}" -O2 "${model_sources[@]}" \
     "${ui_sources[@]}" tools/preview.c -o build/host/preview
 # Reuse sanitized application objects across suites. Each run recompiles them,

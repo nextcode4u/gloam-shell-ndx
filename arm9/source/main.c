@@ -9,6 +9,7 @@
 #include "cheats.h"
 #include "dashboard.h"
 #include "diagnostics.h"
+#include "frame_pacing.h"
 #include "game_options.h"
 #include "grid.h"
 #include "icons.h"
@@ -495,6 +496,7 @@ int main(int argc, char **argv)
     int applied_scroll_speed = -1;
     bool library_jump_used = false, details_pending = false;
     bool boot_finished = false;
+    unsigned last_presented = splash_clock;
     while (1) {
         /* L/R and Y-modified letter jumps use Normal repeat, as do value editors. */
         int speed = navigation_scroll_speed(&app, (keysHeld() & (KEY_L | KEY_R | KEY_Y)) != 0);
@@ -984,9 +986,22 @@ int main(int argc, char **argv)
         bool first_scan = !boot_finished && app.scan_directory;
         if (first_scan)
             boot_profile_enter(BOOT_FOLDER);
+        unsigned previous_yields = image_job_yields();
         app_tick(&app);
         if (first_scan)
             boot_profile_leave(BOOT_FOLDER);
+        bool browsing = app.panel == PANEL_NONE && !app.search && !app.storage_lost &&
+                        !app.scan_directory && !app.cheats && !app.game_editor.open &&
+                        !app.themes.open && !app.dashboard.open && !app.association_editor.open &&
+                        !app.picker.open && !app.settings.open;
+        bool decoder_progress = boot_finished && browsing && artwork_cache_pending() &&
+                                !image_job_task_pending() && image_job_yields() != previous_yields;
+        if (!frame_pacing_draw_due(splash_clock, last_presented, decoder_progress,
+                                   down || repeat || keysHeld())) {
+            diagnostics_observe_frame(splash_clock, app.frame_count, artwork_cache_pending());
+            cothread_yield();
+            continue;
+        }
         time_t now = time(NULL);
         struct tm *tm = localtime(&now);
         char clock[12] = "--:--";
@@ -998,6 +1013,7 @@ int main(int argc, char **argv)
         swiWaitForVBlank();
         dmaCopy(top, bgGetGfxPtr(mainbg), sizeof top);
         dmaCopy(bottom, bgGetGfxPtr(subbg), sizeof bottom);
+        last_presented = splash_clock;
         diagnostics_observe_frame(splash_clock, app.frame_count, artwork_cache_pending());
         if (!boot_finished && !app.scan_directory) {
             if (boot_timer_active) {

@@ -17,7 +17,7 @@ protocol definitions live in `common/include`.
 | Optional DSi Menu return tile | `forwarder/arm9/`, shared `system_routes.c`, `tools/build_forwarder.py`. |
 | Native system titles | `system_catalog.c` reads built-in NAND and Launcher metadata; `installed_titles.c` cooperatively discovers and revalidates installed DSiWare; `system_routes.c` builds warmboot/autoload records. Slot-1 helper discovery lives in `launch.c`. |
 | Game options, saves and cheats | `game_options.c`, `game_editor.c`, `game_save_table.c`, `cheats.c`, `cheat_editor.c`, `cheat_backend.c`. |
-| Artwork | `artwork.c`, `artwork_cache.c`, `artwork_disk_cache.c`, `album_art.c`, `image_decode.c`, `image_input.c`, `image_job.c`. |
+| Artwork | `artwork.c`, `artwork_cache.c`, `artwork_disk_cache.c`, `album_art.c`, `image_decode.c`, `image_input.c`, `image_job.c`; `frame_pacing.h` bounds idle redraws while a cover decodes. |
 | Icons and title metadata | `icons.c`, `animated_icon.c`, `system_icons.c`, `slot1.c`, `title_metadata.c`; `file_types.c` classifies fallbacks and `ui/item_icons.c` draws their shared symbol family. System icons use discovered native banners with original built-in fallbacks. `slot1.c` reads cartridge metadata cooperatively through bounded hardware callbacks in `main.c`. |
 | Themes, fonts and text | `themes.c`, `theme_backgrounds.c`, `theme_icons.c`, `theme_components.c`, `font_pack.c`, `text.c`, `ui_strings.c`, `ui/font*.h`. |
 | Startup splashes | `splash.c` validates/draws prepared layers; `splash_preferences.c` resolves theme/custom/default packages and thumbnails. `main.c` owns boot checkpoints, skip/recovery and sound lifetime. The [theme directory](https://github.com/nextcode4u/gloam-shell-theme-directory) owns the converter and graphical builder; `tests/splash_fixture.py` supplies independent native test data. |
@@ -58,6 +58,11 @@ Per-entry artwork hints retain source precedence within the current folder
 snapshot. Refreshes and assignment edits discard them; source pixels still get
 metadata validation, and missing hinted images restart the full lookup chain.
 Transient metadata read errors do not create hints.
+
+During idle browser cover decoding, the frame loop waits two VBlanks after the
+last display transfer before repainting. Decoder slices and input polling continue;
+input, decoder completion, dialogs and theme-loading jobs bypass this limit.
+This avoids repainting both themed screens after every small decoder slice.
 
 Native title discovery publishes boot-content IDs only after complete metadata
 reads and a successful close. Patched-menu and installed-title header checks use
