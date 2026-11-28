@@ -485,7 +485,9 @@ int main(int argc, char **argv)
     }
     if (boot.skipped)
         startup_cancel(&app);
-    image_job_set_clock(artwork_clock, 263, 32); /* About 2 ms of decode work. */
+    /* A selected cover gets roughly half a frame of cooperative work. Small
+     * slices spread expensive album JPEGs over too many complete UI redraws. */
+    image_job_set_clock(artwork_clock, 263, 128); /* Target about 8 ms per slice. */
     artwork_cache_enable_async(true);
     int applied_scroll_speed = -1;
     bool library_jump_used = false, details_pending = false;

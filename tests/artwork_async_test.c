@@ -66,6 +66,40 @@ static void check_changed_source(const char *source)
     finish();
     assert(!unlink(path));
 }
+static unsigned clock_ticks;
+static unsigned test_clock(void)
+{
+    unsigned value = clock_ticks;
+    clock_ticks = (clock_ticks + 1) % 263;
+    return value;
+}
+static unsigned stopped_clock(void)
+{
+    return 17;
+}
+static void check_clock_budget(const char *path)
+{
+    unsigned slices[2];
+    for (unsigned pass = 0; pass < 2; pass++) {
+        artwork_cache_clear();
+        clock_ticks = 250; /* Exercise periodic-clock wrap on the first slice. */
+        image_job_set_clock(test_clock, 263, pass ? 128 : 32);
+        assert(!artwork_cached_read(&actual, path, false));
+        slices[pass] = finish_read(path);
+        assert(artwork_cached_read(&actual, path, false));
+        assert(actual.width == expected.width && actual.height == expected.height);
+        assert(!memcmp(actual.pixels, expected.pixels, actual.width * actual.height * 2));
+    }
+    assert(slices[1] < slices[0]);
+    /* A broken/stalled clock must still yield at the bounded work guard. */
+    artwork_cache_clear();
+    image_job_set_clock(stopped_clock, 263, 128);
+    assert(!artwork_cached_read(&actual, path, false));
+    assert(finish_read(path) > 1);
+    assert(artwork_cached_read(&actual, path, false));
+    image_job_set_clock(NULL, 0, 0);
+    artwork_cache_clear();
+}
 int main(int argc, char **argv)
 {
     assert(argc == 3);
@@ -101,6 +135,7 @@ int main(int argc, char **argv)
         finish();
         assert(artwork_cached_read(&actual, argv[i], false));
     }
+    check_clock_budget(argv[2]);
     check_changed_source(argv[1]);
     assert(!image_job_begin("", false));
     assert(!image_job_take());

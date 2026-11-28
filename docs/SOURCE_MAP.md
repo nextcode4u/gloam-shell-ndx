@@ -52,7 +52,8 @@ retain their existing timings. `navigation.h` keeps value editors, tabs and
 letter jumps at Normal repeat. Held navigation starts no optional reads.
 Display-only item assignments share a four-entry cache; launch/edit checks stay uncached.
 Pending artwork polls perform no source metadata reads; completion validates the
-source before publishing the decoded cover.
+source before publishing the decoded cover. Icon scaling reuses a bounded
+horizontal coordinate map instead of dividing in every pixel.
 
 Native title discovery publishes boot-content IDs only after complete metadata
 reads and a successful close. Patched-menu and installed-title header checks use
@@ -73,9 +74,9 @@ the incoming tab before scanning. `preferences.c` stores bounded `tab_display`
 records by stable ID; legacy files seed all tabs from their global display values.
 
 Theme navigation selects entries without decoding assets. X explicitly requests
-preview through the shared cooperative decoder worker, using half a frame's
-budget rather than the smaller background-artwork slice. Navigation and Cancel
-unwind superseded work; repeated X leaves the current load running. Preview banks
+preview through the shared cooperative decoder worker. Both preview tasks and
+selected-cover decoding target roughly half a frame of work per slice.
+Navigation and Cancel unwind superseded work; repeated X leaves the current load running. Preview banks
 stay hidden until complete, and A only applies a ready preview. Returning to the
 applied theme reuses its banks; X can reload it to support on-disk theme editing.
 
