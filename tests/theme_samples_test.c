@@ -432,10 +432,14 @@ int main(int argc, char **argv)
                     }
                     app.show_icon_labels = true;
                     if (!layout_is_grid(&app)) {
-                        int text_height = view == BROWSER_EXTENDED ? 26 : 12;
-                        assert(layout_row_height(&app) >= text_height + 8);
+                        int text_height = layout_text_height(&app);
+                        assert(layout_row_height(&app) >= text_height + 2);
                         if (layout_has_icons(&app))
-                            assert(layout_row_height(&app) >= layout_icon_size(&app) + 8);
+                            assert(layout_row_height(&app) >=
+                                   layout_icon_size(&app) +
+                                       (themes_component(&app.themes.active, THEME_ICON_FRAME)
+                                            ? 4
+                                            : 2));
                         draw();
                         memcpy(stationary_rows, bottom.pixels, sizeof stationary_rows);
                         int previous_position = app.selection_y_fixed;

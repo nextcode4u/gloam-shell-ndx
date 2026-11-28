@@ -865,8 +865,11 @@ static void draw_icon_image(const App *app, uint16_t *pixels, int index, int x, 
 static void draw_browser_icon(const App *app, uint16_t *pixels, int index, int x, int y, int size,
                               uint16_t color)
 {
-    draw_theme_component(&app->themes.active, pixels, THEME_ICON_FRAME, x - 2, y - 2, size + 4,
-                         size + 4);
+    /* Compact rows keep a one-pixel bezel inside the row border. Larger rows
+     * and tiles retain the full two-pixel frame around the unscaled icon. */
+    int bezel = !layout_is_grid(app) && layout_row_height(app) < size + 6 ? 1 : 2;
+    draw_theme_component(&app->themes.active, pixels, THEME_ICON_FRAME, x - bezel, y - bezel,
+                         size + 2 * bezel, size + 2 * bezel);
     draw_icon_image(app, pixels, index, x, y, size, color);
 }
 
@@ -1121,7 +1124,7 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
                                       icon_size,
                                       i == location->selected ? colors.accent : colors.muted);
                 int text_x = layout_has_icons(app) ? 14 + icon_size + 6 : 14;
-                int text_y = extended ? y + (row_height - 26) / 2 : y + (row_height - 12) / 2;
+                int text_y = y + (row_height - layout_text_height(app)) / 2;
                 char display_name[256];
                 browser_display_name(app, entry, display_name);
                 if (app->show_icon_labels || !layout_has_icons(app))
@@ -1146,7 +1149,7 @@ static void render_content(const App *app, uint16_t *top, uint16_t *bottom, cons
                             metadata, sizeof metadata, "%s / %lu.%lu MB", entry_type(entry),
                             (unsigned long)(entry->size / (1024 * 1024)),
                             (unsigned long)((entry->size % (1024 * 1024)) * 10 / (1024 * 1024)));
-                    draw_text_clipped(bottom, text_x, text_y + 13, metadata,
+                    draw_text_clipped(bottom, text_x, text_y + layout_text_line_height(), metadata,
                                       i == location->selected
                                           ? themes_selection_text(&app->themes.active)
                                           : colors.muted,

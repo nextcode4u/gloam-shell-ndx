@@ -318,13 +318,13 @@ wallpaper; higher values strengthen the reading surface. Both are preblended
 during loading and add no per-frame work or extra pixel buffers. Scene's exposed
 illustration strip remains unshaded. Personal wallpaper strength is independent.
 
-Framed browser rows reserve at least four pixels above and below their text or
-icon content. Their selection frame stays anchored to the selected row, avoiding
-a moving border crossing neighbouring labels. Built-in flat highlights retain
-their slide animation.
+Browser rows reserve the actual font height and icon bezel, then fit complete
+rows into each tab’s available height. Spare pixels are shared between rows.
+Selection frames stay anchored so borders do not cross neighbouring labels;
+built-in flat highlights retain their slide animation.
 
-`row_padding` adds 0–12 pixels to the shared row/cell height; both drawing and
-touch/navigation use the resolved size. Large Grid accepts 2–4 columns and
+`row_padding` requests 0–12 pixels of spacing around row/cell content. Font and
+bezel bounds take priority; drawing and touch/navigation share the resolved size. Large Grid accepts 2–4 columns and
 allocates its label width from the actual cell width. Medium Grid uses three columns. Small Grid keeps two
 columns to protect label readability. Invalid layout values reject the package
 without changing the active theme. Settings, required navigation and font-cell bounds retain their native geometry. Arbitrary widget positions and

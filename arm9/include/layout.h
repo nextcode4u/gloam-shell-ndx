@@ -1,5 +1,6 @@
 #ifndef FRONTEND_LAYOUT_H
 #define FRONTEND_LAYOUT_H
+#include "font_pack.h"
 #include "themes.h"
 #include "types.h"
 
@@ -58,31 +59,57 @@ static inline int layout_icon_size(const App *app)
 {
     return app->icon_size == ICON_LARGE ? 32 : app->icon_size == ICON_MEDIUM ? 24 : 16;
 }
+static inline int layout_text_line_height(void)
+{
+    unsigned height = font_height(font_current());
+    return height < 12 ? 13 : (int)height + 1;
+}
+
+static inline int layout_text_height(const App *app)
+{
+    int height = (int)font_height(font_current());
+    if (app->browser_style == BROWSER_EXTENDED) {
+        height += layout_text_line_height();
+        return height < 26 ? 26 : height;
+    }
+    return height < 12 ? 12 : height;
+}
+
 static inline int layout_row_height(const App *app)
 {
     if (app->browser_style == BROWSER_SHELF)
         return UI_LIST_BOTTOM - layout_list_top(app->category);
-    int base;
-    if (app->browser_style == BROWSER_LIST)
-        base = 16;
-    else if (layout_is_grid(app))
-        base = app->icon_size == ICON_LARGE ? 52 : app->icon_size == ICON_MEDIUM ? 44 : 20;
-    else if (app->browser_style == BROWSER_EXTENDED)
-        base = app->icon_size == ICON_LARGE ? 40 : app->icon_size == ICON_MEDIUM ? 34 : 28;
-    else
-        base = app->icon_size == ICON_LARGE ? 36 : app->icon_size == ICON_MEDIUM ? 28 : 18;
-    /* Framed rows need space around both text lines and the icon bezel. Keep
-     * this in shared geometry so touch, scrolling and drawing agree. */
-    if (!layout_is_grid(app) && (themes_component(&app->themes.active, THEME_ROW) ||
-                                 themes_component(&app->themes.active, THEME_ROW_SELECTED))) {
-        int content = app->browser_style == BROWSER_EXTENDED ? 26 : 12;
-        if (layout_has_icons(app) && layout_icon_size(app) > content)
-            content = layout_icon_size(app);
-        if (base < content + 8)
-            base = content + 8;
-    }
     unsigned padding = app->themes.active.row_padding;
-    return base + (padding <= 12 ? (int)padding : 0);
+    if (padding > 12)
+        padding = 0;
+    if (layout_is_grid(app))
+        return (app->icon_size == ICON_LARGE    ? 52
+                : app->icon_size == ICON_MEDIUM ? 44
+                                                : 20) +
+               (int)padding;
+
+    int text = layout_text_height(app);
+    int content = text;
+    int minimum = text + 2; /* Keep glyphs clear of the row's top/bottom stroke. */
+    if (layout_has_icons(app)) {
+        int icon = layout_icon_size(app);
+        if (content < icon)
+            content = icon;
+        /* The icon bezel extends two pixels beyond the image on each side. */
+        int framed = themes_component(&app->themes.active, THEME_ICON_FRAME) ? 4 : 2;
+        if (minimum < icon + framed)
+            minimum = icon + framed;
+    } else if (minimum < 16)
+        minimum = 16;
+    if (minimum < content + (int)padding)
+        minimum = content + (int)padding;
+
+    /* Home/System have no path line. Fit complete rows to each tab's actual
+     * viewport, then share spare pixels between them instead of leaving a
+     * large empty strip above the footer. Grid/Shelf retain their tile geometry. */
+    int available = UI_LIST_BOTTOM - layout_list_top(app->category);
+    int rows = available / minimum;
+    return rows > 0 ? available / rows : minimum;
 }
 static inline int layout_visible_rows(const App *app)
 {

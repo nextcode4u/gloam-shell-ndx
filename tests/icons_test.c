@@ -113,9 +113,42 @@ static void check_poster_preview(const char *name, uint16_t expected)
     app.browser_style = previous_view;
 }
 
+static void check_tab_row_fit(void)
+{
+    App *probe = &restored;
+    memset(probe, 0, sizeof *probe);
+    probe->browser_style = BROWSER_EXTENDED;
+    probe->themes.active.row_padding = 2;
+    const int categories[] = {CATEGORY_GAMES, CATEGORY_SYSTEM};
+    for (unsigned i = 0; i < 2; i++) {
+        probe->category = categories[i];
+        probe->icon_size = ICON_LARGE;
+        assert(layout_visible_rows(probe) == (i ? 4 : 3));
+        int gap = UI_LIST_BOTTOM - layout_list_bottom(probe);
+        assert(gap >= 0 && gap < layout_visible_rows(probe));
+        probe->icon_size = ICON_MEDIUM;
+        assert(layout_visible_rows(probe) == (i ? 5 : 4));
+        gap = UI_LIST_BOTTOM - layout_list_bottom(probe);
+        assert(gap >= 0 && gap < layout_visible_rows(probe));
+    }
+    /* Tall body fonts reserve their real two-line footprint rather than
+     * overlapping metadata or borrowing pixels from the following row. */
+    const FontPack *previous = font_current();
+    FontPack tall;
+    font_builtin(&tall);
+    tall.height = 16;
+    font_use(&tall);
+    assert(layout_text_line_height() == 17 && layout_text_height(probe) == 33);
+    assert(layout_row_height(probe) >= layout_text_height(probe) + 2);
+    probe->browser_style = BROWSER_LIST;
+    assert(layout_row_height(probe) >= 18);
+    font_use(previous);
+}
+
 int main(int argc, char **argv)
 {
     assert(argc == 2);
+    check_tab_row_fit();
     const char *root = argv[1];
     directory(root, "apps");
     directory(root, "roms");
