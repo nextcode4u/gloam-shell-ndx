@@ -134,6 +134,49 @@ bool item_preferences_load(const char *root, const char *content, ItemPreference
     memset(item, 0, sizeof *item);
     return load_item(root, content, item, false) == RECORD_VALID;
 }
+typedef struct {
+    char content[PATH_CAP];
+    ItemPreferences item;
+    bool occupied, valid;
+} DisplayRecord;
+static DisplayRecord display_records[4];
+static char display_root[PATH_CAP];
+static unsigned display_next;
+
+void item_preferences_display_clear(void)
+{
+    memset(display_records, 0, sizeof display_records);
+    display_root[0] = 0;
+    display_next = 0;
+}
+
+bool item_preferences_display(const char *root, const char *content, ItemPreferences *item)
+{
+    if (strlen(root) >= PATH_CAP || strlen(content) >= PATH_CAP)
+        return item_preferences_load(root, content, item);
+    if (strcmp(display_root, root)) {
+        item_preferences_display_clear();
+        path_copy(display_root, root, sizeof display_root);
+    }
+    for (unsigned i = 0; i < 4; i++) {
+        const DisplayRecord *record = &display_records[i];
+        if (record->occupied && !strcmp(record->content, content)) {
+            *item = record->item;
+            return record->valid;
+        }
+    }
+    memset(item, 0, sizeof *item);
+    RecordStatus status = load_item(root, content, item, false);
+    /* Do not hide a transient read failure behind a negative cache entry. */
+    if (status == RECORD_VALID || status == RECORD_MISSING) {
+        DisplayRecord *record = &display_records[display_next++ % 4];
+        path_copy(record->content, content, sizeof record->content);
+        record->item = *item;
+        record->valid = status == RECORD_VALID;
+        record->occupied = true;
+    }
+    return status == RECORD_VALID;
+}
 bool item_preferences_resolve(const char *root, const char *content, ItemPreferences *item)
 {
     RecordStatus status = load_item(root, content, item, false);
@@ -150,6 +193,7 @@ bool item_preferences_read_for_edit(const char *root, const char *content, ItemP
 }
 bool item_preferences_save(const char *root, const char *content, const ItemPreferences *item)
 {
+    item_preferences_display_clear();
     char key[PATH_CAP], cover[PATH_CAP] = "", application[PATH_CAP] = "", icon[PATH_CAP] = "";
     char path[PATH_CAP], temporary[PATH_CAP], backup[PATH_CAP], directory[PATH_CAP];
     if (!identity(key, root, content) || (*item->cover && !identity(cover, root, item->cover)) ||

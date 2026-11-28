@@ -159,6 +159,16 @@ int main(int argc, char **argv)
     assert(icon->pixels[8] == 0x83e0); /* Tile order and palette decoding. */
     select_entry("Second.smc");
     assert(icons_for_entry(&app, find_entry("Second.smc")) == icon);
+    /* Visiting another tab must not reread the same emulator/native banners.
+     * Explicit refresh still invalidates them after files change. */
+    unsigned warm_reads = app.icon_reads;
+    app_category(&app, CATEGORY_MEDIA);
+    app_category(&app, CATEGORY_GAMES);
+    select_entry("Second.smc");
+    assert(app.icon_reads == warm_reads);
+    browser_refresh(&app);
+    select_entry("Second.smc");
+    assert(app.icon_reads > warm_reads);
     app.artwork.ready = true;
     app.artwork.width = app.artwork.height = 32;
     for (int pixel = 0; pixel < 32 * 32; pixel++)

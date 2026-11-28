@@ -40,6 +40,9 @@ Banner icons read size metadata from the open file, without seeking to EOF.
 truncated animation retains the static icon. Title names and installed-title
 identity checks also avoid EOF seeks, keeping FAT cluster-chain traversal out of
 size validation while visible icons begin playing.
+Navigation retains the bounded banner cache; refresh and SD removal clear it.
+Display-only item assignments share a four-entry cache; launch/edit checks stay
+uncached. Browser artwork probes one optional source per frame.
 
 Native title discovery publishes boot-content IDs only after complete metadata
 reads and a successful close. Patched-menu and installed-title header checks use

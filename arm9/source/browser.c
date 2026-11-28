@@ -138,7 +138,7 @@ void browser_scan_begin(App *app)
     }
     app->scan_directory = app->storage_ready ? directory_scan_open(location->path) : NULL;
     app->directory_error = !app->scan_directory;
-    icons_reset(app);
+    icons_rebind(app);
     app_reset_preview(app);
 }
 static int restore_index(const App *app, int count)
@@ -182,7 +182,7 @@ static void finish_scan(App *app)
     }
     app->scan_seek_all = false;
     app->scan_restore_path[0] = 0;
-    icons_reset(app);
+    icons_rebind(app);
     browser_reflow(app);
 }
 void browser_scan_step(App *app)
@@ -360,7 +360,7 @@ void app_scan(App *app)
     }
     if (app->scan_directory)
         return;
-    icons_reset(app);
+    icons_rebind(app);
     browser_reflow(app);
 }
 
@@ -451,6 +451,7 @@ void browser_restore_selection(App *app, const char *path)
 
 void browser_refresh(App *app)
 {
+    icons_reset(app);
     if (app->category == CATEGORY_SYSTEM && app->installed_open) {
         installed_catalog_cancel(&app->installed_catalog);
         app->installed_catalog.attempted = app->installed_catalog.ready = false;

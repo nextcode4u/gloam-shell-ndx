@@ -196,6 +196,12 @@ mkdir "$fixture/artwork-cache"
 ASAN_OPTIONS=detect_leaks=1 build/host/artwork-cache-test "$fixture/artwork-cache"
 
 cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
+    "${model_objects[@]}" tests/browser_io_test.c \
+    -Wl,--wrap=fopen,--wrap=stat -o build/host/browser-io-test
+mkdir -p "$fixture/browser-io/roms"
+ASAN_OPTIONS=detect_leaks=1 build/host/browser-io-test "$fixture/browser-io"
+
+cc "${common_flags[@]}" -O1 -g -fsanitize=address,undefined \
     "${model_objects[@]}" "${ui_objects[@]}" tests/storage_state_test.c -o build/host/storage-state-test
 mkdir "$fixture/storage-state"
 ASAN_OPTIONS=detect_leaks=1 build/host/storage-state-test "$fixture/storage-state"

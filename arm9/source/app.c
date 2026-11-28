@@ -67,6 +67,7 @@ static void reset_selection_preview(App *app)
     app->selection_idle_frames = 0;
     app->artwork.ready = false;
     app->artwork_resolved = false;
+    app->artwork_stage = 0;
     app->title[0] = app->code[0] = 0;
     app->info_title[0] = app->info_code[0] = 0;
     app->info_loaded = app->info_header_valid = false;
@@ -82,6 +83,7 @@ void app_reset_preview(App *app)
         app->shelf_paths[cell][0] = 0;
         app->shelf_artwork[cell].ready = false;
         app->shelf_resolved[cell] = false;
+        app->shelf_stage[cell] = 0;
     }
 }
 
@@ -952,11 +954,13 @@ void app_tick(App *app)
         if (abs(d) < 32)
             app->selection_y_fixed = target;
     }
-    if ((app->browser_style != BROWSER_INDEX || top_content_mode(app) != TOP_CONTENT_THEME) &&
+    bool preparing_artwork =
+        (app->browser_style != BROWSER_INDEX || top_content_mode(app) != TOP_CONTENT_THEME) &&
         !app->settings.open && app->show_covers && !app->artwork.ready && !app->artwork_resolved &&
-        app->selection_idle_frames >= 7)
-        artwork_load(app);
-    if (!app->settings.open && app->panel == PANEL_NONE)
+        app->selection_idle_frames >= 7;
+    if (preparing_artwork)
+        artwork_step(app);
+    else if (!app->settings.open && app->panel == PANEL_NONE)
         artwork_shelf_tick(app);
     const Entry *selected_entry = app_selected(app);
     if (app->internal_titles && selected_entry && *selected_entry->internal_title)

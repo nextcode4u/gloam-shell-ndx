@@ -302,7 +302,7 @@ static bool icon_source(const App *app, const char *path, char output[PATH_CAP],
                         bool file)
 {
     ItemPreferences item;
-    bool assigned = item_preferences_load(app->root, path, &item);
+    bool assigned = item_preferences_display(app->root, path, &item);
     if (custom && assigned && *item.icon) {
         path_copy(output, item.icon, PATH_CAP);
         return true;

@@ -3,6 +3,7 @@
 #include "associations.h"
 #include "image_decode.h"
 #include "image_input.h"
+#include "item_preferences.h"
 #include "layout.h"
 #include "paths.h"
 #include <limits.h>
@@ -117,6 +118,12 @@ void icons_reset(App *app)
 {
     for (int index = 0; index < ICON_CACHE_CAP; index++)
         app->icons[index].occupied = false;
+    icons_rebind(app);
+}
+
+void icons_rebind(App *app)
+{
+    item_preferences_display_clear();
     for (int index = 0; index < ENTRY_CAP; index++)
         app->entry_icons[index] = -1;
     app->icons_idle_frames = 0;

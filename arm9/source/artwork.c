@@ -94,85 +94,100 @@ static bool prepare_artwork(Artwork *artwork, bool *resolved, const char *path, 
     return false;
 }
 
-static void artwork_load_entry(App *app, const Entry *entry, Artwork *artwork, bool *resolved,
-                               bool metadata)
+/* One optional source per step. A slow card must not pay for every missing
+ * sidecar, folder cover and fallback in the same browser frame. */
+static bool artwork_candidate(App *app, const Entry *entry, Artwork *artwork, bool *resolved,
+                              bool metadata, unsigned stage)
+{
+    char path[PATH_CAP];
+    const char *suffixes[] = {".png", ".jpg", ".jpeg"};
+    if (!stage) {
+        ItemPreferences preferences;
+        if (item_preferences_display(app->root, entry->path, &preferences) && *preferences.cover &&
+            prepare_artwork(artwork, resolved, preferences.cover, false)) {
+            snprintf(artwork->source, sizeof artwork->source, "Assigned image");
+            return true;
+        }
+    } else if (stage <= 3) {
+        unsigned suffix = stage - 1;
+        if (entry->kind == ITEM_FILE &&
+            snprintf(path, sizeof path, "%s%s", entry->path, suffixes[suffix]) < (int)sizeof path &&
+            prepare_artwork(artwork, resolved, path, false)) {
+            snprintf(artwork->source, sizeof artwork->source,
+                     suffix ? "Sidecar JPEG" : "Sidecar PNG");
+            return true;
+        }
+    } else if (stage == 4) {
+        if (entry->kind == ITEM_FILE && !strcasecmp(path_extension(entry->path), "mp3") &&
+            prepare_artwork(artwork, resolved, entry->path, true)) {
+            snprintf(artwork->source, sizeof artwork->source, "Embedded album art");
+            return true;
+        }
+    } else if (stage <= 7) {
+        char folder[PATH_CAP];
+        path_copy(folder, entry->path, sizeof folder);
+        if (entry->kind != ITEM_DIRECTORY) {
+            char *slash = strrchr(folder, '/');
+            if (slash)
+                *slash = 0;
+        }
+        if (snprintf(path, sizeof path, "%s/cover%s", folder, suffixes[stage - 5]) <
+                (int)sizeof path &&
+            prepare_artwork(artwork, resolved, path, false)) {
+            snprintf(artwork->source, sizeof artwork->source, "Folder cover");
+            return true;
+        }
+    } else if (stage == 8) {
+        const char *cover = entry->kind == ITEM_FILE ? association_cover(app, entry->path) : NULL;
+        if (cover && prepare_artwork(artwork, resolved, cover, false)) {
+            snprintf(artwork->source, sizeof artwork->source, "Association cover");
+            return true;
+        }
+    } else {
+        if (entry->kind == ITEM_FILE)
+            load_nds_banner(app, entry, artwork, metadata);
+        return true;
+    }
+    return false;
+}
+
+static void artwork_entry_step(App *app, const Entry *entry, Artwork *artwork, bool *resolved,
+                               bool metadata, unsigned char *stage)
 {
     artwork->ready = false;
     *resolved = true;
-    if (!entry || !entry->path[0] || !app->storage_ready)
+    if (!entry || !entry->path[0] || !app->storage_ready ||
+        (entry->kind != ITEM_FILE && entry->kind != ITEM_DIRECTORY && entry->kind != ITEM_MISSING))
         return;
-    if (entry->kind == ITEM_SYSTEM || entry->kind == ITEM_CATEGORY ||
-        entry->kind == ITEM_INSTALLED_TITLE || entry->kind == ITEM_INSTALLED_LIBRARY)
-        return;
-    char path[PATH_CAP];
-    app->artwork_reads++;
-    ItemPreferences preferences;
-    if (item_preferences_load(app->root, entry->path, &preferences) && *preferences.cover &&
-        prepare_artwork(artwork, resolved, preferences.cover, false)) {
-        snprintf(artwork->source, sizeof artwork->source, "Assigned image");
-        return;
+    if (!*stage)
+        app->artwork_reads++;
+    if (!artwork_candidate(app, entry, artwork, resolved, metadata, *stage)) {
+        (*stage)++;
+        *resolved = false;
     }
-    if (entry->kind == ITEM_FILE &&
-        snprintf(path, sizeof path, "%s.png", entry->path) < (int)sizeof path &&
-        prepare_artwork(artwork, resolved, path, false)) {
-        snprintf(artwork->source, sizeof artwork->source, "Sidecar PNG");
-        return;
-    }
-    if (entry->kind == ITEM_FILE) {
-        const char *suffixes[] = {".jpg", ".jpeg"};
-        for (int i = 0; i < 2; i++)
-            if (snprintf(path, sizeof path, "%s%s", entry->path, suffixes[i]) < (int)sizeof path &&
-                prepare_artwork(artwork, resolved, path, false)) {
-                snprintf(artwork->source, sizeof artwork->source, "Sidecar JPEG");
-                return;
-            }
-        if (!strcasecmp(path_extension(entry->path), "mp3") &&
-            prepare_artwork(artwork, resolved, entry->path, true)) {
-            snprintf(artwork->source, sizeof artwork->source, "Embedded album art");
-            return;
-        }
-    }
-    snprintf(path, sizeof path, "%s", entry->path);
-    if (entry->kind != ITEM_DIRECTORY) {
-        char *slash = strrchr(path, '/');
-        if (slash)
-            *slash = 0;
-    }
-    size_t len = strlen(path);
-    if (len + 11 < sizeof path) {
-        strcat(path, "/cover.png");
-        if (prepare_artwork(artwork, resolved, path, false)) {
-            snprintf(artwork->source, sizeof artwork->source, "Folder cover");
-            return;
-        }
-    }
-    const char *covers[] = {"/cover.jpg", "/cover.jpeg"};
-    char folder[PATH_CAP];
-    path_copy(folder, entry->path, sizeof folder);
-    if (entry->kind != ITEM_DIRECTORY) {
-        char *slash = strrchr(folder, '/');
-        if (slash)
-            *slash = 0;
-    }
-    for (int i = 0; i < 2; i++)
-        if (snprintf(path, sizeof path, "%s%s", folder, covers[i]) < (int)sizeof path &&
-            prepare_artwork(artwork, resolved, path, false)) {
-            snprintf(artwork->source, sizeof artwork->source, "Folder cover");
-            return;
-        }
-    if (entry->kind == ITEM_FILE) {
-        const char *cover = association_cover(app, entry->path);
-        if (cover && prepare_artwork(artwork, resolved, cover, false)) {
-            snprintf(artwork->source, sizeof artwork->source, "Association cover");
-            return;
-        }
-        load_nds_banner(app, entry, artwork, metadata);
-    }
+}
+
+static void artwork_load_entry(App *app, const Entry *entry, Artwork *artwork, bool *resolved,
+                               bool metadata)
+{
+    unsigned char stage = 0;
+    do {
+        unsigned char previous = stage;
+        artwork_entry_step(app, entry, artwork, resolved, metadata, &stage);
+        if (stage == previous)
+            break; /* Resolved, or waiting for the shared image decoder. */
+    } while (!*resolved);
 }
 
 void artwork_load(App *app)
 {
     artwork_load_entry(app, app_selected(app), &app->artwork, &app->artwork_resolved, true);
+}
+
+void artwork_step(App *app)
+{
+    artwork_entry_step(app, app_selected(app), &app->artwork, &app->artwork_resolved, true,
+                       &app->artwork_stage);
 }
 
 /* Three path-keyed slots survive selection changes. Explicit refreshes still
@@ -229,6 +244,7 @@ void artwork_shelf_tick(App *app)
                 return;
             path_copy(app->shelf_paths[slot], path, PATH_CAP);
             app->shelf_resolved[slot] = false;
+            app->shelf_stage[slot] = 0;
             app->shelf_artwork[slot].ready = false;
         }
         if (app->shelf_resolved[slot])
@@ -237,8 +253,8 @@ void artwork_shelf_tick(App *app)
             app->shelf_artwork[slot] = app->artwork;
             app->shelf_resolved[slot] = true;
         } else {
-            artwork_load_entry(app, &app->entries[index], &app->shelf_artwork[slot],
-                               &app->shelf_resolved[slot], false);
+            artwork_entry_step(app, &app->entries[index], &app->shelf_artwork[slot],
+                               &app->shelf_resolved[slot], false, &app->shelf_stage[slot]);
         }
         return;
     }

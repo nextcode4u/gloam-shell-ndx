@@ -392,7 +392,7 @@ int main(int argc, char **argv)
         path_copy(app.entries[i].name, name, sizeof app.entries[i].name);
         app.entries[i].kind = ITEM_FILE;
     }
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 40; i++)
         artwork_shelf_tick(&app);
     for (int i = 2; i <= 4; i++) {
         bool cached = false;

@@ -177,7 +177,7 @@ int main(int argc, char **argv)
     app.selection_idle_frames = 8;
     artwork_load(&app);
     strcpy(app.title, "Selected title");
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 30; i++)
         artwork_shelf_tick(&app);
     for (int i = 0; i < 3; i++)
         assert(app.shelf_resolved[i] && app.shelf_artwork[i].ready);

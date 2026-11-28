@@ -14,6 +14,8 @@ bool icon_load_banner(const char *path, uint16_t pixels[32 * 32]);
 /* One open and bounded reads for the static icon and optional DSi animation. */
 bool icon_load_title(const char *path, BrowserIcon *icon);
 void icons_reset(App *app);
+/* Navigation drops row references while retaining the bounded path-keyed bank. */
+void icons_rebind(App *app);
 bool icon_load_animation(const char *path, BrowserIcon *icon);
 void icon_animate(BrowserIcon *icon, bool reduced_motion);
 /* Resolve one uncached visible entry per call; invalid custom PNG may fall back to its banner. */

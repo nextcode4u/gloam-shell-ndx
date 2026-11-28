@@ -4,6 +4,8 @@
 /* Resolve artwork for the current selection. Called after selection settles. */
 bool artwork_decode_image(Artwork *artwork, const char *path);
 void artwork_load(App *app);
+/* Browser path: inspect at most one optional cover source per frame. */
+void artwork_step(App *app);
 void artwork_shelf_tick(App *app);
 const Artwork *artwork_shelf_for_entry(const App *app, int index);
 /* Four prepared images in RAM, validated against source file metadata. */

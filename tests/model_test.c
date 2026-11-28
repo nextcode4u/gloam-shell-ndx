@@ -135,7 +135,8 @@ int main(int argc, char **argv)
     for (int i = 0; i < 6; i++)
         app_tick(&app);
     assert(!app.artwork.ready);
-    app_tick(&app);
+    for (int i = 0; i < 12 && !app.artwork.ready; i++)
+        app_tick(&app);
     assert(app.artwork.ready);
     /* Opening settings while the lazy-load delay expires must not permanently
      * suppress the selected cover after settings closes. */
@@ -145,7 +146,8 @@ int main(int argc, char **argv)
         app_tick(&app);
     assert(!app.artwork.ready);
     app.settings.open = false;
-    app_tick(&app);
+    for (int i = 0; i < 12 && !app.artwork.ready; i++)
+        app_tick(&app);
     assert(app.artwork.ready);
     /* Fresh tab defaults match the chosen SD layout; saved paths remain separate. */
     char expected[PATH_CAP];

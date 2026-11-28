@@ -184,7 +184,7 @@ static void prepare_handler(App *app, const Entry *entry)
     if (entry->kind != ITEM_FILE)
         return;
     ItemPreferences item;
-    bool personal = item_preferences_load(app->root, entry->path, &item) && *item.application;
+    bool personal = item_preferences_display(app->root, entry->path, &item) && *item.application;
     bool built_in =
         icon_is_ds_title(entry->path) || !strcasecmp(path_extension(entry->path), "argv");
     const Association *profile = personal || built_in ? NULL : association_find(app, entry->path);
